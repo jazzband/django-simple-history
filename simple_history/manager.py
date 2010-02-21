@@ -19,7 +19,10 @@ class HistoryManager(models.Manager):
         if self.instance is None:
             return super(HistoryManager, self).get_query_set()
 
-        filter = {self.instance._meta.pk.name: self.instance.pk}
+        if isinstance(self.instance._meta.pk, models.OneToOneField):
+            filter = {self.instance._meta.pk.name+"_id":self.instance.pk}
+        else:
+            filter = {self.instance._meta.pk.name: self.instance.pk}
         return super(HistoryManager, self).get_query_set().filter(**filter)
 
     def most_recent(self):
@@ -29,7 +32,13 @@ class HistoryManager(models.Manager):
         if not self.instance:
             raise TypeError("Can't use most_recent() without a %s instance." % \
                             self.instance._meta.object_name)
-        fields = (field.name for field in self.instance._meta.fields)
+        tmp = []
+        for field in self.instance._meta.fields:
+            if isinstance(field, models.ForeignKey):
+                tmp.append(field.name+"_id")
+            else:
+                tmp.append(field.name)
+        fields = tuple(tmp)
         try:
             values = self.values_list(*fields)[0]
         except IndexError:
@@ -45,7 +54,13 @@ class HistoryManager(models.Manager):
         if not self.instance:
             raise TypeError("Can't use as_of() without a %s instance." % \
                             self.instance._meta.object_name)
-        fields = (field.name for field in self.instance._meta.fields)
+        tmp=[]
+        for field in self.instance._meta.fields:
+            if isinstance(field, models.ForeignKey):
+                tmp.append(field.name+"_id")
+            else:
+                tmp.append(field.name)
+        fields = tuple(tmp)
         qs = self.filter(history_date__lte=date)
         try:
             values = qs.values_list('history_type', *fields)[0]
