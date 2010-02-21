@@ -1,10 +1,7 @@
 import copy
 import datetime
-
 from django.db import models
-
-from chapter11.current_user import models as current_user
-from chapter11.history import manager
+from manager import HistoryDescriptor
 
 class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
@@ -21,7 +18,7 @@ class HistoricalRecords(object):
         models.signals.post_delete.connect(self.post_delete, sender=sender,
                                            weak=False)
 
-        descriptor = manager.HistoryDescriptor(history_model)
+        descriptor = HistoryDescriptor(history_model)
         setattr(sender, self.manager_name, descriptor)
 
     def create_history_model(self, model):
@@ -70,7 +67,6 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(default=datetime.datetime.now),
-            'history_user': current_user.CurrentUserField(related_name=rel_nm),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
