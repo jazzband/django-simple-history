@@ -2,3 +2,4 @@ include CHANGELOG
 include MANIFEST.in
 include README
 include AUTHORS
+include LICENSE.txt
