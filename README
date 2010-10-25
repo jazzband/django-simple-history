@@ -1,8 +1,12 @@
+django-simple-history is a tool to store state of DB objects on every create/update/delete. It has been tested to work in django 1.X (including 1.2.3 as of 10/25/2010).
+
 == Install ==
 Download the tar.gz, extract it and run the following inside the directory:
     python setup.py install
 
 == Basic usage ==
+Using this package is _really_ simple; you just have to import HistoricalRecords and create an instance of it on every model you want to historically track.
+
 On your models you need to include the following line at the top:
     from simple_history.models import HistoricalRecords
 
