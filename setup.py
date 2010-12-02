@@ -32,5 +32,8 @@ setup(name='simple_history',
       package_dir={'simple_history': 'simple_history'},
       packages=packages,
       package_data={'simple_history': data_files},
+      classifiers=[
+          "Development Status :: 5 - Production/Stable",
+          "Framework :: Django",
+          ],
       )
-
