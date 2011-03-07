@@ -25,8 +25,11 @@ class HistoricalRecords(object):
         """
         Creates a historical model to associate with the model provided.
         """
-        attrs = self.copy_fields(model)
-        attrs.update(self.get_extra_fields(model))
+        attrs = {'__module__': model.__module__}
+
+        fields = self.copy_fields(model)
+        attrs.update(fields)
+        attrs.update(self.get_extra_fields(model, fields))
         attrs.update(Meta=type('Meta', (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
         return type(name, (models.Model,), attrs)
@@ -36,9 +39,7 @@ class HistoricalRecords(object):
         Creates copies of the model's original fields, returning
         a dictionary mapping field name to copied field object.
         """
-        # Though not strictly a field, this attribute
-        # is required for a model to function properly.
-        fields = {'__module__': model.__module__}
+        fields = {}
 
         for field in model._meta.fields:
             field = copy.copy(field)
@@ -83,11 +84,14 @@ class HistoricalRecords(object):
 
         return fields
 
-    def get_extra_fields(self, model):
+    def get_extra_fields(self, model, fields):
         """
         Returns a dictionary of fields that will be added to the historical
         record model, in addition to the ones returned by copy_fields below.
         """
+        def get_instance(self):
+            return model(**dict([(k, getattr(self, k)) for k in fields]))
+
         rel_nm = '_%s_history' % model._meta.object_name.lower()
         return {
             'history_id': models.AutoField(primary_key=True),
@@ -98,6 +102,7 @@ class HistoricalRecords(object):
                 ('-', 'Deleted'),
             )),
             'history_object': HistoricalObjectDescriptor(model),
+            'instance': property(get_instance),
             '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
                                                           self.history_date)
         }
