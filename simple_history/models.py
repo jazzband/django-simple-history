@@ -1,6 +1,7 @@
 import copy
 import datetime
 from django.db import models
+from django.utils import importlib
 from manager import HistoryDescriptor
 
 class HistoricalRecords(object):
@@ -10,6 +11,8 @@ class HistoricalRecords(object):
 
     def finalize(self, sender, **kwargs):
         history_model = self.create_history_model(sender)
+        module = importlib.import_module(history_model.__module__)
+        setattr(module, history_model.__name__, history_model)
 
         # The HistoricalRecords object will be discarded,
         # so the signal handlers can't use weak references.
