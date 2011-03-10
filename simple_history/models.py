@@ -7,11 +7,12 @@ from manager import HistoryDescriptor
 class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
+        self.module = cls.__module__
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
     def finalize(self, sender, **kwargs):
         history_model = self.create_history_model(sender)
-        module = importlib.import_module(history_model.__module__)
+        module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
 
         # The HistoricalRecords object will be discarded,
@@ -28,7 +29,7 @@ class HistoricalRecords(object):
         """
         Creates a historical model to associate with the model provided.
         """
-        attrs = {'__module__': model.__module__}
+        attrs = {'__module__': self.module}
 
         fields = self.copy_fields(model)
         attrs.update(fields)
