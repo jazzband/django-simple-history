@@ -3,16 +3,32 @@ from django.db import models
 from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
+from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_unicode
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
+    object_history_form_template = "simple_history/object_history_form.html"
+
+    def get_urls(self):
+        """Returns the additional urls used by the Reversion admin."""
+        urls = super(SimpleHistoryAdmin, self).get_urls()
+        admin_site = self.admin_site
+        opts = self.model._meta
+        info = opts.app_label, opts.module_name,
+        history_urls = patterns("",
+            url("^([^/]+)/history/([^/]+)/$",
+                admin_site.admin_view(self.history_form_view),
+                name='%s_%s_simple_history' % info),)
+        return history_urls + urls
 
     def history_view(self, request, object_id, extra_context=None):
         "The 'history' admin view for this model."
@@ -33,3 +49,84 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.admin_site.name)
         return render_to_response(self.object_history_template, context, context_instance=context_instance)
+
+    def history_form_view(self, request, object_id, version_id):
+        original_model = self.model
+        original_opts = original_model._meta
+        model = self.model.history.model
+        opts = model._meta
+        app_label = opts.app_label
+        record = get_object_or_404(model, id=object_id, history_id=version_id)
+        obj = record.instance
+        obj._state.adding = False
+        original = get_object_or_404(original_model, id=object_id)
+
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
+
+        if request.method == 'POST' and request.POST.has_key("_saveasnew"):
+            return self.add_view(request, form_url='../add/')
+
+        formsets = []
+        ModelForm = self.get_form(request, obj)
+        if request.method == 'POST':
+            form = ModelForm(request.POST, request.FILES, instance=obj)
+            if form.is_valid():
+                form_validated = True
+                new_object = self.save_form(request, form, change=True)
+            else:
+                form_validated = False
+                new_object = obj
+            prefixes = {}
+
+            if form_validated:
+                self.save_model(request, new_object, form, change=True)
+                form.save_m2m()
+
+                change_message = self.construct_change_message(request, form, formsets)
+                self.log_change(request, new_object, change_message)
+                return self.response_change(request, new_object)
+
+        else:
+            form = ModelForm(instance=obj)
+            prefixes = {}
+
+        adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
+            self.prepopulated_fields, self.get_readonly_fields(request, obj),
+            model_admin=self)
+        media = self.media + adminForm.media
+
+
+        url_triplet = (self.admin_site.name, original_opts.app_label,
+                            original_opts.module_name)
+        context = {
+            'title': _('Revert %s') % force_unicode(obj),
+            'adminform': adminForm,
+            'object_id': object_id,
+            'original': obj,
+            'is_popup': False,
+            'media': mark_safe(media),
+            'errors': helpers.AdminErrorList(form, formsets),
+            'app_label': opts.app_label,
+            'original_opts': original_opts,
+            'changelist_url': reverse('%s:%s_%s_changelist' % url_triplet),
+            'change_url': reverse('%s:%s_%s_change' % url_triplet, args=(obj.pk,)),
+            'history_url': reverse('%s:%s_%s_history' % url_triplet, args=(obj.pk,)),
+            # Context variables copied from render_change_form
+            'add': False,
+            'change': True,
+            'has_add_permission': self.has_add_permission(request),
+            'has_change_permission': self.has_change_permission(request, obj),
+            'has_delete_permission': self.has_delete_permission(request, obj),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'ordered_objects': opts.get_ordered_objects(),
+            'form_url': '',
+            'opts': opts,
+            'content_type_id': ContentType.objects.get_for_model(self.model).id,
+            'save_as': self.save_as,
+            'save_on_top': self.save_on_top,
+            'root_path': self.admin_site.root_path,
+        }
+        context_instance = template.RequestContext(request, current_app=self.admin_site.name)
+        return render_to_response(self.object_history_form_template, context, context_instance)

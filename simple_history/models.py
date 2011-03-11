@@ -1,6 +1,7 @@
 import copy
 import datetime
 from django.db import models
+from django.contrib import admin
 from django.utils import importlib
 from manager import HistoryDescriptor
 
@@ -93,6 +94,9 @@ class HistoricalRecords(object):
         Returns a dictionary of fields that will be added to the historical
         record model, in addition to the ones returned by copy_fields below.
         """
+        @models.permalink
+        def revert_url(self):
+            return ('%s:%s_%s_simple_history' % (admin.site.name, model._meta.app_label, model._meta.module_name), [self.id, self.history_id])
         def get_instance(self):
             return model(**dict([(k, getattr(self, k)) for k in fields]))
 
@@ -107,6 +111,7 @@ class HistoricalRecords(object):
             )),
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
+            'revert_url': revert_url,
             '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
                                                           self.history_date)
         }

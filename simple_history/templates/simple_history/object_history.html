@@ -19,14 +19,14 @@
 			        <tbody>
 				        {% for action in action_list %}
 					        <tr>
-					            <th scope="row">{{ action.history_date }}</th>
+					            <th scope="row"><a href="{{ action.revert_url }}">{{ action.history_date }}</a></th>
 					            <td>{{ action.get_history_type_display }}</td>
 					        </tr>
 				        {% endfor %}
 			        </tbody>
 			    </table>
 			{% else %}
-			    <p>{% trans "This object doesn't have a change history. It probably wasn't added via this admin site." %}</p>
+			    <p>{% trans "This object doesn't have a change history." %}</p>
 			{% endif %}
 		</div>
 	</div>
