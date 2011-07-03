@@ -15,7 +15,7 @@ for dirpath, dirnames, filenames in os.walk('simple_history'):
     if '__init__.py' in filenames:
         pkg = dirpath.replace(os.path.sep, '.')
         if os.path.altsep:
-            pkg = pgk.replace(os.path.altsep, '.')
+            pkg = pkg.replace(os.path.altsep, '.')
         packages.append(pkg)
     elif filenames:
         # strip 'simple_history/' or 'simple_history\'
