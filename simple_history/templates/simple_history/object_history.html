@@ -14,6 +14,7 @@
 				        <tr>
 				            <th scope="col">{% trans 'Date/time' %}</th>
 				            <th scope="col">{% trans 'Comment' %}</th>
+				            <th scope="col">{% trans 'Changed by' %}</th>
 				        </tr>
 			        </thead>
 			        <tbody>
@@ -21,6 +22,7 @@
 					        <tr>
 					            <th scope="row"><a href="{{ action.revert_url }}">{{ action.history_date }}</a></th>
 					            <td>{{ action.get_history_type_display }}</td>
+					            <td>{{ action.changed_by }}</td>
 					        </tr>
 				        {% endfor %}
 			        </tbody>

@@ -2,6 +2,7 @@ import copy
 import datetime
 from django.db import models
 from django.contrib import admin
+from django.contrib.auth.models import User
 from django.utils import importlib
 from manager import HistoryDescriptor
 
@@ -110,6 +111,7 @@ class HistoricalRecords(object):
                 ('-', 'Deleted'),
             )),
             'history_object': HistoricalObjectDescriptor(model),
+            'changed_by': models.ForeignKey(User, null=True),
             'instance': property(get_instance),
             'revert_url': revert_url,
             '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
@@ -132,11 +134,12 @@ class HistoricalRecords(object):
         self.create_historical_record(instance, '-')
 
     def create_historical_record(self, instance, type):
+        changed_by = getattr(instance, '_changed_by_user', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_type=type, **attrs)
+        manager.create(history_type=type, changed_by=changed_by, **attrs)
 
 class HistoricalObjectDescriptor(object):
     def __init__(self, model):
