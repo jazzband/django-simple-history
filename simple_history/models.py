@@ -76,6 +76,10 @@ class HistoricalRecords(object):
                 fk = True
             else:
                 fk = False
+            
+            # The historical instance should not change creation/modification timestamps.
+            field.auto_now = False
+            field.auto_now_add = False
 
             if field.primary_key or field.unique:
                 # Unique fields can no longer be guaranteed unique,
