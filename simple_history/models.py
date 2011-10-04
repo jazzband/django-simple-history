@@ -12,6 +12,14 @@ class HistoricalRecords(object):
         self.module = cls.__module__
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
+        def save_without_historical_record(self, *args, **kwargs):
+            """Caution! Make sure you know what you're doing before you use this method."""
+            self.skip_history_when_saving = True
+            ret = self.save(*args, **kwargs)
+            del self.skip_history_when_saving
+            return ret
+        setattr(cls, 'save_without_historical_record', save_without_historical_record)
+
     def finalize(self, sender, **kwargs):
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
@@ -128,10 +136,12 @@ class HistoricalRecords(object):
         the Meta inner class of the historical record model.
         """
         return {
-            'ordering': ('-history_date',),
+            'ordering': ('-history_date', '-history_id'),
         }
 
     def post_save(self, instance, created, **kwargs):
+        if not created and hasattr(instance, 'skip_history_when_saving'):
+            return
         self.create_historical_record(instance, created and '+' or '~')
 
     def post_delete(self, instance, **kwargs):
