@@ -2,4 +2,4 @@ syntax: glob
 *.pyc
 dist
 MANIFEST
-
+simple_history.egg-info

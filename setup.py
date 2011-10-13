@@ -24,11 +24,11 @@ for dirpath, dirnames, filenames in os.walk('simple_history'):
             data_files.append(os.path.join(prefix, f))
 
 setup(name='simple_history',
-      version='1.0',
+      version='1.1.0',
       description='Store Django model history with the ability to revert back to a specific change at any time.',
       author='Corey Bertram',
       author_email='corey@qr7.com',
-      url='http://bitbucket.org/q/django-simple-history',
+      url='http://bitbucket.org/joaofrancese/django-simple-history',
       package_dir={'simple_history': 'simple_history'},
       packages=packages,
       package_data={'simple_history': data_files},
