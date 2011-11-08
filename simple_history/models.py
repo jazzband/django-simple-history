@@ -101,7 +101,10 @@ class HistoricalRecords(object):
         """
         @models.permalink
         def revert_url(self):
-            return ('%s:%s_%s_simple_history' % (admin.site.name, model._meta.app_label, model._meta.module_name), [self.id, self.history_id])
+            opts = model._meta
+            return ('%s:%s_%s_simple_history' %
+                    (admin.site.name, opts.app_label, opts.module_name),
+                    [getattr(self, opts.pk.attname), self.history_id])
         def get_instance(self):
             return model(**dict([(k, getattr(self, k)) for k in fields]))
 
