@@ -61,7 +61,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         record = get_object_or_404(model, **{pk_name: object_id, 'history_id': version_id})
         obj = record.instance
         obj._state.adding = False
-        original = get_object_or_404(original_model, **{pk_name: object_id})
+        original = get_object_or_404(original_model, pk=object_id)
 
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
