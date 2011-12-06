@@ -3,3 +3,5 @@ syntax: glob
 dist
 MANIFEST
 simple_history.egg-info
+simple_history/.project
+simple_history/.pydevproject
