@@ -156,5 +156,10 @@ class HistoricalObjectDescriptor(object):
         self.model = model
 
     def __get__(self, instance, owner):
-        values = (getattr(instance, f.attname) for f in self.model._meta.fields)
-        return self.model(*values)
+        def _gen():
+            for field in self.model._meta.fields:
+                if isinstance(field, models.ForeignKey):
+                    yield getattr(instance, field.name)
+                else:
+                    yield getattr(instance, field.attname)
+        return self.model(_gen())
