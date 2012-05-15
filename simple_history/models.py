@@ -84,7 +84,7 @@ class HistoricalRecords(object):
                 fk = True
             else:
                 fk = False
-            
+
             # The historical instance should not change creation/modification timestamps.
             field.auto_now = False
             field.auto_now_add = False
@@ -96,9 +96,8 @@ class HistoricalRecords(object):
                 field._unique = False
                 field.db_index = True
             if fk:
-                fields[field.name+"_id"] = field
-            else:
-                fields[field.name] = field
+                field.name = field.name + "_id"
+            fields[field.name] = field
 
         return fields
 
