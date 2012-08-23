@@ -36,7 +36,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = model._meta
         app_label = opts.app_label
         pk_name = opts.pk.attname
-        action_list = model.history.filter(**{pk_name: object_id})
+        history = getattr(model, model._meta.simple_history_manager_attribute)
+        action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
         context = {
@@ -54,7 +55,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     def history_form_view(self, request, object_id, version_id):
         original_model = self.model
         original_opts = original_model._meta
-        model = self.model.history.model
+        history = getattr(self.model, self.model._meta.simple_history_manager_attribute)
+        model = history.model
         opts = model._meta
         app_label = opts.app_label
         pk_name = original_opts.pk.attname

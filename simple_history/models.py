@@ -34,6 +34,7 @@ class HistoricalRecords(object):
 
         descriptor = HistoryDescriptor(history_model)
         setattr(sender, self.manager_name, descriptor)
+        sender._meta.simple_history_manager_attribute = self.manager_name
 
     def create_history_model(self, model):
         """
