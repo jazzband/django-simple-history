@@ -1,10 +1,10 @@
 import copy
-import datetime
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.utils import importlib
 from manager import HistoryDescriptor
+
 
 class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
@@ -116,10 +116,9 @@ class HistoricalRecords(object):
         def get_instance(self):
             return model(**dict([(k, getattr(self, k)) for k in fields]))
 
-        rel_nm = '_%s_history' % model._meta.object_name.lower()
         return {
             'history_id': models.AutoField(primary_key=True),
-            'history_date': models.DateTimeField(default=datetime.datetime.now),
+            'history_date': models.DateTimeField(auto_now_add=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
@@ -157,6 +156,7 @@ class HistoricalRecords(object):
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_type=type, changed_by=changed_by, **attrs)
+
 
 class HistoricalObjectDescriptor(object):
     def __init__(self, model):

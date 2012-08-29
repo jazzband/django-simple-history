@@ -1,7 +1,6 @@
 from django import template
-from django.db import models
+from django.core.exceptions import PermissionDenied
 from django.conf.urls.defaults import patterns, url
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
@@ -59,17 +58,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         history = getattr(self.model, self.model._meta.simple_history_manager_attribute)
         model = history.model
         opts = model._meta
-        app_label = opts.app_label
         pk_name = original_opts.pk.attname
         record = get_object_or_404(model, **{pk_name: object_id, 'history_id': version_id})
         obj = record.instance
         obj._state.adding = False
-        original = get_object_or_404(original_model, pk=object_id)
 
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
-        if request.method == 'POST' and request.POST.has_key("_saveasnew"):
+        if request.method == 'POST' and '_saveas_new' in request.POST:
             return self.add_view(request, form_url='../add/')
 
         formsets = []
@@ -94,13 +91,11 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         else:
             form = ModelForm(instance=obj)
-            prefixes = {}
 
         adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
             self.prepopulated_fields, self.get_readonly_fields(request, obj),
             model_admin=self)
         media = self.media + adminForm.media
-
 
         url_triplet = (self.admin_site.name, original_opts.app_label,
                             original_opts.module_name)

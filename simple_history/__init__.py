@@ -1,5 +1,3 @@
-from django.utils import importlib
-
 import models
 
 
