@@ -22,7 +22,7 @@
 							<tr>
 								<th scope="row"><a href="{{ action.revert_url }}">{{ action.history_date }}</a></th>
 								<td>{{ action.get_history_type_display }}</td>
-								<td>{{ action.changed_by }}</td>
+								<td><a href="{% url admin:auth_user_change action.history_user_id %}">{{ action.history_user }}</a></td>
 							</tr>
 						{% endfor %}
 					</tbody>

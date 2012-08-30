@@ -135,5 +135,5 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         """
         Add the admin user to a special model attribute for reference after save
         """
-        obj._changed_by_user = request.user
+        obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)

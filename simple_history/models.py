@@ -119,13 +119,13 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
+            'history_user': models.ForeignKey(User, null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
                 ('-', 'Deleted'),
             )),
             'history_object': HistoricalObjectDescriptor(model),
-            'changed_by': models.ForeignKey(User, null=True),
             'instance': property(get_instance),
             'revert_url': revert_url,
             '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
@@ -150,12 +150,12 @@ class HistoricalRecords(object):
         self.create_historical_record(instance, '-')
 
     def create_historical_record(self, instance, type):
-        changed_by = getattr(instance, '_changed_by_user', None)
+        history_user = getattr(instance, '_history_user', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_type=type, changed_by=changed_by, **attrs)
+        manager.create(history_type=type, history_user=history_user, **attrs)
 
 
 class HistoricalObjectDescriptor(object):
