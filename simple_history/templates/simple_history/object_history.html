@@ -12,6 +12,7 @@
 				<table id="change-history">
 					<thead>
 						<tr>
+							<th scope="col">{% trans 'Object' %}</th>
 							<th scope="col">{% trans 'Date/time' %}</th>
 							<th scope="col">{% trans 'Comment' %}</th>
 							<th scope="col">{% trans 'Changed by' %}</th>
@@ -20,7 +21,8 @@
 					<tbody>
 						{% for action in action_list %}
 							<tr>
-								<th scope="row"><a href="{{ action.revert_url }}">{{ action.history_date }}</a></th>
+								<td><a href="{{ action.revert_url }}">{{ action.history_object }}</a></td>
+								<td>{{ action.history_date }}</td>
 								<td>{{ action.get_history_type_display }}</td>
 								<td><a href="{% url admin:auth_user_change action.history_user_id %}">{{ action.history_user }}</a></td>
 							</tr>
