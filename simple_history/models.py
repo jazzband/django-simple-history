@@ -160,7 +160,7 @@ class HistoricalRecords(object):
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
-            if isinstance(field, models.FileField):
+            if isinstance(field, models.FileField) and getattr(instance, field.attname):
                 attrs[field.attname] = getattr(instance, field.attname).path
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_type=type, history_user=history_user, **attrs)
