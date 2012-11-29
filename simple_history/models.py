@@ -65,6 +65,10 @@ class HistoricalRecords(object):
                 # existing one must be replaced with an IntegerField.
                 field.__class__ = models.IntegerField
 
+            if isinstance(field, models.FileField):
+                # Don't copy file, just path.
+                field.__class__ = models.TextField
+
             if isinstance(field, models.ForeignKey):
                 field.__class__ = models.IntegerField
                 #ughhhh. open to suggestions here
@@ -156,6 +160,8 @@ class HistoricalRecords(object):
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
+            if isinstance(field, models.FileField):
+                attrs[field.attname] = getattr(instance, field.attname).path
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_type=type, history_user=history_user, **attrs)
 
