@@ -1,5 +1,6 @@
 {% extends "admin/object_history.html" %}
 {% load i18n %}
+{% load url from future %}
 
 
 {% block content %}
@@ -24,7 +25,7 @@
 								<td><a href="{{ action.revert_url }}">{{ action.history_object }}</a></td>
 								<td>{{ action.history_date }}</td>
 								<td>{{ action.get_history_type_display }}</td>
-								<td><a href="{% url admin:auth_user_change action.history_user_id %}">{{ action.history_user }}</a></td>
+								<td><a href="{% url "admin:auth_user_change" action.history_user_id %}">{{ action.history_user }}</a></td>
 							</tr>
 						{% endfor %}
 					</tbody>
