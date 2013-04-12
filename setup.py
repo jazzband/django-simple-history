@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 import os
 
 # compile the list of packages available, because distutils doesn't have an easy way to do this
@@ -38,4 +38,6 @@ setup(name='simple_history',
           "Development Status :: 5 - Production/Stable",
           "Framework :: Django",
           ],
-      )
+    tests_require=["Django>=1.2"],
+    test_suite='runtests.main',
+)
