@@ -1,6 +1,6 @@
 from django import template
 from django.core.exceptions import PermissionDenied
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType

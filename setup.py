@@ -14,6 +14,6 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
     ],
-    tests_require=["Django>=1.2"],
+    tests_require=["Django>=1.3"],
     test_suite='runtests.main',
 )
