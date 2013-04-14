@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from .models import Poll, Choice
 
@@ -108,3 +109,18 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(question_as_of(times[0]), "why?")
         self.assertEqual(question_as_of(times[1]), "how's it going?")
         self.assertEqual(question_as_of(times[2]), "what's up?")
+
+
+class AdminSiteTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser('u', 'u@example.com', 'pass')
+
+    def test_history_list(self):
+        self.client.login(username='u', password='pass')
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        base_url = '/admin/tests/poll/{0}/history/'.format(poll.id)
+        hist_url = '{0}{1}/'.format(base_url, poll.history.all()[0].history_id)
+        response = self.client.get(base_url)
+        self.assertIn(hist_url, response.content)
+        self.assertIn("Poll object", response.content)
+        self.assertIn("Created", response.content)
