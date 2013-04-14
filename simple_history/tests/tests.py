@@ -16,6 +16,10 @@ class HistoricalRecordsTest(TestCase):
     def assertRecordValues(self, record, values_dict):
         for key, value in values_dict.items():
             self.assertEqual(getattr(record, key), value)
+        self.assertEqual(record.history_object.__class__, Poll)
+        for key, value in values_dict.items():
+            if key != 'history_type':
+                self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
         p = Poll(question="what's up?", pub_date=today)
