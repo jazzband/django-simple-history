@@ -1,5 +1,6 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
+from simple_history import register
 
 
 class Poll(models.Model):
@@ -14,4 +15,4 @@ class Choice(models.Model):
     choice = models.CharField(max_length=200)
     votes = models.IntegerField()
 
-    history = HistoricalRecords()
+register(Choice)

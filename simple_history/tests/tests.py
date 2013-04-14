@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from django.test import TestCase
 
-from .models import Poll
+from .models import Poll, Choice
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -68,6 +68,14 @@ class HistoricalRecordsTest(TestCase):
             'id': poll_id,
             'history_type': "-"
         })
+
+
+class RegisterTest(TestCase):
+    def test_register_no_args(self):
+        self.assertEqual(len(Choice.history.all()), 0)
+        poll = Poll.objects.create(pub_date=today)
+        choice = Choice.objects.create(poll=poll, votes=0)
+        self.assertEqual(len(choice.history.all()), 1)
 
 
 class HistoryManagerTest(TestCase):
