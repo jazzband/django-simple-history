@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
 from simple_history import register
 
@@ -16,3 +17,5 @@ class Choice(models.Model):
     votes = models.IntegerField()
 
 register(Choice)
+
+register(User, app='simple_history.tests', manager_name='histories')

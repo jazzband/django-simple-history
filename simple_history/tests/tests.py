@@ -82,6 +82,14 @@ class RegisterTest(TestCase):
         choice = Choice.objects.create(poll=poll, votes=0)
         self.assertEqual(len(choice.history.all()), 1)
 
+    def test_register_separate_app(self):
+        get_history = lambda model: model.history
+        self.assertRaises(AttributeError, get_history, User)
+        self.assertEqual(len(User.histories.all()), 0)
+        user = User.objects.create(username='bob', password='pass')
+        self.assertEqual(len(User.histories.all()), 1)
+        self.assertEqual(len(user.histories.all()), 1)
+
 
 class HistoryManagerTest(TestCase):
     def test_most_recent(self):
