@@ -18,4 +18,15 @@ class Choice(models.Model):
 
 register(Choice)
 
+
+class Place(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class Restaurant(Place):
+    rating = models.IntegerField()
+
+    updates = HistoricalRecords()
+
+
 register(User, app='simple_history.tests', manager_name='histories')

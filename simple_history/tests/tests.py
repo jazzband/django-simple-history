@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice
+from .models import Poll, Choice, Restaurant
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -69,6 +69,24 @@ class HistoricalRecordsTest(TestCase):
             'pub_date': today,
             'id': poll_id,
             'history_type': "-"
+        })
+
+    def test_inheritance(self):
+        pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
+        pizza_place.rating = 4
+        pizza_place.save()
+        update_record, create_record = Restaurant.updates.all()
+        self.assertRecordValues(create_record, Restaurant, {
+            'name': "Pizza Place",
+            'rating': 3,
+            'id': pizza_place.id,
+            'history_type': "+",
+        })
+        self.assertRecordValues(update_record, Restaurant, {
+            'name': "Pizza Place",
+            'rating': 4,
+            'id': pizza_place.id,
+            'history_type': "~",
         })
 
 
