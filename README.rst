@@ -7,7 +7,7 @@ django-simple-history
 .. image:: https://coveralls.io/repos/treyhunner/django-simple-history/badge.png?branch=master
    :target: https://coveralls.io/r/treyhunner/django-simple-history
 
-django-simple-history is a tool to store state of DB objects on every create/update/delete. It has been tested to work in django 1.X (including 1.2.3 as of 10/25/2010).
+django-simple-history is a tool to store state of DB objects on every create/update/delete.
 
 Install
 -------
