@@ -71,6 +71,26 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "-"
         })
 
+    def test_save_without_historical_record(self):
+        pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
+        pizza_place.rating = 4
+        pizza_place.save_without_historical_record()
+        pizza_place.rating = 6
+        pizza_place.save()
+        update_record, create_record = Restaurant.updates.all()
+        self.assertRecordValues(create_record, Restaurant, {
+            'name': "Pizza Place",
+            'rating': 3,
+            'id': pizza_place.id,
+            'history_type': "+",
+        })
+        self.assertRecordValues(update_record, Restaurant, {
+            'name': "Pizza Place",
+            'rating': 6,
+            'id': pizza_place.id,
+            'history_type': "~",
+        })
+
     def test_inheritance(self):
         pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
         pizza_place.rating = 4
