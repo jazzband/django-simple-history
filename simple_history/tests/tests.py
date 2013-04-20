@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from django.test import TestCase
+from django_webtest import WebTest
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant
@@ -154,16 +156,30 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(question_as_of(times[2]), "what's up?")
 
 
-class AdminSiteTest(TestCase):
+def get_history_url(model, history_index=None):
+    info = model._meta.app_label, model._meta.module_name
+    if history_index is not None:
+        history = model.history.order_by('history_id')[history_index]
+        return reverse('admin:%s_%s_simple_history' % info,
+            args=[model.pk, history.history_id])
+    else:
+        return reverse('admin:%s_%s_history' % info, args=[model.pk])
+
+
+class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser('u', 'u@example.com', 'pass')
 
+    def login(self, username, password):
+        form = self.app.get(reverse('admin:index')).form
+        form['username'] = username
+        form['password'] = password
+        return form.submit()
+
     def test_history_list(self):
-        self.client.login(username='u', password='pass')
+        self.login(username='u', password='pass')
         poll = Poll.objects.create(question="why?", pub_date=today)
-        base_url = '/admin/tests/poll/{0}/history/'.format(poll.id)
-        hist_url = '{0}{1}/'.format(base_url, poll.history.all()[0].history_id)
-        response = self.client.get(base_url)
-        self.assertIn(hist_url, response.content)
+        response = self.app.get(get_history_url(poll))
+        self.assertIn(get_history_url(poll, 0), response.content)
         self.assertIn("Poll object", response.content)
         self.assertIn("Created", response.content)
