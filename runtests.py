@@ -11,6 +11,7 @@ sys.path.insert(0, abspath(dirname(__file__)))
 if not settings.configured:
     settings.configure(
         ROOT_URLCONF='simple_history.tests.urls',
+        STATIC_URL='/static/',
         INSTALLED_APPS=(
             'django.contrib.contenttypes',
             'django.contrib.auth',
