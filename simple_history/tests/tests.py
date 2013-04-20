@@ -93,6 +93,26 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_foreignkey_field(self):
+        why_poll = Poll.objects.create(question="why?", pub_date=today)
+        how_poll = Poll.objects.create(question="how?", pub_date=today)
+        choice = Choice.objects.create(poll=why_poll, votes=0)
+        choice.poll = how_poll
+        choice.save()
+        update_record, create_record = Choice.history.all()
+        self.assertRecordValues(create_record, Choice, {
+            'poll_id': why_poll.id,
+            'votes': 0,
+            'id': choice.id,
+            'history_type': "+",
+        })
+        self.assertRecordValues(update_record, Choice, {
+            'poll_id': how_poll.id,
+            'votes': 0,
+            'id': choice.id,
+            'history_type': "~",
+        })
+
     def test_inheritance(self):
         pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
         pizza_place.rating = 4
