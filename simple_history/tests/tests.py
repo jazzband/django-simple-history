@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from django import VERSION
 from django.test import TestCase
 from django_webtest import WebTest
 from django.core.urlresolvers import reverse
@@ -221,8 +222,12 @@ class AdminSiteTest(WebTest):
         response.form['pub_date_0'] = "2021-01-02"
         response = response.form.submit()
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response.headers['location']
-                        .endswith(get_history_url(poll)))
+        if VERSION < (1, 4, 0):
+            self.assertTrue(response.headers['location']
+                            .endswith(get_history_url(poll)))
+        else:
+            self.assertTrue(response.headers['location']
+                            .endswith(reverse('admin:tests_poll_changelist')))
 
         # Ensure form for second version is correct
         response = self.app.get(get_history_url(poll, 1))
