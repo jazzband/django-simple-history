@@ -183,3 +183,40 @@ class AdminSiteTest(WebTest):
         self.assertIn(get_history_url(poll, 0), response.content)
         self.assertIn("Poll object", response.content)
         self.assertIn("Created", response.content)
+
+    def test_history_form(self):
+        self.login(username='u', password='pass')
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+
+        # Make sure form for initial version is correct
+        response = self.app.get(get_history_url(poll, 0))
+        self.assertEqual(response.form['question'].value, "why?")
+        self.assertEqual(response.form['pub_date_0'].value, "2021-01-01")
+        self.assertEqual(response.form['pub_date_1'].value, "10:00:00")
+
+        # Create new version based on original version
+        response.form['question'] = "what?"
+        response.form['pub_date_0'] = "2021-01-02"
+        response = response.form.submit()
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers['location']
+                        .endswith(get_history_url(poll)))
+
+        # Ensure form for second version is correct
+        response = self.app.get(get_history_url(poll, 1))
+        self.assertEqual(response.form['question'].value, "how?")
+        self.assertEqual(response.form['pub_date_0'].value, "2021-01-01")
+        self.assertEqual(response.form['pub_date_1'].value, "10:00:00")
+
+        # Ensure form for new third version is correct
+        response = self.app.get(get_history_url(poll, 2))
+        self.assertEqual(response.form['question'].value, "what?")
+        self.assertEqual(response.form['pub_date_0'].value, "2021-01-02")
+        self.assertEqual(response.form['pub_date_1'].value, "10:00:00")
+
+        # Ensure current version of poll is correct
+        poll = Poll.objects.get()
+        self.assertEqual(poll.question, "what?")
+        self.assertEqual(poll.pub_date, tomorrow)
