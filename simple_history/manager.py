@@ -33,7 +33,7 @@ class HistoryManager(models.Manager):
         """
         if not self.instance:
             raise TypeError("Can't use most_recent() without a %s instance." %
-                            self.instance._meta.object_name)
+                            self.model._meta.object_name)
         tmp = []
         for field in self.instance._meta.fields:
             if isinstance(field, models.ForeignKey):
