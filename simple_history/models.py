@@ -72,18 +72,9 @@ class HistoricalRecords(object):
             if isinstance(field, models.ForeignKey):
                 field.__class__ = models.IntegerField
                 #ughhhh. open to suggestions here
-                try:
-                    field.rel = None
-                except:
-                    pass
-                try:
-                    field.related = None
-                except:
-                    pass
-                try:
-                    field.related_query_name = None
-                except:
-                    pass
+                field.rel = None
+                field.related = None
+                field.related_query_name = None
                 field.null = True
                 field.blank = True
                 fk = True
