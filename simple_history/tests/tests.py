@@ -189,6 +189,21 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(question_as_of(times[1]), "how's it going?")
         self.assertEqual(question_as_of(times[2]), "what's up?")
 
+    def test_as_of_on_model_class(self):
+        Poll.objects.create(question="what's up?", pub_date=today)
+        time = Poll.history.all()[0].history_date
+        self.assertRaises(TypeError, Poll.history.as_of, time)
+
+    def test_as_of_nonexistant(self):
+        # Unsaved poll
+        poll = Poll(question="what's up?", pub_date=today)
+        time = datetime.now()
+        self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
+        # Deleted poll
+        poll.save()
+        poll.delete()
+        self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
+
 
 def get_history_url(model, history_index=None):
     info = model._meta.app_label, model._meta.module_name
