@@ -288,3 +288,22 @@ class AdminSiteTest(WebTest):
         poll = Poll.objects.get()
         self.assertEqual(poll.question, "what?")
         self.assertEqual(poll.pub_date, tomorrow)
+        self.assertEqual([p.history_user for p in Poll.history.all()],
+                         [self.user, None, None])
+
+    def test_history_user_on_save_in_admin(self):
+        self.login()
+
+        # Ensure polls created via admin interface save correct user
+        add_page = self.app.get(reverse('admin:tests_poll_add'))
+        add_page.form['question'] = "new poll?"
+        add_page.form['pub_date_0'] = "2012-01-01"
+        add_page.form['pub_date_1'] = "10:00:00"
+        changelist_page = add_page.form.submit().follow()
+        self.assertEqual(Poll.history.get().history_user, self.user)
+
+        # Ensure polls saved on edit page in admin interface save correct user
+        change_page = changelist_page.click("Poll object")
+        change_page.form.submit()
+        self.assertEqual([p.history_user for p in Poll.history.all()],
+                         [self.user, self.user])
