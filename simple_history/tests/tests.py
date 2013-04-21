@@ -158,6 +158,17 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual([d.history_user for d in document.history.all()],
                          [None, user2, user1])
 
+    def test_raw_save(self):
+        document = Document()
+        document.save_base(raw=True)
+        self.assertEqual(document.history.count(), 0)
+        document.save()
+        self.assertRecordValues(document.history.get(), Document, {
+            'changed_by_id': None,
+            'id': document.id,
+            'history_type': "~",
+        })
+
 
 class RegisterTest(TestCase):
     def test_register_no_args(self):
