@@ -234,14 +234,14 @@ class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser('u', 'u@example.com', 'pass')
 
-    def login(self, username, password):
+    def login(self):
         form = self.app.get(reverse('admin:index')).form
-        form['username'] = username
-        form['password'] = password
+        form['username'] = self.user.username
+        form['password'] = 'pass'
         return form.submit()
 
     def test_history_list(self):
-        self.login(username='u', password='pass')
+        self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
         response = self.app.get(get_history_url(poll))
         self.assertIn(get_history_url(poll, 0), response.content)
@@ -249,7 +249,7 @@ class AdminSiteTest(WebTest):
         self.assertIn("Created", response.content)
 
     def test_history_form(self):
-        self.login(username='u', password='pass')
+        self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
         poll.question = "how?"
         poll.save()
