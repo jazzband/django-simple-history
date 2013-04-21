@@ -2,14 +2,21 @@ from datetime import datetime, timedelta
 from django import VERSION
 from django.test import TestCase
 from django_webtest import WebTest
+from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant
+from .models import Poll, Choice, Restaurant, FileModel
 
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
+
+
+def get_fake_file(filename):
+    fake_file = ContentFile('file data')
+    fake_file.name = filename
+    return fake_file
 
 
 class HistoricalRecordsTest(TestCase):
@@ -114,6 +121,14 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_file_field(self):
+        model = FileModel.objects.create(file=get_fake_file('name'))
+        self.assertEqual(model.file.name, 'files/name')
+        model.file.delete()
+        update_record, create_record = model.history.all()
+        self.assertEqual(create_record.file, 'files/name')
+        self.assertEqual(update_record.file, '')
+
     def test_inheritance(self):
         pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
         pizza_place.rating = 4
@@ -161,6 +176,19 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(most_recent.__class__, Poll)
         self.assertEqual(most_recent.question, "why?")
 
+    def test_most_recent_on_model_class(self):
+        Poll.objects.create(question="what's up?", pub_date=today)
+        self.assertRaises(TypeError, Poll.history.most_recent)
+
+    def test_most_recent_nonexistant(self):
+        # Unsaved poll
+        poll = Poll(question="what's up?", pub_date=today)
+        self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+        # Deleted poll
+        poll.save()
+        poll.delete()
+        self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+
     def test_as_of(self):
         poll = Poll.objects.create(question="what's up?", pub_date=today)
         poll.question = "how's it going?"
@@ -175,6 +203,21 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(question_as_of(times[0]), "why?")
         self.assertEqual(question_as_of(times[1]), "how's it going?")
         self.assertEqual(question_as_of(times[2]), "what's up?")
+
+    def test_as_of_on_model_class(self):
+        Poll.objects.create(question="what's up?", pub_date=today)
+        time = Poll.history.all()[0].history_date
+        self.assertRaises(TypeError, Poll.history.as_of, time)
+
+    def test_as_of_nonexistant(self):
+        # Unsaved poll
+        poll = Poll(question="what's up?", pub_date=today)
+        time = datetime.now()
+        self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
+        # Deleted poll
+        poll.save()
+        poll.delete()
+        self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
 
 
 def get_history_url(model, history_index=None):

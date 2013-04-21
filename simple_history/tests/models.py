@@ -29,4 +29,9 @@ class Restaurant(Place):
     updates = HistoricalRecords()
 
 
+class FileModel(models.Model):
+    file = models.FileField(upload_to='files')
+    history = HistoricalRecords()
+
+
 register(User, app='simple_history.tests', manager_name='histories')
