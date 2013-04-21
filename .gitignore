@@ -1,5 +1,6 @@
 *.pyc
 dist/
+*.egg
 *.egg-info/
 build/
 MANIFEST
