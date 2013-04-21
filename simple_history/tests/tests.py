@@ -2,14 +2,21 @@ from datetime import datetime, timedelta
 from django import VERSION
 from django.test import TestCase
 from django_webtest import WebTest
+from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant
+from .models import Poll, Choice, Restaurant, FileModel
 
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
+
+
+def get_fake_file(filename):
+    fake_file = ContentFile('file data')
+    fake_file.name = filename
+    return fake_file
 
 
 class HistoricalRecordsTest(TestCase):
@@ -113,6 +120,14 @@ class HistoricalRecordsTest(TestCase):
             'id': choice.id,
             'history_type': "~",
         })
+
+    def test_file_field(self):
+        model = FileModel.objects.create(file=get_fake_file('name'))
+        self.assertEqual(model.file.name, 'files/name')
+        model.file.delete()
+        update_record, create_record = model.history.all()
+        self.assertEqual(create_record.file, 'files/name')
+        self.assertEqual(update_record.file, '')
 
     def test_inheritance(self):
         pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
