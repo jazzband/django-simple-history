@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, FileModel
+from .models import Poll, Choice, Restaurant, FileModel, Document
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -146,6 +146,17 @@ class HistoricalRecordsTest(TestCase):
             'id': pizza_place.id,
             'history_type': "~",
         })
+
+    def test_specify_history_user(self):
+        user1 = User.objects.create_user('user1', '1@example.com')
+        user2 = User.objects.create_user('user2', '1@example.com')
+        document = Document.objects.create(changed_by=user1)
+        document.changed_by = user2
+        document.save()
+        document.changed_by = None
+        document.save()
+        self.assertEqual([d.history_user for d in document.history.all()],
+                         [None, user2, user1])
 
 
 class RegisterTest(TestCase):

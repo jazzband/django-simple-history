@@ -34,4 +34,13 @@ class FileModel(models.Model):
     history = HistoricalRecords()
 
 
+class Document(models.Model):
+    changed_by = models.ForeignKey(User, null=True)
+    history = HistoricalRecords()
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+
 register(User, app='simple_history.tests', manager_name='histories')
