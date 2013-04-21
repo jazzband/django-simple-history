@@ -161,6 +161,19 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(most_recent.__class__, Poll)
         self.assertEqual(most_recent.question, "why?")
 
+    def test_most_recent_on_model_class(self):
+        Poll.objects.create(question="what's up?", pub_date=today)
+        self.assertRaises(TypeError, Poll.history.most_recent)
+
+    def test_most_recent_nonexistant(self):
+        # Unsaved poll
+        poll = Poll(question="what's up?", pub_date=today)
+        self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+        # Deleted poll
+        poll.save()
+        poll.delete()
+        self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+
     def test_as_of(self):
         poll = Poll.objects.create(question="what's up?", pub_date=today)
         poll.question = "how's it going?"
