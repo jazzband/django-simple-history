@@ -3,3 +3,4 @@ include CHANGES.rst
 include LICENSE.txt
 include MANIFEST.in
 include README.rst
+recursive-include simple_history/templates *

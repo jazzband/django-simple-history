@@ -15,7 +15,7 @@ package_data = dict(
 
 setup(
     name='django-simple-history',
-    version='1.2.1.post1',
+    version='1.2.2',
     description='Store model history and view/revert changes from admin site.',
     long_description='\n'.join((
         open('README.rst').read(),

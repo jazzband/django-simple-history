@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+1.2.2 (2013-04-22)
+------------------
+
+- Fixed packaging bug: added admin template files to PyPI package
+
 1.2.1 (2013-04-22)
 ------------------
 
