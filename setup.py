@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name='django-simple-history',
     version='1.1.3.post1',
-    description='Store Django model history with the ability to revert back to a specific change at any time.',
+    description='Store model history and view/revert changes from admin site.',
     author='Corey Bertram',
     author_email='corey@qr7.com',
     mantainer='Trey Hunner',
