@@ -1,6 +1,5 @@
-==================
 django-simple-history
-==================
+=====================
 
 .. image:: https://secure.travis-ci.org/treyhunner/django-simple-history.png?branch=master
    :target: http://travis-ci.org/treyhunner/django-simple-history
