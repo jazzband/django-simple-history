@@ -85,3 +85,21 @@ Usage:
     <simple_history.manager.HistoryManager object at 0x1cc4290>
     >>> Choice.history.all()
     [<HistoricalChoice: Choice object as of 2010-10-25 18:05:30.160595>, <HistoricalChoice: Choice object as of 2010-10-25 18:05:12.183340>, <HistoricalChoice: Choice object as of 2010-10-25 18:04:59.047351>]
+
+
+Admin views
+-----------
+Inheriting your admin model from SimpleHistoryAdmin will introduce a history button on the object details page, and let you have access to the full history of an object.
+
+Example
+-------
+Admin:
+
+.. code-block:: python
+
+    from django.contrib import admin
+    from simple_history.admin import SimpleHistoryAdmin
+    from .models import Poll, Choice
+
+    admin.site.register(Poll, SimpleHistoryAdmin)
+    admin.site.register(Choice, SimpleHistoryAdmin)
