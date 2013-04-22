@@ -8,9 +8,6 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 
-[AUTHORS]
-end_of_line = crlf
-
 [LICENSE.txt]
 end_of_line = crlf
 insert_final_newline = false
