@@ -13,6 +13,12 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "License :: OSI Approved :: BSD License",
     ],
     tests_require=["Django>=1.3", "webtest", "django-webtest"],
     test_suite='runtests.main',
