@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-simple-history',
-    version='1.2.2',
+    version='1.2.3',
     description='Store model history and view/revert changes from admin site.',
     long_description='\n'.join((
         open('README.rst').read(),
@@ -25,5 +25,6 @@ setup(
         "License :: OSI Approved :: BSD License",
     ],
     tests_require=["Django>=1.3", "webtest", "django-webtest"],
+    include_package_data=True,
     test_suite='runtests.main',
 )

@@ -10,11 +10,12 @@ django-simple-history is a tool to store state of DB objects on every create/upd
 
 Install
 -------
-Download the tar.gz, extract it and run the following inside the directory:
+
+Install from PyPI with ``pip``:
 
 .. code-block:: bash
 
-    $ python setup.py install
+    $ pip install django-simple-history
 
 Basic usage
 -----------
