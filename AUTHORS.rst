@@ -1,16 +1,16 @@
 Authors
 =======
 
-- Marty Alchin
-- George Vilches
 - Corey Bertram
-- Trey Hunner
+- Damien Nozay
+- George Vilches
 - Joao Pedro Francese
 - Jonathan Sanchez
 - Klaas van Schelven
+- Marty Alchin
 - Rajesh Pappula
+- Trey Hunner
 - Ulysses Vilela
-- Damien Nozay
 
 Background
 ==========
