@@ -1,10 +1,14 @@
 from setuptools import setup, find_packages
 
 
+long_description = open('README.rst').read() + open('CHANGES.rst').read()
+
+
 setup(
     name='django-simple-history',
     version='1.1.3.post1',
     description='Store model history and view/revert changes from admin site.',
+    long_description=long_description,
     author='Corey Bertram',
     author_email='corey@qr7.com',
     mantainer='Trey Hunner',
