@@ -25,5 +25,6 @@ setup(
         "License :: OSI Approved :: BSD License",
     ],
     tests_require=["Django>=1.3", "webtest", "django-webtest"],
+    include_package_data=True,
     test_suite='runtests.main',
 )
