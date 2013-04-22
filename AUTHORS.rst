@@ -10,6 +10,7 @@ Authors
 - Klaas van Schelven
 - Rajesh Pappula
 - Ulysses Vilela
+- Damien Nozay
 
 Background
 ==========
