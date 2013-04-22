@@ -15,7 +15,7 @@ install:
   - pip install coverage $DJANGO --use-mirrors
   - sh -c "if [ '$SOUTH' = '1' ]; then pip install South==0.7.6; fi"
   - sh -c "if [ '$COVERALLS' != '0' ]; then pip install coveralls; fi"
-  - sh -c "if [ '$DJANGO' == 'https://github.com/django/django/tarball/master' ]; then pip install https://github.com/mbraak/django-webtest/tarball/django1.6; fi"
+  - sh -c "if [ '$DJANGO' = 'https://github.com/django/django/tarball/master' ]; then pip install https://github.com/mbraak/django-webtest/tarball/django1.6; fi"
 
 script: coverage run -a --branch --include="simple_history/*" --omit="simple_history/tests/*" setup.py test
 
