@@ -123,7 +123,6 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'has_delete_permission': self.has_delete_permission(request, obj),
             'has_file_field': True,
             'has_absolute_url': False,
-            'ordered_objects': opts.get_ordered_objects(),
             'form_url': '',
             'opts': opts,
             'content_type_id': ContentType.objects.get_for_model(self.model).id,
