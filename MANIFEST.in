@@ -1,5 +1,5 @@
-include CHANGELOG
-include MANIFEST.in
-include README
-include AUTHORS
+include AUTHORS.rst
+include CHANGES.rst
 include LICENSE.txt
+include MANIFEST.in
+include README.rst
