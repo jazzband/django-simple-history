@@ -137,6 +137,7 @@ class HistoricalRecords(object):
         """
         return {
             'ordering': ('-history_date', '-history_id'),
+            'app_label': model._meta.app_label,
         }
 
     def post_save(self, instance, created, **kwargs):
