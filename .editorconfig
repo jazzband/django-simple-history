@@ -5,22 +5,17 @@ root = true
 
 [*]
 charset = utf-8
+indent_style = space
 end_of_line = lf
 insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{py,rst}]
+indent_size = 4
+
+[*.{html,ini,yml}]
+indent_size = 2
 
 [LICENSE.txt]
 end_of_line = crlf
 insert_final_newline = false
-
-[*.py]
-indent_style = space
-indent_size = 4
-trim_trailing_whitespace = true
-
-[*.html]
-indent_style = tab
-trim_trailing_whitespace = true
-
-[*.{ini,yml}]
-indent_style = space
-indent_size = 2
