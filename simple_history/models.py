@@ -15,8 +15,10 @@ class HistoricalRecords(object):
         def save_without_historical_record(self, *args, **kwargs):
             """Caution! Make sure you know what you're doing before you use this method."""
             self.skip_history_when_saving = True
-            ret = self.save(*args, **kwargs)
-            del self.skip_history_when_saving
+            try:
+                ret = self.save(*args, **kwargs)
+            finally:
+                del self.skip_history_when_saving
             return ret
         setattr(cls, 'save_without_historical_record', save_without_historical_record)
 
