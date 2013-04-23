@@ -1,5 +1,10 @@
 from setuptools import setup, find_packages
 
+template_patterns = [
+    'templates/*.html',
+    'templates/*/*.html',
+    'templates/*/*/*.html',
+]
 
 setup(
     name='django-simple-history',
@@ -14,6 +19,9 @@ setup(
     mantainer='Trey Hunner',
     url='https://github.com/treyhunner/django-simple-history',
     packages=find_packages(),
+    package_data={
+        'simple_history': template_patterns,
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
