@@ -29,6 +29,11 @@ class Restaurant(Place):
     updates = HistoricalRecords()
 
 
+class Bar(Restaurant):
+    def save(self, *args, **kwargs):
+       raise RuntimeError('bad save method')
+
+
 class FileModel(models.Model):
     file = models.FileField(upload_to='files')
     history = HistoricalRecords()
@@ -44,3 +49,5 @@ class Document(models.Model):
 
 
 register(User, app='simple_history.tests', manager_name='histories')
+
+
