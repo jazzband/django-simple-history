@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-simple-history',
-    version='1.2.3',
+    version='1.2.3.post1',
     description='Store model history and view/revert changes from admin site.',
     long_description='\n'.join((
         open('README.rst').read(),
