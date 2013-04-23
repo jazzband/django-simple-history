@@ -7,6 +7,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant, FileModel, Document
+from .models import ExternalModel1
+from simple_history.tests.external.models import ExternalModel2
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -185,6 +187,16 @@ class RegisterTest(TestCase):
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
 
+def get_table_name(model):
+    return model._meta.db_table
+
+class AppLabelTest(TestCase):
+    def test_explicit_app_label(self):
+        self.assertEqual(get_table_name(ExternalModel1),
+            'external_externalmodel1')
+    def test_default_app_label(self):
+        self.assertEqual(get_table_name(ExternalModel2),
+            'external_externalmodel2')
 
 class HistoryManagerTest(TestCase):
     def test_most_recent(self):

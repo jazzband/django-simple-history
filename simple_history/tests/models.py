@@ -44,3 +44,9 @@ class Document(models.Model):
 
 
 register(User, app='simple_history.tests', manager_name='histories')
+
+class ExternalModel1(models.Model):
+    name = models.CharField(max_length=100)
+    history = HistoricalRecords()
+    class Meta:
+        app_label = 'external'
