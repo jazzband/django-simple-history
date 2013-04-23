@@ -29,9 +29,16 @@ class Restaurant(Place):
     updates = HistoricalRecords()
 
 
-class Bar(Restaurant):
+class Person(models.Model):
+    name = models.CharField(max_length=100)
+
+    history = HistoricalRecords()
+
     def save(self, *args, **kwargs):
-       raise RuntimeError('bad save method')
+        if hasattr(self, 'skip_history_when_saving'):
+            raise RuntimeError('error while saving')
+        else:
+            super(Person, self).save(*args, **kwargs)
 
 
 class FileModel(models.Model):

@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Bar, FileModel, Document
+from .models import Poll, Choice, Restaurant, Person, FileModel, Document
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -101,10 +101,13 @@ class HistoricalRecordsTest(TestCase):
         })
 
     def test_save_raises_exception(self):
-        broken_bar = Bar(name='Broken Bar', rating=1)
+        anthony = Person(name='Anthony Gillard')
         with self.assertRaises(RuntimeError):
-            broken_bar.save_without_historical_record()
-        self.assertFalse(hasattr(broken_bar, 'skip_history_when_saving'))
+            anthony.save_without_historical_record()
+        self.assertFalse(hasattr(anthony, 'skip_history_when_saving'))
+        self.assertEqual(Person.history.count(), 0)
+        anthony.save()
+        self.assertEqual(Person.history.count(), 1)
 
     def test_foreignkey_field(self):
         why_poll = Poll.objects.create(question="why?", pub_date=today)
