@@ -22,7 +22,8 @@ if not settings.configured:
             'django.contrib.sessions',
             'django.contrib.admin',
             'simple_history',
-            'simple_history.tests'
+            'simple_history.tests',
+            'simple_history.tests.external'
         ),
         DATABASES={
             'default': {
