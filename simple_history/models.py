@@ -143,10 +143,9 @@ class HistoricalRecords(object):
         Returns a dictionary of fields that will be added to
         the Meta inner class of the historical record model.
         """
-        options = {
+        return {
             'ordering': ('-history_date', '-history_id'),
         }
-        return options
 
     def post_save(self, instance, created, **kwargs):
         if not created and hasattr(instance, 'skip_history_when_saving'):
