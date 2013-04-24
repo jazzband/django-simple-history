@@ -7,6 +7,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant, Person, FileModel, Document
+from .models import ExternalModel1, ExternalModel3
+from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -192,6 +194,32 @@ class RegisterTest(TestCase):
         user = User.objects.create(username='bob', password='pass')
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
+
+class AppLabelTest(TestCase):
+    def get_table_name(self, manager):
+        return manager.model._meta.db_table
+
+    def test_explicit_app_label(self):
+        self.assertEqual(self.get_table_name(ExternalModel1.objects),
+            'external_externalmodel1')
+        self.assertEqual(self.get_table_name(ExternalModel1.history),
+            'external_historicalexternalmodel1')
+
+    def test_default_app_label(self):
+        self.assertEqual(self.get_table_name(ExternalModel2.objects),
+            'external_externalmodel2')
+        self.assertEqual(self.get_table_name(ExternalModel2.history),
+            'external_historicalexternalmodel2')
+
+    def test_register_app_label(self):
+        self.assertEqual(self.get_table_name(ExternalModel3.objects),
+            'tests_externalmodel3')
+        self.assertEqual(self.get_table_name(ExternalModel3.histories),
+            'external_historicalexternalmodel3')
+        self.assertEqual(self.get_table_name(ExternalModel4.objects),
+            'external_externalmodel4')
+        self.assertEqual(self.get_table_name(ExternalModel4.histories),
+            'tests_historicalexternalmodel4')
 
 
 class HistoryManagerTest(TestCase):

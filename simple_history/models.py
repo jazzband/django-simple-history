@@ -44,6 +44,14 @@ class HistoricalRecords(object):
         """
         attrs = {'__module__': self.module}
 
+        app_module = models.get_app(model._meta.app_label)
+        if model.__module__ != self.module:
+            # registered under different app
+            attrs['__module__'] = self.module
+        elif app_module.__name__ != self.module:
+            # has meta options with app_label
+            attrs['__module__'] = app_module.__name__
+
         fields = self.copy_fields(model)
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
