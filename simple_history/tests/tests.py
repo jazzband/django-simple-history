@@ -336,6 +336,15 @@ class AdminSiteTest(WebTest):
         person = Person.objects.create(name='Sandra Hale')
         self.app.get(get_history_url(person, 0), status=403)
 
+    def test_invalid_history_form(self):
+        self.login()
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        response = self.app.get(get_history_url(poll, 0))
+        response.form['question'] = ""
+        response = response.form.submit()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("This field is required", response.content)
+
     def test_history_form(self):
         self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
