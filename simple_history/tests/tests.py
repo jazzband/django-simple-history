@@ -315,9 +315,11 @@ class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser('u', 'u@example.com', 'pass')
 
-    def login(self):
+    def login(self, user=None):
+        if user is None:
+            user = self.user
         form = self.app.get(reverse('admin:index')).form
-        form['username'] = self.user.username
+        form['username'] = user.username
         form['password'] = 'pass'
         return form.submit()
 
@@ -328,6 +330,14 @@ class AdminSiteTest(WebTest):
         self.assertIn(get_history_url(poll, 0), response.content)
         self.assertIn("Poll object", response.content)
         self.assertIn("Created", response.content)
+
+    def test_history_form_permission(self):
+        user = User(username='n', is_staff=True)
+        user.set_password('pass')
+        user.save()
+        self.login(user)
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        self.app.get(get_history_url(poll, 0), status=403)
 
     def test_history_form(self):
         self.login()
