@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant, Person, FileModel, Document
 from .models import ExternalModel1, ExternalModel3
+from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -194,6 +195,15 @@ class RegisterTest(TestCase):
         user = User.objects.create(username='bob', password='pass')
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
+
+    def test_reregister(self):
+        register(Restaurant, manager_name='again')
+        register(User, manager_name='again')
+        self.assertTrue(hasattr(Restaurant, 'updates'))
+        self.assertFalse(hasattr(Restaurant, 'again'))
+        self.assertTrue(hasattr(User, 'histories'))
+        self.assertFalse(hasattr(User, 'again'))
+
 
 class AppLabelTest(TestCase):
     def get_table_name(self, manager):
