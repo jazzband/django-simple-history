@@ -287,6 +287,19 @@ class HistoryManagerTest(TestCase):
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
 
+    def test_foreignkey_field(self):
+        why_poll = Poll.objects.create(question="why?", pub_date=today)
+        how_poll = Poll.objects.create(question="how?", pub_date=today)
+        choice = Choice.objects.create(poll=why_poll, votes=0)
+        choice.poll = how_poll
+        choice.save()
+        most_recent = choice.history.most_recent()
+        self.assertEqual(most_recent.poll.pk, how_poll.pk)
+        times = [r.history_date for r in choice.history.all()]
+        poll_as_of = lambda time: choice.history.as_of(time).poll
+        self.assertEqual(poll_as_of(times[0]).pk, how_poll.pk)
+        self.assertEqual(poll_as_of(times[1]).pk, why_poll.pk)
+
 
 def get_history_url(model, history_index=None):
     info = model._meta.app_label, model._meta.module_name
