@@ -6,6 +6,9 @@ from django.utils import importlib
 from manager import HistoryDescriptor
 
 
+registered_models = {}
+
+
 class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
@@ -57,6 +60,7 @@ class HistoricalRecords(object):
         attrs.update(self.get_extra_fields(model, fields))
         attrs.update(Meta=type('Meta', (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
+        registered_models[model._meta.db_table] = model
         return type(name, (models.Model,), attrs)
 
     def copy_fields(self, model):

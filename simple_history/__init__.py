@@ -1,7 +1,7 @@
 import models
 
 
-registered_models = {}
+registered_models = models.registered_models
 
 
 def register(model, app=None, manager_name='history'):
@@ -15,8 +15,9 @@ def register(model, app=None, manager_name='history'):
     This method should be used as an alternative to attaching an
     `HistoricalManager` instance directly to `model`.
     """
-    if not model in registered_models:
+    if not model._meta.db_table in registered_models:
         records = models.HistoricalRecords()
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
         records.finalize(model)
+        registered_models[model._meta.db_table] = model
