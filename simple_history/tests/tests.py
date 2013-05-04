@@ -332,12 +332,9 @@ class AdminSiteTest(WebTest):
         self.assertIn("Created", response.content)
 
     def test_history_form_permission(self):
-        user = User(username='n', is_staff=True)
-        user.set_password('pass')
-        user.save()
-        self.login(user)
-        poll = Poll.objects.create(question="why?", pub_date=today)
-        self.app.get(get_history_url(poll, 0), status=403)
+        self.login(self.user)
+        person = Person.objects.create(name='Sandra Hale')
+        self.app.get(get_history_url(person, 0), status=403)
 
     def test_history_form(self):
         self.login()
