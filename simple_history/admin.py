@@ -69,9 +69,6 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
-        if request.method == 'POST' and '_saveas_new' in request.POST:
-            return self.add_view(request, form_url='../add/')
-
         formsets = []
         ModelForm = self.get_form(request, obj)
         if request.method == 'POST':
