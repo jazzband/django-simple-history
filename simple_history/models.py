@@ -1,7 +1,7 @@
 import copy
 from django.db import models
+from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.utils import importlib
 from manager import HistoryDescriptor
 
@@ -129,7 +129,7 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
-            'history_user': models.ForeignKey(User, null=True),
+            'history_user': models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
