@@ -197,7 +197,6 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual([s.library_id for s in state.history.all()],
                          [None, library2.pk, library1.pk])
 
-
     def test_raw_save(self):
         document = Document()
         document.save_base(raw=True)
