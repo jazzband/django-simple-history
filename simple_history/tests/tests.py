@@ -177,8 +177,8 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         library.book = None
         library.save()
-        self.assertEqual([l.book for l in library.history.all()],
-                         [None, book2, book1])
+        self.assertEqual([l.book_id for l in library.history.all()],
+                         [None, book2.isbn, book1.isbn])
 
 
     def test_raw_save(self):

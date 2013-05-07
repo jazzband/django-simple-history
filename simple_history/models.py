@@ -1,5 +1,6 @@
 import copy
 from django.db import models
+from django.db.models.loading import get_model
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
@@ -84,10 +85,21 @@ class HistoricalRecords(object):
                 field.__class__ = models.TextField
 
             if isinstance(field, models.ForeignKey):
-                field.__class__ = models.IntegerField
+                rel_model  = field.rel.to
+                field.name = field.get_attname()
+                if isinstance(field.rel.to, basestring):
+                    rel_model = get_model(*field.rel.to.split('.',1))
+
+                if isinstance(rel_model._meta.pk, models.fields.AutoField):
+                    field.__class__ = models.IntegerField
+                else:
+                    rel_field = rel_model._meta.pk
+                    field.__class__ = type(rel_field)
+                    field.max_length = rel_field.max_length
                 #ughhhh. open to suggestions here
                 field.rel = None
                 field.related = None
+                field.related_name = None
                 field.related_query_name = None
                 field.null = True
                 field.blank = True
@@ -106,8 +118,6 @@ class HistoricalRecords(object):
                 field._unique = False
                 field.db_index = True
                 field.serialize = True
-            if fk:
-                field.name = field.name + "_id"
             fields[field.name] = field
 
         return fields
