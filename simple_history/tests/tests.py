@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Person, FileModel, Document
+from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library
 from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
@@ -169,6 +169,18 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual([d.history_user for d in document.history.all()],
                          [None, user2, user1])
 
+    def test_non_default_primary_key_save(self):
+        book1 = Book.objects.create(isbn='1-84356-028-1')
+        book2 = Book.objects.create(isbn='1-84356-028-2')
+        library = Library.objects.create(book=book1)
+        library.book = book2
+        library.save()
+        library.book = None
+        library.save()
+        self.assertEqual([l.book for l in library.history.all()],
+                         [None, book2, book1])
+
+
     def test_raw_save(self):
         document = Document()
         document.save_base(raw=True)
@@ -179,7 +191,6 @@ class HistoricalRecordsTest(TestCase):
             'id': document.id,
             'history_type': "~",
         })
-
 
 class RegisterTest(TestCase):
     def test_register_no_args(self):
