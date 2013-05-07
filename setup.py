@@ -11,7 +11,7 @@ setup(
     )),
     author='Corey Bertram',
     author_email='corey@qr7.com',
-    mantainer='Trey Hunner',
+    maintainer='Trey Hunner',
     url='https://github.com/treyhunner/django-simple-history',
     packages=find_packages(),
     classifiers=[

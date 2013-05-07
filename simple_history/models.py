@@ -1,7 +1,8 @@
 import copy
 from django.db import models
+from django.db.models.loading import get_model
+from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.utils import importlib
 from manager import HistoryDescriptor
 
@@ -84,7 +85,15 @@ class HistoricalRecords(object):
                 field.__class__ = models.TextField
 
             if isinstance(field, models.ForeignKey):
-                field.__class__ = models.IntegerField
+                rel_model  = field.rel.to
+                if isinstance(field.rel.to, basestring):
+                    rel_model = get_model(*field.rel.to.split('.',1))
+
+                if isinstance(rel_model._meta.pk, models.fields.AutoField):
+                    field.__class__ = models.IntegerField
+                else:
+                    field.__class__ = type(rel_model._meta.pk)
+
                 #ughhhh. open to suggestions here
                 field.rel = None
                 field.related = None
@@ -129,7 +138,7 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
-            'history_user': models.ForeignKey(User, null=True),
+            'history_user': models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
