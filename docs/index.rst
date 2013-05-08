@@ -6,6 +6,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   usage
+
 
 
 Indices and tables
