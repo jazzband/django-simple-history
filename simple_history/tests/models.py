@@ -59,14 +59,16 @@ class Document(models.Model):
     def _history_user(self):
         return self.changed_by
 
-class Book(models.Model):
-    isbn = models.CharField(max_length=15, primary_key=True)
-    changed_by = models.ForeignKey(User, null=True)
+
+class State(models.Model):
+    library = models.ForeignKey('.Library', null=True)
     history = HistoricalRecords()
 
-    @property
-    def _history_user(self):
-        return self.changed_by
+
+class Book(models.Model):
+    isbn = models.CharField(max_length=15, primary_key=True)
+    history = HistoricalRecords()
+
 
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
