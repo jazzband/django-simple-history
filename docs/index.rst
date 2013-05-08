@@ -9,6 +9,8 @@ Contents:
    usage
 
 
+.. include:: ../CHANGES.rst
+
 
 Indices and tables
 ==================
