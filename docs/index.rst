@@ -7,6 +7,7 @@ Contents:
    :maxdepth: 2
 
    usage
+   advanced
 
 
 .. include:: ../CHANGES.rst
