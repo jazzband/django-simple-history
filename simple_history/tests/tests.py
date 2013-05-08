@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library
+from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library, State
 from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
@@ -179,6 +179,17 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         self.assertEqual([l.book_id for l in library.history.all()],
                          [None, book2.isbn, book1.isbn])
+
+    def test_string_defined_foreign_key_save(self):
+        library1 = Library.objects.create()
+        library2 = Library.objects.create()
+        state = State.objects.create(library=library1)
+        state.library = library2
+        state.save()
+        state.library = None
+        state.save()
+        self.assertEqual([s.library_id for s in state.history.all()],
+                         [None, library2.id, library1.id])
 
 
     def test_raw_save(self):
