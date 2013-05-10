@@ -177,8 +177,8 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         library.book = None
         library.save()
-        self.assertEqual([l.book_id for l in library.history.all()],
-                         [None, book2.isbn, book1.isbn])
+        self.assertEqual([l.book for l in library.history.all()],
+                         [None, book2, book1])
 
     def test_string_defined_foreign_key_save(self):
         library1 = Library.objects.create()
