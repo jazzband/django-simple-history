@@ -26,3 +26,29 @@ third-party apps you don't have control over.  Here's an example of using
     from django.contrib.auth.models import User
 
     register(User)
+
+
+Recording Which User Changed a Model
+------------------------------------
+
+To denote which user changed a model, assign a ``_history_user`` attribute on
+your model.
+
+For example if you have a ``changed_by`` field on your model that records which
+user last changed the model, you could create a ``_history_user`` property
+referencing the ``changed_by`` field:
+
+.. code-block:: python
+
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        changed_by = models.ForeignKey('auth.User')
+        history = HistoricalRecords()
+
+        @property
+        def _history_user(self):
+            return self.changed_by
