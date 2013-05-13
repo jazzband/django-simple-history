@@ -6,6 +6,7 @@ Authors
 - George Vilches
 - Joao Pedro Francese
 - Jonathan Sanchez
+- Josh Fyne
 - Klaas van Schelven
 - Marty Alchin
 - Rajesh Pappula
