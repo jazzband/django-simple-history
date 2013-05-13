@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import copy
 from django.db import models
 from django.conf import settings
@@ -58,10 +60,11 @@ class HistoricalRecords(object):
         fields = self.copy_fields(model)
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
-        attrs.update(Meta=type('Meta', (), self.get_meta_options(model)))
+        # type in python2 wants str as a first argument
+        attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
-        return type(name, (models.Model,), attrs)
+        return type(str(name), (models.Model,), attrs)
 
     def copy_fields(self, model):
         """
@@ -138,7 +141,7 @@ class HistoricalRecords(object):
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
             'revert_url': revert_url,
-            '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
+            '__unicode__': lambda self: '%s as of %s' % (self.history_object,
                                                           self.history_date)
         }
 

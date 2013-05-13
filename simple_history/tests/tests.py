@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from datetime import datetime, timedelta
 from django import VERSION
 from django.test import TestCase
