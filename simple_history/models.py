@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
-from manager import HistoryDescriptor
+from .manager import HistoryDescriptor
 
 
 registered_models = {}

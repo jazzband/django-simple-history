@@ -1,4 +1,4 @@
-import models
+from . import models
 
 
 registered_models = models.registered_models

@@ -327,9 +327,9 @@ class AdminSiteTest(WebTest):
         self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
         response = self.app.get(get_history_url(poll))
-        self.assertIn(get_history_url(poll, 0), response.content)
-        self.assertIn("Poll object", response.content)
-        self.assertIn("Created", response.content)
+        self.assertIn(get_history_url(poll, 0), response.unicode_normal_body)
+        self.assertIn("Poll object", response.unicode_normal_body)
+        self.assertIn("Created", response.unicode_normal_body)
 
     def test_history_form_permission(self):
         self.login(self.user)
@@ -343,7 +343,7 @@ class AdminSiteTest(WebTest):
         response.form['question'] = ""
         response = response.form.submit()
         self.assertEqual(response.status_code, 200)
-        self.assertIn("This field is required", response.content)
+        self.assertIn("This field is required", response.unicode_normal_body)
 
     def test_history_form(self):
         self.login()
