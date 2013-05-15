@@ -55,7 +55,7 @@ class Document(models.Model):
 
 
 class State(models.Model):
-    library = models.ForeignKey('.Library', null=True)
+    library = models.ForeignKey('Library', null=True)
     history = HistoricalRecords()
 
 

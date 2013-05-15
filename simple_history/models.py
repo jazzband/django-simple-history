@@ -1,5 +1,6 @@
 import copy
 from django.db import models
+
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
@@ -70,30 +71,18 @@ class HistoricalRecords(object):
         """
         fields = {}
 
-        for field in model._meta.fields:
-            field = copy.copy(field)
-            fk = None
-
-            if isinstance(field, models.AutoField):
+        def customize_field(field, ref_field=None):
+            if ref_field is None:
+                ref_field = field
+            if isinstance(ref_field, models.AutoField):
                 # The historical model gets its own AutoField, so any
                 # existing one must be replaced with an IntegerField.
                 field.__class__ = models.IntegerField
-
-            if isinstance(field, models.FileField):
+            elif isinstance(ref_field, models.FileField):
                 # Don't copy file, just path.
                 field.__class__ = models.TextField
-
-            if isinstance(field, models.ForeignKey):
-                field.__class__ = models.IntegerField
-                #ughhhh. open to suggestions here
-                field.rel = None
-                field.related = None
-                field.related_query_name = None
-                field.null = True
-                field.blank = True
-                fk = True
             else:
-                fk = False
+                field.__class__ = ref_field.__class__
 
             # The historical instance should not change creation/modification timestamps.
             field.auto_now = False
@@ -106,9 +95,30 @@ class HistoricalRecords(object):
                 field._unique = False
                 field.db_index = True
                 field.serialize = True
-            if fk:
-                field.name = field.name + "_id"
-            fields[field.name] = field
+
+        for field in model._meta.fields:
+            field = copy.copy(field)
+            field_name = field.get_attname()
+
+            if isinstance(field, models.ForeignKey):
+#                class CustomForeignKey(models.ForeignKey):
+#                    def do_related_class(field, other, cls):
+#                        # this hooks into contribute_to_class() and this is
+#                        # called specifically after the class_prepared signal
+#                        super(CustomForeignKey, field).do_related_class(other, cls)
+#                        customize_field(field, field.rel.to._meta.pk)
+#                        field.related_name = None
+#                        field.rel.related_query_name = None
+#                field.__class__ = CustomForeignKey
+
+                # Don't allow reverse relations.
+                # ForeignKey knows best what datatype to use for the column
+                field.rel.related_name = '+'
+                field.null = True
+                field.blank = True
+
+            customize_field(field)
+            fields[field_name] = field
 
         return fields
 
