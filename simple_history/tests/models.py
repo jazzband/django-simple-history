@@ -61,20 +61,6 @@ class Document(models.Model):
 
 
 class State(models.Model):
-    library = models.ForeignKey('.Library', null=True)
-    history = HistoricalRecords()
-
-
-class Book(models.Model):
-    isbn = models.CharField(max_length=15, primary_key=True)
-    history = HistoricalRecords()
-
-
-class Library(models.Model):
-    book = models.ForeignKey(Book, null=True)
-    history = HistoricalRecords()
-
-class State(models.Model):
     library = models.ForeignKey('Library', null=True)
     history = HistoricalRecords()
 
@@ -87,6 +73,7 @@ class Book(models.Model):
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
     history = HistoricalRecords()
+
 
 register(User, app='simple_history.tests', manager_name='histories')
 
