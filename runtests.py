@@ -23,8 +23,10 @@ if not settings.configured:
             'django.contrib.admin',
             'simple_history',
             'simple_history.tests',
-            'simple_history.tests.external'
+            'simple_history.tests.external',
+            # 'simple_history.tests.custom_user'
         ),
+        # AUTH_USER_MODEL='custom_user.CustomUser',
         DATABASES={
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
