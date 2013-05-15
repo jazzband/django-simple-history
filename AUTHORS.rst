@@ -1,6 +1,7 @@
 Authors
 =======
 
+- Aleksey Kladov
 - Corey Bertram
 - Damien Nozay
 - George Vilches
