@@ -126,23 +126,47 @@ class HistoricalRecords(object):
                     def do_related_class(self, other, cls):
                         # this hooks into contribute_to_class() and this is
                         # called specifically after the class_prepared signal
-                        self.set_attributes_from_rel()
-                        pk_field = copy.copy(self.rel.to._meta.pk)
-                        pk_field.name = self.name
-                        pk_field.attname = self.attname
-                        customize_field(pk_field)
-                        # HACK: replace the field in the model
-                        fields = cls._meta.fields
-                        fields.insert(fields.index(self), pk_field)
-                        fields.remove(self)
+                        to_field = copy.copy(self.rel.to._meta.pk)
+                        field = self
+                        if isinstance(to_field, models.AutoField):
+                            field.__class__ = models.IntegerField
+                        else:
+                            field.__class__ = to_field.__class__
+                        excluded_prefixes = ("_","__")
+                        excluded_attributes = (
+                            "rel",
+                            "creation_counter",
+                            "validators",
+                            "error_messages",
+                            "attname",
+                            "column",
+                            "help_text",
+                            "name",
+                            "model",
+                            "unique_for_year",
+                            "unique_for_date",
+                            "unique_for_month",
+                            "db_tablespace",
+                            "db_index",
+                            "db_column",
+                            "default",
+                            "auto_created",
+                            "null",
+                            "blank",
+                        )
+                        for key, val in to_field.__dict__.iteritems():
+                            if isinstance(key, basestring) \
+                            and not key.startswith(excluded_prefixes) \
+                            and not key in excluded_attributes:
+                                setattr(field,key,val)
+
+                        customize_field(field)
+                        field.rel = None
+
                     def contribute_to_class(self, cls, name):
                         # HACK: remove annoying descriptor (don't super())
                         RelatedField.contribute_to_class(self, cls, name)
-                        if isinstance(self.rel.to, basestring):
-                            target = self.rel.to
-                        else:
-                            target = self.rel.to._meta.db_table
-                        cls._meta.duplicate_targets[self.column] = (target, "o2m")
+
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
                 # we'll used that as soon as it's finalized by copying rel.to
