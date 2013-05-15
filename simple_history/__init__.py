@@ -1,4 +1,6 @@
-import models
+from __future__ import unicode_literals
+
+from . import models
 
 
 registered_models = models.registered_models
