@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import template
 from django.core.exceptions import PermissionDenied
 try:
@@ -13,7 +15,10 @@ from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
-from django.utils.encoding import force_unicode
+try:
+    from django.utils.encoding import force_text
+except ImportError:  # django 1.3 compatibility
+    from django.utils.encoding import force_unicode as force_text
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
@@ -43,9 +48,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
         context = {
-            'title': _('Change history: %s') % force_unicode(obj),
+            'title': _('Change history: %s') % force_text(obj),
             'action_list': action_list,
-            'module_name': capfirst(force_unicode(opts.verbose_name_plural)),
+            'module_name': capfirst(force_text(opts.verbose_name_plural)),
             'object': obj,
             'root_path': getattr(self.admin_site, 'root_path', None),
             'app_label': app_label,
@@ -100,7 +105,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         url_triplet = (self.admin_site.name, original_opts.app_label,
                             original_opts.module_name)
         context = {
-            'title': _('Revert %s') % force_unicode(obj),
+            'title': _('Revert %s') % force_text(obj),
             'adminform': adminForm,
             'object_id': object_id,
             'original': obj,

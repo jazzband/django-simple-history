@@ -1,9 +1,30 @@
+from __future__ import unicode_literals
+
 import copy
 from django.db import models
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
-from manager import HistoryDescriptor
+from .manager import HistoryDescriptor
+
+try:
+    from django.utils.encoding import python_2_unicode_compatible
+except ImportError:  # django 1.3 compatibility
+    import sys
+
+    # copy of django function without use of six
+    def python_2_unicode_compatible(klass):
+        """
+        A decorator that defines __unicode__ and __str__ methods under Python 2.
+        Under Python 3 it does nothing.
+
+        To support Python 2 and 3 with a single code base, define a __str__ method
+        returning text and apply this decorator to the class.
+        """
+        if sys.version_info[0] != 3:
+            klass.__unicode__ = klass.__str__
+            klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
+        return klass
 
 
 registered_models = {}
@@ -59,10 +80,11 @@ class HistoricalRecords(object):
         fields = self.copy_fields(model)
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
-        attrs.update(Meta=type('Meta', (), self.get_meta_options(model)))
+        # type in python2 wants str as a first argument
+        attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
-        return type(name, (models.Model,), attrs)
+        return python_2_unicode_compatible(type(str(name), (models.Model,), attrs))
 
     def copy_fields(self, model):
         """
@@ -139,8 +161,8 @@ class HistoricalRecords(object):
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
             'revert_url': revert_url,
-            '__unicode__': lambda self: u'%s as of %s' % (self.history_object,
-                                                          self.history_date)
+            '__str__': lambda self: '%s as of %s' % (self.history_object,
+                                                     self.history_date)
         }
 
     def get_meta_options(self, model):
