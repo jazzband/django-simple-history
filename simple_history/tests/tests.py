@@ -6,7 +6,11 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant, Person, FileModel, Document
 from .models import ExternalModel1, ExternalModel3
