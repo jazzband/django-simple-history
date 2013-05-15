@@ -177,8 +177,8 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         library.book = None
         library.save()
-        self.assertEqual([l.book for l in library.history.all()],
-                         [None, book2, book1])
+        self.assertEqual([l.book_id for l in library.history.all()],
+                         [None, book2.pk, book1.pk])
 
     def test_string_defined_foreign_key_save(self):
         library1 = Library.objects.create()
@@ -189,7 +189,7 @@ class HistoricalRecordsTest(TestCase):
         state.library = None
         state.save()
         self.assertEqual([s.library_id for s in state.history.all()],
-                         [None, library2.id, library1.id])
+                         [None, library2.pk, library1.pk])
 
 
     def test_raw_save(self):

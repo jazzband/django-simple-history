@@ -1,6 +1,6 @@
 import copy
 from django.db import models
-
+from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
@@ -71,18 +71,15 @@ class HistoricalRecords(object):
         """
         fields = {}
 
-        def customize_field(field, ref_field=None):
-            if ref_field is None:
-                ref_field = field
-            if isinstance(ref_field, models.AutoField):
+        def customize_field(field):
+            field.name = field.attname
+            if isinstance(field, models.AutoField):
                 # The historical model gets its own AutoField, so any
                 # existing one must be replaced with an IntegerField.
                 field.__class__ = models.IntegerField
-            elif isinstance(ref_field, models.FileField):
+            elif isinstance(field, models.FileField):
                 # Don't copy file, just path.
                 field.__class__ = models.TextField
-            else:
-                field.__class__ = ref_field.__class__
 
             # The historical instance should not change creation/modification timestamps.
             field.auto_now = False
@@ -98,27 +95,41 @@ class HistoricalRecords(object):
 
         for field in model._meta.fields:
             field = copy.copy(field)
-            field_name = field.get_attname()
 
             if isinstance(field, models.ForeignKey):
-#                class CustomForeignKey(models.ForeignKey):
-#                    def do_related_class(field, other, cls):
-#                        # this hooks into contribute_to_class() and this is
-#                        # called specifically after the class_prepared signal
-#                        super(CustomForeignKey, field).do_related_class(other, cls)
-#                        customize_field(field, field.rel.to._meta.pk)
-#                        field.related_name = None
-#                        field.rel.related_query_name = None
-#                field.__class__ = CustomForeignKey
-
+                class CustomKey(type(field)):
+                    def get_attname(self):
+                        return self.name
+                    def do_related_class(self, other, cls):
+                        # this hooks into contribute_to_class() and this is
+                        # called specifically after the class_prepared signal
+                        self.set_attributes_from_rel()
+                        pk_field = copy.copy(self.rel.to._meta.pk)
+                        pk_field.name = self.name
+                        pk_field.attname = self.attname
+                        customize_field(pk_field)
+                        # HACK: replace the field in the model
+                        fields = cls._meta.fields
+                        fields.insert(fields.index(self), pk_field)
+                        fields.remove(self)
+                    def contribute_to_class(self, cls, name):
+                        # HACK: remove annoying descriptor (don't super())
+                        RelatedField.contribute_to_class(self, cls, name)
+                        if isinstance(self.rel.to, basestring):
+                            target = self.rel.to
+                        else:
+                            target = self.rel.to._meta.db_table
+                        cls._meta.duplicate_targets[self.column] = (target, "o2m")
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
+                # we'll used that as soon as it's finalized by copying rel.to
+                field.__class__ = CustomKey
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
 
             customize_field(field)
-            fields[field_name] = field
+            fields[field.name] = field
 
         return fields
 
