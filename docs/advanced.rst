@@ -11,6 +11,39 @@ Whenever the original model changes, the historical model will change also.
 Therefore tracking historical models with South should work automatically.
 
 
+Locating past model instance
+----------------------------
+
+Two extra methods are provided for locating previous models instances on
+historical record model managers.
+
+as_of
+~~~~~
+
+This method will return an instance of the model as it would have existed at
+the provided date and time.
+
+.. code-block:: pycon
+
+    >>> from datetime import datetime
+    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 4, 0))
+    <HistoricalPoll: Poll object as of 2010-10-25 18:03:29.855689>
+    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
+    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+
+most_recent
+~~~~~~~~~~~
+
+This method will return the most recent copy of the model available in the
+model history.
+
+.. code-block:: pycon
+
+    >>> from datetime import datetime
+    >>> poll.history.most_recent()
+    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+
+
 History for Third-Party Model
 -----------------------------
 
