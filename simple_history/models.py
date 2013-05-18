@@ -43,14 +43,19 @@ class HistoricalRecords(object):
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
         def save_without_historical_record(self, *args, **kwargs):
-            """Caution! Make sure you know what you're doing before you use this method."""
+            """
+            Save model without saving a historical record
+
+            Make sure you know what you're doing before you use this method.
+            """
             self.skip_history_when_saving = True
             try:
                 ret = self.save(*args, **kwargs)
             finally:
                 del self.skip_history_when_saving
             return ret
-        setattr(cls, 'save_without_historical_record', save_without_historical_record)
+        setattr(cls, 'save_without_historical_record',
+                save_without_historical_record)
 
     def finalize(self, sender, **kwargs):
         history_model = self.create_history_model(sender)
@@ -110,7 +115,7 @@ class HistoricalRecords(object):
                 # Don't copy file, just path.
                 field.__class__ = models.TextField
 
-            # The historical instance should not change creation/modification timestamps.
+            # Historical instance shouldn't change create/update timestamps
             field.auto_now = False
             field.auto_now_add = False
 
@@ -189,10 +194,9 @@ class HistoricalRecords(object):
         return fields
 
     def get_extra_fields(self, model, fields):
-        """
-        Returns a dictionary of fields that will be added to the historical
-        record model, in addition to the ones returned by copy_fields below.
-        """
+        """Return dict of extra fields added to the historical record model"""
+
+        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
         @models.permalink
         def revert_url(self):
@@ -207,8 +211,7 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
-            'history_user': models.ForeignKey(
-                getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
+            'history_user': models.ForeignKey(user_model, null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
@@ -253,5 +256,6 @@ class HistoricalObjectDescriptor(object):
         self.model = model
 
     def __get__(self, instance, owner):
-        values = (getattr(instance, f.attname) for f in self.model._meta.fields)
+        values = (getattr(instance, f.attname)
+                  for f in self.model._meta.fields)
         return self.model(*values)
