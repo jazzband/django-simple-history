@@ -90,7 +90,7 @@ Whenever a model instance is saved a new historical record is created:
 
 .. code-block:: pycon
 
-    >>> poll.pub_date = datetime(2007,4,1,0,0)
+    >>> poll.pub_date = datetime(2007, 4, 1, 0, 0)
     >>> poll.save()
     >>> poll.history.all()
     [<HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>, <HistoricalPoll: Poll object as of 2010-10-25 18:03:29.855689>]
