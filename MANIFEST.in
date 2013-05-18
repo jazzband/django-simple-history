@@ -1,6 +1,5 @@
-include AUTHORS.rst
-include CHANGES.rst
-include LICENSE.txt
 include MANIFEST.in
-include README.rst
+include *.rst
+include *.txt
+recursive-include docs *.rst
 recursive-include simple_history/templates *
