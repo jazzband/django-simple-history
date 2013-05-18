@@ -1,7 +1,10 @@
 django-simple-history
 =====================
 
-Contents:
+django-simple-history stores Django model state on every create/update/delete.
+
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 2
@@ -9,14 +12,12 @@ Contents:
    usage
    advanced
 
+Code
+----
+
+Code and issue tracker: https://github.com/treyhunner/django-simple-history
+
+Pull requests are welcome.
+
 
 .. include:: ../CHANGES.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
