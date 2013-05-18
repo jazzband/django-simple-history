@@ -85,3 +85,7 @@ referencing the ``changed_by`` field:
         @property
         def _history_user(self):
             return self.changed_by
+
+        @_history_user.setter
+        def _history_user_setter(self, value):
+            self.changed_by = value
