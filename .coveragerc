@@ -1,0 +1,4 @@
+[run]
+include = simple_history/*
+omit = simple_history/tests/*
+branch = 1
