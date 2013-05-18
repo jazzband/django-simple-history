@@ -21,8 +21,7 @@ Documentation is available at https://django-simple-history.readthedocs.org/
 
 Issue tracker is at https://github.com/treyhunner/django-simple-history/issues
 
-Pull requests are welcome.  Read the `CONTRIBUTING`_ file for tips on
+Pull requests are welcome.  Read the CONTRIBUTING file for tips on
 submitting a pull request.
 
 .. _PyPI: https://pypi.python.org/pypi/django-email-log/
-.. _CONTRIBUTING: CONTRIBUTING.rst
