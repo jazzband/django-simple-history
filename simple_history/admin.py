@@ -20,6 +20,12 @@ try:
 except ImportError:  # django 1.3 compatibility
     from django.utils.encoding import force_unicode as force_text
 
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
+
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
@@ -47,6 +53,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
+        content_type = ContentType.objects.get_for_model(User)
+        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label, content_type.model)
         context = {
             'title': _('Change history: %s') % force_text(obj),
             'action_list': action_list,
@@ -54,7 +62,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'object': obj,
             'root_path': getattr(self.admin_site, 'root_path', None),
             'app_label': app_label,
-            'opts': opts
+            'opts': opts,
+            'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.admin_site.name)

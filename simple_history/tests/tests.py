@@ -6,7 +6,11 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
 
 from .models import Poll, Choice, Restaurant, Person, FileModel, Document
 from .models import ExternalModel1, ExternalModel3
@@ -315,7 +319,7 @@ def get_history_url(model, history_index=None):
 
 class AdminSiteTest(WebTest):
     def setUp(self):
-        self.user = User.objects.create_superuser('u', 'u@example.com', 'pass')
+        self.user = User.objects.create_superuser('user_login', 'u@example.com', 'pass')
 
     def login(self, user=None):
         if user is None:
@@ -327,11 +331,14 @@ class AdminSiteTest(WebTest):
 
     def test_history_list(self):
         self.login()
-        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll = Poll(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
         response = self.app.get(get_history_url(poll))
         self.assertIn(get_history_url(poll, 0), response.unicode_normal_body)
         self.assertIn("Poll object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
+        self.assertIn(self.user.username, response.unicode_normal_body)
 
     def test_history_form_permission(self):
         self.login(self.user)
