@@ -1,11 +1,13 @@
 Authors
 =======
 
+- Aleksey Kladov
 - Corey Bertram
 - Damien Nozay
 - George Vilches
 - Joao Pedro Francese
 - Jonathan Sanchez
+- Josh Fyne
 - Klaas van Schelven
 - Marty Alchin
 - Rajesh Pappula

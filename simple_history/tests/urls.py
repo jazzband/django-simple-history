@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 try:
     from django.conf.urls import patterns, include, url
 except ImportError:

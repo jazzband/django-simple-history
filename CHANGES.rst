@@ -1,12 +1,17 @@
-CHANGES
+Changes
 =======
 
-Tip (unreleased)
+tip (unreleased)
 ----------------
 
-- Fix bug when using ``django-simple-history`` on nested models package
+1.3.0 (2013-05-17)
+------------------
+
+- Fixed bug when using ``django-simple-history`` on nested models package
 - Allow history table to be formatted correctly with ``django-admin-bootstrap``
 - Disallow calling ``simple_history.register`` twice on the same model
+- Added Python 3 support
+- Added support for custom user model (Django 1.5+)
 
 1.2.3 (2013-04-22)
 ------------------

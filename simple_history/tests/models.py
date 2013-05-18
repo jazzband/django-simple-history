@@ -1,6 +1,12 @@
+from __future__ import unicode_literals
+
 from django.db import models
-from django.conf import settings
-from django.contrib.auth.models import User
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
+
 from simple_history.models import HistoricalRecords
 from simple_history import register
 

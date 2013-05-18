@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import template
 from django.core.exceptions import PermissionDenied
 try:
@@ -13,7 +15,16 @@ from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
-from django.utils.encoding import force_unicode
+try:
+    from django.utils.encoding import force_text
+except ImportError:  # django 1.3 compatibility
+    from django.utils.encoding import force_unicode as force_text
+
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
@@ -42,14 +53,17 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
+        content_type = ContentType.objects.get_for_model(User)
+        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label, content_type.model)
         context = {
-            'title': _('Change history: %s') % force_unicode(obj),
+            'title': _('Change history: %s') % force_text(obj),
             'action_list': action_list,
-            'module_name': capfirst(force_unicode(opts.verbose_name_plural)),
+            'module_name': capfirst(force_text(opts.verbose_name_plural)),
             'object': obj,
             'root_path': getattr(self.admin_site, 'root_path', None),
             'app_label': app_label,
-            'opts': opts
+            'opts': opts,
+            'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.admin_site.name)
@@ -100,7 +114,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         url_triplet = (self.admin_site.name, original_opts.app_label,
                             original_opts.module_name)
         context = {
-            'title': _('Revert %s') % force_unicode(obj),
+            'title': _('Revert %s') % force_text(obj),
             'adminform': adminForm,
             'object_id': object_id,
             'original': obj,
