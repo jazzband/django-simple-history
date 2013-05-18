@@ -330,6 +330,8 @@ class AdminSiteTest(WebTest):
         return form.submit()
 
     def test_history_list(self):
+        if VERSION >= (1, 5):
+            self.assertEqual(self.user._meta.module_name, 'customuser')
         self.login()
         poll = Poll(question="why?", pub_date=today)
         poll._history_user = self.user
