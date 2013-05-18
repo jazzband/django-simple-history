@@ -4,7 +4,9 @@ init:
 	pip install tox coverage Sphinx
 
 test:
-	./runtests.sh
+	coverage erase
+	tox
+	coverage html
 
 docs: documentation
 
