@@ -5,6 +5,10 @@ django-simple-history
    :target: http://travis-ci.org/treyhunner/django-simple-history
 .. image:: https://coveralls.io/repos/treyhunner/django-simple-history/badge.png?branch=master
    :target: https://coveralls.io/r/treyhunner/django-simple-history
+.. image:: https://pypip.in/v/django-simple-history/badge.png
+   :target: https://crate.io/packages/django-simple-history
+.. image:: https://pypip.in/d/django-simple-history/badge.png
+   :target: https://crate.io/packages/django-simple-history
 
 django-simple-history stores Django model state on every create/update/delete.
 
