@@ -10,10 +10,10 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{py,rst}]
+[*.{py,rst,ini}]
 indent_size = 4
 
-[*.{html,ini,yml}]
+[*.{html,yml}]
 indent_size = 2
 
 [LICENSE.txt]
