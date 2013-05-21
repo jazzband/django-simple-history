@@ -1,5 +1,5 @@
-Contributing to django-relatives
-================================
+Contributing to django-simple-history
+=====================================
 
 Pull Requests
 -------------
