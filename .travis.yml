@@ -11,11 +11,10 @@ env:
   - DJANGO=https://github.com/django/django/tarball/master
 
 install:
-  - pip install coverage $DJANGO --use-mirrors
-  - sh -c "if [ '$COVERALLS' != '0' ]; then pip install coveralls; fi"
+  - pip install coverage coveralls $DJANGO --use-mirrors
   - sh -c "if [ '$DJANGO' = 'https://github.com/django/django/tarball/master' ]; then pip install https://github.com/mbraak/django-webtest/tarball/django1.6; fi"
 
-script: coverage run -a --branch setup.py test
+script: coverage run -a setup.py test
 
 matrix:
   include:
