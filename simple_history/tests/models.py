@@ -75,6 +75,11 @@ class Library(models.Model):
     history = HistoricalRecords()
 
 
+class SelfFK(models.Model):
+    fk = models.ForeignKey('self', null=True)
+    history = HistoricalRecords()
+
+
 register(User, app='simple_history.tests', manager_name='histories')
 
 

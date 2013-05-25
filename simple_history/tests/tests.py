@@ -12,7 +12,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library, State
+from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library, State, SelfFK
 from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
@@ -196,6 +196,16 @@ class HistoricalRecordsTest(TestCase):
         state.save()
         self.assertEqual([s.library_id for s in state.history.all()],
                          [None, library2.pk, library1.pk])
+
+    def test_self_referential_foreign_key(self):
+        model = SelfFK.objects.create()
+        other = SelfFK.objects.create()
+        model.fk = model
+        model.save()
+        model.fk = other
+        model.save()
+        self.assertEqual([m.fk_id for m in model.history.all()],
+                         [other.id, model.id, None])
 
     def test_raw_save(self):
         document = Document()
