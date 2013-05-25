@@ -37,7 +37,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         admin_site = self.admin_site
         opts = self.model._meta
         info = opts.app_label, opts.module_name,
-        history_urls = patterns("",
+        history_urls = patterns(
+            "",
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history' % info),
@@ -55,7 +56,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
         content_type = ContentType.objects.get_for_model(User)
-        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label, content_type.model)
+        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
+                                                  content_type.model)
         context = {
             'title': _('Change history: %s') % force_text(obj),
             'action_list': action_list,

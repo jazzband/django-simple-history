@@ -97,4 +97,4 @@ class ExternalModel3(models.Model):
     name = models.CharField(max_length=100)
 
 register(ExternalModel3, app='simple_history.tests.external',
-    manager_name='histories')
+         manager_name='histories')
