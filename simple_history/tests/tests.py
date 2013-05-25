@@ -12,7 +12,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Person, FileModel, Document
+from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library, State, SelfFK
 from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
@@ -175,6 +175,38 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual([d.history_user for d in document.history.all()],
                          [None, user2, user1])
 
+    def test_non_default_primary_key_save(self):
+        book1 = Book.objects.create(isbn='1-84356-028-1')
+        book2 = Book.objects.create(isbn='1-84356-028-2')
+        library = Library.objects.create(book=book1)
+        library.book = book2
+        library.save()
+        library.book = None
+        library.save()
+        self.assertEqual([l.book_id for l in library.history.all()],
+                         [None, book2.pk, book1.pk])
+
+    def test_string_defined_foreign_key_save(self):
+        library1 = Library.objects.create()
+        library2 = Library.objects.create()
+        state = State.objects.create(library=library1)
+        state.library = library2
+        state.save()
+        state.library = None
+        state.save()
+        self.assertEqual([s.library_id for s in state.history.all()],
+                         [None, library2.pk, library1.pk])
+
+    def test_self_referential_foreign_key(self):
+        model = SelfFK.objects.create()
+        other = SelfFK.objects.create()
+        model.fk = model
+        model.save()
+        model.fk = other
+        model.save()
+        self.assertEqual([m.fk_id for m in model.history.all()],
+                         [other.id, model.id, None])
+
     def test_raw_save(self):
         document = Document()
         document.save_base(raw=True)
@@ -185,7 +217,6 @@ class HistoricalRecordsTest(TestCase):
             'id': document.id,
             'history_type': "~",
         })
-
 
 class RegisterTest(TestCase):
     def test_register_no_args(self):

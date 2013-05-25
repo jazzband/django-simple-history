@@ -2,10 +2,16 @@ from __future__ import unicode_literals
 
 import copy
 from django.db import models
+from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
 from .manager import HistoryDescriptor
+
+try:
+    basestring
+except NameError:
+    basestring = str  # Python 3 has no basestring
 
 try:
     from django.utils.encoding import python_2_unicode_compatible
@@ -93,30 +99,15 @@ class HistoricalRecords(object):
         """
         fields = {}
 
-        for field in model._meta.fields:
-            field = copy.copy(field)
-            fk = None
-
+        def customize_field(field):
+            field.name = field.attname
             if isinstance(field, models.AutoField):
                 # The historical model gets its own AutoField, so any
                 # existing one must be replaced with an IntegerField.
                 field.__class__ = models.IntegerField
-
-            if isinstance(field, models.FileField):
+            elif isinstance(field, models.FileField):
                 # Don't copy file, just path.
                 field.__class__ = models.TextField
-
-            if isinstance(field, models.ForeignKey):
-                field.__class__ = models.IntegerField
-                #ughhhh. open to suggestions here
-                field.rel = None
-                field.related = None
-                field.related_query_name = None
-                field.null = True
-                field.blank = True
-                fk = True
-            else:
-                fk = False
 
             # The historical instance should not change creation/modification timestamps.
             field.auto_now = False
@@ -129,8 +120,67 @@ class HistoricalRecords(object):
                 field._unique = False
                 field.db_index = True
                 field.serialize = True
-            if fk:
-                field.name = field.name + "_id"
+
+        for field in model._meta.fields:
+            field = copy.copy(field)
+
+            if isinstance(field, models.ForeignKey):
+                class CustomKey(type(field)):
+                    def get_attname(self):
+                        return self.name
+                    def do_related_class(self, other, cls):
+                        # this hooks into contribute_to_class() and this is
+                        # called specifically after the class_prepared signal
+                        to_field = copy.copy(self.rel.to._meta.pk)
+                        field = self
+                        if isinstance(to_field, models.AutoField):
+                            field.__class__ = models.IntegerField
+                        else:
+                            field.__class__ = to_field.__class__
+                        excluded_prefixes = ("_","__")
+                        excluded_attributes = (
+                            "rel",
+                            "creation_counter",
+                            "validators",
+                            "error_messages",
+                            "attname",
+                            "column",
+                            "help_text",
+                            "name",
+                            "model",
+                            "unique_for_year",
+                            "unique_for_date",
+                            "unique_for_month",
+                            "db_tablespace",
+                            "db_index",
+                            "db_column",
+                            "default",
+                            "auto_created",
+                            "null",
+                            "blank",
+                        )
+                        for key, val in to_field.__dict__.items():
+                            if isinstance(key, basestring) \
+                            and not key.startswith(excluded_prefixes) \
+                            and not key in excluded_attributes:
+                                setattr(field,key,val)
+
+                        customize_field(field)
+                        field.rel = None
+
+                    def contribute_to_class(self, cls, name):
+                        # HACK: remove annoying descriptor (don't super())
+                        RelatedField.contribute_to_class(self, cls, name)
+
+                # Don't allow reverse relations.
+                # ForeignKey knows best what datatype to use for the column
+                # we'll used that as soon as it's finalized by copying rel.to
+                field.__class__ = CustomKey
+                field.rel.related_name = '+'
+                field.null = True
+                field.blank = True
+
+            customize_field(field)
             fields[field.name] = field
 
         return fields
