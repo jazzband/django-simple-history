@@ -9,6 +9,11 @@ from django.utils import importlib
 from .manager import HistoryDescriptor
 
 try:
+    basestring
+except NameError:
+    basestring = str  # Python 3 has no basestring
+
+try:
     from django.utils.encoding import python_2_unicode_compatible
 except ImportError:  # django 1.3 compatibility
     import sys
