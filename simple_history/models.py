@@ -81,7 +81,7 @@ class HistoricalRecords(object):
         elif app_module != self.module:
             # has meta options with app_label
             app = models.get_app(model._meta.app_label)
-            attrs['__module__'] = app.__name__ # full dotted name
+            attrs['__module__'] = app.__name__  # full dotted name
 
         fields = self.copy_fields(model)
         attrs.update(fields)
@@ -90,7 +90,8 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
-        return python_2_unicode_compatible(type(str(name), (models.Model,), attrs))
+        return python_2_unicode_compatible(
+            type(str(name), (models.Model,), attrs))
 
     def copy_fields(self, model):
         """
@@ -126,8 +127,10 @@ class HistoricalRecords(object):
 
             if isinstance(field, models.ForeignKey):
                 class CustomKey(type(field)):
+
                     def get_attname(self):
                         return self.name
+
                     def do_related_class(self, other, cls):
                         # this hooks into contribute_to_class() and this is
                         # called specifically after the class_prepared signal
@@ -160,10 +163,10 @@ class HistoricalRecords(object):
                             "blank",
                         )
                         for key, val in to_field.__dict__.items():
-                            if isinstance(key, basestring) \
-                            and not key.startswith(excluded_prefixes) \
-                            and not key in excluded_attributes:
-                                setattr(field,key,val)
+                            if (isinstance(key, basestring)
+                                    and not key.startswith(excluded_prefixes)
+                                    and not key in excluded_attributes):
+                                setattr(field, key, val)
 
                         customize_field(field)
                         field.rel = None
@@ -190,19 +193,22 @@ class HistoricalRecords(object):
         Returns a dictionary of fields that will be added to the historical
         record model, in addition to the ones returned by copy_fields below.
         """
+
         @models.permalink
         def revert_url(self):
             opts = model._meta
             return ('%s:%s_%s_simple_history' %
                     (admin.site.name, opts.app_label, opts.module_name),
                     [getattr(self, opts.pk.attname), self.history_id])
+
         def get_instance(self):
             return model(**dict([(k, getattr(self, k)) for k in fields]))
 
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
-            'history_user': models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
+            'history_user': models.ForeignKey(
+                getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),

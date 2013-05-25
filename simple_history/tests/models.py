@@ -10,6 +10,7 @@ except ImportError:  # django 1.4 compatibility
 from simple_history.models import HistoricalRecords
 from simple_history import register
 
+
 class Poll(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
@@ -50,6 +51,7 @@ class Person(models.Model):
 class FileModel(models.Model):
     file = models.FileField(upload_to='files')
     history = HistoricalRecords()
+
 
 class Document(models.Model):
     changed_by = models.ForeignKey(User, null=True)

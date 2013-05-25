@@ -12,7 +12,8 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
-from .models import Poll, Choice, Restaurant, Person, FileModel, Document, Book, Library, State, SelfFK
+from .models import (Poll, Choice, Restaurant, Person, FileModel, Document,
+                     Book, Library, State, SelfFK)
 from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
