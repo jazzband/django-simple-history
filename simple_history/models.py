@@ -21,11 +21,9 @@ except ImportError:  # django 1.3 compatibility
     # copy of django function without use of six
     def python_2_unicode_compatible(klass):
         """
-        A decorator that defines __unicode__ and __str__ methods under Python 2.
-        Under Python 3 it does nothing.
+        Decorator defining __unicode__ and __str__ as appropriate for Py2/3
 
-        To support Python 2 and 3 with a single code base, define a __str__ method
-        returning text and apply this decorator to the class.
+        Usage: define __str__ method and apply this decorator to the class.
         """
         if sys.version_info[0] != 3:
             klass.__unicode__ = klass.__str__
@@ -43,14 +41,19 @@ class HistoricalRecords(object):
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
         def save_without_historical_record(self, *args, **kwargs):
-            """Caution! Make sure you know what you're doing before you use this method."""
+            """
+            Save model without saving a historical record
+
+            Make sure you know what you're doing before you use this method.
+            """
             self.skip_history_when_saving = True
             try:
                 ret = self.save(*args, **kwargs)
             finally:
                 del self.skip_history_when_saving
             return ret
-        setattr(cls, 'save_without_historical_record', save_without_historical_record)
+        setattr(cls, 'save_without_historical_record',
+                save_without_historical_record)
 
     def finalize(self, sender, **kwargs):
         history_model = self.create_history_model(sender)
@@ -99,100 +102,24 @@ class HistoricalRecords(object):
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-
-        def customize_field(field):
-            field.name = field.attname
-            if isinstance(field, models.AutoField):
-                # The historical model gets its own AutoField, so any
-                # existing one must be replaced with an IntegerField.
-                field.__class__ = models.IntegerField
-            elif isinstance(field, models.FileField):
-                # Don't copy file, just path.
-                field.__class__ = models.TextField
-
-            # The historical instance should not change creation/modification timestamps.
-            field.auto_now = False
-            field.auto_now_add = False
-
-            if field.primary_key or field.unique:
-                # Unique fields can no longer be guaranteed unique,
-                # but they should still be indexed for faster lookups.
-                field.primary_key = False
-                field._unique = False
-                field.db_index = True
-                field.serialize = True
-
         for field in model._meta.fields:
             field = copy.copy(field)
-
             if isinstance(field, models.ForeignKey):
-                class CustomKey(type(field)):
-
-                    def get_attname(self):
-                        return self.name
-
-                    def do_related_class(self, other, cls):
-                        # this hooks into contribute_to_class() and this is
-                        # called specifically after the class_prepared signal
-                        to_field = copy.copy(self.rel.to._meta.pk)
-                        field = self
-                        if isinstance(to_field, models.AutoField):
-                            field.__class__ = models.IntegerField
-                        else:
-                            field.__class__ = to_field.__class__
-                        excluded_prefixes = ("_","__")
-                        excluded_attributes = (
-                            "rel",
-                            "creation_counter",
-                            "validators",
-                            "error_messages",
-                            "attname",
-                            "column",
-                            "help_text",
-                            "name",
-                            "model",
-                            "unique_for_year",
-                            "unique_for_date",
-                            "unique_for_month",
-                            "db_tablespace",
-                            "db_index",
-                            "db_column",
-                            "default",
-                            "auto_created",
-                            "null",
-                            "blank",
-                        )
-                        for key, val in to_field.__dict__.items():
-                            if (isinstance(key, basestring)
-                                    and not key.startswith(excluded_prefixes)
-                                    and not key in excluded_attributes):
-                                setattr(field, key, val)
-
-                        customize_field(field)
-                        field.rel = None
-
-                    def contribute_to_class(self, cls, name):
-                        # HACK: remove annoying descriptor (don't super())
-                        RelatedField.contribute_to_class(self, cls, name)
-
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
                 # we'll used that as soon as it's finalized by copying rel.to
-                field.__class__ = CustomKey
+                field.__class__ = get_custom_fk_class(type(field))
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
-
-            customize_field(field)
+            transform_field(field)
             fields[field.name] = field
-
         return fields
 
     def get_extra_fields(self, model, fields):
-        """
-        Returns a dictionary of fields that will be added to the historical
-        record model, in addition to the ones returned by copy_fields below.
-        """
+        """Return dict of extra fields added to the historical record model"""
+
+        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
         @models.permalink
         def revert_url(self):
@@ -207,8 +134,7 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(auto_now_add=True),
-            'history_user': models.ForeignKey(
-                getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True),
+            'history_user': models.ForeignKey(user_model, null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
@@ -248,10 +174,87 @@ class HistoricalRecords(object):
         manager.create(history_type=type, history_user=history_user, **attrs)
 
 
+def get_custom_fk_class(parent_type):
+    class CustomForeignKey(parent_type):
+
+        def get_attname(self):
+            return self.name
+
+        def do_related_class(self, other, cls):
+            # this hooks into contribute_to_class() and this is
+            # called specifically after the class_prepared signal
+            to_field = copy.copy(self.rel.to._meta.pk)
+            field = self
+            if isinstance(to_field, models.AutoField):
+                field.__class__ = models.IntegerField
+            else:
+                field.__class__ = to_field.__class__
+                excluded_prefixes = ("_", "__")
+                excluded_attributes = (
+                    "rel",
+                    "creation_counter",
+                    "validators",
+                    "error_messages",
+                    "attname",
+                    "column",
+                    "help_text",
+                    "name",
+                    "model",
+                    "unique_for_year",
+                    "unique_for_date",
+                    "unique_for_month",
+                    "db_tablespace",
+                    "db_index",
+                    "db_column",
+                    "default",
+                    "auto_created",
+                    "null",
+                    "blank",
+                )
+                for key, val in to_field.__dict__.items():
+                    if (isinstance(key, basestring)
+                            and not key.startswith(excluded_prefixes)
+                            and not key in excluded_attributes):
+                        setattr(field, key, val)
+            transform_field(field)
+            field.rel = None
+
+        def contribute_to_class(self, cls, name):
+            # HACK: remove annoying descriptor (don't super())
+            RelatedField.contribute_to_class(self, cls, name)
+
+    return CustomForeignKey
+
+
+def transform_field(field):
+    """Customize field appropriately for use in historical model"""
+    field.name = field.attname
+    if isinstance(field, models.AutoField):
+        # The historical model gets its own AutoField, so any
+        # existing one must be replaced with an IntegerField.
+        field.__class__ = models.IntegerField
+    elif isinstance(field, models.FileField):
+        # Don't copy file, just path.
+        field.__class__ = models.TextField
+
+    # Historical instance shouldn't change create/update timestamps
+    field.auto_now = False
+    field.auto_now_add = False
+
+    if field.primary_key or field.unique:
+        # Unique fields can no longer be guaranteed unique,
+        # but they should still be indexed for faster lookups.
+        field.primary_key = False
+        field._unique = False
+        field.db_index = True
+        field.serialize = True
+
+
 class HistoricalObjectDescriptor(object):
     def __init__(self, model):
         self.model = model
 
     def __get__(self, instance, owner):
-        values = (getattr(instance, f.attname) for f in self.model._meta.fields)
+        values = (getattr(instance, f.attname)
+                  for f in self.model._meta.fields)
         return self.model(*values)

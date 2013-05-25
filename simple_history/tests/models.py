@@ -88,11 +88,13 @@ register(User, app='simple_history.tests', manager_name='histories')
 class ExternalModel1(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords()
+
     class Meta:
         app_label = 'external'
+
 
 class ExternalModel3(models.Model):
     name = models.CharField(max_length=100)
 
 register(ExternalModel3, app='simple_history.tests.external',
-    manager_name='histories')
+         manager_name='histories')
