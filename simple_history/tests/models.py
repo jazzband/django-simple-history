@@ -10,7 +10,6 @@ except ImportError:  # django 1.4 compatibility
 from simple_history.models import HistoricalRecords
 from simple_history import register
 
-
 class Poll(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
@@ -52,7 +51,6 @@ class FileModel(models.Model):
     file = models.FileField(upload_to='files')
     history = HistoricalRecords()
 
-
 class Document(models.Model):
     changed_by = models.ForeignKey(User, null=True)
     history = HistoricalRecords()
@@ -60,6 +58,26 @@ class Document(models.Model):
     @property
     def _history_user(self):
         return self.changed_by
+
+
+class State(models.Model):
+    library = models.ForeignKey('Library', null=True)
+    history = HistoricalRecords()
+
+
+class Book(models.Model):
+    isbn = models.CharField(max_length=15, primary_key=True)
+    history = HistoricalRecords()
+
+
+class Library(models.Model):
+    book = models.ForeignKey(Book, null=True)
+    history = HistoricalRecords()
+
+
+class SelfFK(models.Model):
+    fk = models.ForeignKey('self', null=True)
+    history = HistoricalRecords()
 
 
 register(User, app='simple_history.tests', manager_name='histories')
