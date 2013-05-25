@@ -154,7 +154,7 @@ class HistoricalRecords(object):
                             "null",
                             "blank",
                         )
-                        for key, val in to_field.__dict__.iteritems():
+                        for key, val in to_field.__dict__.items():
                             if isinstance(key, basestring) \
                             and not key.startswith(excluded_prefixes) \
                             and not key in excluded_attributes:
