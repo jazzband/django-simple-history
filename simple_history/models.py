@@ -179,13 +179,25 @@ def get_custom_fk_class(parent_type):
 
         def get_attname(self):
             return self.name
-
-        def do_related_class(self, other, cls):
+        
+        def get_field(self, other, cls):
             # this hooks into contribute_to_class() and this is
             # called specifically after the class_prepared signal
             to_field = copy.copy(self.rel.to._meta.pk)
             field = self
-            if isinstance(to_field, models.AutoField):
+            if isinstance(to_field, models.OneToOneField):
+                #HACK This creates a new custom foreign key based on to_field,
+                # and calls itself with that, effectively making the calls
+                # recursive
+                temp_field = self.__class__(to_field.rel.to._meta.object_name)
+                for key, val in to_field.__dict__.items():
+                    if (isinstance(key, basestring)
+                            and not key.startswith('_')):
+                        setattr(temp_field, key, val)
+                field = self.__class__.get_field(
+                         temp_field, other, to_field.rel.to)
+                
+            elif isinstance(to_field, models.AutoField):
                 field.__class__ = models.IntegerField
             else:
                 field.__class__ = to_field.__class__
@@ -216,6 +228,11 @@ def get_custom_fk_class(parent_type):
                             and not key.startswith(excluded_prefixes)
                             and not key in excluded_attributes):
                         setattr(field, key, val)
+            return field
+        
+        def do_related_class(self, other, cls):
+            field = self.get_field(other, cls)
+            
             transform_field(field)
             field.rel = None
 

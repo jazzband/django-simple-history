@@ -61,7 +61,12 @@ class Document(models.Model):
     def _history_user(self):
         return self.changed_by
 
+class Profile(User):
+    date_of_birth = models.DateField()
 
+class AdminProfile(models.Model):
+    profile = models.ForeignKey(Profile)
+    
 class State(models.Model):
     library = models.ForeignKey('Library', null=True)
     history = HistoricalRecords()
@@ -71,6 +76,11 @@ class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
     history = HistoricalRecords()
 
+class HardbackBook(Book):
+    price = models.FloatField()
+
+class Bookcase(models.Model):
+    books = models.ForeignKey(HardbackBook)
 
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)

@@ -3,6 +3,7 @@ Changes
 
 tip (unreleased)
 ----------------
+- Fixed error that occurs when models have a foreign key pointing to a one to one field.
 
 1.3.0 (2013-05-17)
 ------------------
