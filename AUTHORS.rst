@@ -4,6 +4,7 @@ Authors
 - Aleksey Kladov
 - Corey Bertram
 - Damien Nozay
+- Daniel Levy
 - George Vilches
 - Joao Pedro Francese
 - Jonathan Sanchez
