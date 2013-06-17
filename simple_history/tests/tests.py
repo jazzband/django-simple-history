@@ -6,7 +6,8 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
-from simple_history.tests.models import Profile, AdminProfile, Bookcase
+from simple_history.tests.models import Profile, AdminProfile, Bookcase,\
+    MultiOneToOne
 from django.db import models
 from simple_history.models import HistoricalRecords
 try:
@@ -264,6 +265,16 @@ class CreateHistoryModelTests(TestCase):
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
+    
+    def test_create_history_model_with_multiple_one_to_ones(self):
+        records = HistoricalRecords()
+        records.module = MultiOneToOne.__module__
+        try:
+            records.create_history_model(MultiOneToOne)
+        except:
+            self.fail("SimpleHistory should handle foreign keys to one to one"
+                      "fields to one to one fields without throwing an "
+                      "exception.")
 
 class AppLabelTest(TestCase):
     def get_table_name(self, manager):

@@ -86,6 +86,17 @@ class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
     history = HistoricalRecords()
 
+class BaseModel(models.Model):
+    pass
+
+class FirstLevelInheritedModel(BaseModel):
+    pass
+
+class SecondLevelInheritedModel(FirstLevelInheritedModel):
+    pass
+
+class MultiOneToOne(models.Model):
+    fk = models.ForeignKey(SecondLevelInheritedModel)
 
 class SelfFK(models.Model):
     fk = models.ForeignKey('self', null=True)
