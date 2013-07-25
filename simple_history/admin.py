@@ -37,10 +37,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         admin_site = self.admin_site
         opts = self.model._meta
         info = opts.app_label, opts.module_name,
-        history_urls = patterns("",
+        history_urls = patterns(
+            "",
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
-                name='%s_%s_simple_history' % info),)
+                name='%s_%s_simple_history' % info),
+        )
         return history_urls + urls
 
     def history_view(self, request, object_id, extra_context=None):
@@ -54,7 +56,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=unquote(object_id))
         content_type = ContentType.objects.get_for_model(User)
-        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label, content_type.model)
+        admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
+                                                  content_type.model)
         context = {
             'title': _('Change history: %s') % force_text(obj),
             'action_list': action_list,
@@ -66,17 +69,23 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
-        context_instance = template.RequestContext(request, current_app=self.admin_site.name)
-        return render_to_response(self.object_history_template, context, context_instance=context_instance)
+        context_instance = template.RequestContext(
+            request, current_app=self.admin_site.name)
+        return render_to_response(self.object_history_template, context,
+                                  context_instance=context_instance)
 
     def history_form_view(self, request, object_id, version_id):
         original_model = self.model
         original_opts = original_model._meta
-        history = getattr(self.model, self.model._meta.simple_history_manager_attribute)
+        history = getattr(self.model,
+                          self.model._meta.simple_history_manager_attribute)
         model = history.model
         opts = model._meta
         pk_name = original_opts.pk.attname
-        record = get_object_or_404(model, **{pk_name: object_id, 'history_id': version_id})
+        record = get_object_or_404(model, **{
+            pk_name: object_id,
+            'history_id': version_id,
+        })
         obj = record.instance
         obj._state.adding = False
 
@@ -84,38 +93,43 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             raise PermissionDenied
 
         formsets = []
-        ModelForm = self.get_form(request, obj)
+        form_class = self.get_form(request, obj)
         if request.method == 'POST':
-            form = ModelForm(request.POST, request.FILES, instance=obj)
+            form = form_class(request.POST, request.FILES, instance=obj)
             if form.is_valid():
                 form_validated = True
                 new_object = self.save_form(request, form, change=True)
             else:
                 form_validated = False
                 new_object = obj
-            prefixes = {}
 
             if form_validated:
                 self.save_model(request, new_object, form, change=True)
                 form.save_m2m()
 
-                change_message = self.construct_change_message(request, form, formsets)
+                change_message = self.construct_change_message(request, form,
+                                                               formsets)
                 self.log_change(request, new_object, change_message)
                 return self.response_change(request, new_object)
 
         else:
-            form = ModelForm(instance=obj)
+            form = form_class(instance=obj)
 
-        adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
-            self.prepopulated_fields, self.get_readonly_fields(request, obj),
-            model_admin=self)
-        media = self.media + adminForm.media
+        admin_form = helpers.AdminForm(
+            form,
+            self.get_fieldsets(request, obj),
+            self.prepopulated_fields,
+            self.get_readonly_fields(request, obj),
+            model_admin=self,
+        )
+        media = self.media + admin_form.media
 
         url_triplet = (self.admin_site.name, original_opts.app_label,
-                            original_opts.module_name)
+                       original_opts.module_name)
+        content_type_id = ContentType.objects.get_for_model(self.model).id
         context = {
             'title': _('Revert %s') % force_text(obj),
-            'adminform': adminForm,
+            'adminform': admin_form,
             'object_id': object_id,
             'original': obj,
             'is_popup': False,
@@ -124,8 +138,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'app_label': opts.app_label,
             'original_opts': original_opts,
             'changelist_url': reverse('%s:%s_%s_changelist' % url_triplet),
-            'change_url': reverse('%s:%s_%s_change' % url_triplet, args=(obj.pk,)),
-            'history_url': reverse('%s:%s_%s_history' % url_triplet, args=(obj.pk,)),
+            'change_url': reverse('%s:%s_%s_change' % url_triplet,
+                                  args=(obj.pk,)),
+            'history_url': reverse('%s:%s_%s_history' % url_triplet,
+                                   args=(obj.pk,)),
             # Context variables copied from render_change_form
             'add': False,
             'change': True,
@@ -136,17 +152,19 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'has_absolute_url': False,
             'form_url': '',
             'opts': opts,
-            'content_type_id': ContentType.objects.get_for_model(self.model).id,
+            'content_type_id': content_type_id,
             'save_as': self.save_as,
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
-        context_instance = template.RequestContext(request, current_app=self.admin_site.name)
-        return render_to_response(self.object_history_form_template, context, context_instance)
+        context_instance = template.RequestContext(
+            request,
+            current_app=self.admin_site.name,
+        )
+        return render_to_response(self.object_history_form_template, context,
+                                  context_instance)
 
     def save_model(self, request, obj, form, change):
-        """
-        Add the admin user to a special model attribute for reference after save
-        """
+        """Set special model attribute to user for reference after save"""
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)

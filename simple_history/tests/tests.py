@@ -139,6 +139,13 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_foreignkey_still_allows_reverse_lookup_via_set_attribute(self):
+        lib = Library.objects.create()
+        state = State.objects.create(library=lib)
+        self.assertTrue(hasattr(lib, 'state_set'))
+        self.assertIsNone(state._meta.get_field('library').rel.related_name,
+            "the '+' shouldn't leak through to the original model's field related_name")
+
     def test_file_field(self):
         model = FileModel.objects.create(file=get_fake_file('name'))
         self.assertEqual(model.file.name, 'files/name')
@@ -219,6 +226,7 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+
 class RegisterTest(TestCase):
     def test_register_no_args(self):
         self.assertEqual(len(Choice.history.all()), 0)
@@ -249,25 +257,25 @@ class AppLabelTest(TestCase):
 
     def test_explicit_app_label(self):
         self.assertEqual(self.get_table_name(ExternalModel1.objects),
-            'external_externalmodel1')
+                         'external_externalmodel1')
         self.assertEqual(self.get_table_name(ExternalModel1.history),
-            'external_historicalexternalmodel1')
+                         'external_historicalexternalmodel1')
 
     def test_default_app_label(self):
         self.assertEqual(self.get_table_name(ExternalModel2.objects),
-            'external_externalmodel2')
+                         'external_externalmodel2')
         self.assertEqual(self.get_table_name(ExternalModel2.history),
-            'external_historicalexternalmodel2')
+                         'external_historicalexternalmodel2')
 
     def test_register_app_label(self):
         self.assertEqual(self.get_table_name(ExternalModel3.objects),
-            'tests_externalmodel3')
+                         'tests_externalmodel3')
         self.assertEqual(self.get_table_name(ExternalModel3.histories),
-            'external_historicalexternalmodel3')
+                         'external_historicalexternalmodel3')
         self.assertEqual(self.get_table_name(ExternalModel4.objects),
-            'external_externalmodel4')
+                         'external_externalmodel4')
         self.assertEqual(self.get_table_name(ExternalModel4.histories),
-            'tests_historicalexternalmodel4')
+                         'tests_historicalexternalmodel4')
 
 
 class HistoryManagerTest(TestCase):
@@ -344,14 +352,15 @@ def get_history_url(model, history_index=None):
     if history_index is not None:
         history = model.history.order_by('history_id')[history_index]
         return reverse('admin:%s_%s_simple_history' % info,
-            args=[model.pk, history.history_id])
+                       args=[model.pk, history.history_id])
     else:
         return reverse('admin:%s_%s_history' % info, args=[model.pk])
 
 
 class AdminSiteTest(WebTest):
     def setUp(self):
-        self.user = User.objects.create_superuser('user_login', 'u@example.com', 'pass')
+        self.user = User.objects.create_superuser('user_login',
+                                                  'u@example.com', 'pass')
 
     def login(self, user=None):
         if user is None:
