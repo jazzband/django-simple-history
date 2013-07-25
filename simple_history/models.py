@@ -104,6 +104,7 @@ class HistoricalRecords(object):
         fields = {}
         for field in model._meta.fields:
             field = copy.copy(field)
+            field.rel = copy.copy(field.rel)
             if isinstance(field, models.ForeignKey):
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
