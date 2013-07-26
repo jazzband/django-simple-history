@@ -139,6 +139,13 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_foreignkey_still_allows_reverse_lookup_via_set_attribute(self):
+        lib = Library.objects.create()
+        state = State.objects.create(library=lib)
+        self.assertTrue(hasattr(lib, 'state_set'))
+        self.assertIsNone(state._meta.get_field('library').rel.related_name,
+            "the '+' shouldn't leak through to the original model's field related_name")
+
     def test_file_field(self):
         model = FileModel.objects.create(file=get_fake_file('name'))
         self.assertEqual(model.file.name, 'files/name')

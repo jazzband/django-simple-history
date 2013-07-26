@@ -4,6 +4,9 @@ Changes
 tip (unreleased)
 ----------------
 
+- Allow non-integer foreign keys
+- Allow foreign keys referencing the name of the model as a string
+
 1.3.0 (2013-05-17)
 ------------------
 

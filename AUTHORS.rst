@@ -5,6 +5,7 @@ Authors
 - Corey Bertram
 - Damien Nozay
 - George Vilches
+- Hamish Downer
 - Joao Pedro Francese
 - Jonathan Sanchez
 - Josh Fyne
