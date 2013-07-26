@@ -35,6 +35,9 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
+    def __init__(self, verbose_name=None):
+        self.user_set_verbose_name = verbose_name
+
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
@@ -152,9 +155,14 @@ class HistoricalRecords(object):
         Returns a dictionary of fields that will be added to
         the Meta inner class of the historical record model.
         """
-        return {
+        meta_fields = {
             'ordering': ('-history_date', '-history_id'),
         }
+        if self.user_set_verbose_name:
+            meta_fields['verbose_name'] = self.user_set_verbose_name
+        else:
+            meta_fields['verbose_name'] = u'historical ' + unicode(model._meta.verbose_name)
+        return meta_fields
 
     def post_save(self, instance, created, **kwargs):
         if not created and hasattr(instance, 'skip_history_when_saving'):
