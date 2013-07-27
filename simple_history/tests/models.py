@@ -69,12 +69,15 @@ class State(models.Model):
 
 class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
-    history = HistoricalRecords()
+    history = HistoricalRecords(verbose_name='dead trees')
 
 
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
     history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'quiet please'
 
 
 class SelfFK(models.Model):

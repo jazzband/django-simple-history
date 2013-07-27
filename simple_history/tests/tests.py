@@ -226,6 +226,16 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_user_can_set_verbose_name(self):
+        b = Book(isbn='54321')
+        b.save()
+        self.assertEqual('dead trees', b.history.all()[0]._meta.verbose_name)
+
+    def test_historical_verbose_name_follows_model_verbose_name(self):
+        l = Library()
+        l.save()
+        self.assertEqual('historical quiet please', l.history.all()[0]._meta.verbose_name)
+
 
 class RegisterTest(TestCase):
     def test_register_no_args(self):
