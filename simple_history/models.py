@@ -162,7 +162,7 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             meta_fields['verbose_name'] = self.user_set_verbose_name
         else:
-            meta_fields['verbose_name'] = u'historical ' + unicode(model._meta.verbose_name)
+            meta_fields['verbose_name'] = 'historical ' + str(model._meta.verbose_name)
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
