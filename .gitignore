@@ -9,3 +9,6 @@ MANIFEST
 .tox/
 htmlcov/
 test_files/
+/.ve
+/.project
+/.pydevproject
