@@ -3,6 +3,7 @@ Changes
 
 tip (unreleased)
 ----------------
+- Fixed error that occurs when models have a foreign key pointing to a one to one field.
 
 - Allow non-integer foreign keys
 - Allow foreign keys referencing the name of the model as a string
