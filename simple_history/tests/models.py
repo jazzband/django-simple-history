@@ -66,7 +66,7 @@ class Profile(User):
 
 class AdminProfile(models.Model):
     profile = models.ForeignKey(Profile)
-    
+
 class State(models.Model):
     library = models.ForeignKey('Library', null=True)
     history = HistoricalRecords()
@@ -74,7 +74,7 @@ class State(models.Model):
 
 class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
-    history = HistoricalRecords()
+    history = HistoricalRecords(verbose_name='dead trees')
 
 class HardbackBook(Book):
     price = models.FloatField()
@@ -85,6 +85,9 @@ class Bookcase(models.Model):
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
     history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'quiet please'
 
 class BaseModel(models.Model):
     pass

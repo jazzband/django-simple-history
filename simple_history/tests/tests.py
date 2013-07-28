@@ -230,6 +230,17 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_user_can_set_verbose_name(self):
+        b = Book(isbn='54321')
+        b.save()
+        self.assertEqual('dead trees', b.history.all()[0]._meta.verbose_name)
+
+    def test_historical_verbose_name_follows_model_verbose_name(self):
+        l = Library()
+        l.save()
+        self.assertEqual('historical quiet please', l.history.all()[0]._meta.verbose_name)
+
+
 class RegisterTest(TestCase):
     def test_register_no_args(self):
         self.assertEqual(len(Choice.history.all()), 0)
@@ -263,7 +274,7 @@ class CreateHistoryModelTests(TestCase):
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to integer fields without throwing an exception.")
-    
+
     def test_create_history_model_with_one_to_one_field_to_char_field(self):
         records = HistoricalRecords()
         records.module = Bookcase.__module__
@@ -272,7 +283,7 @@ class CreateHistoryModelTests(TestCase):
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
-    
+
     def test_create_history_model_with_multiple_one_to_ones(self):
         records = HistoricalRecords()
         records.module = MultiOneToOne.__module__
