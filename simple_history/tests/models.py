@@ -61,11 +61,14 @@ class Document(models.Model):
     def _history_user(self):
         return self.changed_by
 
+
 class Profile(User):
     date_of_birth = models.DateField()
 
+
 class AdminProfile(models.Model):
     profile = models.ForeignKey(Profile)
+
 
 class State(models.Model):
     library = models.ForeignKey('Library', null=True)
@@ -76,11 +79,14 @@ class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
     history = HistoricalRecords(verbose_name='dead trees')
 
+
 class HardbackBook(Book):
     price = models.FloatField()
 
+
 class Bookcase(models.Model):
     books = models.ForeignKey(HardbackBook)
+
 
 class Library(models.Model):
     book = models.ForeignKey(Book, null=True)
@@ -89,17 +95,22 @@ class Library(models.Model):
     class Meta:
         verbose_name = 'quiet please'
 
+
 class BaseModel(models.Model):
     pass
+
 
 class FirstLevelInheritedModel(BaseModel):
     pass
 
+
 class SecondLevelInheritedModel(FirstLevelInheritedModel):
     pass
 
+
 class MultiOneToOne(models.Model):
     fk = models.ForeignKey(SecondLevelInheritedModel)
+
 
 class SelfFK(models.Model):
     fk = models.ForeignKey('self', null=True)

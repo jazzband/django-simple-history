@@ -6,9 +6,7 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
-from simple_history.tests.models import Profile, AdminProfile, Bookcase,\
-    MultiOneToOne
-from django.db import models
+from simple_history.tests.models import AdminProfile, Bookcase, MultiOneToOne
 from simple_history.models import HistoricalRecords
 try:
     from django.contrib.auth import get_user_model
@@ -148,7 +146,8 @@ class HistoricalRecordsTest(TestCase):
         state = State.objects.create(library=lib)
         self.assertTrue(hasattr(lib, 'state_set'))
         self.assertIsNone(state._meta.get_field('library').rel.related_name,
-            "the '+' shouldn't leak through to the original model's field related_name")
+                          "the '+' shouldn't leak through to the original "
+                          "model's field related_name")
 
     def test_file_field(self):
         model = FileModel.objects.create(file=get_fake_file('name'))
@@ -238,7 +237,8 @@ class HistoricalRecordsTest(TestCase):
     def test_historical_verbose_name_follows_model_verbose_name(self):
         l = Library()
         l.save()
-        self.assertEqual('historical quiet please', l.history.all()[0]._meta.verbose_name)
+        self.assertEqual('historical quiet please',
+                         l.history.get()._meta.verbose_name)
 
 
 class RegisterTest(TestCase):
@@ -264,6 +264,7 @@ class RegisterTest(TestCase):
         self.assertTrue(hasattr(User, 'histories'))
         self.assertFalse(hasattr(User, 'again'))
 
+
 class CreateHistoryModelTests(TestCase):
 
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
@@ -273,7 +274,7 @@ class CreateHistoryModelTests(TestCase):
             records.create_history_model(AdminProfile)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
-                      "fields to integer fields without throwing an exception.")
+                      "fields to integer fields without throwing an exception")
 
     def test_create_history_model_with_one_to_one_field_to_char_field(self):
         records = HistoricalRecords()
@@ -293,6 +294,7 @@ class CreateHistoryModelTests(TestCase):
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
                       "exception.")
+
 
 class AppLabelTest(TestCase):
     def get_table_name(self, manager):

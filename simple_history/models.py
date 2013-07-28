@@ -162,7 +162,8 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             meta_fields['verbose_name'] = self.user_set_verbose_name
         else:
-            meta_fields['verbose_name'] = 'historical ' + str(model._meta.verbose_name)
+            meta_fields['verbose_name'] = ('historical ' +
+                                           str(model._meta.verbose_name))
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
@@ -183,73 +184,76 @@ class HistoricalRecords(object):
         manager.create(history_type=type, history_user=history_user, **attrs)
 
 
+class ForeignKeyMixin(object):
+    def get_attname(self):
+        return self.name
+
+    def get_one_to_one_field(self, to_field, other):
+        #HACK This creates a new custom foreign key based on to_field,
+        # and calls itself with that, effectively making the calls
+        # recursive
+        temp_field = self.__class__(to_field.rel.to._meta.object_name)
+        for key, val in to_field.__dict__.items():
+            if (isinstance(key, basestring)
+                    and not key.startswith('_')):
+                setattr(temp_field, key, val)
+        field = self.__class__.get_field(
+            temp_field, other, to_field.rel.to)
+        return field
+
+    def get_field(self, other, cls):
+        # this hooks into contribute_to_class() and this is
+        # called specifically after the class_prepared signal
+        to_field = copy.copy(self.rel.to._meta.pk)
+        field = self
+        if isinstance(to_field, models.OneToOneField):
+            field = self.get_one_to_one_field(to_field, other)
+        elif isinstance(to_field, models.AutoField):
+            field.__class__ = models.IntegerField
+        else:
+            field.__class__ = to_field.__class__
+            excluded_prefixes = ("_", "__")
+            excluded_attributes = (
+                "rel",
+                "creation_counter",
+                "validators",
+                "error_messages",
+                "attname",
+                "column",
+                "help_text",
+                "name",
+                "model",
+                "unique_for_year",
+                "unique_for_date",
+                "unique_for_month",
+                "db_tablespace",
+                "db_index",
+                "db_column",
+                "default",
+                "auto_created",
+                "null",
+                "blank",
+            )
+            for key, val in to_field.__dict__.items():
+                if (isinstance(key, basestring)
+                        and not key.startswith(excluded_prefixes)
+                        and not key in excluded_attributes):
+                    setattr(field, key, val)
+        return field
+
+    def do_related_class(self, other, cls):
+        field = self.get_field(other, cls)
+
+        transform_field(field)
+        field.rel = None
+
+    def contribute_to_class(self, cls, name):
+        # HACK: remove annoying descriptor (don't super())
+        RelatedField.contribute_to_class(self, cls, name)
+
+
 def get_custom_fk_class(parent_type):
-    class CustomForeignKey(parent_type):
-
-        def get_attname(self):
-            return self.name
-        
-        def get_field(self, other, cls):
-            # this hooks into contribute_to_class() and this is
-            # called specifically after the class_prepared signal
-            to_field = copy.copy(self.rel.to._meta.pk)
-            field = self
-            if isinstance(to_field, models.OneToOneField):
-                #HACK This creates a new custom foreign key based on to_field,
-                # and calls itself with that, effectively making the calls
-                # recursive
-                temp_field = self.__class__(to_field.rel.to._meta.object_name)
-                for key, val in to_field.__dict__.items():
-                    if (isinstance(key, basestring)
-                            and not key.startswith('_')):
-                        setattr(temp_field, key, val)
-                field = self.__class__.get_field(
-                         temp_field, other, to_field.rel.to)
-                
-            elif isinstance(to_field, models.AutoField):
-                field.__class__ = models.IntegerField
-            else:
-                field.__class__ = to_field.__class__
-                excluded_prefixes = ("_", "__")
-                excluded_attributes = (
-                    "rel",
-                    "creation_counter",
-                    "validators",
-                    "error_messages",
-                    "attname",
-                    "column",
-                    "help_text",
-                    "name",
-                    "model",
-                    "unique_for_year",
-                    "unique_for_date",
-                    "unique_for_month",
-                    "db_tablespace",
-                    "db_index",
-                    "db_column",
-                    "default",
-                    "auto_created",
-                    "null",
-                    "blank",
-                )
-                for key, val in to_field.__dict__.items():
-                    if (isinstance(key, basestring)
-                            and not key.startswith(excluded_prefixes)
-                            and not key in excluded_attributes):
-                        setattr(field, key, val)
-            return field
-        
-        def do_related_class(self, other, cls):
-            field = self.get_field(other, cls)
-            
-            transform_field(field)
-            field.rel = None
-
-        def contribute_to_class(self, cls, name):
-            # HACK: remove annoying descriptor (don't super())
-            RelatedField.contribute_to_class(self, cls, name)
-
-    return CustomForeignKey
+    return type(str('CustomForeignKey'), (ForeignKeyMixin, parent_type), {})
 
 
 def transform_field(field):
