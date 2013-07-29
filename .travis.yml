@@ -21,7 +21,7 @@ script: coverage run -a setup.py test
 matrix:
   exclude:
    - python: 2.6
-     env: DJANGO=https://github.com/django/django/tarball/stable/1.6.x
+     env: DJANGO=https://github.com/django/django/tarball/master
    - python: 3.2
      env: DJANGO=Django==1.3.7
    - python: 3.3
