@@ -79,7 +79,7 @@ way as a model manager:
 
 .. code-block:: pycon
 
-    >>> from poll.models import Poll, Choice
+    >>> from polls.models import Poll, Choice
     >>> from datetime import datetime
     >>> poll = Poll.objects.create(question="what's up?", pub_date=datetime.now())
     >>>
@@ -105,8 +105,8 @@ records for all ``Choice`` instances can be queried by using the manager on the
 
 .. code-block:: pycon
 
-    >>> choice1 = poll.choice_set.create(choice='Not Much', votes=0)
-    >>> choice2 = poll.choice_set.create(choice='The sky', votes=0)
+    >>> choice1 = poll.choice_set.create(choice_text='Not Much', votes=0)
+    >>> choice2 = poll.choice_set.create(choice_text='The sky', votes=0)
     >>>
     >>> Choice.history
     <simple_history.manager.HistoryManager object at 0x1cc4290>
