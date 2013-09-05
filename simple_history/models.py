@@ -42,7 +42,9 @@ class HistoricalRecords(object):
         self.manager_name = name
         self.module = cls.__module__
         models.signals.class_prepared.connect(self.finalize, sender=cls)
+        self.add_extra_methods(cls)
 
+    def add_extra_methods(self, cls):
         def save_without_historical_record(self, *args, **kwargs):
             """
             Save model without saving a historical record
