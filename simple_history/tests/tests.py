@@ -112,6 +112,10 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "~",
         })
 
+    def test_save_without_historical_record_for_registered_model(self):
+        registered_model = ExternalModel3.objects.create(name='registered model')
+        self.assertTrue(hasattr(registered_model, 'save_without_historical_record'))
+
     def test_save_raises_exception(self):
         anthony = Person(name='Anthony Gillard')
         with self.assertRaises(RuntimeError):
