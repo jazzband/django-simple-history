@@ -25,3 +25,9 @@ Pull requests are welcome.  Read the CONTRIBUTING file for tips on
 submitting a pull request.
 
 .. _PyPI: https://pypi.python.org/pypi/django-email-log/
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/treyhunner/django-simple-history/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
