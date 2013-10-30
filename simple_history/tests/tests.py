@@ -2,10 +2,12 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
 from django import VERSION
+from django.conf import settings
 from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from simple_history.tests.models import AdminProfile, Bookcase, MultiOneToOne
 from simple_history.models import HistoricalRecords
 try:
@@ -20,7 +22,10 @@ from .models import ExternalModel1, ExternalModel3
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
-today = datetime(2021, 1, 1, 10, 0)
+if settings.USE_TZ:
+    today = datetime(2021, 1, 1, 10, 0).replace(tzinfo=timezone.get_current_timezone())
+else:
+    today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 
 
@@ -53,7 +58,7 @@ class HistoricalRecordsTest(TestCase):
             'id': p.id,
             'history_type': "+"
         })
-        self.assertDatetimesEqual(record.history_date, datetime.now())
+        self.assertDatetimesEqual(record.history_date, timezone.now())
 
     def test_update(self):
         Poll.objects.create(question="what's up?", pub_date=today)
@@ -375,7 +380,7 @@ class HistoryManagerTest(TestCase):
     def test_as_of_nonexistant(self):
         # Unsaved poll
         poll = Poll(question="what's up?", pub_date=today)
-        time = datetime.now()
+        time = timezone.now()
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
         # Deleted poll
         poll.save()
