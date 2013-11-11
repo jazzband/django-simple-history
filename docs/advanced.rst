@@ -94,14 +94,13 @@ referencing the ``changed_by`` field:
 Custom ``history_date``
 --------------------------------------------------
 
-You're able to set a custom ``history_date`` attribute of the historical
-record, by defining it in your model. That's helpful if you want to add
-versions to your model, which happened before the current model version, e.g.
-when batch importing historical data. The field you use has to be a
-``DateTimeField``.
-
-The following example uses the ``date`` attribute as reference for the
-``history_date`` attribute:
+You're able to set a custom ``history_date`` attribute for the historical
+record, by defining the property ``_history_date`` in your model. That's
+helpful if you want to add versions to your model, which happened before the
+current model version, e.g. when batch importing historical data. The content
+of the property ``_history_date`` has to be a datetime-object, but setting the
+value of the property to a ``DateTimeField``, which is already defined in the
+model, will work too.
 
 .. code-block:: python
 
@@ -129,5 +128,5 @@ The following example uses the ``date`` attribute as reference for the
        from models import Poll
 
        my_poll = Poll(question="what's up?")
-       my_poll.history_date = datetime.now()
+       my_poll._history_date = datetime.now()
        my_poll.save()
