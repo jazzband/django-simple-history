@@ -35,8 +35,9 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
-    def __init__(self, verbose_name=None):
+    def __init__(self, verbose_name=None, base_class=None):
         self.user_set_verbose_name = verbose_name
+        self.base_class = base_class
 
     def contribute_to_class(self, cls, name):
         self.manager_name = name
@@ -98,8 +99,11 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
+        base_class = models.Model
+        if self.base_class is not None:
+            base_class = self.base_class
         return python_2_unicode_compatible(
-            type(str(name), (models.Model,), attrs))
+            type(str(name), (base_class,), attrs))
 
     def copy_fields(self, model):
         """
