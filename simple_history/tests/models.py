@@ -18,6 +18,34 @@ class Poll(models.Model):
     history = HistoricalRecords()
 
 
+class Temperature(models.Model):
+    location = models.CharField(max_length=200)
+    temperature = models.IntegerField()
+
+    history = HistoricalRecords()
+    __history_date = None
+
+    @property
+    def _history_date(self):
+        return self.__history_date
+
+    @_history_date.setter
+    def _history_date(self, value):
+        self.__history_date = value
+
+
+class WaterLevel(models.Model):
+    waters = models.CharField(max_length=200)
+    level = models.IntegerField()
+    date = models.DateTimeField()
+
+    history = HistoricalRecords()
+
+    @property
+    def _history_date(self):
+        return self.date
+
+
 class Choice(models.Model):
     poll = models.ForeignKey(Poll)
     choice = models.CharField(max_length=200)
