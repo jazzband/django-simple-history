@@ -6,6 +6,10 @@ from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
+try:
+    from django.utils.six import text_type
+except ImportError:
+    text_type = unicode
 from .manager import HistoryDescriptor
 
 try:
@@ -165,7 +169,7 @@ class HistoricalRecords(object):
             meta_fields['verbose_name'] = self.user_set_verbose_name
         else:
             meta_fields['verbose_name'] = ('historical ' +
-                                           str(model._meta.verbose_name))
+                                           text_type(model._meta.verbose_name))
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
