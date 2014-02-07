@@ -61,6 +61,8 @@ third-party apps you don't have control over.  Here's an example of using
     register(User)
 
 
+.. _recording_user:
+
 Recording Which User Changed a Model
 ------------------------------------
 

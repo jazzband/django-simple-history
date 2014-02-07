@@ -67,6 +67,8 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
     admin.site.register(Poll, SimpleHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)
 
+Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :ref:`recording_user`).
+
 
 Querying history
 ----------------
