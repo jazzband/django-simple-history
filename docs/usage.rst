@@ -44,6 +44,7 @@ Django tutorial:
 Now all changes to ``Poll`` and ``Choice`` model instances will be tracked in
 the database.
 
+.. _admin_integration:
 
 Integration with Django Admin
 -----------------------------

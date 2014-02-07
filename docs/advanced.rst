@@ -91,3 +91,5 @@ referencing the ``changed_by`` field:
         @_history_user.setter
         def _history_user(self, value):
             self.changed_by = value
+
+Admin integration requires that you use a ``_history_user.setter`` attribute with your custom ``_history_user`` property (see :ref:`admin_integration`).
