@@ -16,7 +16,7 @@ except ImportError:  # django 1.4 compatibility
 
 from .models import (Poll, Choice, Restaurant, Person, FileModel, Document,
                      Book, Library, State, SelfFK)
-from .models import ExternalModel1, ExternalModel3
+from .models import ExternalModel1, ExternalModel3, UnicodeVerboseName
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
@@ -232,6 +232,11 @@ class HistoricalRecordsTest(TestCase):
             'id': document.id,
             'history_type': "~",
         })
+
+    def test_unicode_verbose_name(self):
+        instance = UnicodeVerboseName()
+        instance.save()
+        self.assertEqual('historical \u570b', instance.history.all()[0]._meta.verbose_name)
 
     def test_user_can_set_verbose_name(self):
         b = Book(isbn='54321')

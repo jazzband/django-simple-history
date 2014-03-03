@@ -133,3 +133,11 @@ class ExternalModel3(models.Model):
 
 register(ExternalModel3, app='simple_history.tests.external',
          manager_name='histories')
+
+
+class UnicodeVerboseName(models.Model):
+    name = models.CharField(max_length=100)
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = '\u570b'
