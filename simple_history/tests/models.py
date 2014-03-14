@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import django
 from django.db import models
 if django.VERSION >= (1, 5):
-    from custom_user.models import CustomUser as User
+    from .custom_user.models import CustomUser as User
 else:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
