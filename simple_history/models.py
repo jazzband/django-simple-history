@@ -92,7 +92,7 @@ class HistoricalRecords(object):
             attrs['__module__'] = self.module
         elif app_module != self.module:
             # has meta options with app_label
-            app = models.get_app(model._meta.app_label)
+            app = models.get_app(model._meta.app_label)  # FIXME This is broken in 1.7
             attrs['__module__'] = app.__name__  # full dotted name
 
         fields = self.copy_fields(model)
