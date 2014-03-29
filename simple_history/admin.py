@@ -55,9 +55,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         app_label = opts.app_label
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
+        object_id = unquote(object_id)
         action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
-        obj = get_object_or_404(model, pk=unquote(object_id))
+        obj = get_object_or_404(model, pk=object_id)
         content_type = ContentType.objects.get_for_model(User)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
                                                   content_type.model)
