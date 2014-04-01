@@ -424,7 +424,7 @@ class AdminSiteTest(WebTest):
     def login(self, user=None):
         if user is None:
             user = self.user
-        form = self.app.get(reverse('admin:index')).form
+        form = self.app.get(reverse('admin:index')).maybe_follow().form
         form['username'] = user.username
         form['password'] = 'pass'
         return form.submit()
