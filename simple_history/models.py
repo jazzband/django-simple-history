@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import copy
+from django import VERSION as django_version
 from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.conf import settings
@@ -90,7 +91,7 @@ class HistoricalRecords(object):
         if model.__module__ != self.module:
             # registered under different app
             attrs['__module__'] = self.module
-        elif app_module != self.module:
+        elif django_version < (1, 7, 0) and app_module != self.module:
             # has meta options with app_label
             app = models.get_app(model._meta.app_label)  # FIXME This is broken in 1.7
             attrs['__module__'] = app.__name__  # full dotted name
@@ -166,10 +167,15 @@ class HistoricalRecords(object):
             'ordering': ('-history_date', '-history_id'),
         }
         if self.user_set_verbose_name:
-            meta_fields['verbose_name'] = self.user_set_verbose_name
+            name = self.user_set_verbose_name
         else:
-            meta_fields['verbose_name'] = ('historical ' +
-                                           text_type(model._meta.verbose_name))
+            try:
+                name = 'historical ' + text_type(model._meta.verbose_name)
+            except RuntimeError:
+                # Django 1.7 app registry makes this impossible
+                from django.utils.text import camel_case_to_spaces
+                name = camel_case_to_spaces(model.__name__)
+        meta_fields['verbose_name'] = name
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
