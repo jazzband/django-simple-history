@@ -46,9 +46,14 @@ def main():
         settings.configure(**DEFAULT_SETTINGS)
     if hasattr(django, 'setup'):
         django.setup()
-    from django.test.simple import DjangoTestSuiteRunner
-    failures = DjangoTestSuiteRunner(
-        verbosity=1, interactive=True, failfast=False).run_tests(['tests'])
+    try:
+        from django.test.runner import DiscoverRunner
+    except:
+        from django.test.simple import DjangoTestSuiteRunner
+        failures = DjangoTestSuiteRunner(failfast=False).run_tests(['tests'])
+    else:
+        failures = DiscoverRunner(failfast=False).run_tests(
+            ['simple_history.tests'])
     sys.exit(failures)
 
 
