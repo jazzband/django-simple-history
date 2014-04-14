@@ -2,6 +2,7 @@ Authors
 =======
 
 - Aleksey Kladov
+- Brian Dixon
 - Corey Bertram
 - Damien Nozay
 - Daniel Levy
