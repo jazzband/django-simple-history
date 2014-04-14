@@ -19,15 +19,24 @@ class HistoryManager(models.Manager):
         self.model = model
         self.instance = instance
 
-    def get_query_set(self):
-        if self.instance is None:
+    def get_super_queryset(self):
+        try:
+            return super(HistoryManager, self).get_queryset()
+        except AttributeError:
             return super(HistoryManager, self).get_query_set()
+
+    def get_queryset(self):
+        qs = self.get_super_queryset()
+        if self.instance is None:
+            return qs
 
         if isinstance(self.instance._meta.pk, models.OneToOneField):
             filter = {self.instance._meta.pk.name + "_id": self.instance.pk}
         else:
             filter = {self.instance._meta.pk.name: self.instance.pk}
-        return super(HistoryManager, self).get_query_set().filter(**filter)
+        return self.get_super_queryset().filter(**filter)
+
+    get_query_set = get_queryset
 
     def most_recent(self):
         """
