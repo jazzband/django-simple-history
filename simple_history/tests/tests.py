@@ -73,6 +73,7 @@ class HistoricalRecordsTest(TestCase):
             'id': p.id,
             'history_type': "~"
         })
+        self.assertDatetimesEqual(update_record.history_date, datetime.now())
 
     def test_delete(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
