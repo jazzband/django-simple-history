@@ -57,6 +57,20 @@ This will replace the history object page on the admin site and allow viewing
 and reverting to previous model versions.  Changes made in admin change forms
 will also accurately note the user who made the change.
 
+.. image:: screens/1_poll_history.png
+
+Clicking on an object presents the option to revert to that version of the object.
+
+.. image:: screens/2_revert.png
+
+(The object is reverted to the selected state)
+
+.. image:: screens/3_poll_reverted.png
+
+Reversions like this are added to the history.
+
+.. image:: screens/4_history_after_poll_reverted.png
+
 An example of admin integration for the ``Poll`` and ``Choice`` models:
 
 .. code-block:: python
