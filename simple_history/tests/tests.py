@@ -1,8 +1,4 @@
 from __future__ import unicode_literals
-try:
-    from unittest import skipUnless
-except ImportError:  # Python 2.6
-    from django.utils.unittest import skipUnless
 
 from datetime import datetime, timedelta
 from django import VERSION
@@ -313,7 +309,6 @@ class AppLabelTest(TestCase):
     def get_table_name(self, manager):
         return manager.model._meta.db_table
 
-    @skipUnless(VERSION < (1, 7, 0), "this feature is broken in 1.7")
     def test_explicit_app_label(self):
         self.assertEqual(self.get_table_name(ExternalModel1.objects),
                          'external_externalmodel1')

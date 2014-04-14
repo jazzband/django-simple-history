@@ -91,7 +91,7 @@ class HistoricalRecords(object):
         if model.__module__ != self.module:
             # registered under different app
             attrs['__module__'] = self.module
-        elif django_version < (1, 7, 0) and app_module != self.module:
+        elif app_module != self.module:
             # has meta options with app_label
             app = models.get_app(model._meta.app_label)  # FIXME This is broken in 1.7
             attrs['__module__'] = app.__name__  # full dotted name
@@ -173,12 +173,7 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
-            try:
-                name = 'historical ' + text_type(model._meta.verbose_name)
-            except RuntimeError:
-                # Django 1.7 app registry makes this impossible
-                from django.utils.text import camel_case_to_spaces
-                name = camel_case_to_spaces(model.__name__)
+            name = 'historical ' + text_type(model._meta.verbose_name)
         meta_fields['verbose_name'] = name
         return meta_fields
 
