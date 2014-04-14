@@ -6,6 +6,7 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
+from django.db.models.loading import get_model
 from simple_history.tests.models import AdminProfile, Bookcase, MultiOneToOne
 from simple_history.models import HistoricalRecords
 try:
@@ -15,8 +16,10 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
 from .models import (Poll, Choice, Restaurant, Person, FileModel, Document,
-                     Book, Library, State, SelfFK, Temperature, WaterLevel)
-from .models import ExternalModel1, ExternalModel3, UnicodeVerboseName
+                     Book, Library, State, SelfFK, Temperature, WaterLevel,
+                     HistoricalPoll)
+from .models import (ExternalModel1, ExternalModel1, 
+                     ExternalModel3, UnicodeVerboseName)
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
@@ -329,6 +332,7 @@ class AppLabelTest(TestCase):
     def test_explicit_app_label(self):
         self.assertEqual(self.get_table_name(ExternalModel1.objects),
                          'external_externalmodel1')
+
         self.assertEqual(self.get_table_name(ExternalModel1.history),
                          'external_historicalexternalmodel1')
 
@@ -348,6 +352,27 @@ class AppLabelTest(TestCase):
         self.assertEqual(self.get_table_name(ExternalModel4.histories),
                          'tests_historicalexternalmodel4')
 
+    def test_get_model(self):
+        self.assertEqual(get_model('external','ExternalModel1'), 
+                         ExternalModel1)
+        self.assertEqual(get_model('external','HistoricalExternalModel1'), 
+                         ExternalModel1.history.model)
+
+        self.assertEqual(get_model('external','ExternalModel2'), 
+                         ExternalModel2)
+        self.assertEqual(get_model('external','HistoricalExternalModel2'), 
+                         ExternalModel2.history.model)
+
+        self.assertEqual(get_model('tests','ExternalModel3'), 
+                         ExternalModel3)
+        self.assertEqual(get_model('external','HistoricalExternalModel3'), 
+                         ExternalModel3.histories.model)
+
+        self.assertEqual(get_model('external','ExternalModel4'), 
+                         ExternalModel4)
+        self.assertEqual(get_model('tests','HistoricalExternalModel4'), 
+                         ExternalModel4.histories.model)
+
 
 class HistoryManagerTest(TestCase):
     def test_most_recent(self):
@@ -360,6 +385,12 @@ class HistoryManagerTest(TestCase):
         most_recent = poll.history.most_recent()
         self.assertEqual(most_recent.__class__, Poll)
         self.assertEqual(most_recent.question, "why?")
+
+    def test_get_model(self):
+        self.assertEqual(get_model('tests','poll'),
+                         Poll)
+        self.assertEqual(get_model('tests','historicalpoll'),
+                         HistoricalPoll)
 
     def test_most_recent_on_model_class(self):
         Poll.objects.create(question="what's up?", pub_date=today)
