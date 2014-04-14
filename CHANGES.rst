@@ -7,6 +7,7 @@ tip (unreleased)
 - Fix bug when model verbose_name uses unicode (gh-76)
 - Allow non-integer foreign keys
 - Allow foreign keys referencing the name of the model as a string
+- Added the ability to specify a custom ``history_date``
 
 1.3.0 (2013-05-17)
 ------------------

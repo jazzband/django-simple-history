@@ -6,6 +6,7 @@ Authors
 - Corey Bertram
 - Damien Nozay
 - Daniel Levy
+- Daniel Roschka
 - George Vilches
 - Hamish Downer
 - Joao Pedro Francese

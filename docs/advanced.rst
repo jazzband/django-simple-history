@@ -93,3 +93,44 @@ referencing the ``changed_by`` field:
             self.changed_by = value
 
 Admin integration requires that you use a ``_history_user.setter`` attribute with your custom ``_history_user`` property (see :ref:`admin_integration`).
+
+
+Custom ``history_date``
+-----------------------
+
+You're able to set a custom ``history_date`` attribute for the historical
+record, by defining the property ``_history_date`` in your model. That's
+helpful if you want to add versions to your model, which happened before the
+current model version, e.g. when batch importing historical data. The content
+of the property ``_history_date`` has to be a datetime-object, but setting the
+value of the property to a ``DateTimeField``, which is already defined in the
+model, will work too.
+
+.. code-block:: python
+
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        changed_by = models.ForeignKey('auth.User')
+        history = HistoricalRecords()
+        __history_date = None
+
+        @property
+        def _history_date(self):
+            return self.__history_date
+
+        @_history_date.setter
+        def _history_date(self, value):
+            self.__history_date = value
+
+.. code-block:: python
+
+    from datetime import datetime
+    from models import Poll
+
+    my_poll = Poll(question="what's up?")
+    my_poll._history_date = datetime.now()
+    my_poll.save()

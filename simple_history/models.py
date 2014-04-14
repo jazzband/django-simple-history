@@ -10,6 +10,11 @@ try:
     from django.utils.six import text_type
 except ImportError:
     text_type = unicode
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
 from .manager import HistoryDescriptor
 
 try:
@@ -143,7 +148,7 @@ class HistoricalRecords(object):
 
         return {
             'history_id': models.AutoField(primary_key=True),
-            'history_date': models.DateTimeField(auto_now_add=True),
+            'history_date': models.DateTimeField(),
             'history_user': models.ForeignKey(user_model, null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
@@ -182,12 +187,13 @@ class HistoricalRecords(object):
         self.create_historical_record(instance, '-')
 
     def create_historical_record(self, instance, type):
+        history_date = getattr(instance, '_history_date', now())
         history_user = getattr(instance, '_history_user', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_type=type, history_user=history_user, **attrs)
+        manager.create(history_date=history_date, history_type=type, history_user=history_user, **attrs)
 
 
 class ForeignKeyMixin(object):

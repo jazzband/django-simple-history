@@ -15,13 +15,14 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 
 from .models import (Poll, Choice, Restaurant, Person, FileModel, Document,
-                     Book, Library, State, SelfFK)
+                     Book, Library, State, SelfFK, Temperature, WaterLevel)
 from .models import ExternalModel1, ExternalModel3, UnicodeVerboseName
 from simple_history import register
 from simple_history.tests.external.models import ExternalModel2, ExternalModel4
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
+yesterday = today - timedelta(days=1)
 
 
 def get_fake_file(filename):
@@ -190,6 +191,21 @@ class HistoricalRecordsTest(TestCase):
         document.save()
         self.assertEqual([d.history_user for d in document.history.all()],
                          [None, user2, user1])
+
+    def test_specify_history_date_1(self):
+        temperature = Temperature.objects.create(location="London", temperature=14, _history_date=today)
+        temperature.temperature = 16
+        temperature._history_date = yesterday
+        temperature.save()
+        self.assertEqual([t.history_date for t in temperature.history.all()], [today, yesterday])
+
+    def test_specify_history_date_2(self):
+        river = WaterLevel.objects.create(waters="Thames", level=2.5, date=today)
+        river.level=2.6
+        river.date=yesterday
+        river.save()
+        for t in river.history.all():
+            self.assertEqual(t.date, t.history_date)
 
     def test_non_default_primary_key_save(self):
         book1 = Book.objects.create(isbn='1-84356-028-1')
