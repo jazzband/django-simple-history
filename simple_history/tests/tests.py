@@ -419,7 +419,10 @@ class HistoryManagerTest(TestCase):
 
 
 def get_history_url(model, history_index=None):
-    info = model._meta.app_label, model._meta.module_name
+    try:
+        info = model._meta.app_label, model._meta.module_name
+    except AttributeError:
+        info = model._meta.app_label, model._meta.model_name
     if history_index is not None:
         history = model.history.order_by('history_id')[history_index]
         return reverse('admin:%s_%s_simple_history' % info,
@@ -436,14 +439,18 @@ class AdminSiteTest(WebTest):
     def login(self, user=None):
         if user is None:
             user = self.user
-        form = self.app.get(reverse('admin:index')).form
+        form = self.app.get(reverse('admin:index')).maybe_follow().form
         form['username'] = user.username
         form['password'] = 'pass'
         return form.submit()
 
     def test_history_list(self):
         if VERSION >= (1, 5):
-            self.assertEqual(self.user._meta.module_name, 'customuser')
+            try:
+                module_name = self.user._meta.module_name
+            except AttributeError:
+                module_name = self.user._meta.model_name
+            self.assertEqual(module_name, 'customuser')
         self.login()
         poll = Poll(question="why?", pub_date=today)
         poll._history_user = self.user

@@ -1,11 +1,19 @@
 from __future__ import unicode_literals
 
 import copy
+try:
+    from django.apps import apps  # Django >= 1.7
+except ImportError:
+    apps = None
 from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
+try:
+    from django.utils.encoding import smart_text
+except ImportError:
+    smart_text = unicode
 try:
     from django.utils.six import text_type
 except ImportError:
@@ -15,6 +23,7 @@ try:
 except ImportError:
     from datetime import datetime
     now = datetime.now
+from django.utils.translation import string_concat
 from .manager import HistoryDescriptor
 
 try:
@@ -96,9 +105,14 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            # has meta options with app_label
-            app = models.get_app(model._meta.app_label)
-            attrs['__module__'] = app.__name__  # full dotted name
+            if apps is None:
+                # has meta options with app_label
+                app = models.get_app(model._meta.app_label)
+                attrs['__module__'] = app.__name__  # full dotted name
+            else:
+                # Abuse an internal API because the app registry is loading.
+                app = apps.app_configs[model._meta.app_label]
+                attrs['__module__'] = app.name      # full dotted name
 
         fields = self.copy_fields(model)
         attrs.update(fields)
@@ -139,8 +153,12 @@ class HistoricalRecords(object):
         @models.permalink
         def revert_url(self):
             opts = model._meta
+            try:
+                app_label, model_name = opts.app_label, opts.module_name
+            except AttributeError:
+                app_label, model_name = opts.app_label, opts.model_name
             return ('%s:%s_%s_simple_history' %
-                    (admin.site.name, opts.app_label, opts.module_name),
+                    (admin.site.name, app_label, model_name),
                     [getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
@@ -171,10 +189,11 @@ class HistoricalRecords(object):
             'ordering': ('-history_date', '-history_id'),
         }
         if self.user_set_verbose_name:
-            meta_fields['verbose_name'] = self.user_set_verbose_name
+            name = self.user_set_verbose_name
         else:
-            meta_fields['verbose_name'] = ('historical ' +
-                                           text_type(model._meta.verbose_name))
+            name = string_concat('historical ',
+                                 smart_text(model._meta.verbose_name))
+        meta_fields['verbose_name'] = name
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
