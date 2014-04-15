@@ -115,8 +115,8 @@ class HistoricalRecordsTest(TestCase):
         })
 
     def test_save_without_historical_record_for_registered_model(self):
-        registered_model = ExternalModel3.objects.create(name='registered model')
-        self.assertTrue(hasattr(registered_model, 'save_without_historical_record'))
+        model = ExternalModel3.objects.create(name='registered model')
+        self.assertTrue(hasattr(model, 'save_without_historical_record'))
 
     def test_save_raises_exception(self):
         anthony = Person(name='Anthony Gillard')
@@ -193,16 +193,22 @@ class HistoricalRecordsTest(TestCase):
                          [None, user2, user1])
 
     def test_specify_history_date_1(self):
-        temperature = Temperature.objects.create(location="London", temperature=14, _history_date=today)
+        temperature = Temperature.objects.create(
+            location="London",
+            temperature=14,
+            _history_date=today,
+        )
         temperature.temperature = 16
         temperature._history_date = yesterday
         temperature.save()
-        self.assertEqual([t.history_date for t in temperature.history.all()], [today, yesterday])
+        self.assertEqual([t.history_date for t in temperature.history.all()],
+                         [today, yesterday])
 
     def test_specify_history_date_2(self):
-        river = WaterLevel.objects.create(waters="Thames", level=2.5, date=today)
-        river.level=2.6
-        river.date=yesterday
+        river = WaterLevel.objects.create(waters="Thames", level=2.5,
+                                          date=today)
+        river.level = 2.6
+        river.date = yesterday
         river.save()
         for t in river.history.all():
             self.assertEqual(t.date, t.history_date)
@@ -253,7 +259,8 @@ class HistoricalRecordsTest(TestCase):
     def test_unicode_verbose_name(self):
         instance = UnicodeVerboseName()
         instance.save()
-        self.assertEqual('historical \u570b', instance.history.all()[0]._meta.verbose_name)
+        self.assertEqual('historical \u570b',
+                         instance.history.all()[0]._meta.verbose_name)
 
     def test_user_can_set_verbose_name(self):
         b = Book(isbn='54321')

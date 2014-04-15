@@ -212,7 +212,8 @@ class HistoricalRecords(object):
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=type, history_user=history_user, **attrs)
+        manager.create(history_date=history_date, history_type=type,
+                       history_user=history_user, **attrs)
 
 
 class ForeignKeyMixin(object):
@@ -220,7 +221,7 @@ class ForeignKeyMixin(object):
         return self.name
 
     def get_one_to_one_field(self, to_field, other):
-        #HACK This creates a new custom foreign key based on to_field,
+        # HACK This creates a new custom foreign key based on to_field,
         # and calls itself with that, effectively making the calls
         # recursive
         temp_field = self.__class__(to_field.rel.to._meta.object_name)
@@ -268,7 +269,7 @@ class ForeignKeyMixin(object):
             for key, val in to_field.__dict__.items():
                 if (isinstance(key, basestring)
                         and not key.startswith(excluded_prefixes)
-                        and not key in excluded_attributes):
+                        and key not in excluded_attributes):
                     setattr(field, key, val)
         return field
 
