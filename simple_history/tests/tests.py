@@ -1,24 +1,26 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
+
 from django import VERSION
-from django.test import TestCase
-from django_webtest import WebTest
-from django.core.files.base import ContentFile
-from django.core.urlresolvers import reverse
-from simple_history.tests.models import AdminProfile, Bookcase, MultiOneToOne
-from simple_history.models import HistoricalRecords
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
+from django.test import TestCase
+from django_webtest import WebTest
+from django.core.files.base import ContentFile
+from django.core.urlresolvers import reverse
 
-from .models import (Poll, Choice, Restaurant, Person, FileModel, Document,
-                     Book, Library, State, SelfFK, Temperature, WaterLevel)
-from .models import ExternalModel1, ExternalModel3, UnicodeVerboseName
+from simple_history.models import HistoricalRecords
 from simple_history import register
-from simple_history.tests.external.models import ExternalModel2, ExternalModel4
+from .models import (
+    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
+    FileModel, Document, Book, Library, State, SelfFK, Temperature, WaterLevel,
+    ExternalModel1, ExternalModel3, UnicodeVerboseName
+)
+from .external.models import ExternalModel2, ExternalModel4
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
