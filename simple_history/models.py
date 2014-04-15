@@ -11,6 +11,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
 try:
+    from django.utils.encoding import smart_text
+except ImportError:
+    smart_text = unicode
+try:
     from django.utils.six import text_type
 except ImportError:
     text_type = unicode
@@ -182,7 +186,8 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
-            name = string_concat('historical ', model._meta.verbose_name)
+            name = string_concat('historical ',
+                                 smart_text(model._meta.verbose_name))
         meta_fields['verbose_name'] = name
         return meta_fields
 
