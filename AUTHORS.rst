@@ -9,6 +9,7 @@ Authors
 - Daniel Roschka
 - George Vilches
 - Hamish Downer
+- jofusa
 - Joao Pedro Francese
 - Jonathan Sanchez
 - Josh Fyne
