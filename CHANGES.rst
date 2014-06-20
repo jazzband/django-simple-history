@@ -8,6 +8,7 @@ tip (unreleased)
 - Allow non-integer foreign keys
 - Allow foreign keys referencing the name of the model as a string
 - Added the ability to specify a custom ``history_date``
+- Note that ``simple_history`` should be added to ``INSTALLED_APPS`` (gh-94 fixes gh-69)
 
 1.3.0 (2013-05-17)
 ------------------
