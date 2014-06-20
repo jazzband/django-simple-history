@@ -15,6 +15,7 @@ Authors
 - Josh Fyne
 - Klaas van Schelven
 - Marty Alchin
+- Mauricio de Abreu Antunes
 - Rajesh Pappula
 - Trey Hunner
 - Ulysses Vilela
