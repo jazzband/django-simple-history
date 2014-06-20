@@ -19,6 +19,8 @@ Install from PyPI with ``pip``:
 Quickstart
 ----------
 
+Add ``simple_history`` to your ``INSTALLED_APPS``.
+
 To track history for a model, create an instance of
 ``simple_history.models.HistoricalRecords`` on the model.
 
