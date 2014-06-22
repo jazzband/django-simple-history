@@ -13,6 +13,7 @@ from django.test import TestCase
 from django_webtest import WebTest
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
+from django.contrib.admin.util import quote
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
@@ -465,9 +466,9 @@ def get_history_url(model, history_index=None):
     if history_index is not None:
         history = model.history.order_by('history_id')[history_index]
         return reverse('admin:%s_%s_simple_history' % info,
-                       args=[model.pk, history.history_id])
+                       args=[quote(model.pk), quote(history.history_id)])
     else:
-        return reverse('admin:%s_%s_history' % info, args=[model.pk])
+        return reverse('admin:%s_%s_history' % info, args=[quote(model.pk)])
 
 
 class AdminSiteTest(WebTest):
@@ -573,3 +574,11 @@ class AdminSiteTest(WebTest):
         change_page.form.submit()
         self.assertEqual([p.history_user for p in Poll.history.all()],
                          [self.user, self.user])
+
+    def test_underscore_in_pk(self):
+        self.login()
+        book = Book(isbn="9780147_513731")
+        book._history_user = self.user
+        book.save()
+        response = self.app.get(get_history_url(book))
+        self.assertIn(book.history.all()[0].revert_url(), response.unicode_normal_body)
