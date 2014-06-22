@@ -9,6 +9,7 @@ tip (unreleased)
 - Allow foreign keys referencing the name of the model as a string
 - Added the ability to specify a custom ``history_date``
 - Note that ``simple_history`` should be added to ``INSTALLED_APPS`` (gh-94 fixes gh-69)
+- Properly handle primary key escaping in admin URLs (gh-96 fixes gh-81)
 
 1.3.0 (2013-05-17)
 ------------------
