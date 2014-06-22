@@ -143,7 +143,9 @@ class AbstractBase(models.Model):
 
 
 class Concrete(AbstractBase):
-    history = HistoricalRecords(bases=(AbstractBase,))
+    pass
+
+register(Concrete, bases=(AbstractBase,))
 
 
 class MultiOneToOne(models.Model):

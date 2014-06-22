@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 __version__ = '1.3.0.post1'
 
 
-def register(model, app=None, manager_name='history'):
+def register(model, app=None, manager_name='history', **records_config):
     """
     Create historical model for `model` and attach history manager to `model`.
 
@@ -16,7 +16,7 @@ def register(model, app=None, manager_name='history'):
     """
     from . import models
     if not model._meta.db_table in models.registered_models:
-        records = models.HistoricalRecords()
+        records = models.HistoricalRecords(**records_config)
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
         records.add_extra_methods(model)
