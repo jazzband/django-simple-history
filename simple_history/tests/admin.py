@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from simple_history.admin import SimpleHistoryAdmin
-from .models import Poll, Choice, Person
+from .models import Poll, Choice, Person, Book
 
 
 class PersonAdmin(SimpleHistoryAdmin):
@@ -14,3 +14,4 @@ class PersonAdmin(SimpleHistoryAdmin):
 admin.site.register(Poll, SimpleHistoryAdmin)
 admin.site.register(Choice, SimpleHistoryAdmin)
 admin.site.register(Person, PersonAdmin)
+admin.site.register(Book, SimpleHistoryAdmin)
