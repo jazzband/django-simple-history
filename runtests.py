@@ -37,7 +37,12 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
-    AUTH_USER_MODEL=auth_user_model
+    AUTH_USER_MODEL=auth_user_model,
+    MIDDLEWARE_CLASSES=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
 )
 
 
