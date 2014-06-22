@@ -142,10 +142,14 @@ class AbstractBase(models.Model):
         abstract = True
 
 
-class Concrete(AbstractBase):
+class ConcreteAttr(AbstractBase):
+    history = HistoricalRecords(bases=[AbstractBase])
+
+
+class ConcreteUtil(AbstractBase):
     pass
 
-register(Concrete, bases=(AbstractBase,))
+register(ConcreteUtil, bases=[AbstractBase])
 
 
 class MultiOneToOne(models.Model):

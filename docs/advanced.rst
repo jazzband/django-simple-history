@@ -140,7 +140,7 @@ Change Base Class of HistoricalRecord Models
 --------------------------------------------
 
 To change the auto-generated HistoricalRecord models base class from
-``models.Model``, pass in the abstract class in a tuple to ``bases``.
+``models.Model``, pass in the abstract class in a list to ``bases``.
 
 .. code-block:: python
 
@@ -153,4 +153,4 @@ To change the auto-generated HistoricalRecord models base class from
         question = models.CharField(max_length=200)
         pub_date = models.DateTimeField('date published')
         changed_by = models.ForeignKey('auth.User')
-        history = HistoricalRecords(bases=tuple(RoutableModel))
+        history = HistoricalRecords(bases=[RoutableModel])

@@ -19,8 +19,8 @@ from simple_history.models import HistoricalRecords
 from simple_history import register
 from .models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
-    FileModel, Document, Book, HistoricalPoll,
-    Library, State, AbstractBase, Concrete, SelfFK, Temperature, WaterLevel,
+    FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
+    ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName
 )
 from .external.models import ExternalModel2, ExternalModel4
@@ -584,8 +584,9 @@ class AdminSiteTest(WebTest):
         self.assertIn(book.history.all()[0].revert_url(), response.unicode_normal_body)
 
     def test_abstract_inheritance(self):
-        obj = Concrete.objects.create()
-        obj.save()
-        update_record, create_record = Concrete.history.all()
-        self.assertTrue(isinstance(update_record, AbstractBase))
-        self.assertTrue(isinstance(create_record, AbstractBase))
+        for klass in (ConcreteAttr, ConcreteUtil):
+            obj = klass.objects.create()
+            obj.save()
+            update_record, create_record = klass.history.all()
+            self.assertTrue(isinstance(update_record, AbstractBase))
+            self.assertTrue(isinstance(create_record, AbstractBase))

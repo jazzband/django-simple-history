@@ -53,9 +53,9 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
-    def __init__(self, verbose_name=None, bases=None):
+    def __init__(self, verbose_name=None, bases=(models.Model,)):
         self.user_set_verbose_name = verbose_name
-        self.bases = bases or (models.Model,)
+        self.bases = tuple(bases)
 
     def contribute_to_class(self, cls, name):
         self.manager_name = name
