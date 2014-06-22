@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 import simple_history
 
 setup(
@@ -13,7 +13,7 @@ setup(
     author_email='corey@qr7.com',
     maintainer='Trey Hunner',
     url='https://github.com/treyhunner/django-simple-history',
-    packages=find_packages(),
+    packages=["simple_history"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
