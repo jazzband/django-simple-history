@@ -140,14 +140,21 @@ Change Base Class of HistoricalRecord Models
 --------------------------------------------
 
 To change the auto-generated HistoricalRecord models base class from
-``models.Model``, pass in the class to ``base_class``.
+``models.Model``, pass in the abstract class in a tuple to ``bases``.
 
 This is useful in cases where you're using the base class of a model for
 database routing. Just be aware that your base model should not be adding
 fields through model inheritance.
+
+.. code-block:: python
+
     class RoutableModel(models.Model):
         class Meta:
             abstract = True
 
 
-        history = HistoricalRecords(base_class=RoutableModel)
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        changed_by = models.ForeignKey('auth.User')
+        history = HistoricalRecords(bases=(RoutableModel,))

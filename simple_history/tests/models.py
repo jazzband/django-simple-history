@@ -143,7 +143,7 @@ class AbstractBase(models.Model):
 
 
 class Concrete(AbstractBase):
-    history = HistoricalRecords(base_class=AbstractBase)
+    history = HistoricalRecords(bases=(AbstractBase,))
 
 
 class MultiOneToOne(models.Model):
