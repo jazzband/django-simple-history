@@ -28,7 +28,7 @@ class Command(BaseCommand):
                         is_success = True
                     else:
                         print 'HistoricalRecords field does not exist in the model %s.' % model.__name__
-        elif options['auto']:
+        elif 'auto' in options:
             print 'Searching for models with the HistoricalRecords field..'
             for model in models:
                 if self._check_and_save(model):
