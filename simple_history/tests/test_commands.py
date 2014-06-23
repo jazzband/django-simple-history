@@ -11,5 +11,5 @@ class TestPopulateHistory(TestCase):
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?", pub_date=datetime.now())
         models.Poll.history.all().delete()
-        management.call_command(self.command_name, auto="")
+        management.call_command(self.command_name, auto=True)
         self.assertEqual(models.Poll.history.all().count(), 1)
