@@ -2,6 +2,7 @@ from optparse import make_option
 
 from django.db import models as db_models
 from django.core.management.base import BaseCommand
+from django.contrib.contenttypes.models import ContentType
 
 from simple_history.manager import HistoryDescriptor
 
@@ -23,7 +24,8 @@ class Command(BaseCommand):
         is_success = False
         if args:
             for model in models:
-                if model.__name__ in args:
+                content_type = ContentType.objects.get_for_model(model)
+                if "{}.{}".format(content_type.app_label, content_type.model) in args:
                     if self._check_and_save(model):
                         is_success = True
                     else:
