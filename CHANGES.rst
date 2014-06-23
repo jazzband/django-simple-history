@@ -11,6 +11,7 @@ tip (unreleased)
 - Note that ``simple_history`` should be added to ``INSTALLED_APPS`` (gh-94 fixes gh-69)
 - Properly handle primary key escaping in admin URLs (gh-96 fixes gh-81)
 - Add support for new app loading (Django 1.7+)
+- Allow specifying custom base classes for historical models (gh-98)
 
 1.3.0 (2013-05-17)
 ------------------
