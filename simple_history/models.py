@@ -53,8 +53,14 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
-    def __init__(self, verbose_name=None):
+    def __init__(self, verbose_name=None, bases=(models.Model,)):
         self.user_set_verbose_name = verbose_name
+        try:
+            if isinstance(bases, basestring):
+                raise TypeError
+            self.bases = tuple(bases)
+        except TypeError:
+            raise TypeError("The `bases` option must be a list or a tuple.")
 
     def contribute_to_class(self, cls, name):
         self.manager_name = name
@@ -122,7 +128,7 @@ class HistoricalRecords(object):
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
-            type(str(name), (models.Model,), attrs))
+            type(str(name), self.bases, attrs))
 
     def copy_fields(self, model):
         """

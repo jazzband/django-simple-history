@@ -134,3 +134,23 @@ model, will work too.
     my_poll = Poll(question="what's up?")
     my_poll._history_date = datetime.now()
     my_poll.save()
+
+
+Change Base Class of HistoricalRecord Models
+--------------------------------------------
+
+To change the auto-generated HistoricalRecord models base class from
+``models.Model``, pass in the abstract class in a list to ``bases``.
+
+.. code-block:: python
+
+    class RoutableModel(models.Model):
+        class Meta:
+            abstract = True
+
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        changed_by = models.ForeignKey('auth.User')
+        history = HistoricalRecords(bases=[RoutableModel])

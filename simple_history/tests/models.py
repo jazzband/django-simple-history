@@ -136,6 +136,22 @@ class SecondLevelInheritedModel(FirstLevelInheritedModel):
     pass
 
 
+class AbstractBase(models.Model):
+
+    class Meta:
+        abstract = True
+
+
+class ConcreteAttr(AbstractBase):
+    history = HistoricalRecords(bases=[AbstractBase])
+
+
+class ConcreteUtil(AbstractBase):
+    pass
+
+register(ConcreteUtil, bases=[AbstractBase])
+
+
 class MultiOneToOne(models.Model):
     fk = models.ForeignKey(SecondLevelInheritedModel)
 
