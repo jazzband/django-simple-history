@@ -1,3 +1,5 @@
+from __future__ import unicode_literals, print_function
+
 from optparse import make_option
 
 from django.db import models as db_models
@@ -25,22 +27,22 @@ class Command(BaseCommand):
         if args:
             for model in models:
                 content_type = ContentType.objects.get_for_model(model)
-                if "{}.{}".format(content_type.app_label, content_type.model) in args:
+                if "{app}.{model}".format(app=content_type.app_label, model=content_type.model) in args:
                     if self._check_and_save(model):
                         is_success = True
                     else:
-                        print 'HistoricalRecords field does not exist in the model %s.' % model.__name__
+                        print('HistoricalRecords field does not exist in the model %s.' % model.__name__)
         elif options['auto']:
-            print 'Searching for models with the HistoricalRecords field..'
+            print('Searching for models with the HistoricalRecords field..')
             for model in models:
                 if self._check_and_save(model):
                     is_success = True
             if not is_success:
-                print 'No model with HistoryDescriptor field was found'
+                print('No model with HistoryDescriptor field was found')
         else:
-            print 'Please specify a model or use the --auto option'
+            print('Please specify a model or use the --auto option')
         if is_success:
-            print 'Command executed successfully'
+            print('Command executed successfully')
 
     def _check_and_save(self, model):
         ''' Checks if a HistoricalRecords field exists in the model '''
@@ -48,9 +50,9 @@ class Command(BaseCommand):
         has_history = False
         for field in model.__dict__:
             if type(model.__dict__[field]) == HistoryDescriptor:
-                print 'Found HistoricalRecords field in model %s' % model.__name__
+                print('Found HistoricalRecords field in model %s' % model.__name__)
                 instances = model.objects.all()
-                print 'Saving %d instances..' % instances.count()
+                print('Saving %d instances..' % instances.count())
                 for object in instances:
                     object.save()
                 has_history = True

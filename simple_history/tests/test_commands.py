@@ -1,5 +1,5 @@
 import sys
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from contextlib import contextmanager
 from datetime import datetime
 from django.test import TestCase
