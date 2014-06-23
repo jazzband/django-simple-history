@@ -592,4 +592,6 @@ class AdminSiteTest(WebTest):
             self.assertTrue(isinstance(create_record, AbstractBase))
 
     def test_invalid_bases(self):
-        self.assertRaises(TypeError, HistoricalRecords, bases="InvalidBases")
+        invalid_bases = (AbstractBase, "InvalidBases")
+        for bases in invalid_bases:
+            self.assertRaises(TypeError, HistoricalRecords, bases=bases)
