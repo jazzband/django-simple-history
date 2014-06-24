@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 
 from ...manager import HistoryDescriptor
+from ... import models
 
 
 class Command(BaseCommand):
@@ -66,10 +67,14 @@ class Command(BaseCommand):
             if isinstance(attr, HistoryDescriptor):
                 self.stdout.write("Found HistoricalRecords field "
                                   "in model {model}".format(model=model.__name__))
-                instances = model.objects.all()
-                self.stdout.write('Saving %d instances..' % instances.count())
-                for object in instances:
-                    object.save()
+                instances = list(model.objects.all())
+                self.stdout.write('Saving %d instances..' % len(instances))
+                for instance in instances:
+                    models.HistoricalRecords.create_historical_record(
+                        instance=instance,
+                        type="~",
+                        manager_name=name,
+                    )
         else:
             return False
         return True
