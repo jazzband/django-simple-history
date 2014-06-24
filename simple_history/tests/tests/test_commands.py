@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.core import management
 from simple_history.management.commands import populate_history
 
-from . import models
+from .. import models
 
 
 class TestPopulateHistory(TestCase):

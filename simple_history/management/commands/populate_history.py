@@ -87,8 +87,8 @@ class Command(BaseCommand):
             history_klass(
                 history_date=getattr(instance, '_history_date', now()),
                 history_user=getattr(instance, '_history_user', None),
-                **{field.attname: getattr(instance, field.attname)
-                   for field in instance._meta.fields}
+                **dict((field.attname, getattr(instance, field.attname))
+                   for field in instance._meta.fields)
             ) for instance in model.objects.all()]
         self.stdout.write("Saving {count} instances..".format(count=len(historical_instances)))
         try:
