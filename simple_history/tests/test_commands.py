@@ -15,6 +15,11 @@ class TestPopulateHistory(TestCase):
         management.call_command(self.command_name, stdout=out)
         self.assertIn(populate_history.COMMAND_HINT, out.getvalue())
 
+    def test_invalid_model(self):
+        out = StringIO()
+        management.call_command(self.command_name, "tests.place", stdout=out)
+        self.assertIn("does not", out.getvalue())
+
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())
