@@ -92,7 +92,8 @@ class Command(BaseCommand):
         self.stdout.write("Saving {count} instances..".format(count=len(historical_instances)))
         try:
             history_klass.objects.bulk_create(historical_instances)
-        except AttributeError:  # Django<1.4
+        except AttributeError:  # pragma: no cover
+            # bulk_create was added in Django 1.4, handle legacy versions
             with transaction.commit_on_success():
                 for instance in historical_instances:
                     instance.save()
