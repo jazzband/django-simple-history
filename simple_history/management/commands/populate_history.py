@@ -11,6 +11,9 @@ from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 
 
+COMMAND_HINT = "Please specify a model or use the --auto option"
+
+
 class NotHistorical(TypeError):
     """No related history model found."""
 
@@ -65,9 +68,7 @@ class Command(BaseCommand):
                 self.stdout.write("No model with HistoryDescriptor "
                                   "field was found")
         else:
-            self.stdout.write('Please specify a model or use the --auto option')
-        if is_success:
-            self.stdout.write('Command executed successfully')
+            self.stdout.write(COMMAND_HINT)
 
     def _check_and_save(self, model):
         """Look up the historical manager and save a copy of all

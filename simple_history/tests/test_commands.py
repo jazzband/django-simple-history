@@ -2,12 +2,18 @@ from six.moves import cStringIO as StringIO
 from datetime import datetime
 from django.test import TestCase
 from django.core import management
+from simple_history.management.commands import populate_history
 
 from . import models
 
 
 class TestPopulateHistory(TestCase):
     command_name = 'populate_history'
+
+    def test_no_args(self):
+        out = StringIO()
+        management.call_command(self.command_name, stdout=out)
+        self.assertIn(populate_history.COMMAND_HINT, out.getvalue())
 
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
