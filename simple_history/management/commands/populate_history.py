@@ -2,7 +2,7 @@ from __future__ import unicode_literals, print_function
 
 try:
     from django.utils.timezone import now
-except ImportError:
+except ImportError:     # pragma: no cover
     from datetime import datetime
     now = datetime.now
 from optparse import make_option
