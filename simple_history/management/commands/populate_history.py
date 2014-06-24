@@ -1,12 +1,18 @@
 from __future__ import unicode_literals, print_function
 
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
 from optparse import make_option
-from django.db import models as db_models
+from django.db import transaction, models as db_models
 from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 
-from ...manager import HistoryDescriptor
-from ... import models
+
+class NotHistorical(TypeError):
+    """No related history model found."""
 
 
 class Command(BaseCommand):
@@ -36,18 +42,24 @@ class Command(BaseCommand):
                     model=content_type.model,
                 )
                 if model_string in args:
-                    if self._check_and_save(model):
-                        is_success = True
-                    else:
+                    try:
+                        self._check_and_save(model)
+                    except NotHistorical:
                         self.stdout.write(
                             "HistoricalRecords field does not exist in the "
                             "model {model}.".format(model=model.__name__)
                         )
+                    else:
+                        is_success = True
         elif options['auto']:
             self.stdout.write("Searching for models with the "
                               "HistoricalRecords field..")
             for model in models:
-                if self._check_and_save(model):
+                try:
+                    self._check_and_save(model)
+                except NotHistorical:
+                    pass
+                else:
                     is_success = True
             if not is_success:
                 self.stdout.write("No model with HistoryDescriptor "
@@ -58,23 +70,29 @@ class Command(BaseCommand):
             self.stdout.write('Command executed successfully')
 
     def _check_and_save(self, model):
-        """Checks if a HistoricalRecords field exists in the model
-
-        Calls the save() method on all of the model's instances
+        """Look up the historical manager and save a copy of all
+        instances to the historical model.
 
         """
-        for name, attr in model.__dict__.items():
-            if isinstance(attr, HistoryDescriptor):
-                self.stdout.write("Found HistoricalRecords field "
-                                  "in model {model}".format(model=model.__name__))
-                instances = list(model.objects.all())
-                self.stdout.write("Saving {count} instances..".format(count=len(instances)))
-                for instance in instances:
-                    models.HistoricalRecords.create_historical_record(
-                        instance=instance,
-                        type="~",
-                        manager_name=name,
-                    )
-        else:
-            return False
-        return True
+        try:
+            manager_name = model._meta.simple_history_manager_attribute
+        except AttributeError:
+            raise NotHistorical("Cannot find a historical model for "
+                                "{model}".format(model=model))
+        history_klass = getattr(model, manager_name).model
+        self.stdout.write("Found HistoricalRecords field "
+                          "in model {model}".format(model=model.__name__))
+        historical_instances = [
+            history_klass(
+                history_date=getattr(instance, '_history_date', now()),
+                history_user=getattr(instance, '_history_user', None),
+                **{field.attname: getattr(instance, field.attname)
+                   for field in instance._meta.fields}
+            ) for instance in model.objects.all()]
+        self.stdout.write("Saving {count} instances..".format(count=len(historical_instances)))
+        try:
+            history_klass.objects.bulk_create(historical_instances)
+        except AttributeError:  # Django<1.4
+            with transaction.commit_on_success():
+                for instance in historical_instances:
+                    instance.save()
