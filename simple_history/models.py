@@ -206,17 +206,15 @@ class HistoricalRecords(object):
         if not created and hasattr(instance, 'skip_history_when_saving'):
             return
         if not kwargs.get('raw', False):
-            self.create_historical_record(instance, created and '+' or '~',
-                                          self.manager_name)
+            self.create_historical_record(instance, created and '+' or '~')
 
     def post_delete(self, instance, **kwargs):
-        self.create_historical_record(instance, '-', self.manager_name)
+        self.create_historical_record(instance, '-')
 
-    @staticmethod
-    def create_historical_record(instance, type, manager_name):
+    def create_historical_record(self, instance, type):
         history_date = getattr(instance, '_history_date', now())
         history_user = getattr(instance, '_history_user', None)
-        manager = getattr(instance, manager_name)
+        manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
