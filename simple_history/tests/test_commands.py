@@ -1,20 +1,9 @@
-import sys
 from six.moves import cStringIO as StringIO
-from contextlib import contextmanager
 from datetime import datetime
 from django.test import TestCase
 from django.core import management
 
 from . import models
-
-
-@contextmanager
-def capture(command, *args, **kwargs):
-    out, sys.stdout = sys.stdout, StringIO()
-    command(*args, **kwargs)
-    sys.stdout.seek(0)
-    yield sys.stdout.read()
-    sys.stdout = out
 
 
 class TestPopulateHistory(TestCase):
@@ -24,8 +13,8 @@ class TestPopulateHistory(TestCase):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())
         models.Poll.history.all().delete()
-        with capture(management.call_command, self.command_name, auto=True):
-            self.assertEqual(models.Poll.history.all().count(), 1)
+        management.call_command(self.command_name, auto=True, stdout=StringIO())
+        self.assertEqual(models.Poll.history.all().count(), 1)
 
     def test_specific_populate(self):
         models.Poll.objects.create(question="Will this populate?",
@@ -33,6 +22,6 @@ class TestPopulateHistory(TestCase):
         models.Poll.history.all().delete()
         models.Book.objects.create(isbn="9780007117116")
         models.Book.history.all().delete()
-        with capture(management.call_command, self.command_name, "tests.book"):
-            self.assertEqual(models.Book.history.all().count(), 1)
-            self.assertEqual(models.Poll.history.all().count(), 0)
+        management.call_command(self.command_name, "tests.book", stdout=StringIO())
+        self.assertEqual(models.Book.history.all().count(), 1)
+        self.assertEqual(models.Poll.history.all().count(), 0)
