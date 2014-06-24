@@ -68,7 +68,7 @@ class Command(BaseCommand):
                 self.stdout.write("Found HistoricalRecords field "
                                   "in model {model}".format(model=model.__name__))
                 instances = list(model.objects.all())
-                self.stdout.write('Saving %d instances..' % len(instances))
+                self.stdout.write("Saving {count} instances..".format(count=len(instances)))
                 for instance in instances:
                     models.HistoricalRecords.create_historical_record(
                         instance=instance,
