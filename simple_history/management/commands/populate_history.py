@@ -6,7 +6,6 @@ from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 
 from ...manager import HistoryDescriptor
-from ... import models
 
 
 class Command(BaseCommand):
@@ -39,19 +38,23 @@ class Command(BaseCommand):
                     if self._check_and_save(model):
                         is_success = True
                     else:
-                        print("HistoricalRecords field does not exist in the "
-                              "model {model}.".format(model=model.__name__))
+                        self.stdout.write(
+                            "HistoricalRecords field does not exist in the "
+                            "model {model}.".format(model=model.__name__)
+                        )
         elif options['auto']:
-            print('Searching for models with the HistoricalRecords field..')
+            self.stdout.write("Searching for models with the "
+                              "HistoricalRecords field..")
             for model in models:
                 if self._check_and_save(model):
                     is_success = True
             if not is_success:
-                print('No model with HistoryDescriptor field was found')
+                self.stdout.write("No model with HistoryDescriptor "
+                                  "field was found")
         else:
-            print('Please specify a model or use the --auto option')
+            self.stdout.write('Please specify a model or use the --auto option')
         if is_success:
-            print('Command executed successfully')
+            self.stdout.write('Command executed successfully')
 
     def _check_and_save(self, model):
         """Checks if a HistoricalRecords field exists in the model
@@ -61,10 +64,10 @@ class Command(BaseCommand):
         """
         for name, attr in model.__dict__.items():
             if isinstance(attr, HistoryDescriptor):
-                print("Found HistoricalRecords field "
-                      "in model {model}".format(model=model.__name__))
+                self.stdout.write("Found HistoricalRecords field "
+                                  "in model {model}".format(model=model.__name__))
                 instances = model.objects.all()
-                print('Saving %d instances..' % instances.count())
+                self.stdout.write('Saving %d instances..' % instances.count())
                 for object in instances:
                     object.save()
         else:
