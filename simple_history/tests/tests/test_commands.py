@@ -17,8 +17,12 @@ class TestPopulateHistory(TestCase):
 
     def test_bad_args(self):
         for args in (("tests.place",), ("invalid.model",)):
-            self.assertRaises(management.CommandError, management.call_command,
-                              self.command_name, *args, stderr=StringIO())
+            try:
+                management.call_command(self.command_name, *args, stderr=StringIO())
+            except management.CommandError:
+                pass
+            else:
+                self.fail("Invalid args should raise an error")
 
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
@@ -43,9 +47,13 @@ class TestPopulateHistory(TestCase):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())
         models.Poll.history.all().delete()
-        self.assertRaises(management.CommandError, management.call_command,
-                          self.command_name, "tests.poll",
-                          "tests.invalid_model", stderr=StringIO())
+        try:
+            management.call_command(self.command_name, "tests.poll",
+                                    "tests.invalid_model", stderr=StringIO())
+        except management.CommandError:
+            pass
+        else:
+            self.fail("Invalid args should raise an error")
         self.assertEqual(models.Poll.history.all().count(), 0)
 
     def test_multi_table(self):
