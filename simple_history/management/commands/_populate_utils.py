@@ -4,7 +4,6 @@ except ImportError:     # pragma: no cover
     from datetime import datetime
     now = datetime.now
 from django.db import transaction
-from django.db.models.loading import get_model
 
 
 class NotHistorical(TypeError):
