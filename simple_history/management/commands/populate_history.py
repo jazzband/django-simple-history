@@ -59,7 +59,7 @@ class Command(BaseCommand):
             try:
                 model, history = self._model_from_natural_key(natural_key)
             except ValueError as e:
-                self.stderr.write(unicode(e))
+                self.stderr.write("{error}".format(error=e))
             else:
                 if not failing:
                     yield (model, history)
