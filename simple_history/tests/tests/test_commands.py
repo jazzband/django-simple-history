@@ -9,6 +9,7 @@ from .. import models
 
 class TestPopulateHistory(TestCase):
     command_name = 'populate_history'
+    command_error = (management.CommandError, SystemExit)
 
     def test_no_args(self):
         out = StringIO()
@@ -17,12 +18,8 @@ class TestPopulateHistory(TestCase):
 
     def test_bad_args(self):
         for args in (("tests.place",), ("invalid.model",)):
-            try:
-                management.call_command(self.command_name, *args, stderr=StringIO())
-            except management.CommandError:
-                pass
-            else:
-                self.fail("Invalid args should raise an error")
+            self.assertRaises(self.command_error, management.call_command,
+                              self.command_name, *args, stderr=StringIO())
 
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
@@ -47,13 +44,10 @@ class TestPopulateHistory(TestCase):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())
         models.Poll.history.all().delete()
-        try:
-            management.call_command(self.command_name, "tests.poll",
-                                    "tests.invalid_model", stderr=StringIO())
-        except management.CommandError:
-            pass
-        else:
-            self.fail("Invalid args should raise an error")
+        self.assertRaises(self.command_error,
+                          management.call_command, self.command_name,
+                          "tests.poll", "tests.invalid_model",
+                          stderr=StringIO())
         self.assertEqual(models.Poll.history.all().count(), 0)
 
     def test_multi_table(self):
