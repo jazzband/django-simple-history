@@ -11,15 +11,6 @@ class NotHistorical(TypeError):
     """No related history model found."""
 
 
-def get_model_from_key(natural_key):
-    """Lookup a model by its natural key (<app.model>)."""
-    model = get_model(*natural_key.split(".", 1))
-    if not model:
-        raise ValueError("Could not find the model "
-                         "< {model} >.".format(model=natural_key))
-    return model
-
-
 def get_history_model_for_model(model):
     """Find the history model for a given app model."""
     try:
