@@ -57,12 +57,13 @@ class Command(BaseCommand):
             try:
                 model, history = self._model_from_natural_key(natural_key)
             except ValueError as e:
+                failing = True
                 self.stderr.write("{error}".format(error=e))
             else:
                 if not failing:
                     yield (model, history)
         if failing:
-            raise CommandError
+            raise CommandError("List includes invalid models")
 
     def _model_from_natural_key(self, natural_key):
         try:

@@ -15,17 +15,10 @@ class TestPopulateHistory(TestCase):
         management.call_command(self.command_name, stdout=out)
         self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())
 
-    def test_invalid_model(self):
-        out = StringIO()
-        management.call_command(self.command_name, "tests.place", stderr=out)
-        self.assertIn(populate_history.Command.MODEL_NOT_HISTORICAL,
-                      out.getvalue())
-
-    def test_unkown_model(self):
-        out = StringIO()
-        management.call_command(self.command_name, "invalid.model", stderr=out)
-        self.assertIn(populate_history.Command.MODEL_NOT_FOUND,
-                      out.getvalue())
+    def test_bad_args(self):
+        for args in (("tests.place",), ("invalid.model",)):
+            self.assertRaises(management.CommandError, management.call_command,
+                              self.command_name, *args, stderr=StringIO())
 
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
@@ -44,6 +37,15 @@ class TestPopulateHistory(TestCase):
         management.call_command(self.command_name, "tests.book",
                                 stdout=StringIO())
         self.assertEqual(models.Book.history.all().count(), 1)
+        self.assertEqual(models.Poll.history.all().count(), 0)
+
+    def test_failing_wont_save(self):
+        models.Poll.objects.create(question="Will this populate?",
+                                   pub_date=datetime.now())
+        models.Poll.history.all().delete()
+        self.assertRaises(management.CommandError, management.call_command,
+                          self.command_name, "tests.poll",
+                          "tests.invalid_model", stderr=StringIO())
         self.assertEqual(models.Poll.history.all().count(), 0)
 
     def test_multi_table(self):
