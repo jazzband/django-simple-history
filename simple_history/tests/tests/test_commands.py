@@ -21,6 +21,12 @@ class TestPopulateHistory(TestCase):
         self.assertIn(populate_history.Command.MODEL_NOT_HISTORICAL,
                       out.getvalue())
 
+    def test_unkown_model(self):
+        out = StringIO()
+        management.call_command(self.command_name, "invalid.model~", stderr=out)
+        self.assertIn(populate_history.Command.MODEL_NOT_FOUND,
+                      out.getvalue())
+
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())

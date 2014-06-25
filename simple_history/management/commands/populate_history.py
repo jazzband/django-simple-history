@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models.loading import get_model
