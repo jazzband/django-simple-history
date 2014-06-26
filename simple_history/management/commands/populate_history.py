@@ -17,6 +17,7 @@ class Command(BaseCommand):
     NO_REGISTERED_MODELS = "No registered models were found"
     START_SAVING_FOR_MODEL = "Starting saving historical records for {model}"
     DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}"
+    EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
 
     option_list = BaseCommand.option_list + (
         make_option(
@@ -82,6 +83,12 @@ class Command(BaseCommand):
 
     def _process(self, to_process):
         for model, history_model in to_process:
+            if history_model.objects.count():
+                self.stderr.write("{msg} {model}".format(
+                    msg=self.EXISTING_HISTORY_FOUND,
+                    model=model,
+                ))
+                continue
             self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
             utils.bulk_history_create(model, history_model)
             self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))
