@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from six.moves import cStringIO as StringIO
 from datetime import datetime
 from django.test import TestCase
@@ -6,6 +7,18 @@ from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
 
 from .. import models
+
+
+@contextmanager
+def replace_registry(new_value=None):
+    hidden_registry = sh_models.registered_models
+    sh_models.registered_models = new_value or {}
+    try:
+        yield
+    except Exception:
+        raise
+    finally:
+        sh_models.registered_models = hidden_registry
 
 
 class TestPopulateHistory(TestCase):
@@ -83,9 +96,7 @@ class TestPopulateHistory(TestCase):
 
     def test_no_historical(self):
         out = StringIO()
-        hidden_registry = sh_models.registered_models
-        sh_models.registered_models = {}
-        management.call_command(self.command_name, '--auto',
-                                stdout=out)
-        sh_models.registered_models = hidden_registry
+        with replace_registry():
+            management.call_command(self.command_name, '--auto',
+                                    stdout=out)
         self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())
