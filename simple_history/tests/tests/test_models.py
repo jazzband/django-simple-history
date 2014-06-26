@@ -17,13 +17,13 @@ from django.contrib.admin.util import quote
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
-from .models import (
+from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
     FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
     ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName
 )
-from .external.models import ExternalModel2, ExternalModel4
+from ..external.models import ExternalModel2, ExternalModel4
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
