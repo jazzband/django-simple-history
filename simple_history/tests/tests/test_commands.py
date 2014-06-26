@@ -27,7 +27,6 @@ class TestPopulateHistory(TestCase):
             self.assertRaises(self.command_error, management.call_command,
                               self.command_name, *args,
                               stdout=StringIO(), stderr=out)
-            self.assertIn(populate_history.Command.INVALID_MODEL_ARG, out.getvalue())
             self.assertIn(msg, out.getvalue())
 
     def test_auto_populate(self):
