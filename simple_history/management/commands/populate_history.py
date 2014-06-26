@@ -18,6 +18,7 @@ class Command(BaseCommand):
     START_SAVING_FOR_MODEL = "Starting saving historical records for {model}\n"
     DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}\n"
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
+    INVALID_MODEL_ARG = "An invalid model was specified"
 
     option_list = BaseCommand.option_list + (
         make_option(
@@ -64,7 +65,7 @@ class Command(BaseCommand):
                 if not failing:
                     yield (model, history)
         if failing:
-            raise CommandError("List includes invalid models")
+            raise CommandError(self.INVALID_MODEL_ARG)
 
     def _model_from_natural_key(self, natural_key):
         try:

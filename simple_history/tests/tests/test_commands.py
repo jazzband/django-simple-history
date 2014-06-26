@@ -18,10 +18,17 @@ class TestPopulateHistory(TestCase):
         self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())
 
     def test_bad_args(self):
-        for args in (("tests.place",), ("invalid.model",)):
+        test_data = (
+            (populate_history.Command.MODEL_NOT_HISTORICAL, ("tests.place",)),
+            (populate_history.Command.MODEL_NOT_FOUND, ("invalid.model",)),
+        )
+        for msg, args in test_data:
+            out = StringIO()
             self.assertRaises(self.command_error, management.call_command,
                               self.command_name, *args,
-                              stdout=StringIO(), stderr=StringIO())
+                              stdout=StringIO(), stderr=out)
+            self.assertIn(populate_history.Command.INVALID_MODEL_ARG, out.getvalue())
+            self.assertIn(msg, out.getvalue())
 
     def test_auto_populate(self):
         models.Poll.objects.create(question="Will this populate?",
@@ -54,7 +61,8 @@ class TestPopulateHistory(TestCase):
 
     def test_multi_table(self):
         data = {'rating': 5, 'name': "Tea 'N More"}
-        models.Restaurant(**data).save_without_historical_record()
+        models.Restaurant.objects.create(**data)
+        models.Restaurant.updates.all().delete()
         management.call_command(self.command_name, 'tests.restaurant',
                                 stdout=StringIO(), stderr=StringIO())
         update_record = models.Restaurant.updates.all()[0]
