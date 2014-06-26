@@ -34,9 +34,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         to_process = set()
 
-        keys = [arg for arg in args if not arg.startswith("-")]
-        if keys:
-            for model_pair in self._handle_model_list(*keys):
+        if args:
+            for model_pair in self._handle_model_list(*args):
                 to_process.add(model_pair)
 
         elif options['auto']:

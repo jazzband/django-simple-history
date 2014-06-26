@@ -97,6 +97,6 @@ class TestPopulateHistory(TestCase):
     def test_no_historical(self):
         out = StringIO()
         with replace_registry():
-            management.call_command(self.command_name, '--auto',
+            management.call_command(self.command_name, auto=True,
                                     stdout=out)
-        self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())
+        self.assertIn(populate_history.Command.NO_REGISTERED_MODELS, out.getvalue())
