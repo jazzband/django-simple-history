@@ -2,6 +2,7 @@ from six.moves import cStringIO as StringIO
 from datetime import datetime
 from django.test import TestCase
 from django.core import management
+from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
 
 from .. import models
@@ -21,6 +22,7 @@ class TestPopulateHistory(TestCase):
         test_data = (
             (populate_history.Command.MODEL_NOT_HISTORICAL, ("tests.place",)),
             (populate_history.Command.MODEL_NOT_FOUND, ("invalid.model",)),
+            (populate_history.Command.MODEL_NOT_FOUND, ("bad_key",)),
         )
         for msg, args in test_data:
             out = StringIO()
@@ -78,3 +80,12 @@ class TestPopulateHistory(TestCase):
         self.assertEqual(models.Restaurant.updates.count(), pre_call_count)
         self.assertIn(populate_history.Command.EXISTING_HISTORY_FOUND,
                       out.getvalue())
+
+    def test_no_historical(self):
+        out = StringIO()
+        hidden_registry = sh_models.registered_models
+        sh_models.registered_models = {}
+        management.call_command(self.command_name, '--auto',
+                                stdout=out)
+        sh_models.registered_models = hidden_registry
+        self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())

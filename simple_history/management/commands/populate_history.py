@@ -15,7 +15,7 @@ class Command(BaseCommand):
     MODEL_NOT_FOUND = "Unable to find model"
     MODEL_NOT_HISTORICAL = "No history model found"
     NO_REGISTERED_MODELS = "No registered models were found\n"
-    START_SAVING_FOR_MODEL = "Starting saving historical records for {model}\n"
+    START_SAVING_FOR_MODEL = "Saving historical records for {model}\n"
     DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}\n"
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
     INVALID_MODEL_ARG = "An invalid model was specified"
@@ -34,8 +34,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         to_process = set()
 
-        if args:
-            for model_pair in self._handle_model_list(*args):
+        keys = [arg for arg in args if not arg.startswith("-")]
+        if keys:
+            for model_pair in self._handle_model_list(*keys):
                 to_process.add(model_pair)
 
         elif options['auto']:
@@ -70,7 +71,7 @@ class Command(BaseCommand):
     def _model_from_natural_key(self, natural_key):
         try:
             model = get_model(*natural_key.split(".", 1))
-        except LookupError:     # Django 1.7 raises a LookupError
+        except (TypeError, LookupError):     # Django 1.7 raises a LookupError
             model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +
