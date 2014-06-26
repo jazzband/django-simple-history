@@ -76,7 +76,7 @@ class Command(BaseCommand):
             try:
                 model = get_model(app_label, model)
                 # Django 1.7 raises a LookupError
-            except (TypeError, LookupError):
+            except LookupError:     # pragma: no cover
                 model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +
