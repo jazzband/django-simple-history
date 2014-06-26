@@ -14,9 +14,9 @@ class Command(BaseCommand):
     COMMAND_HINT = "Please specify a model or use the --auto option"
     MODEL_NOT_FOUND = "Unable to find model"
     MODEL_NOT_HISTORICAL = "No history model found"
-    NO_REGISTERED_MODELS = "No registered models were found"
-    START_SAVING_FOR_MODEL = "Starting saving historical records for {model}"
-    DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}"
+    NO_REGISTERED_MODELS = "No registered models were found\n"
+    START_SAVING_FOR_MODEL = "Starting saving historical records for {model}\n"
+    DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}\n"
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
 
     option_list = BaseCommand.option_list + (
@@ -59,7 +59,7 @@ class Command(BaseCommand):
                 model, history = self._model_from_natural_key(natural_key)
             except ValueError as e:
                 failing = True
-                self.stderr.write("{error}".format(error=e))
+                self.stderr.write("{error}\n".format(error=e))
             else:
                 if not failing:
                     yield (model, history)
@@ -73,18 +73,18 @@ class Command(BaseCommand):
             model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +
-                             " < {model} >".format(model=natural_key))
+                             " < {model} >\n".format(model=natural_key))
         try:
             history_model = utils.get_history_model_for_model(model)
         except utils.NotHistorical:
             raise ValueError(self.MODEL_NOT_HISTORICAL +
-                             " < {model} >".format(model=natural_key))
+                             " < {model} >\n".format(model=natural_key))
         return model, history_model
 
     def _process(self, to_process):
         for model, history_model in to_process:
             if history_model.objects.count():
-                self.stderr.write("{msg} {model}".format(
+                self.stderr.write("{msg} {model}\n".format(
                     msg=self.EXISTING_HISTORY_FOUND,
                     model=model,
                 ))
