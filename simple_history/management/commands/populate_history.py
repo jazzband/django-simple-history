@@ -70,9 +70,15 @@ class Command(BaseCommand):
 
     def _model_from_natural_key(self, natural_key):
         try:
-            model = get_model(*natural_key.split(".", 1))
-        except (TypeError, LookupError):     # Django 1.7 raises a LookupError
+            app_label, model = natural_key.split(".", 1)
+        except ValueError:
             model = None
+        else:
+            try:
+                model = get_model(app_label, model)
+                # Django 1.7 raises a LookupError
+            except (TypeError, LookupError):
+                model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +
                              " < {model} >\n".format(model=natural_key))
