@@ -82,12 +82,20 @@ class FileModel(models.Model):
 
 
 class Document(models.Model):
-    changed_by = models.ForeignKey(User, null=True)
+    changed_by = models.ForeignKey(User, null=True, blank=True)
     history = HistoricalRecords()
 
     @property
     def _history_user(self):
         return self.changed_by
+
+
+class Paper(Document):
+    history = HistoricalRecords()
+
+    @Document._history_user.setter
+    def _history_user(self, value):
+        self.changed_by = value
 
 
 class Profile(User):
