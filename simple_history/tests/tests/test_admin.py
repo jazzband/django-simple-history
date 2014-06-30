@@ -9,7 +9,7 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
 
-from ..models import Book, Document, Person, Poll
+from ..models import Book, Person, Poll
 
 
 today = datetime(2021, 1, 1, 10, 0)
