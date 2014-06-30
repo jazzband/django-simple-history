@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.4.0 (2014-06-29)
+------------------
 - Fixed error that occurs when models have a foreign key pointing to a one to one field.
 - Fix bug when model verbose_name uses unicode (gh-76)
 - Allow non-integer foreign keys
