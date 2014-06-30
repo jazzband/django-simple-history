@@ -9,7 +9,7 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
 
-from ..models import Book, Document, Person, Poll
+from ..models import Book, Person, Poll
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -139,7 +139,8 @@ class AdminSiteTest(WebTest):
         book._history_user = self.user
         book.save()
         response = self.app.get(get_history_url(book))
-        self.assertIn(book.history.all()[0].revert_url(), response.unicode_normal_body)
+        self.assertIn(book.history.all()[0].revert_url(),
+                      response.unicode_normal_body)
 
     def test_historical_user_no_setter(self):
         """Demonstrate admin error without `_historical_user` setter.

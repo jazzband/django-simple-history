@@ -358,24 +358,24 @@ class AppLabelTest(TestCase):
                          'tests_historicalexternalmodel4')
 
     def test_get_model(self):
-        self.assertEqual(get_model('external','ExternalModel1'),
+        self.assertEqual(get_model('external', 'ExternalModel1'),
                          ExternalModel1)
-        self.assertEqual(get_model('external','HistoricalExternalModel1'),
+        self.assertEqual(get_model('external', 'HistoricalExternalModel1'),
                          ExternalModel1.history.model)
 
-        self.assertEqual(get_model('external','ExternalModel2'),
+        self.assertEqual(get_model('external', 'ExternalModel2'),
                          ExternalModel2)
-        self.assertEqual(get_model('external','HistoricalExternalModel2'),
+        self.assertEqual(get_model('external', 'HistoricalExternalModel2'),
                          ExternalModel2.history.model)
 
-        self.assertEqual(get_model('tests','ExternalModel3'),
+        self.assertEqual(get_model('tests', 'ExternalModel3'),
                          ExternalModel3)
-        self.assertEqual(get_model('external','HistoricalExternalModel3'),
+        self.assertEqual(get_model('external', 'HistoricalExternalModel3'),
                          ExternalModel3.histories.model)
 
-        self.assertEqual(get_model('external','ExternalModel4'),
+        self.assertEqual(get_model('external', 'ExternalModel4'),
                          ExternalModel4)
-        self.assertEqual(get_model('tests','HistoricalExternalModel4'),
+        self.assertEqual(get_model('tests', 'HistoricalExternalModel4'),
                          ExternalModel4.histories.model)
 
 
@@ -392,9 +392,9 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(most_recent.question, "why?")
 
     def test_get_model(self):
-        self.assertEqual(get_model('tests','poll'),
+        self.assertEqual(get_model('tests', 'poll'),
                          Poll)
-        self.assertEqual(get_model('tests','historicalpoll'),
+        self.assertEqual(get_model('tests', 'historicalpoll'),
                          HistoricalPoll)
 
     def test_most_recent_on_model_class(self):
