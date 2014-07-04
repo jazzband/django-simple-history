@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ module_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}">{{ object|truncatewords:"18" }}</a>
+&rsaquo; {% trans 'Compare History' %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .compare-removed {
+    background: DarkSalmon;
+  }
+  .compare-added {
+    background: YellowGreen;
+  }
+  .compare-unchanged {
+  }
+</style>
+
+<div id="content-main">
+<div class="module">
+
+{% for field in fields %}
+<div class="form-row field-{{ field.name }}">
+    {% if field.name %}<h4>{{ field.name }}</h4>{% endif %}
+    {% if field.description %}
+        <div class="description">{{ field.description|safe }}</div>
+    {% endif %}
+    <div>
+        {{ field.label_tag }}
+        <p style="white-space:pre-wrap">{{ field.contents|safe }}</p>
+    </div>
+</div>
+{% endfor %}
+
+</div>
+</div>
+{% endblock content %}

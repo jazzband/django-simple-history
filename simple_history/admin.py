@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+import difflib
 from django import template
 from django.core.exceptions import PermissionDenied
 try:
@@ -10,7 +12,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render_to_response, render
 from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -31,6 +33,7 @@ USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
+    object_compare_template = "simple_history/history_compare.html"
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -46,6 +49,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history' % info),
+            url("^([^/]+)/compare/$",
+                admin_site.admin_view(self.compare_view),
+                name='%s_%s_simple_compare' % info),
         )
         return history_urls + urls
 
@@ -172,6 +178,68 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         )
         return render_to_response(self.object_history_form_template, context,
                                   context_instance)
+
+    def compare_view(self, request, object_id, extra_context=None):
+        object_id = unquote(object_id)
+        obj = get_object_or_404(self.model, pk=object_id)
+        history = getattr(obj,
+                          self.model._meta.simple_history_manager_attribute)
+        prev, curr = history.get(pk=request.GET['from']), history.get(pk=request.GET['to'])
+        def generate_diff(prev, curr):
+            markup = ""
+            try:
+                prev = re.split("(\W)", prev)
+                curr = re.split("(\W)", curr)
+            except TypeError:
+                if prev != curr:
+                    return '<span class="compare-removed">{removed_content}</span><br><span class="compare-added">{added_content}</span>'.format(
+                        removed_content=prev, added_content=curr)
+                return curr
+            p_a, p_b, p_l = (0, 0, 0)
+            try:
+                for block in difflib.SequenceMatcher(a=prev, b=curr).get_matching_blocks():
+                    a, b, l = block
+                    removed = prev[p_a+p_l:a]
+                    added = curr[p_b+p_l:b]
+                    same = curr[b:b+l]
+                    if removed:
+                        markup += '<span class="compare-removed">{content}</span>'.format(content="".join(removed))
+                    if added:
+                        markup += '<span class="compare-added">{content}</span>'.format(content="".join(added))
+                    if same:
+                        markup += '<span class="compare-unchanged">{content}</span>'.format(content="".join(same))
+                    p_a, p_b, p_l = block
+
+            except TypeError:
+                return curr
+            return markup
+
+        fields = [{
+            'name': field.attname,
+            'contents': generate_diff(getattr(prev, field.attname), getattr(curr, field.attname)),
+        } for field in self.model._meta.fields]
+        opts = self.model._meta
+        d = {
+            'title': _('Compare %s') % force_text(obj),
+            'app_label': opts.app_label,
+            'module_name': capfirst(force_text(opts.verbose_name_plural)),
+            'object_id': object_id,
+            'object': obj,
+            'history_bef': prev,
+            'history_aft': curr,
+            'fields': fields,
+            'opts': opts,
+            'add': False,
+            'change': False,
+            'show_delete': False,
+            'is_popup': False,
+            'save_as': self.save_as,
+            'has_add_permission': self.has_add_permission(request),
+            'has_change_permission': self.has_change_permission(request, obj),
+            'has_delete_permission': self.has_delete_permission(request, obj),
+        }
+        return render(request, template_name=self.object_compare_template,
+                      current_app=self.admin_site.name, dictionary=d)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""

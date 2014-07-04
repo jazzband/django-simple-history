@@ -10,32 +10,45 @@
 
     <div class="module">
       {% if action_list %}
-        <table id="change-history" class="table table-bordered table-striped">
-          <thead>
-            <tr>
-              <th scope="col">{% trans 'Object' %}</th>
-              <th scope="col">{% trans 'Date/time' %}</th>
-              <th scope="col">{% trans 'Comment' %}</th>
-              <th scope="col">{% trans 'Changed by' %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for action in action_list %}
+        <form method="GET" action="../compare">
+          <table id="change-history" class="table table-bordered table-striped">
+            <thead>
               <tr>
-                <td><a href="{{ action.revert_url }}">{{ action.history_object }}</a></td>
-                <td>{{ action.history_date }}</td>
-                <td>{{ action.get_history_type_display }}</td>
-                <td>
-                  {% if action.history_user %}
-                    <a href="{% url admin_user_view action.history_user_id %}">{{ action.history_user }}</a>
-                  {% else %}
-                    None
-                  {% endif %}
-                </td>
+                <th scope="col" colspan="2"><input type="submit" value="{% trans 'Compare' %}"></th>
+                <th scope="col">{% trans 'Object' %}</th>
+                <th scope="col">{% trans 'Date/time' %}</th>
+                <th scope="col">{% trans 'Comment' %}</th>
+                <th scope="col">{% trans 'Changed by' %}</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for action in action_list %}
+                <tr>
+                  <td>
+                    {% if not forloop.first %}
+                      <input type="radio" name="from" value="{{ action.pk|iriencode }}"{% if forloop.counter == 2 %} checked{% endif %}>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if not forloop.last %}
+                      <input type="radio" name="to" value="{{ action.pk|iriencode }}"{% if forloop.first %} checked{% endif %}>
+                    {% endif %}
+                  </td>
+                  <td><a href="{{ action.revert_url }}">{{ action.history_object }}</a></td>
+                  <td>{{ action.history_date }}</td>
+                  <td>{{ action.get_history_type_display }}</td>
+                  <td>
+                    {% if action.history_user %}
+                      <a href="{% url admin_user_view action.history_user_id %}">{{ action.history_user }}</a>
+                    {% else %}
+                      None
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </form>
       {% else %}
         <p>{% trans "This object doesn't have a change history." %}</p>
       {% endif %}
