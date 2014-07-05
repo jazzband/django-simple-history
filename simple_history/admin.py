@@ -12,7 +12,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404, render_to_response, render
+from django.shortcuts import get_object_or_404, render
 from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -83,8 +83,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(extra_context or {})
         context_instance = template.RequestContext(
             request, current_app=self.admin_site.name)
-        return render_to_response(self.object_history_template, context,
-                                  context_instance=context_instance)
+        return render(request, self.object_history_template,
+                      dictionary=context, context_instance=context_instance)
 
     def history_form_view(self, request, object_id, version_id):
         original_model = self.model
@@ -176,8 +176,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request,
             current_app=self.admin_site.name,
         )
-        return render_to_response(self.object_history_form_template, context,
-                                  context_instance)
+        return render(request, self.object_history_form_template,
+                      dictionary=context, context_instance=context_instance)
 
     def compare_view(self, request, object_id, extra_context=None):
         object_id = unquote(object_id)
