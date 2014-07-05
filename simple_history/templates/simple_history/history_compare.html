@@ -16,13 +16,16 @@
 {% block content %}
 
 <style>
-  .compare-removed {
+  .compare {
+    white-space: pre-wrap;
+  }
+  .compare.removed {
     background: DarkSalmon;
   }
-  .compare-added {
+  .compare.added {
     background: YellowGreen;
   }
-  .compare-unchanged {
+  .compare.unchanged {
   }
 </style>
 
@@ -31,14 +34,16 @@
 
 {% for field in fields %}
 <div class="form-row field-{{ field.name }}">
-    {% if field.name %}<h4>{{ field.name }}</h4>{% endif %}
-    {% if field.description %}
-        <div class="description">{{ field.description|safe }}</div>
-    {% endif %}
-    <div>
-        {{ field.label_tag }}
-        <p style="white-space:pre-wrap">{{ field.contents|safe }}</p>
-    </div>
+  {% if field.name %}<h4>{{ field.name }}</h4>{% endif %}
+  {% if field.description %}
+    <div class="description">{{ field.description|safe }}</div>
+  {% endif %}
+  <div>
+    {{ field.label_tag }}
+    <p>
+      {% for type, content in field.compare_nodes %}<span class="compare {{ type }}">{{ content|safe }}</span>{% endfor %}
+    </p>
+  </div>
 </div>
 {% endfor %}
 
