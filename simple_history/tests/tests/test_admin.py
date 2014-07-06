@@ -29,7 +29,8 @@ def get_history_url(model, history_index=None):
         return reverse('admin:%s_%s_history' % info, args=[quote(model.pk)])
 
 
-class AdminSiteTest(WebTest):
+class AdminTest(WebTest):
+
     def setUp(self):
         self.user = User.objects.create_superuser('user_login',
                                                   'u@example.com', 'pass')
@@ -41,6 +42,9 @@ class AdminSiteTest(WebTest):
         form['username'] = user.username
         form['password'] = 'pass'
         return form.submit()
+
+
+class AdminSiteTest(AdminTest):
 
     def test_history_list(self):
         if VERSION >= (1, 5):
@@ -156,3 +160,21 @@ class AdminSiteTest(WebTest):
         self.login()
         add_page = self.app.get(reverse('admin:tests_paper_add'))
         add_page.form.submit()
+
+    def test_compare_history(self):
+        self.login()
+
+
+class CompareHistoryTest(AdminTest):
+
+    def setUp(self):
+        super(CompareHistoryTest, self).setUp()
+        self.login()
+        self.poll = Poll.objects.create(question="Who?", pub_date=today)
+        for question in ("What?", "Where?", "When?", "Why?", "How?"):
+            self.poll.question = question
+            self.poll.save()
+
+    def test_navigate_to_compare(self):
+        response = self.app.get(get_history_url(self.poll)).form.submit()
+        response.mustcontain("<title>Compare ")
