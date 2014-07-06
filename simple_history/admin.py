@@ -233,11 +233,11 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             added = "".join(b[prev_b_start + prev_len:b_start])
             same = "".join(b[b_start:b_start + length])
             if removed:
-                delta_nodes.append(['removed', removed])
+                delta_nodes.append(('removed', removed))
             if added:
-                delta_nodes.append(['added', added])
+                delta_nodes.append(('added', added))
             if same:
-                delta_nodes.append(['unchanged', same])
+                delta_nodes.append(('unchanged', same))
             prev_a_start, prev_b_start, prev_len = block
         return delta_nodes
 

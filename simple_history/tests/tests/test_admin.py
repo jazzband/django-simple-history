@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django_webtest import WebTest
+from django.test import TestCase
 from django import VERSION
 from django.core.urlresolvers import reverse
 try:
@@ -8,6 +9,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
+from simple_history import admin
 
 from ..models import Book, Person, Poll
 
@@ -178,3 +180,19 @@ class CompareHistoryTest(AdminTest):
     def test_navigate_to_compare(self):
         response = self.app.get(get_history_url(self.poll)).form.submit()
         response.mustcontain("<title>Compare ")
+
+
+class GenerateDeltaTest(TestCase):
+    cases = (
+        ((1, 2), [('removed', 1), ('added', 2)]),
+        ((1, 1), [('unchanged', 1)]),
+        (("", ""), []),
+        (("one two three", "one too three"),
+         [('unchanged', "one "), ('removed', "two"), ('added', "too"),
+          ('unchanged', " three")]),
+    )
+
+    def test_delta_generation(self):
+        for values, delta_nodes in self.cases:
+            self.assertEqual(admin.SimpleHistoryAdmin._get_delta_nodes(*values),
+                             delta_nodes)
