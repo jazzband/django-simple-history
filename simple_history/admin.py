@@ -6,7 +6,7 @@ from django import template
 from django.core.exceptions import PermissionDenied
 try:
     from django.conf.urls import patterns, url
-except ImportError:
+except ImportError:  # pragma: no cover
     from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin import helpers
@@ -19,7 +19,7 @@ from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
 try:
     from django.utils.encoding import force_text
-except ImportError:  # django 1.3 compatibility
+except ImportError:  # pragma: no cover, django 1.3 compatibility
     from django.utils.encoding import force_unicode as force_text
 from django.conf import settings
 
@@ -42,7 +42,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = self.model._meta
         try:
             info = opts.app_label, opts.module_name
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             info = opts.app_label, opts.model_name
         history_urls = patterns(
             "",
@@ -138,7 +138,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         try:
             model_name = original_opts.module_name
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         content_type_id = ContentType.objects.get_for_model(self.model).id
