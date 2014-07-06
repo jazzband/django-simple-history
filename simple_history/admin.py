@@ -13,7 +13,7 @@ from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.contrib.admin.util import unquote
+from django.contrib.admin.util import quote, unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
@@ -198,7 +198,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'title': _('Compare %s') % force_text(obj),
             'app_label': opts.app_label,
             'module_name': capfirst(force_text(opts.verbose_name_plural)),
-            'object_id': object_id,
+            'object_id': quote(object_id),
             'object': obj,
             'history_bef': prev,
             'history_aft': curr,
