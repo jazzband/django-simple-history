@@ -194,5 +194,7 @@ class GenerateDeltaTest(TestCase):
 
     def test_delta_generation(self):
         for values, delta_nodes in self.cases:
-            self.assertEqual(admin.SimpleHistoryAdmin._get_delta_nodes(*values),
-                             delta_nodes)
+            self.assertEqual(
+                admin.SimpleHistoryAdmin._get_delta_nodes(*values),
+                delta_nodes,
+            )
