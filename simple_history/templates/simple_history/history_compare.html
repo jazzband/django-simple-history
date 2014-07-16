@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load url from future %}
 {% load admin_urls %}
+{% load simple_history_compare %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
@@ -16,16 +17,14 @@
 {% block content %}
 
 <style>
-  .compare {
-    white-space: pre-wrap;
-  }
-  .compare.removed {
+  .diff_sub {
     background: DarkSalmon;
   }
-  .compare.added {
+  .diff_add {
     background: YellowGreen;
   }
-  .compare.unchanged {
+  .diff_chg {
+    background: Khaki;
   }
 </style>
 
@@ -40,9 +39,9 @@
   {% endif %}
   <div>
     {{ field.label_tag }}
-    <p>
-      {% for type, content in field.compare_nodes %}<span class="compare {{ type }}">{{ content|safe }}</span>{% endfor %}
-    </p>
+    <div>
+      {% diff_table field.content field.prev_content field.section_break %}
+    </div>
   </div>
 </div>
 {% endfor %}

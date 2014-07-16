@@ -9,7 +9,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
-from simple_history import admin
+from simple_history import utils
 
 from ..models import Book, Person, Poll
 
@@ -195,6 +195,6 @@ class GenerateDeltaTest(TestCase):
     def test_delta_generation(self):
         for values, delta_nodes in self.cases:
             self.assertEqual(
-                admin.SimpleHistoryAdmin._get_delta_nodes(*values),
+                utils.get_delta_sequences(*values),
                 delta_nodes,
             )

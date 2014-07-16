@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-import difflib
 from django import template
 from django.core.exceptions import PermissionDenied
 try:
@@ -190,8 +188,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         fields = [{
             'name': field.attname,
             'content': getattr(curr, field.attname),
-            'compare_nodes': self._get_delta_nodes(
-                getattr(prev, field.attname), getattr(curr, field.attname)),
+            'prev_content': getattr(prev, field.attname),
+            'section_break': "\n",
         } for field in self.model._meta.fields]
         opts = self.model._meta
         d = {
@@ -200,8 +198,6 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'module_name': capfirst(force_text(opts.verbose_name_plural)),
             'object_id': quote(object_id),
             'object': obj,
-            'history_bef': prev,
-            'history_aft': curr,
             'fields': fields,
             'opts': opts,
             'add': False,
@@ -215,31 +211,6 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         }
         return render(request, template_name=self.object_compare_template,
                       current_app=self.admin_site.name, dictionary=d)
-
-    @staticmethod
-    def _get_delta_nodes(a, b):
-        delta_nodes = []
-        try:
-            a = re.split("(\W)", a)
-            b = re.split("(\W)", b)
-        except TypeError:
-            if a != b:
-                return [('removed', a), ('added', b)]
-            return [('unchanged', b)]
-        prev_a_start, prev_b_start, prev_len = (0, 0, 0)
-        for block in difflib.SequenceMatcher(a=a, b=b).get_matching_blocks():
-            a_start, b_start, length = block
-            removed = "".join(a[prev_a_start + prev_len:a_start])
-            added = "".join(b[prev_b_start + prev_len:b_start])
-            same = "".join(b[b_start:b_start + length])
-            if removed:
-                delta_nodes.append(('removed', removed))
-            if added:
-                delta_nodes.append(('added', added))
-            if same:
-                delta_nodes.append(('unchanged', same))
-            prev_a_start, prev_b_start, prev_len = block
-        return delta_nodes
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
