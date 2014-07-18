@@ -12,3 +12,4 @@ test_files/
 /.ve
 /.project
 /.pydevproject
+.ropeproject/
