@@ -65,12 +65,12 @@ class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
+        self.add_extra_methods(cls)
         if apps is None:
             models.signals.class_prepared.connect(self.finalize, sender=cls)
         else:
             app = apps.get_app_config('simple_history')
             app.models_to_finalize.append((self, cls))
-        self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
         def save_without_historical_record(self, *args, **kwargs):
@@ -120,8 +120,7 @@ class HistoricalRecords(object):
                 app = models.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
-                # Abuse an internal API because the app registry is loading.
-                app = apps.app_configs[model._meta.app_label]
+                app = apps.get_app_config(model._meta.app_label)
                 attrs['__module__'] = app.name      # full dotted name
 
         fields = self.copy_fields(model)
