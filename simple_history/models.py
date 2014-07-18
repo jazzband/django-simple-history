@@ -68,8 +68,8 @@ class HistoricalRecords(object):
         if apps is None:
             models.signals.class_prepared.connect(self.finalize, sender=cls)
         else:
-            from . apps import models_to_finalize
-            models_to_finalize.append((self, cls))
+            app = apps.get_app_config('simple_history')
+            app.models_to_finalize.append((self, cls))
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
