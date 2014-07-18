@@ -65,7 +65,11 @@ class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
-        models.signals.class_prepared.connect(self.finalize, sender=cls)
+        if apps is None:
+            models.signals.class_prepared.connect(self.finalize, sender=cls)
+        else:
+            from . apps import models_to_finalize
+            models_to_finalize.append((self, cls))
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):

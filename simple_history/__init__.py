@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 __version__ = '1.4.0'
 
+default_app_config = 'simple_history.apps.SimpleHistoryConfig'
+
 
 def register(model, app=None, manager_name='history', **records_config):
     """
