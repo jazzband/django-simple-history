@@ -53,6 +53,8 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
+    models_to_finalize = []
+
     def __init__(self, verbose_name=None, bases=(models.Model,)):
         self.user_set_verbose_name = verbose_name
         try:
@@ -68,8 +70,7 @@ class HistoricalRecords(object):
         if apps is None:
             models.signals.class_prepared.connect(self.finalize, sender=cls)
         else:
-            app = apps.get_app_config('simple_history')
-            app.models_to_finalize.append((self, cls))
+            self.models_to_finalize.append((self, cls))
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
