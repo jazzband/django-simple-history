@@ -53,6 +53,8 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
+    models_to_finalize = []
+
     def __init__(self, verbose_name=None, bases=(models.Model,)):
         self.user_set_verbose_name = verbose_name
         try:
@@ -65,7 +67,10 @@ class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
-        models.signals.class_prepared.connect(self.finalize, sender=cls)
+        if apps is None:
+            models.signals.class_prepared.connect(self.finalize, sender=cls)
+        else:
+            self.models_to_finalize.append((self, cls))
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
@@ -116,8 +121,7 @@ class HistoricalRecords(object):
                 app = models.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
-                # Abuse an internal API because the app registry is loading.
-                app = apps.app_configs[model._meta.app_label]
+                app = apps.get_app_config(model._meta.app_label)
                 attrs['__module__'] = app.name      # full dotted name
 
         fields = self.copy_fields(model)

@@ -19,12 +19,11 @@ try:
     from django.utils.encoding import force_text
 except ImportError:  # django 1.3 compatibility
     from django.utils.encoding import force_unicode as force_text
+from django.conf import settings
 
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
+
+USER_NATURAL_KEY = tuple(
+    value.lower() for value in settings.AUTH_USER_MODEL.split('.', 1))
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
@@ -59,7 +58,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
         obj = get_object_or_404(model, pk=object_id)
-        content_type = ContentType.objects.get_for_model(User)
+        content_type = ContentType.objects.get_by_natural_key(*USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
                                                   content_type.model)
         context = {

@@ -1,6 +1,13 @@
 from __future__ import unicode_literals
 
+try:
+    from django.apps import apps as dj_apps
+except ImportError:
+    dj_apps = None
+
 __version__ = '1.4.0'
+
+default_app_config = 'simple_history.apps.SimpleHistoryConfig'
 
 
 def register(model, app=None, manager_name='history', **records_config):
@@ -20,5 +27,8 @@ def register(model, app=None, manager_name='history', **records_config):
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
         records.add_extra_methods(model)
-        records.finalize(model)
+        if dj_apps and not dj_apps.apps_ready:
+            records.models_to_finalize.append((records, model))
+        else:
+            records.finalize(model)
         models.registered_models[model._meta.db_table] = model
