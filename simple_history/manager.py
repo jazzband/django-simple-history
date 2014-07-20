@@ -61,26 +61,26 @@ class HistoryManager(models.Manager):
 
     def as_of(self, date):
         """
-        Returns an instance of the original model with all the attributes set
-        according to what was present on the object on the date provided.
+        Returns an instance, or an iterable of the instances, of the
+        original model with all the attributes set according to what
+        was present on the object on the date provided.
         """
-        if not self.instance:
-            raise TypeError("Can't use as_of() without a %s instance." %
-                            self.model._meta.object_name)
-        tmp = []
-        for field in self.instance._meta.fields:
-            if isinstance(field, models.ForeignKey):
-                tmp.append(field.name + "_id")
-            else:
-                tmp.append(field.name)
-        fields = tuple(tmp)
-        qs = self.filter(history_date__lte=date)
-        try:
-            values = qs.values_list('history_type', *fields)[0]
-        except IndexError:
-            raise self.instance.DoesNotExist("%s had not yet been created." %
-                                             self.instance._meta.object_name)
-        if values[0] == '-':
-            raise self.instance.DoesNotExist("%s had already been deleted." %
-                                             self.instance._meta.object_name)
-        return self.instance.__class__(*values[1:])
+        queryset = self.filter(history_date__lte=date)
+        if self.instance:
+            try:
+                history_obj = queryset[0]
+            except IndexError:
+                raise self.instance.DoesNotExist(
+                    "%s had not yet been created." %
+                    self.instance._meta.object_name)
+            if history_obj.history_type == '-':
+                raise self.instance.DoesNotExist(
+                    "%s had already been deleted." %
+                    self.instance._meta.object_name)
+            return history_obj.instance
+        historical_ids = set(
+            queryset.order_by().values_list('id', flat=True))
+        return (change.instance for change in (
+            queryset.filter(id=original_pk).latest('history_date')
+            for original_pk in historical_ids
+        ) if change.history_type != '-')
