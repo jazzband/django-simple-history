@@ -121,8 +121,7 @@ class HistoricalRecords(object):
                 app = models.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
-                # Abuse an internal API because the app registry is loading.
-                app = apps.app_configs[model._meta.app_label]
+                app = apps.get_app_config(model._meta.app_label)
                 attrs['__module__'] = app.name      # full dotted name
 
         fields = self.copy_fields(model)
