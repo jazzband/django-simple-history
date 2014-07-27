@@ -13,7 +13,7 @@ sys.path.insert(0, abspath(dirname(__file__)))
 media_root = join(abspath(dirname(__file__)), 'test_files')
 rmtree(media_root, ignore_errors=True)
 
-installed_apps = (
+installed_apps = [
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -21,11 +21,7 @@ installed_apps = (
     'simple_history',
     'simple_history.tests',
     'simple_history.tests.external',
-)
-auth_user_model = 'auth.User'
-if django.VERSION >= (1, 5):
-    installed_apps += ('simple_history.tests.custom_user', )
-    auth_user_model = 'custom_user.CustomUser'
+]
 
 DEFAULT_SETTINGS = dict(
     ROOT_URLCONF='simple_history.tests.urls',
@@ -37,7 +33,6 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
-    AUTH_USER_MODEL=auth_user_model,
     MIDDLEWARE_CLASSES=[
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -45,6 +40,9 @@ DEFAULT_SETTINGS = dict(
     ],
 )
 
+if django.VERSION >= (1, 5):
+    installed_apps.append('simple_history.tests.custom_user')
+    DEFAULT_SETTINGS['AUTH_USER_MODEL'] = 'custom_user.CustomUser'
 
 def main():
     if not settings.configured:
