@@ -114,7 +114,7 @@ class AdminSiteTest(WebTest):
         self.assertEqual(poll.question, "what?")
         self.assertEqual(poll.pub_date, tomorrow)
         self.assertEqual([p.history_user for p in Poll.history.all()],
-                         [self.user, None, None])
+                         [self.user] * 3)
 
     def test_history_user_on_save_in_admin(self):
         self.login()
