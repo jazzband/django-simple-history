@@ -66,3 +66,16 @@ class AsOfTest(TestCase):
         as_of_list = list(
             self.model.history.as_of(self.now - timedelta(days=1)))
         self.assertEqual(as_of_list[0].changed_by, self.obj.changed_by)
+
+
+class AsOfAdditionalTestCase(TestCase):
+
+    def test_create_and_delete(self):
+        now = datetime.now()
+        document = models.Document.objects.create()
+        document.delete()
+        for doc_change in models.Document.history.all():
+            doc_change.history_date = now
+            doc_change.save()
+        docs_as_of_tmw = models.Document.history.as_of(now + timedelta(days=1))
+        self.assertFalse(list(docs_as_of_tmw))
