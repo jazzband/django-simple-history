@@ -60,7 +60,8 @@ class HistoryManager(models.Manager):
         return self.instance.__class__(*values)
 
     def as_of(self, date):
-        """
+        """Get a snapshot as of a specific date.
+
         Returns an instance, or an iterable of the instances, of the
         original model with all the attributes set according to what
         was present on the object on the date provided.
