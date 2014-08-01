@@ -79,3 +79,9 @@ class AsOfAdditionalTestCase(TestCase):
             doc_change.save()
         docs_as_of_tmw = models.Document.history.as_of(now + timedelta(days=1))
         self.assertFalse(list(docs_as_of_tmw))
+
+    def test_multiple(self):
+        document1 = models.Document.objects.create()
+        document2 = models.Document.objects.create()
+        historical = models.Document.history.as_of(datetime.now() + timedelta(days=1))
+        self.assertEqual(list(historical), [document1, document2])
