@@ -66,22 +66,28 @@ class HistoryManager(models.Manager):
         original model with all the attributes set according to what
         was present on the object on the date provided.
         """
+        if not self.instance:
+            return self._as_of_set(date)
         queryset = self.filter(history_date__lte=date)
-        if self.instance:
-            try:
-                history_obj = queryset[0]
-            except IndexError:
-                raise self.instance.DoesNotExist(
-                    "%s had not yet been created." %
-                    self.instance._meta.object_name)
-            if history_obj.history_type == '-':
-                raise self.instance.DoesNotExist(
-                    "%s had already been deleted." %
-                    self.instance._meta.object_name)
-            return history_obj.instance
-        historical_ids = set(
-            queryset.order_by().values_list('id', flat=True))
-        return (change.instance for change in (
-            queryset.filter(id=original_pk).latest('history_date')
-            for original_pk in historical_ids
-        ) if change.history_type != '-')
+        try:
+            history_obj = queryset[0]
+        except IndexError:
+            raise self.instance.DoesNotExist(
+                "%s had not yet been created." %
+                self.instance._meta.object_name)
+        if history_obj.history_type == '-':
+            raise self.instance.DoesNotExist(
+                "%s had already been deleted." %
+                self.instance._meta.object_name)
+        return history_obj.instance
+
+    def _as_of_set(self, date):
+        model = type(self.model().instance)  # a bit of a hack to get the model
+        pk_attr = model._meta.pk.name
+        queryset = self.filter(history_date__lte=date)
+        for original_pk in set(
+                queryset.order_by().values_list(pk_attr, flat=True)):
+            last_change = queryset.filter(
+                **{pk_attr: original_pk}).latest('history_date')
+            if last_change.history_type != '-':
+                yield last_change.instance
