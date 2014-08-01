@@ -225,10 +225,7 @@ class HistoricalRecords(object):
                        history_user=history_user, **attrs)
 
     def get_history_user(self, instance):
-        """Use hints from the instance and middleware to identify the
-        user making the change.
-
-        """
+        """Get the modifying user from instance or middleware."""
         try:
             return instance._history_user
         except AttributeError:
