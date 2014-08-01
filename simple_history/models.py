@@ -7,6 +7,7 @@ except ImportError:
     apps = None
 from django.db import models
 from django.db.models.fields.related import RelatedField
+from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
@@ -280,8 +281,8 @@ class ForeignKeyMixin(object):
         return field
 
     def do_related_class(self, other, cls):
+        self.related = RelatedObject(other, cls, self)
         field = self.get_field(other, cls)
-
         transform_field(field)
         field.rel = None
 
