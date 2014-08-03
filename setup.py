@@ -13,7 +13,12 @@ setup(
     author_email='corey@qr7.com',
     maintainer='Trey Hunner',
     url='https://github.com/treyhunner/django-simple-history',
-    packages=["simple_history", "simple_history.management", "simple_history.management.commands"],
+    packages=[
+        "simple_history",
+        "simple_history.templatetags",
+        "simple_history.management",
+        "simple_history.management.commands",
+    ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
