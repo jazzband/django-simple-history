@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 import difflib
 from django import template
 
-from .. import utils
-
 register = template.Library()
 
 
