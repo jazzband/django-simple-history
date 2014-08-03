@@ -9,6 +9,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
+from simple_history.templatetags import simple_history_compare
 
 from ..models import Book, Person, Poll
 
@@ -179,3 +180,22 @@ class CompareHistoryTest(AdminTest):
     def test_navigate_to_compare(self):
         response = self.app.get(get_history_url(self.poll)).form.submit()
         response.mustcontain("<title>Compare ")
+
+
+class CompareTableTest(TestCase):
+
+    def test_diff_table(self):
+        table_markup = simple_history_compare.diff_table(a="this\nan\ntest", b="this\nis\na\ntest")
+        self.assertEqual(table_markup, """
+    <table class="diff" id="difflib_chg_to1__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        
+        <tbody>
+            <tr><td class="diff_next" id="difflib_chg_to1__0"><a href="#difflib_chg_to1__0">f</a></td><td class="diff_header" id="from1_1">1</td><td nowrap="nowrap">this</td><td class="diff_next"><a href="#difflib_chg_to1__0">f</a></td><td class="diff_header" id="to1_1">1</td><td nowrap="nowrap">this</td></tr>
+            <tr><td class="diff_next"><a href="#difflib_chg_to1__top">t</a></td><td class="diff_header" id="from1_2">2</td><td nowrap="nowrap"><span class="diff_sub">an</span></td><td class="diff_next"><a href="#difflib_chg_to1__top">t</a></td><td class="diff_header" id="to1_2">2</td><td nowrap="nowrap"><span class="diff_add">is</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to1_3">3</td><td nowrap="nowrap"><span class="diff_add">a</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from1_3">3</td><td nowrap="nowrap">test</td><td class="diff_next"></td><td class="diff_header" id="to1_4">4</td><td nowrap="nowrap">test</td></tr>
+        </tbody>
+    </table>""")
