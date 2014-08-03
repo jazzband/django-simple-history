@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django_webtest import WebTest
+from django.test import TestCase
 from django import VERSION
 from django.core.urlresolvers import reverse
 try:
@@ -8,6 +9,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
+from simple_history.templatetags import simple_history_compare
 
 from ..models import Book, Person, Poll
 
@@ -29,7 +31,8 @@ def get_history_url(model, history_index=None):
         return reverse('admin:%s_%s_history' % info, args=[quote(model.pk)])
 
 
-class AdminSiteTest(WebTest):
+class AdminTest(WebTest):
+
     def setUp(self):
         self.user = User.objects.create_superuser('user_login',
                                                   'u@example.com', 'pass')
@@ -41,6 +44,9 @@ class AdminSiteTest(WebTest):
         form['username'] = user.username
         form['password'] = 'pass'
         return form.submit()
+
+
+class AdminSiteTest(AdminTest):
 
     def test_history_list(self):
         if VERSION >= (1, 5):
@@ -156,3 +162,40 @@ class AdminSiteTest(WebTest):
         self.login()
         add_page = self.app.get(reverse('admin:tests_paper_add'))
         add_page.form.submit()
+
+    def test_compare_history(self):
+        self.login()
+
+
+class CompareHistoryTest(AdminTest):
+
+    def setUp(self):
+        super(CompareHistoryTest, self).setUp()
+        self.login()
+        self.poll = Poll.objects.create(question="Who?", pub_date=today)
+        for question in ("What?", "Where?", "When?", "Why?", "How?"):
+            self.poll.question = question
+            self.poll.save()
+
+    def test_navigate_to_compare(self):
+        response = self.app.get(get_history_url(self.poll)).form.submit()
+        response.mustcontain("<title>Compare ")
+
+
+class CompareTableTest(TestCase):
+
+    def test_diff_table(self):
+        table_markup = simple_history_compare.diff_table(a="this\nan\ntest", b="this\nis\na\ntest")
+        self.assertEqual(table_markup, """
+    <table class="diff" id="difflib_chg_to1__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        
+        <tbody>
+            <tr><td class="diff_next" id="difflib_chg_to1__0"><a href="#difflib_chg_to1__0">f</a></td><td class="diff_header" id="from1_1">1</td><td nowrap="nowrap">this</td><td class="diff_next"><a href="#difflib_chg_to1__0">f</a></td><td class="diff_header" id="to1_1">1</td><td nowrap="nowrap">this</td></tr>
+            <tr><td class="diff_next"><a href="#difflib_chg_to1__top">t</a></td><td class="diff_header" id="from1_2">2</td><td nowrap="nowrap"><span class="diff_sub">an</span></td><td class="diff_next"><a href="#difflib_chg_to1__top">t</a></td><td class="diff_header" id="to1_2">2</td><td nowrap="nowrap"><span class="diff_add">is</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to1_3">3</td><td nowrap="nowrap"><span class="diff_add">a</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from1_3">3</td><td nowrap="nowrap">test</td><td class="diff_next"></td><td class="diff_header" id="to1_4">4</td><td nowrap="nowrap">test</td></tr>
+        </tbody>
+    </table>""")

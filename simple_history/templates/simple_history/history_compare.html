@@ -1,0 +1,51 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% load url from future %}
+{% load admin_urls %}
+{% load simple_history_compare %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ module_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'change' object_id %}">{{ object|truncatewords:"18" }}</a>
+&rsaquo; {% trans 'Compare History' %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .diff_sub {
+    background: DarkSalmon;
+  }
+  .diff_add {
+    background: YellowGreen;
+  }
+  .diff_chg {
+    background: Khaki;
+  }
+</style>
+
+<div id="content-main">
+<div class="module">
+
+{% for field in fields %}
+<div class="form-row field-{{ field.name }}">
+  {% if field.name %}<h4>{{ field.name }}</h4>{% endif %}
+  {% if field.description %}
+    <div class="description">{{ field.description|safe }}</div>
+  {% endif %}
+  <div>
+    {{ field.label_tag }}
+    <div>
+      {% diff_table field.content field.prev_content field.section_break %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+</div>
+</div>
+{% endblock content %}

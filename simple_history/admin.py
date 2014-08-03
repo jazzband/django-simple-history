@@ -4,20 +4,20 @@ from django import template
 from django.core.exceptions import PermissionDenied
 try:
     from django.conf.urls import patterns, url
-except ImportError:
+except ImportError:  # pragma: no cover
     from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404, render_to_response
-from django.contrib.admin.util import unquote
+from django.shortcuts import get_object_or_404, render
+from django.contrib.admin.util import quote, unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
 try:
     from django.utils.encoding import force_text
-except ImportError:  # django 1.3 compatibility
+except ImportError:  # pragma: no cover, django 1.3 compatibility
     from django.utils.encoding import force_unicode as force_text
 from django.conf import settings
 
@@ -31,6 +31,7 @@ USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
+    object_compare_template = "simple_history/history_compare.html"
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -39,13 +40,16 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = self.model._meta
         try:
             info = opts.app_label, opts.module_name
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             info = opts.app_label, opts.model_name
         history_urls = patterns(
             "",
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history' % info),
+            url("^([^/]+)/compare/$",
+                admin_site.admin_view(self.compare_view),
+                name='%s_%s_simple_compare' % info),
         )
         return history_urls + urls
 
@@ -77,8 +81,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(extra_context or {})
         context_instance = template.RequestContext(
             request, current_app=self.admin_site.name)
-        return render_to_response(self.object_history_template, context,
-                                  context_instance=context_instance)
+        return render(request, self.object_history_template,
+                      dictionary=context, context_instance=context_instance)
 
     def history_form_view(self, request, object_id, version_id):
         original_model = self.model
@@ -132,7 +136,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         try:
             model_name = original_opts.module_name
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         content_type_id = ContentType.objects.get_for_model(self.model).id
@@ -170,8 +174,43 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request,
             current_app=self.admin_site.name,
         )
-        return render_to_response(self.object_history_form_template, context,
-                                  context_instance)
+        return render(request, self.object_history_form_template,
+                      dictionary=context, context_instance=context_instance)
+
+    def compare_view(self, request, object_id, extra_context=None):
+        object_id = unquote(object_id)
+        obj = get_object_or_404(self.model, pk=object_id)
+        history = getattr(obj,
+                          self.model._meta.simple_history_manager_attribute)
+        prev = history.get(pk=request.GET['from'])
+        curr = history.get(pk=request.GET['to'])
+
+        fields = [{
+            'name': field.attname,
+            'content': getattr(curr, field.attname),
+            'prev_content': getattr(prev, field.attname),
+            'section_break': "\n",
+        } for field in self.model._meta.fields]
+        opts = self.model._meta
+        d = {
+            'title': _('Compare %s') % force_text(obj),
+            'app_label': opts.app_label,
+            'module_name': capfirst(force_text(opts.verbose_name_plural)),
+            'object_id': quote(object_id),
+            'object': obj,
+            'fields': fields,
+            'opts': opts,
+            'add': False,
+            'change': False,
+            'show_delete': False,
+            'is_popup': False,
+            'save_as': self.save_as,
+            'has_add_permission': self.has_add_permission(request),
+            'has_change_permission': self.has_change_permission(request, obj),
+            'has_delete_permission': self.has_delete_permission(request, obj),
+        }
+        return render(request, template_name=self.object_compare_template,
+                      current_app=self.admin_site.name, dictionary=d)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
