@@ -46,6 +46,21 @@ Django tutorial:
 Now all changes to ``Poll`` and ``Choice`` model instances will be tracked in
 the database.
 
+The historical models can also track who made each change. To populate
+the history user automatically you can add middleware to your Django
+settings:
+
+.. code-block:: python
+
+    MIDDLEWARE_CLASSES = [
+        # ...
+        'simple_history.middleware.HistoryRequestMiddleware',
+    ]
+
+If you do not want to use the middleware, you can explicitly indicate
+the user making the change as indicated in the advanced usage
+documentation.
+
 .. _admin_integration:
 
 Integration with Django Admin

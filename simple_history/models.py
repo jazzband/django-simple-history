@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import threading
 import copy
 try:
     from django.apps import apps  # Django >= 1.7
@@ -53,6 +54,8 @@ registered_models = {}
 
 
 class HistoricalRecords(object):
+    thread = threading.local()
+
     def __init__(self, verbose_name=None, bases=(models.Model,)):
         self.user_set_verbose_name = verbose_name
         try:
@@ -213,13 +216,23 @@ class HistoricalRecords(object):
 
     def create_historical_record(self, instance, type):
         history_date = getattr(instance, '_history_date', now())
-        history_user = getattr(instance, '_history_user', None)
+        history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=type,
                        history_user=history_user, **attrs)
+
+    def get_history_user(self, instance):
+        """Get the modifying user from instance or middleware."""
+        try:
+            return instance._history_user
+        except AttributeError:
+            try:
+                return self.thread.request.user
+            except AttributeError:
+                return
 
 
 class ForeignKeyMixin(object):

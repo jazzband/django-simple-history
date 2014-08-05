@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django_webtest import WebTest
+from django.test.utils import override_settings
 from django import VERSION
 from django.core.urlresolvers import reverse
 try:
@@ -8,6 +9,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
+from django.conf import settings
 
 from ..models import Book, Person, Poll
 
@@ -156,3 +158,26 @@ class AdminSiteTest(WebTest):
         self.login()
         add_page = self.app.get(reverse('admin:tests_paper_add'))
         add_page.form.submit()
+
+    def test_history_user_not_saved(self):
+        self.login()
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        historical_poll = poll.history.all()[0]
+        self.assertIsNone(
+            historical_poll.history_user,
+            "No way to know of request, history_user should be unset.",
+        )
+
+    def test_middleware_saves_user(self):
+        overridden_settings = {
+            'MIDDLEWARE_CLASSES':
+                settings.MIDDLEWARE_CLASSES
+                + ['simple_history.middleware.HistoryRequestMiddleware'],
+        }
+        with override_settings(**overridden_settings):
+            self.login()
+            poll = Poll.objects.create(question="why?", pub_date=today)
+            historical_poll = poll.history.all()[0]
+            self.assertEqual(historical_poll.history_user, self.user,
+                             "Middleware should make the request available to "
+                             "retrieve history_user.")
