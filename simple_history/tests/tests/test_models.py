@@ -469,8 +469,8 @@ class HistoryManagerTest(TestCase):
 
     def test_import_related(self):
         field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
-        self.assertEqual(field_object.related.model, HistoricalChoice)
+        self.assertEqual(field_object.related.model, Choice)
 
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
-        self.assertEqual(field_object.related.model, HistoricalState)
+        self.assertEqual(field_object.related.model, State)

@@ -281,8 +281,9 @@ class ForeignKeyMixin(object):
         return field
 
     def do_related_class(self, other, cls):
-        self.related = RelatedObject(other, cls, self)
         field = self.get_field(other, cls)
+        if not hasattr(self, 'related'):
+            self.related = RelatedObject(other, self.rel.field.model, self)
         transform_field(field)
         field.rel = None
 
