@@ -17,7 +17,8 @@ from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
     FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
     ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
-    ExternalModel1, ExternalModel3, UnicodeVerboseName
+    ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
+    HistoricalState
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -465,3 +466,11 @@ class HistoryManagerTest(TestCase):
         invalid_bases = (AbstractBase, "InvalidBases")
         for bases in invalid_bases:
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
+
+    def test_import_related(self):
+        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
+        self.assertEqual(field_object.related.model, HistoricalChoice)
+
+    def test_string_related(self):
+        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
+        self.assertEqual(field_object.related.model, HistoricalState)
