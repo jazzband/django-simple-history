@@ -5,6 +5,7 @@ tip (unreleased)
 ----------------
 - Extended availability of the ``as_of`` method to models as well as instances.
 - Allow ``history_user`` on historical objects to be set by middleware.
+- Fixed error that occurs when a foreign key is designated using just the name of the model.
 
 1.4.0 (2014-06-29)
 ------------------

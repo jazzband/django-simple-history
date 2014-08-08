@@ -8,6 +8,7 @@ except ImportError:
     apps = None
 from django.db import models
 from django.db.models.fields.related import RelatedField
+from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib
@@ -184,6 +185,7 @@ class HistoricalRecords(object):
             )),
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
+            'instance_type': model,
             'revert_url': revert_url,
             '__str__': lambda self: '%s as of %s' % (self.history_object,
                                                      self.history_date)
@@ -294,7 +296,8 @@ class ForeignKeyMixin(object):
 
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
-
+        if not hasattr(self, 'related'):
+            self.related = RelatedObject(other, cls.instance_type, self)
         transform_field(field)
         field.rel = None
 
