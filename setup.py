@@ -27,7 +27,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         "License :: OSI Approved :: BSD License",
     ],
-    tests_require=["Django>=1.3", "webtest==2.0.6", "django-webtest==1.7"],
+    tests_require=["Django>=1.4", "webtest==2.0.6", "django-webtest==1.7"],
     include_package_data=True,
     test_suite='runtests.main',
 )
