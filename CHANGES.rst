@@ -1,6 +1,11 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Extended availability of the ``as_of`` method to models as well as instances.
+- Allow ``history_user`` on historical objects to be set by middleware.
+
 1.4.0 (2014-06-29)
 ------------------
 - Fixed error that occurs when models have a foreign key pointing to a one to one field.
