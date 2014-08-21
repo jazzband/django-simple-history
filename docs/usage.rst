@@ -61,6 +61,13 @@ If you do not want to use the middleware, you can explicitly indicate
 the user making the change as indicated in the advanced usage
 documentation.
 
+For existing projects, you can call the populate command to generate an
+initial change for preexisting model instances:
+
+.. code-block:: bash
+
+    $ python manage.py populate_history --auto
+
 .. _admin_integration:
 
 Integration with Django Admin
