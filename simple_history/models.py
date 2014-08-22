@@ -71,10 +71,14 @@ class HistoricalRecords(object):
 
     def finalize(self, sender, **kwargs):
         try:
-            if not issubclass(sender, self.cls):
-                return
+            hint_class = self.cls
         except AttributeError:  # called via `register`
             pass
+        else:
+            if not hint_class is sender:  # set in concrete
+                if not (hint_class._meta.abstract
+                        and issubclass(sender, hint_class)):  # set in abstract
+                    return
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
