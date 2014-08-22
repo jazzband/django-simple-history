@@ -49,7 +49,8 @@ class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
-        models.signals.class_prepared.connect(self.finalize, sender=cls)
+        self.cls = cls
+        models.signals.class_prepared.connect(self.finalize, weak=False)
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
@@ -69,6 +70,11 @@ class HistoricalRecords(object):
                 save_without_historical_record)
 
     def finalize(self, sender, **kwargs):
+        try:
+            if not issubclass(sender, self.cls):
+                return
+        except AttributeError:  # called via `register`
+            pass
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)

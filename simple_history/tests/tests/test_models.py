@@ -19,7 +19,7 @@ from ..models import (
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
     UserAccessorDefault, UserAccessorOverride, Employee, Country, Province,
-    City, Contact, ContactRegister
+    City, Contact, ContactRegister, Tracked
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -783,3 +783,9 @@ class CustomTableNameTest1(TestCase):
             self.get_table_name(ContactRegister.history),
             'contacts_register_history',
         )
+
+
+class TestAbstractHistoricalBaseModel(TestCase):
+
+    def test_historical_abstract(self):
+        Tracked.history.all()

@@ -277,3 +277,14 @@ class ContactRegister(models.Model):
     email = models.EmailField(max_length=255, unique=True)
 
 register(ContactRegister, table_name='contacts_register_history')
+
+
+class TrackedAbstractBase(models.Model):
+    history = HistoricalRecords()
+
+    class Meta:
+        abstract = True
+
+
+class Tracked(TrackedAbstractBase):
+    pass
