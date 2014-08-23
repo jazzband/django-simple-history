@@ -192,4 +192,5 @@ class AdminSiteTest(WebTest):
         """
         self.login()
         state = State.objects.create()
-        self.app.get(get_history_url(state, site="other_admin"))
+        history_url = get_history_url(state, site="other_admin")
+        self.app.get(history_url)
