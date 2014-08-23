@@ -187,10 +187,14 @@ class AdminSiteTest(WebTest):
                              "retrieve history_user.")
 
     def test_other_admin(self):
-        """Demonstrate error viewing the historical admin page for a
-        model not registered with the default site 'admin'.
+        """Test non-default admin instances.
+
+        Make sure non-default admin instances can resolve urls and
+        render pages.
         """
         self.login()
         state = State.objects.create()
         history_url = get_history_url(state, site="other_admin")
         self.app.get(history_url)
+        change_url = get_history_url(state, 0, site="other_admin")
+        self.app.get(change_url)
