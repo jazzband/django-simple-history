@@ -28,7 +28,7 @@
                 <td>{{ action.get_history_type_display }}</td>
                 <td>
                   {% if action.history_user %}
-                    <a href="{% url admin_user_view action.history_user_id %}">{{ action.history_user }}</a>
+                    {{ action.history_user }}
                   {% else %}
                     None
                   {% endif %}
