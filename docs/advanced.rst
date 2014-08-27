@@ -27,9 +27,9 @@ the provided date and time.
 
     >>> from datetime import datetime
     >>> poll.history.as_of(datetime(2010, 10, 25, 18, 4, 0))
-    <HistoricalPoll: Poll object as of 2010-10-25 18:03:29.855689>
+    <Poll: Poll object as of 2010-10-25 18:03:29.855689>
     >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
-    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+    <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 most_recent
 ~~~~~~~~~~~
@@ -41,7 +41,7 @@ model history.
 
     >>> from datetime import datetime
     >>> poll.history.most_recent()
-    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+    <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
 History for Third-Party Model
