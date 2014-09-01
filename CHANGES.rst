@@ -1,6 +1,10 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Removed some incompatibilities with non-default admin sites (gh-92)
+
 1.5.0 (2014-08-17)
 ------------------
 - Extended availability of the ``as_of`` method to models as well as instances.
