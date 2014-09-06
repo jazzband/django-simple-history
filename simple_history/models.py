@@ -162,6 +162,7 @@ class HistoricalRecords(object):
 
         @models.permalink
         def revert_url(self):
+            """URL for this change in the default admin site."""
             opts = model._meta
             try:
                 app_label, model_name = opts.app_label, opts.module_name

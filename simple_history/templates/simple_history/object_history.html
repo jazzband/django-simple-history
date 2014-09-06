@@ -1,6 +1,7 @@
 {% extends "admin/object_history.html" %}
 {% load i18n %}
 {% load url from future %}
+{% load admin_urls %}
 
 
 {% block content %}
@@ -22,12 +23,17 @@
           <tbody>
             {% for action in action_list %}
               <tr>
-                <td><a href="{{ action.revert_url }}">{{ action.history_object }}</a></td>
+                <td><a href="{% url opts|admin_urlname:'simple_history' object.pk action.pk %}">{{ action.history_object }}</a></td>
                 <td>{{ action.history_date }}</td>
                 <td>{{ action.get_history_type_display }}</td>
                 <td>
                   {% if action.history_user %}
-                    <a href="{% url admin_user_view action.history_user_id %}">{{ action.history_user }}</a>
+                    {% url admin_user_view action.history_user_id as admin_user_url %}
+                    {% if admin_user_url %}
+                      <a href="{{ admin_user_url }}">{{ action.history_user }}</a>
+                    {% else %}
+                      {{ action.history_user }}
+                    {% endif %}
                   {% else %}
                     None
                   {% endif %}

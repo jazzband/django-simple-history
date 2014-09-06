@@ -11,24 +11,28 @@ except ImportError:  # django 1.4 compatibility
 from django.contrib.admin.util import quote
 from django.conf import settings
 
-from ..models import Book, Person, Poll
+from ..models import Book, Person, Poll, State
 
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 
 
-def get_history_url(model, history_index=None):
+def get_history_url(obj, history_index=None, site="admin"):
     try:
-        info = model._meta.app_label, model._meta.module_name
+        app, model = obj._meta.app_label, obj._meta.module_name
     except AttributeError:
-        info = model._meta.app_label, model._meta.model_name
+        app, model = obj._meta.app_label, obj._meta.model_name
     if history_index is not None:
-        history = model.history.order_by('history_id')[history_index]
-        return reverse('admin:%s_%s_simple_history' % info,
-                       args=[quote(model.pk), quote(history.history_id)])
+        history = obj.history.order_by('history_id')[history_index]
+        return reverse(
+            "{site}:{app}_{model}_simple_history".format(
+                site=site, app=app, model=model),
+            args=[quote(obj.pk), quote(history.history_id)],
+        )
     else:
-        return reverse('admin:%s_%s_history' % info, args=[quote(model.pk)])
+        return reverse("{site}:{app}_{model}_history".format(
+            site=site, app=app, model=model), args=[quote(obj.pk)])
 
 
 class AdminSiteTest(WebTest):
@@ -181,3 +185,16 @@ class AdminSiteTest(WebTest):
             self.assertEqual(historical_poll.history_user, self.user,
                              "Middleware should make the request available to "
                              "retrieve history_user.")
+
+    def test_other_admin(self):
+        """Test non-default admin instances.
+
+        Make sure non-default admin instances can resolve urls and
+        render pages.
+        """
+        self.login()
+        state = State.objects.create()
+        history_url = get_history_url(state, site="other_admin")
+        self.app.get(history_url)
+        change_url = get_history_url(state, 0, site="other_admin")
+        self.app.get(change_url)

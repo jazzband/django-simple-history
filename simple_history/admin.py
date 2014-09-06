@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django import template
 from django.core.exceptions import PermissionDenied
 try:
     from django.conf.urls import patterns, url
@@ -10,7 +9,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -75,10 +74,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
-        context_instance = template.RequestContext(
-            request, current_app=self.admin_site.name)
-        return render_to_response(self.object_history_template, context,
-                                  context_instance=context_instance)
+        return render(request, template_name=self.object_history_template,
+                      dictionary=context, current_app=self.admin_site.name)
 
     def history_form_view(self, request, object_id, version_id):
         original_model = self.model
@@ -166,12 +163,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
-        context_instance = template.RequestContext(
-            request,
-            current_app=self.admin_site.name,
-        )
-        return render_to_response(self.object_history_form_template, context,
-                                  context_instance)
+        return render(request, template_name=self.object_history_form_template,
+                      dictionary=context, current_app=self.admin_site.name)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
