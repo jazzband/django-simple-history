@@ -185,6 +185,19 @@ class AdminSiteTest(WebTest):
             self.assertEqual(historical_poll.history_user, self.user,
                              "Middleware should make the request available to "
                              "retrieve history_user.")
+                            
+    def test_middleware_anonymous_user(self):
+        overridden_settings = {
+            'MIDDLEWARE_CLASSES':
+                settings.MIDDLEWARE_CLASSES
+                + ['simple_history.middleware.HistoryRequestMiddleware'],
+        }
+        with override_settings(**overridden_settings):
+            poll = Poll.objects.create(question="why?", pub_date=today)
+            historical_poll = poll.history.all()[0]
+            self.assertEqual(historical_poll.history_user, None,
+                             "Middleware request user should be able to "
+                             "be anonymous.")
 
     def test_other_admin(self):
         """Test non-default admin instances.
