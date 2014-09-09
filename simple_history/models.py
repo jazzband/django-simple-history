@@ -233,9 +233,11 @@ class HistoricalRecords(object):
             return instance._history_user
         except AttributeError:
             try:
-                return self.thread.request.user
+                if self.thread.request.user.is_authenticated():
+                    return self.thread.request.user
+                return None
             except AttributeError:
-                return
+                return None
 
 
 class ForeignKeyMixin(object):
