@@ -193,8 +193,8 @@ class AdminSiteTest(WebTest):
                 + ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
+            self.app.get(reverse('admin:index'))
             poll = Poll.objects.create(question="why?", pub_date=today)
-            response = self.app.get(get_history_url(poll, 0))
             historical_poll = poll.history.all()[0]
             self.assertEqual(historical_poll.history_user, None,
                              "Middleware request user should be able to "
