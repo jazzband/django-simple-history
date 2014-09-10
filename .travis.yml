@@ -10,7 +10,7 @@ env:
   - DJANGO=Django==1.4.13
   - DJANGO=Django==1.5.8
   - DJANGO=Django==1.6.5
-  - DJANGO=Django>=1.7
+  - DJANGO="Django>=1.7,<1.8"
 
 install:
   - pip install coverage coveralls $DJANGO --use-mirrors
@@ -22,7 +22,7 @@ matrix:
    - python: 2.6
      env: DJANGO=Django==1.6.5
    - python: 2.6
-     env: DJANGO=Django>=1.7
+     env: DJANGO="Django>=1.7,<1.8"
    - python: 3.2
      env: DJANGO=Django==1.4.13
    - python: 3.3
@@ -30,6 +30,6 @@ matrix:
 
   include:
    - python: 3.4
-     env: DJANGO=Django>=1.7
+     env: DJANGO="Django>=1.7,<1.8"
 
 after_success: coveralls
