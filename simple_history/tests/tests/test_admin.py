@@ -10,6 +10,7 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.contrib.admin.util import quote
 from django.conf import settings
+from simple_history.models import HistoricalRecords
 
 from ..models import Book, Person, Poll, State
 
@@ -39,6 +40,12 @@ class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser('user_login',
                                                   'u@example.com', 'pass')
+
+    def tearDown(self):
+        try:
+            del HistoricalRecords.thread.request
+        except AttributeError:
+            pass
 
     def login(self, user=None):
         if user is None:
