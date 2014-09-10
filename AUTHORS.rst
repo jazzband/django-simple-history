@@ -14,6 +14,7 @@ Authors
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Ross Lote
 - macro1
 - Marty Alchin
 - Mauricio de Abreu Antunes
