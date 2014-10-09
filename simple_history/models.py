@@ -57,8 +57,10 @@ registered_models = {}
 class HistoricalRecords(object):
     thread = threading.local()
 
-    def __init__(self, verbose_name=None, bases=(models.Model,)):
+    def __init__(self, verbose_name=None, bases=(models.Model,),
+                 user_related_name=None):
         self.user_set_verbose_name = verbose_name
+        self.user_related_name = user_related_name
         try:
             if isinstance(bases, basestring):
                 raise TypeError
@@ -178,7 +180,8 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
-            'history_user': models.ForeignKey(user_model, null=True),
+            'history_user': models.ForeignKey(
+                user_model, null=True, related_name=self.user_related_name),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
