@@ -193,3 +193,8 @@ class UnicodeVerboseName(models.Model):
 
     class Meta:
         verbose_name = '\u570b'
+
+
+class CustomFKError(models.Model):
+    fk = models.ForeignKey(SecondLevelInheritedModel)
+    history = HistoricalRecords()

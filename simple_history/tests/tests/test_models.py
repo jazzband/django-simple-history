@@ -8,6 +8,7 @@ try:
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.db.models.loading import get_model
+from django.db.migrations import state
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
@@ -18,7 +19,7 @@ from ..models import (
     FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
     ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState
+    HistoricalState, HistoricalCustomFKError
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -469,3 +470,6 @@ class HistoryManagerTest(TestCase):
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
+
+    def test_state_serialization_of_customfk(self):
+        state.ModelState.from_model(HistoricalCustomFKError)
