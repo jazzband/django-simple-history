@@ -53,6 +53,8 @@ except ImportError:  # django 1.3 compatibility
 
 registered_models = {}
 
+nonrel_dbs = ('django_mongodb_engine')
+
 
 class HistoricalRecords(object):
     thread = threading.local()
@@ -265,11 +267,11 @@ class ForeignKeyMixin(object):
         if isinstance(to_field, models.OneToOneField):
             field = self.get_one_to_one_field(to_field, other)
         elif isinstance(to_field, models.AutoField):
-			# Check if AutoField is string for django-non-rel support
-			if isinstance(field, models.TextField):
-				field.__class__ = models.TextField
-			else:
-				field.__class__ = models.IntegerField
+            # Check if AutoField is string for django-non-rel support
+            if settings.DATABASES['default']['ENGINE'] in nonrel_dbs:
+                field.__class__ = models.TextField
+            else:
+                field.__class__ = models.IntegerField
         else:
             field.__class__ = to_field.__class__
             excluded_prefixes = ("_", "__")
@@ -323,11 +325,11 @@ def transform_field(field):
     if isinstance(field, models.AutoField):
         # The historical model gets its own AutoField, so any
         # existing one must be replaced with an IntegerField.
-		if isinstance(field, models.TextField):
-			# Check if AutoField is string for django-non-rel support
-			field.__class__ = models.TextField
-		else:
-			field.__class__ = models.IntegerField
+        if settings.DATABASES['default']['ENGINE'] in nonrel_dbs:
+            # Check if AutoField is string for django-non-rel support
+            field.__class__ = models.TextField
+        else:
+            field.__class__ = models.IntegerField
 
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
