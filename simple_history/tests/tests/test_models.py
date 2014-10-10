@@ -1,14 +1,18 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
+try:
+    from unittest import skipUnless
+except ImportError:
+    from unittest2 import skipUnless
 
+import django
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.db.models.loading import get_model
-from django.db.migrations import state
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
@@ -471,5 +475,7 @@ class HistoryManagerTest(TestCase):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
 
+    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
+        from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)

@@ -1,6 +1,12 @@
 from setuptools import setup
 import simple_history
 
+tests_require = ["Django>=1.4", "webtest==2.0.6", "django-webtest==1.7"]
+try:
+    from unittest import skipUnless
+except ImportError:  # Python 2.6 compatibility
+    tests_require.append("unittest2")
+
 setup(
     name='django-simple-history',
     version=simple_history.__version__,
@@ -27,7 +33,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         "License :: OSI Approved :: BSD License",
     ],
-    tests_require=["Django>=1.4", "webtest==2.0.6", "django-webtest==1.7"],
+    tests_require=tests_require,
     include_package_data=True,
     test_suite='runtests.main',
 )
