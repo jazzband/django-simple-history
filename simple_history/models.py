@@ -147,7 +147,7 @@ class HistoricalRecords(object):
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
                 # we'll used that as soon as it's finalized by copying rel.to
-                field.__class__ = get_custom_fk_class(type(field))
+                field.__class__ = CustomForeignKeyField
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
@@ -240,7 +240,8 @@ class HistoricalRecords(object):
                 return None
 
 
-class ForeignKeyMixin(object):
+class CustomForeignKeyField(models.ForeignKey):
+
     def get_attname(self):
         return self.name
 
@@ -307,10 +308,6 @@ class ForeignKeyMixin(object):
     def contribute_to_class(self, cls, name):
         # HACK: remove annoying descriptor (don't super())
         RelatedField.contribute_to_class(self, cls, name)
-
-
-def get_custom_fk_class(parent_type):
-    return type(str('CustomForeignKey'), (ForeignKeyMixin, parent_type), {})
 
 
 def transform_field(field):
