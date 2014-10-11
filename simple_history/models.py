@@ -304,12 +304,10 @@ class CustomForeignKeyField(models.ForeignKey):
             try:
                 instance_type = cls.instance_type
             except AttributeError:  # when model is reconstituted for migration
-                natural_key = "{app}.{model}".format(
-                    app=cls._meta.app_label,
-                    model=cls.__name__[10:],
-                )
-                instance_type = cls._meta.apps.get_model(natural_key)
-            self.related = RelatedObject(other, instance_type, self)
+                if cls.__module__ != "__fake__":  # not from migrations, error
+                    raise
+            else:
+                self.related = RelatedObject(other, instance_type, self)
         transform_field(field)
         field.rel = None
 
