@@ -301,7 +301,15 @@ class CustomForeignKeyField(models.ForeignKey):
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
         if not hasattr(self, 'related'):
-            self.related = RelatedObject(other, cls.instance_type, self)
+            try:
+                instance_type = cls.instance_type
+            except AttributeError:  # when model is reconstituted for migration
+                natural_key = "{app}.{model}".format(
+                    app=cls._meta.app_label,
+                    model=cls.__name__[10:],
+                )
+                instance_type = cls._meta.apps.get_model(natural_key)
+            self.related = RelatedObject(other, instance_type, self)
         transform_field(field)
         field.rel = None
 
