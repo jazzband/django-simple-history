@@ -6,7 +6,7 @@ try:
     from django.apps import apps  # Django >= 1.7
 except ImportError:
     apps = None
-from django.db import models
+from django.db import models, router
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
@@ -268,7 +268,7 @@ class ForeignKeyMixin(object):
         if isinstance(to_field, models.OneToOneField):
             field = self.get_one_to_one_field(to_field, other)
         elif isinstance(to_field, models.AutoField):
-            field.__class__ = models.IntegerField
+            field.__class__ = convert_auto_field(to_field)
         else:
             field.__class__ = to_field.__class__
             excluded_prefixes = ("_", "__")
@@ -320,9 +320,8 @@ def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
     if isinstance(field, models.AutoField):
-        # The historical model gets its own AutoField, so any
-        # existing one must be replaced with an IntegerField.
-        field.__class__ = models.IntegerField
+        field.__class__ = convert_auto_field(field)
+
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
         field.__class__ = models.TextField
@@ -338,6 +337,19 @@ def transform_field(field):
         field._unique = False
         field.db_index = True
         field.serialize = True
+
+
+def convert_auto_field(field):
+    """Convert AutoField to a non-incrementing type
+
+    The historical model gets its own AutoField, so any existing one
+    must be replaced with an IntegerField.
+    """
+    connection = router.db_for_write(field.model)
+    if settings.DATABASES[connection]['ENGINE'] in ('django_mongodb_engine',):
+        # Check if AutoField is string for django-non-rel support
+        return models.TextField
+    return models.IntegerField
 
 
 class HistoricalObjectDescriptor(object):
