@@ -1,7 +1,12 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
+try:
+    from unittest import skipUnless
+except ImportError:
+    from unittest2 import skipUnless
 
+import django
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
@@ -19,7 +24,7 @@ from ..models import (
     FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
     ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState
+    HistoricalState, HistoricalCustomFKError
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -470,6 +475,11 @@ class HistoryManagerTest(TestCase):
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
+
+    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    def test_state_serialization_of_customfk(self):
+        from django.db.migrations import state
+        state.ModelState.from_model(HistoricalCustomFKError)
 
 
 class TestConvertAutoField(TestCase):
