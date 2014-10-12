@@ -7,6 +7,7 @@ Authors
 - Damien Nozay
 - Daniel Levy
 - Daniel Roschka
+- David Hite
 - George Vilches
 - Hamish Downer
 - jofusa
