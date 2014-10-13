@@ -11,15 +11,12 @@ from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
-from django.utils import importlib
+from django.utils import importlib, six
+from django.utils.encoding import python_2_unicode_compatible
 try:
     from django.utils.encoding import smart_text
 except ImportError:
-    smart_text = unicode
-try:
-    from django.utils.six import text_type
-except ImportError:
-    text_type = unicode
+    from django.utils.encoding import smart_unicode as smart_text
 try:
     from django.utils.timezone import now
 except ImportError:
@@ -27,29 +24,6 @@ except ImportError:
     now = datetime.now
 from django.utils.translation import string_concat
 from .manager import HistoryDescriptor
-
-try:
-    basestring
-except NameError:
-    basestring = str  # Python 3 has no basestring
-
-try:
-    from django.utils.encoding import python_2_unicode_compatible
-except ImportError:  # django 1.3 compatibility
-    import sys
-
-    # copy of django function without use of six
-    def python_2_unicode_compatible(klass):
-        """
-        Decorator defining __unicode__ and __str__ as appropriate for Py2/3
-
-        Usage: define __str__ method and apply this decorator to the class.
-        """
-        if sys.version_info[0] != 3:
-            klass.__unicode__ = klass.__str__
-            klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
-        return klass
-
 
 registered_models = {}
 
@@ -62,7 +36,7 @@ class HistoricalRecords(object):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         try:
-            if isinstance(bases, basestring):
+            if isinstance(bases, six.string_types):
                 raise TypeError
             self.bases = tuple(bases)
         except TypeError:
@@ -254,7 +228,7 @@ class CustomForeignKeyField(models.ForeignKey):
         # recursive
         temp_field = self.__class__(to_field.rel.to._meta.object_name)
         for key, val in to_field.__dict__.items():
-            if (isinstance(key, basestring)
+            if (isinstance(key, six.string_types)
                     and not key.startswith('_')):
                 setattr(temp_field, key, val)
         field = self.__class__.get_field(
@@ -295,7 +269,7 @@ class CustomForeignKeyField(models.ForeignKey):
                 "blank",
             )
             for key, val in to_field.__dict__.items():
-                if (isinstance(key, basestring)
+                if (isinstance(key, six.string_types)
                         and not key.startswith(excluded_prefixes)
                         and key not in excluded_attributes):
                     setattr(field, key, val)

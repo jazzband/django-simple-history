@@ -89,6 +89,7 @@ class HistoryManager(models.Manager):
                 queryset.order_by().values_list(pk_attr, flat=True)):
             changes = queryset.filter(**{pk_attr: original_pk})
             last_change = changes.latest('history_date')
-            if changes.filter(history_date=last_change.history_date, history_type='-').exists():
+            if changes.filter(history_date=last_change.history_date,
+                              history_type='-').exists():
                 continue
             yield last_change.instance
