@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.5.1 (2014-10-13)
+------------------
 - Removed some incompatibilities with non-default admin sites (gh-92)
 - Fixed error caused by ``HistoryRequestMiddleware`` during anonymous requests (gh-115 fixes gh-114)
 - Added workaround for clashing related historical accessors on User (gh-121)
