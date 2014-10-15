@@ -21,6 +21,7 @@ installed_apps = [
     'simple_history',
     'simple_history.tests',
     'simple_history.tests.external',
+    'simple_history.tests.migration_test_app',
 ]
 
 DEFAULT_SETTINGS = dict(
