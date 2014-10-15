@@ -1,24 +1,30 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
+try:
+    from unittest import skipUnless
+except ImportError:
+    from unittest2 import skipUnless
 
+import django
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.loading import get_model
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
-from simple_history.models import HistoricalRecords
+from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history import register
 from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
     FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
     ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState
+    HistoricalState, HistoricalCustomFKError
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -469,3 +475,37 @@ class HistoryManagerTest(TestCase):
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
+
+    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    def test_state_serialization_of_customfk(self):
+        from django.db.migrations import state
+        state.ModelState.from_model(HistoricalCustomFKError)
+
+
+class TestConvertAutoField(TestCase):
+    """Check what AutoFields get converted to."""
+
+    def setUp(self):
+        for field in Poll._meta.fields:
+            if isinstance(field, models.AutoField):
+                self.field = field
+                break
+
+    def test_relational(self):
+        """Relational test
+
+        Default Django ORM uses an integer-based auto field.
+        """
+        with self.settings(DATABASES={'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
+            assert convert_auto_field(self.field) == models.IntegerField
+
+    def test_non_relational(self):
+        """Non-relational test
+
+        MongoDB uses a string-based auto field. We need to make sure
+        the converted field type is string.
+        """
+        with self.settings(DATABASES={'default': {
+                'ENGINE': 'django_mongodb_engine'}}):
+            assert convert_auto_field(self.field) == models.TextField

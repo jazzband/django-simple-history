@@ -1,11 +1,13 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.5.1 (2014-10-13)
+------------------
 - Removed some incompatibilities with non-default admin sites (gh-92)
 - Fixed error caused by ``HistoryRequestMiddleware`` during anonymous requests (gh-115 fixes gh-114)
 - Added workaround for clashing related historical accessors on User (gh-121)
+- Added support for MongoDB AutoField (gh-125)
+- Fixed CustomForeignKeyField errors with 1.7 migrations (gh-126 fixes gh-124)
 
 1.5.0 (2014-08-17)
 ------------------

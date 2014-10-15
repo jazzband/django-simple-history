@@ -6,20 +6,17 @@ try:
     from django.apps import apps  # Django >= 1.7
 except ImportError:
     apps = None
-from django.db import models
+from django.db import models, router
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
-from django.utils import importlib
+from django.utils import importlib, six
+from django.utils.encoding import python_2_unicode_compatible
 try:
     from django.utils.encoding import smart_text
 except ImportError:
-    smart_text = unicode
-try:
-    from django.utils.six import text_type
-except ImportError:
-    text_type = unicode
+    from django.utils.encoding import smart_unicode as smart_text
 try:
     from django.utils.timezone import now
 except ImportError:
@@ -27,29 +24,6 @@ except ImportError:
     now = datetime.now
 from django.utils.translation import string_concat
 from .manager import HistoryDescriptor
-
-try:
-    basestring
-except NameError:
-    basestring = str  # Python 3 has no basestring
-
-try:
-    from django.utils.encoding import python_2_unicode_compatible
-except ImportError:  # django 1.3 compatibility
-    import sys
-
-    # copy of django function without use of six
-    def python_2_unicode_compatible(klass):
-        """
-        Decorator defining __unicode__ and __str__ as appropriate for Py2/3
-
-        Usage: define __str__ method and apply this decorator to the class.
-        """
-        if sys.version_info[0] != 3:
-            klass.__unicode__ = klass.__str__
-            klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
-        return klass
-
 
 registered_models = {}
 
@@ -62,7 +36,7 @@ class HistoricalRecords(object):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         try:
-            if isinstance(bases, basestring):
+            if isinstance(bases, six.string_types):
                 raise TypeError
             self.bases = tuple(bases)
         except TypeError:
@@ -149,7 +123,7 @@ class HistoricalRecords(object):
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
                 # we'll used that as soon as it's finalized by copying rel.to
-                field.__class__ = get_custom_fk_class(type(field))
+                field.__class__ = CustomForeignKeyField
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
@@ -243,7 +217,13 @@ class HistoricalRecords(object):
                 return None
 
 
-class ForeignKeyMixin(object):
+class CustomForeignKeyField(models.ForeignKey):
+
+    def __init__(self, *args, **kwargs):
+        super(CustomForeignKeyField, self).__init__(*args, **kwargs)
+        self.db_constraint = False
+        self.generate_reverse_relation = False
+
     def get_attname(self):
         return self.name
 
@@ -253,7 +233,7 @@ class ForeignKeyMixin(object):
         # recursive
         temp_field = self.__class__(to_field.rel.to._meta.object_name)
         for key, val in to_field.__dict__.items():
-            if (isinstance(key, basestring)
+            if (isinstance(key, six.string_types)
                     and not key.startswith('_')):
                 setattr(temp_field, key, val)
         field = self.__class__.get_field(
@@ -268,7 +248,7 @@ class ForeignKeyMixin(object):
         if isinstance(to_field, models.OneToOneField):
             field = self.get_one_to_one_field(to_field, other)
         elif isinstance(to_field, models.AutoField):
-            field.__class__ = models.IntegerField
+            field.__class__ = convert_auto_field(to_field)
         else:
             field.__class__ = to_field.__class__
             excluded_prefixes = ("_", "__")
@@ -294,7 +274,7 @@ class ForeignKeyMixin(object):
                 "blank",
             )
             for key, val in to_field.__dict__.items():
-                if (isinstance(key, basestring)
+                if (isinstance(key, six.string_types)
                         and not key.startswith(excluded_prefixes)
                         and key not in excluded_attributes):
                     setattr(field, key, val)
@@ -303,7 +283,13 @@ class ForeignKeyMixin(object):
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
         if not hasattr(self, 'related'):
-            self.related = RelatedObject(other, cls.instance_type, self)
+            try:
+                instance_type = cls.instance_type
+            except AttributeError:  # when model is reconstituted for migration
+                if cls.__module__ != "__fake__":  # not from migrations, error
+                    raise
+            else:
+                self.related = RelatedObject(other, instance_type, self)
         transform_field(field)
         field.rel = None
 
@@ -312,17 +298,12 @@ class ForeignKeyMixin(object):
         RelatedField.contribute_to_class(self, cls, name)
 
 
-def get_custom_fk_class(parent_type):
-    return type(str('CustomForeignKey'), (ForeignKeyMixin, parent_type), {})
-
-
 def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
     if isinstance(field, models.AutoField):
-        # The historical model gets its own AutoField, so any
-        # existing one must be replaced with an IntegerField.
-        field.__class__ = models.IntegerField
+        field.__class__ = convert_auto_field(field)
+
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
         field.__class__ = models.TextField
@@ -338,6 +319,19 @@ def transform_field(field):
         field._unique = False
         field.db_index = True
         field.serialize = True
+
+
+def convert_auto_field(field):
+    """Convert AutoField to a non-incrementing type
+
+    The historical model gets its own AutoField, so any existing one
+    must be replaced with an IntegerField.
+    """
+    connection = router.db_for_write(field.model)
+    if settings.DATABASES[connection]['ENGINE'] in ('django_mongodb_engine',):
+        # Check if AutoField is string for django-non-rel support
+        return models.TextField
+    return models.IntegerField
 
 
 class HistoricalObjectDescriptor(object):
