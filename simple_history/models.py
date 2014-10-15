@@ -219,6 +219,10 @@ class HistoricalRecords(object):
 
 class CustomForeignKeyField(models.ForeignKey):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['db_constraint'] = False
+        super(CustomForeignKeyField, self).__init__(*args, **kwargs)
+
     def get_attname(self):
         return self.name
 
