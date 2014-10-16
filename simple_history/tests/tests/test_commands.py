@@ -108,8 +108,13 @@ class TestPopulateHistory(TestCase):
                       out.getvalue())
 
 
+@skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
 class TestMigrate(TestCase):
 
-    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    def test_makemigration_command(self):
+        management.call_command(
+            'makemigrations', 'migration_test_app', stdout=StringIO())
+
     def test_migrate_command(self):
-        management.call_command('migrate', fake=True, stdout=StringIO())
+        management.call_command(
+            'migrate', 'migration_test_app', fake=True, stdout=StringIO())
