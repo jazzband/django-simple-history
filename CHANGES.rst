@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.2 (2014-10-15)
+------------------
+- Additional fix for migrations (gh-128)
+
 1.5.1 (2014-10-13)
 ------------------
 - Removed some incompatibilities with non-default admin sites (gh-92)
