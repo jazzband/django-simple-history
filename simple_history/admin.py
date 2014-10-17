@@ -36,10 +36,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         urls = super(SimpleHistoryAdmin, self).get_urls()
         admin_site = self.admin_site
         opts = self.model._meta
-        try:
-            info = opts.app_label, opts.module_name
-        except AttributeError:
-            info = opts.app_label, opts.model_name
+        info = opts.app_label, opts.model_name
         history_urls = patterns(
             "",
             url("^([^/]+)/history/([^/]+)/$",
