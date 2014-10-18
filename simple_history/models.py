@@ -23,6 +23,12 @@ except ImportError:
     from datetime import datetime
     now = datetime.now
 from django.utils.translation import string_concat
+try:
+    from south.modelsinspector import add_introspection_rules
+except ImportError:
+    pass
+else:
+    add_introspection_rules([], ["^simple_history.models.CustomForeignKeyField"])
 from .manager import HistoryDescriptor
 
 registered_models = {}
@@ -286,8 +292,7 @@ class CustomForeignKeyField(models.ForeignKey):
             try:
                 instance_type = cls.instance_type
             except AttributeError:  # when model is reconstituted for migration
-                if cls.__module__ != "__fake__":  # not from migrations, error
-                    raise
+                pass  # happens during migrations
             else:
                 self.related = RelatedObject(other, instance_type, self)
         transform_field(field)
