@@ -31,10 +31,10 @@ class HistoryManager(models.Manager, object):
             return qs
 
         if isinstance(self.instance._meta.pk, models.OneToOneField):
-            filter = {self.instance._meta.pk.name + "_id": self.instance.pk}
+            key_name = self.instance._meta.pk.name + "_id"
         else:
-            filter = {self.instance._meta.pk.name: self.instance.pk}
-        return self.get_super_queryset().filter(**filter)
+            key_name = self.instance._meta.pk.name
+        return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
     get_query_set = get_queryset
 

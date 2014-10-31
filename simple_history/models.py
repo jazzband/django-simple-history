@@ -200,14 +200,14 @@ class HistoricalRecords(object):
     def post_delete(self, instance, **kwargs):
         self.create_historical_record(instance, '-')
 
-    def create_historical_record(self, instance, type):
+    def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=type,
+        manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
 
     def get_history_user(self, instance):
