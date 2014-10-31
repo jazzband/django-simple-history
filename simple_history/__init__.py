@@ -15,7 +15,7 @@ def register(model, app=None, manager_name='history', **records_config):
     `HistoricalManager` instance directly to `model`.
     """
     from . import models
-    if not model._meta.db_table in models.registered_models:
+    if model._meta.db_table not in models.registered_models:
         records = models.HistoricalRecords(**records_config)
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
