@@ -27,7 +27,7 @@ except AttributeError:
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
 
-class SimpleHistoryAdmin(admin.ModelAdmin):
+class SimpleHistoryAdmin(admin.ModelAdmin, object):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
