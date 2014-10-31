@@ -7,6 +7,7 @@ try:
 except ImportError:
     apps = None
 from django.db import models, router
+from django.db.models import loading
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
@@ -99,7 +100,7 @@ class HistoricalRecords(object):
         elif app_module != self.module:
             if apps is None:
                 # has meta options with app_label
-                app = models.get_app(model._meta.app_label)
+                app = loading.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
                 # Abuse an internal API because the app registry is loading.
