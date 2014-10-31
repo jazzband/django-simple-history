@@ -53,7 +53,7 @@ class HistoryManager(models.Manager, object):
                 tmp.append(field.name)
         fields = tuple(tmp)
         try:
-            values = self.values_list(*fields)[0]
+            values = self.get_queryset().values_list(*fields)[0]
         except IndexError:
             raise self.instance.DoesNotExist("%s has no historical record." %
                                              self.instance._meta.object_name)
@@ -68,7 +68,7 @@ class HistoryManager(models.Manager, object):
         """
         if not self.instance:
             return self._as_of_set(date)
-        queryset = self.filter(history_date__lte=date)
+        queryset = self.get_queryset().filter(history_date__lte=date)
         try:
             history_obj = queryset[0]
         except IndexError:
@@ -84,7 +84,7 @@ class HistoryManager(models.Manager, object):
     def _as_of_set(self, date):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
-        queryset = self.filter(history_date__lte=date)
+        queryset = self.get_queryset().filter(history_date__lte=date)
         for original_pk in set(
                 queryset.order_by().values_list(pk_attr, flat=True)):
             changes = queryset.filter(**{pk_attr: original_pk})
