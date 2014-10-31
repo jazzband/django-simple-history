@@ -75,18 +75,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin, object):
                       dictionary=context, current_app=self.admin_site.name)
 
     def history_form_view(self, request, object_id, version_id):
-        original_model = self.model
-        original_opts = original_model._meta
-        history = getattr(self.model,
-                          self.model._meta.simple_history_manager_attribute)
-        model = history.model
-        opts = model._meta
-        pk_name = original_opts.pk.attname
-        record = get_object_or_404(model, **{
-            pk_name: object_id,
+        original_opts = self.model._meta
+        model = getattr(
+            self.model,
+            self.model._meta.simple_history_manager_attribute).model
+        obj = get_object_or_404(model, **{
+            original_opts.pk.attname: object_id,
             'history_id': version_id,
-        })
-        obj = record.instance
+        }).instance
         obj._state.adding = False
 
         if not self.has_change_permission(request, obj):
@@ -97,19 +93,13 @@ class SimpleHistoryAdmin(admin.ModelAdmin, object):
         if request.method == 'POST':
             form = form_class(request.POST, request.FILES, instance=obj)
             if form.is_valid():
-                form_validated = True
                 new_object = self.save_form(request, form, change=True)
-            else:
-                form_validated = False
-                new_object = obj
-
-            if form_validated:
                 self.save_model(request, new_object, form, change=True)
                 form.save_m2m()
 
-                change_message = self.construct_change_message(request, form,
-                                                               formsets)
-                self.log_change(request, new_object, change_message)
+                self.log_change(request, new_object,
+                                self.construct_change_message(
+                                    request, form, formsets))
                 return self.response_change(request, new_object)
 
         else:
@@ -122,23 +112,21 @@ class SimpleHistoryAdmin(admin.ModelAdmin, object):
             self.get_readonly_fields(request, obj),
             model_admin=self,
         )
-        media = self.media + admin_form.media
 
         try:
-            model_name = original_opts.module_name
-        except AttributeError:
             model_name = original_opts.model_name
+        except AttributeError:
+            model_name = original_opts.module_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
-        content_type_id = ContentType.objects.get_for_model(self.model).id
         context = {
             'title': _('Revert %s') % force_text(obj),
             'adminform': admin_form,
             'object_id': object_id,
             'original': obj,
             'is_popup': False,
-            'media': mark_safe(media),
+            'media': mark_safe(self.media + admin_form.media),
             'errors': helpers.AdminErrorList(form, formsets),
-            'app_label': opts.app_label,
+            'app_label': model._meta.app_label,
             'original_opts': original_opts,
             'changelist_url': reverse('%s:%s_%s_changelist' % url_triplet),
             'change_url': reverse('%s:%s_%s_change' % url_triplet,
@@ -154,8 +142,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin, object):
             'has_file_field': True,
             'has_absolute_url': False,
             'form_url': '',
-            'opts': opts,
-            'content_type_id': content_type_id,
+            'opts': model._meta,
+            'content_type_id': ContentType.objects.get_for_model(self.model).id,
             'save_as': self.save_as,
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
