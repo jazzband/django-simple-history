@@ -13,7 +13,7 @@ class HistoryDescriptor(object):
         return HistoryManager(self.model, instance)
 
 
-class HistoryManager(models.Manager, object):
+class HistoryManager(models.Manager):
     def __init__(self, model, instance=None):
         super(HistoryManager, self).__init__()
         self.model = model
