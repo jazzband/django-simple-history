@@ -7,6 +7,7 @@ try:
 except ImportError:
     apps = None
 from django.db import models, router
+from django.db.models import loading
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
@@ -99,7 +100,7 @@ class HistoricalRecords(object):
         elif app_module != self.module:
             if apps is None:
                 # has meta options with app_label
-                app = models.get_app(model._meta.app_label)
+                app = loading.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
                 # Abuse an internal API because the app registry is loading.
@@ -200,14 +201,14 @@ class HistoricalRecords(object):
     def post_delete(self, instance, **kwargs):
         self.create_historical_record(instance, '-')
 
-    def create_historical_record(self, instance, type):
+    def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=type,
+        manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
 
     def get_history_user(self, instance):

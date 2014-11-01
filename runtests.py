@@ -52,7 +52,7 @@ def main():
         django.setup()
     try:
         from django.test.runner import DiscoverRunner
-    except:
+    except ImportError:
         from django.test.simple import DjangoTestSuiteRunner
         failures = DjangoTestSuiteRunner(failfast=False).run_tests(['tests'])
     else:

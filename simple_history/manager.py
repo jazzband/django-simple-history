@@ -31,10 +31,10 @@ class HistoryManager(models.Manager):
             return qs
 
         if isinstance(self.instance._meta.pk, models.OneToOneField):
-            filter = {self.instance._meta.pk.name + "_id": self.instance.pk}
+            key_name = self.instance._meta.pk.name + "_id"
         else:
-            filter = {self.instance._meta.pk.name: self.instance.pk}
-        return self.get_super_queryset().filter(**filter)
+            key_name = self.instance._meta.pk.name
+        return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
     get_query_set = get_queryset
 
@@ -53,7 +53,7 @@ class HistoryManager(models.Manager):
                 tmp.append(field.name)
         fields = tuple(tmp)
         try:
-            values = self.values_list(*fields)[0]
+            values = self.get_queryset().values_list(*fields)[0]
         except IndexError:
             raise self.instance.DoesNotExist("%s has no historical record." %
                                              self.instance._meta.object_name)
@@ -68,7 +68,7 @@ class HistoryManager(models.Manager):
         """
         if not self.instance:
             return self._as_of_set(date)
-        queryset = self.filter(history_date__lte=date)
+        queryset = self.get_queryset().filter(history_date__lte=date)
         try:
             history_obj = queryset[0]
         except IndexError:
@@ -84,7 +84,7 @@ class HistoryManager(models.Manager):
     def _as_of_set(self, date):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
-        queryset = self.filter(history_date__lte=date)
+        queryset = self.get_queryset().filter(history_date__lte=date)
         for original_pk in set(
                 queryset.order_by().values_list(pk_attr, flat=True)):
             changes = queryset.filter(**{pk_attr: original_pk})
