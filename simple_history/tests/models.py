@@ -54,6 +54,25 @@ class Choice(models.Model):
 register(Choice)
 
 
+class Voter(models.Model):
+    user = models.ForeignKey(User)
+    choice = models.ForeignKey(Choice, related_name='voters')
+
+
+class HistoricalRecordsVerbose(HistoricalRecords):
+    def get_extra_fields(self, model, fields):
+        def verbose_str(self):
+            return '%s changed by %s as of %s' % (
+                self.history_object, self.history_user, self.history_date)
+
+        extra_fields = super(
+            HistoricalRecordsVerbose, self).get_extra_fields(model, fields)
+        extra_fields['__str__'] = verbose_str
+        return extra_fields
+
+register(Voter, records_class=HistoricalRecordsVerbose)
+
+
 class Place(models.Model):
     name = models.CharField(max_length=100)
 

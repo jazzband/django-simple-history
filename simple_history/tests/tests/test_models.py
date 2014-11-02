@@ -20,9 +20,9 @@ from django.core.files.base import ContentFile
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history import register
 from ..models import (
-    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant, Person,
-    FileModel, Document, Book, HistoricalPoll, Library, State, AbstractBase,
-    ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
+    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Voter, Restaurant,
+    Person, FileModel, Document, Book, HistoricalPoll, Library, State,
+    AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError
 )
@@ -304,6 +304,16 @@ class RegisterTest(TestCase):
         self.assertFalse(hasattr(Restaurant, 'again'))
         self.assertTrue(hasattr(User, 'histories'))
         self.assertFalse(hasattr(User, 'again'))
+
+    def test_register_custome_records(self):
+        self.assertEqual(len(Voter.history.all()), 0)
+        poll = Poll.objects.create(pub_date=today)
+        choice = Choice.objects.create(poll=poll, votes=0)
+        user = User.objects.create(username='voter')
+        voter = Voter.objects.create(choice=choice, user=user)
+        self.assertEqual(len(voter.history.all()), 1)
+        expected = 'Voter object changed by None as of '
+        self.assertEqual(expected, str(voter.history.all()[0])[:len(expected)])
 
 
 class CreateHistoryModelTests(TestCase):
