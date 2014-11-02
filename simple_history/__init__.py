@@ -20,7 +20,8 @@ def register(
     """
     from . import models
     if model._meta.db_table not in models.registered_models:
-        records_class = records_class or models.HistoricalRecords
+        if records_class is None:
+            records_class = models.HistoricalRecords
         records = records_class(**records_config)
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
