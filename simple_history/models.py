@@ -29,7 +29,8 @@ try:
 except ImportError:
     pass
 else:
-    add_introspection_rules([], ["^simple_history.models.CustomForeignKeyField"])
+    add_introspection_rules(
+        [], ["^simple_history.models.CustomForeignKeyField"])
 from .manager import HistoryDescriptor
 
 registered_models = {}

@@ -143,7 +143,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'has_absolute_url': False,
             'form_url': '',
             'opts': model._meta,
-            'content_type_id': ContentType.objects.get_for_model(self.model).id,
+            'content_type_id': ContentType.objects.get_for_model(
+                self.model).id,
             'save_as': self.save_as,
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
