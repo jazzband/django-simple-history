@@ -149,9 +149,9 @@ class HistoricalRecords(object):
             """URL for this change in the default admin site."""
             opts = model._meta
             try:
-                app_label, model_name = opts.app_label, opts.module_name
-            except AttributeError:
                 app_label, model_name = opts.app_label, opts.model_name
+            except AttributeError:
+                app_label, model_name = opts.app_label, opts.module_name
             return ('%s:%s_%s_simple_history' %
                     (admin.site.name, app_label, model_name),
                     [getattr(self, opts.pk.attname), self.history_id])
