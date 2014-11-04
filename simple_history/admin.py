@@ -37,9 +37,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         admin_site = self.admin_site
         opts = self.model._meta
         try:
-            info = opts.app_label, opts.module_name
-        except AttributeError:
             info = opts.app_label, opts.model_name
+        except AttributeError:
+            info = opts.app_label, opts.module_name
         history_urls = patterns(
             "",
             url("^([^/]+)/history/([^/]+)/$",
@@ -128,9 +128,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         media = self.media + admin_form.media
 
         try:
-            model_name = original_opts.module_name
-        except AttributeError:
             model_name = original_opts.model_name
+        except AttributeError:
+            model_name = original_opts.module_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         content_type_id = ContentType.objects.get_for_model(self.model).id
         context = {
