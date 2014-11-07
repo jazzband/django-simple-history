@@ -10,16 +10,18 @@ Authors
 - David Hite
 - George Vilches
 - Hamish Downer
-- jofusa
+- James Pulec
 - Joao Pedro Francese
+- jofusa
+- John Whitlock
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
-- Ross Lote
-- macro1
 - Marty Alchin
 - Mauricio de Abreu Antunes
+- Micah Denbraver
 - Rajesh Pappula
+- Ross Lote
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
