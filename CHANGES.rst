@@ -1,6 +1,11 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Fix migrations using south
+- Allow history accessor class to be overridden in ``register()``
+
 1.5.2 (2014-10-15)
 ------------------
 - Additional fix for migrations (gh-128)
