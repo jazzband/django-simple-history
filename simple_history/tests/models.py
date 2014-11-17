@@ -217,3 +217,18 @@ class UnicodeVerboseName(models.Model):
 class CustomFKError(models.Model):
     fk = models.ForeignKey(SecondLevelInheritedModel)
     history = HistoricalRecords()
+
+
+class Series(models.Model):
+    """A series of works, like a trilogy of books."""
+    name = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+
+
+class SeriesWork(models.Model):
+    series = models.ForeignKey('Series', related_name='works')
+    title = models.CharField(max_length=100)
+    history = HistoricalRecords()
+
+    class Meta:
+        order_with_respect_to = 'series'

@@ -24,7 +24,7 @@ from ..models import (
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError
+    HistoricalState, HistoricalCustomFKError, Series
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -280,6 +280,17 @@ class HistoricalRecordsTest(TestCase):
         l.save()
         self.assertEqual('historical quiet please',
                          l.history.get()._meta.verbose_name)
+
+    def test_ordered_with_respect_to_omitted(self):
+        s = Series.objects.create(
+            name="The Hitchhiker's Guide to the Galaxy Trilogy",
+            author="Douglas Adams")
+        w4 = s.works.create(title="So Long, and Thanks for All the Fish")
+        history = w4.history.get()
+
+        self.assertTrue(hasattr(w4, '_order'))
+        self.assertFalse(hasattr(history, '_order'))
+        self.assertIsNone(history.history_object._order)
 
 
 class RegisterTest(TestCase):
