@@ -14,6 +14,7 @@ except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.loading import get_model
+from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
@@ -24,7 +25,7 @@ from ..models import (
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError
+    HistoricalState, HistoricalCustomFKError, Series, SeriesWork
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -519,3 +520,122 @@ class TestConvertAutoField(TestCase):
         with self.settings(DATABASES={'default': {
                 'ENGINE': 'django_mongodb_engine'}}):
             assert convert_auto_field(self.field) == models.TextField
+
+
+class TestOrderWrtField(TestCase):
+    """Check behaviour of _order field added by Meta.order_with_respect_to.
+
+    The Meta.order_with_respect_to option adds an OrderWrt field named
+    "_order", where OrderWrt is a proxy class for an IntegerField that sets
+    some default options.
+
+    The simple_history strategy is:
+    - Convert to a plain IntegerField in the historical record
+    - When restoring a historical instance, add the old value.  This may
+      result in duplicate ordering values and non-deterministic ordering.
+    """
+
+    def setUp(self):
+        """Create works in published order."""
+        s = self.series = Series.objects.create(
+            name="The Chronicles of Narnia", author="C.S. Lewis")
+        self.w_lion = s.works.create(
+            title="The Lion, the Witch and the Wardrobe")
+        self.w_caspian = s.works.create(title="Prince Caspian")
+        self.w_voyage = s.works.create(title="The Voyage of the Dawn Treader")
+        self.w_chair = s.works.create(title="The Silver Chair")
+        self.w_horse = s.works.create(title="The Horse and His Boy")
+        self.w_nephew = s.works.create(title="The Magician's Nephew")
+        self.w_battle = s.works.create(title="The Last Battle")
+
+    def test_order(self):
+        """Confirm that works are ordered by creation."""
+        order = self.series.get_serieswork_order()
+        expected = [
+            self.w_lion.pk,
+            self.w_caspian.pk,
+            self.w_voyage.pk,
+            self.w_chair.pk,
+            self.w_horse.pk,
+            self.w_nephew.pk,
+            self.w_battle.pk]
+        self.assertEqual(order, expected)
+        self.assertEqual(0, self.w_lion._order)
+        self.assertEqual(1, self.w_caspian._order)
+        self.assertEqual(2, self.w_voyage._order)
+        self.assertEqual(3, self.w_chair._order)
+        self.assertEqual(4, self.w_horse._order)
+        self.assertEqual(5, self.w_nephew._order)
+        self.assertEqual(6, self.w_battle._order)
+
+    def test_order_field_in_historical_model(self):
+        work_order_field = self.w_lion._meta.get_field_by_name('_order')[0]
+        self.assertEqual(type(work_order_field), OrderWrt)
+
+        history = self.w_lion.history.all()[0]
+        history_order_field = history._meta.get_field_by_name('_order')[0]
+        self.assertEqual(type(history_order_field), models.IntegerField)
+
+    def test_history_object_has_order(self):
+        history = self.w_lion.history.all()[0]
+        self.assertEqual(self.w_lion._order, history.history_object._order)
+
+    def test_restore_object_with_changed_order(self):
+        # Change a title
+        self.w_caspian.title = 'Prince Caspian: The Return to Narnia'
+        self.w_caspian.save()
+        self.assertEqual(2, len(self.w_caspian.history.all()))
+        self.assertEqual(1, self.w_caspian._order)
+
+        # Switch to internal chronological order
+        chronological = [
+            self.w_nephew.pk,
+            self.w_lion.pk,
+            self.w_horse.pk,
+            self.w_caspian.pk,
+            self.w_voyage.pk,
+            self.w_chair.pk,
+            self.w_battle.pk]
+        self.series.set_serieswork_order(chronological)
+        self.assertEqual(self.series.get_serieswork_order(), chronological)
+
+        # This uses an update, not a save, so no new history is created
+        w_caspian = SeriesWork.objects.get(id=self.w_caspian.id)
+        self.assertEqual(2, len(w_caspian.history.all()))
+        self.assertEqual(1, w_caspian.history.all()[0]._order)
+        self.assertEqual(1, w_caspian.history.all()[1]._order)
+        self.assertEqual(3, w_caspian._order)
+
+        # Revert to first title, old order
+        old = w_caspian.history.all()[1].history_object
+        old.save()
+        w_caspian = SeriesWork.objects.get(id=self.w_caspian.id)
+        self.assertEqual(3, len(w_caspian.history.all()))
+        self.assertEqual(1, w_caspian.history.all()[0]._order)
+        self.assertEqual(1, w_caspian.history.all()[1]._order)
+        self.assertEqual(1, w_caspian.history.all()[2]._order)
+        self.assertEqual(1, w_caspian._order)  # The order changed
+        w_lion = SeriesWork.objects.get(id=self.w_lion.id)
+        self.assertEqual(1, w_lion._order)  # and is identical to another order
+
+        # New order is non-deterministic around identical IDs
+        series = Series.objects.get(id=self.series.id)
+        order = series.get_serieswork_order()
+        self.assertEqual(order[0], self.w_nephew.pk)
+        self.assertTrue(order[1] in (self.w_lion.pk, self.w_caspian.pk))
+        self.assertTrue(order[2] in (self.w_lion.pk, self.w_caspian.pk))
+        self.assertEqual(order[3], self.w_horse.pk)
+        self.assertEqual(order[4], self.w_voyage.pk)
+        self.assertEqual(order[5], self.w_chair.pk)
+        self.assertEqual(order[6], self.w_battle.pk)
+
+    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    def test_migrations_include_order(self):
+        from django.db.migrations import state
+        model_state = state.ModelState.from_model(SeriesWork.history.model)
+        found = False
+        for name, field in model_state.fields:
+            if name == '_order':
+                found = True
+                self.assertEqual(type(field), models.IntegerField)
+        assert found, '_order not in fields ' + repr(model_state.fields)
