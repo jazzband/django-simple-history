@@ -8,6 +8,7 @@ except ImportError:
     apps = None
 from django.db import models, router
 from django.db.models import loading
+from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
@@ -135,6 +136,12 @@ class HistoricalRecords(object):
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
+            if isinstance(field, OrderWrt):
+                # Don't include the OrderWrt proxy field.  This is added when
+                # the Meta.order_with_respect_to option is enabled on the
+                # model.  It causes issues with Django 1.7 migrations, and
+                # there's no clean way of restoring historical order.
+                continue
             transform_field(field)
             fields[field.name] = field
         return fields
@@ -208,7 +215,8 @@ class HistoricalRecords(object):
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
-            attrs[field.attname] = getattr(instance, field.attname)
+            if not isinstance(field, OrderWrt):
+                attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
 
@@ -347,5 +355,6 @@ class HistoricalObjectDescriptor(object):
 
     def __get__(self, instance, owner):
         values = (getattr(instance, f.attname)
-                  for f in self.model._meta.fields)
+                  for f in self.model._meta.fields
+                  if not isinstance(f, OrderWrt))
         return self.model(*values)
