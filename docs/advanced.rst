@@ -44,8 +44,10 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-History for Third-Party Model
------------------------------
+.. _register:
+
+History for a Third-Party Model
+-------------------------------
 
 To track history for a model you didn't create, use the
 ``simple_history.register`` utility.  You can use this to track models from
