@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.5.3 (2014-11-18)
+------------------
 - Fix migrations while using ``order_with_respsect_to`` (gh-140)
 - Fix migrations using south
 - Allow history accessor class to be overridden in ``register()``
