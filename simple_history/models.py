@@ -8,6 +8,7 @@ except ImportError:
     apps = None
 from django.db import models, router
 from django.db.models import loading
+from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.conf import settings
@@ -135,6 +136,9 @@ class HistoricalRecords(object):
                 field.rel.related_name = '+'
                 field.null = True
                 field.blank = True
+            if isinstance(field, OrderWrt):
+                # OrderWrt is a proxy field, switch to a plain IntegerField
+                field.__class__ = models.IntegerField
             transform_field(field)
             fields[field.name] = field
         return fields
