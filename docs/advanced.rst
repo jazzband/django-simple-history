@@ -1,14 +1,16 @@
 Advanced Usage
 ==============
 
-Version-controlling with South
-------------------------------
+Database Migrations
+-------------------
 
-By default, Historical models live in the same app as the model they track.
-Historical models are tracked by South in the same way as any other model.
-Whenever the original model changes, the historical model will change also.
+By default, Historical models live in the same app as the model they
+track. Historical models are tracked by migrations in the same way as
+any other model. Whenever the original model changes, the historical
+model will change also.
 
-Therefore tracking historical models with South should work automatically.
+Therefore tracking historical models with migrations should work
+automatically.
 
 
 Locating past model instance
