@@ -232,3 +232,8 @@ class SeriesWork(models.Model):
 
     class Meta:
         order_with_respect_to = 'series'
+
+
+class PollInfo(models.Model):
+    poll = models.ForeignKey(Poll, primary_key=True)
+    history = HistoricalRecords()
