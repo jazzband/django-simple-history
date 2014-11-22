@@ -1,14 +1,16 @@
 Advanced Usage
 ==============
 
-Version-controlling with South
-------------------------------
+Database Migrations
+-------------------
 
-By default, Historical models live in the same app as the model they track.
-Historical models are tracked by South in the same way as any other model.
-Whenever the original model changes, the historical model will change also.
+By default, Historical models live in the same app as the model they
+track. Historical models are tracked by migrations in the same way as
+any other model. Whenever the original model changes, the historical
+model will change also.
 
-Therefore tracking historical models with South should work automatically.
+Therefore tracking historical models with migrations should work
+automatically.
 
 
 Locating past model instance
@@ -44,8 +46,10 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-History for Third-Party Model
------------------------------
+.. _register:
+
+History for a Third-Party Model
+-------------------------------
 
 To track history for a model you didn't create, use the
 ``simple_history.register`` utility.  You can use this to track models from
@@ -61,7 +65,7 @@ third-party apps you don't have control over.  Here's an example of using
     register(User)
 
 
-.. _recording_user:
+.. recording_user:
 
 Recording Which User Changed a Model
 ------------------------------------

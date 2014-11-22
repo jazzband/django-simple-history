@@ -1,0 +1,2 @@
+Sphinx==1.2.3
+sphinx-autobuild==0.3.0

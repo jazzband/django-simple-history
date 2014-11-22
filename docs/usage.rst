@@ -1,5 +1,5 @@
-Usage
-=====
+Quick Start
+===========
 
 Install
 -------
@@ -16,10 +16,37 @@ Install from PyPI with ``pip``:
 .. _crate.io: https://crate.io/packages/django-simple-history/
 
 
-Quickstart
-----------
+Configure
+---------
 
-Add ``simple_history`` to your ``INSTALLED_APPS``.
+Settings
+~~~~~~~~
+
+Add ``simple_history`` to your ``INSTALLED_APPS``
+
+.. code-block:: python
+
+    INSTALLED_APPS = [
+        # ...
+        'simple_history',
+    ]
+
+The historical models can track who made each change. To populate the
+history user automatically you can add middleware to your Django
+settings:
+
+.. code-block:: python
+
+    MIDDLEWARE_CLASSES = [
+        # ...
+        'simple_history.middleware.HistoryRequestMiddleware',
+    ]
+
+If you do not want to use the middleware, you can explicitly indicate
+the user making the change as documented in :ref:`recording_user`.
+
+Models
+~~~~~~
 
 To track history for a model, create an instance of
 ``simple_history.models.HistoricalRecords`` on the model.
@@ -46,20 +73,8 @@ Django tutorial:
 Now all changes to ``Poll`` and ``Choice`` model instances will be tracked in
 the database.
 
-The historical models can also track who made each change. To populate
-the history user automatically you can add middleware to your Django
-settings:
-
-.. code-block:: python
-
-    MIDDLEWARE_CLASSES = [
-        # ...
-        'simple_history.middleware.HistoryRequestMiddleware',
-    ]
-
-If you do not want to use the middleware, you can explicitly indicate
-the user making the change as indicated in the advanced usage
-documentation.
+Existing Projects
+~~~~~~~~~~~~~~~~~
 
 For existing projects, you can call the populate command to generate an
 initial change for preexisting model instances:
@@ -153,4 +168,3 @@ records for all ``Choice`` instances can be queried by using the manager on the
     <simple_history.manager.HistoryManager object at 0x1cc4290>
     >>> Choice.history.all()
     [<HistoricalChoice: Choice object as of 2010-10-25 18:05:12.183340>, <HistoricalChoice: Choice object as of 2010-10-25 18:04:59.047351>]
-
