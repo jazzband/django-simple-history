@@ -11,15 +11,12 @@ from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
-try:
-    from django.utils.encoding import force_text
-except ImportError:  # django 1.3 compatibility
-    from django.utils.encoding import force_unicode as force_text
+from django.utils.encoding import force_text
 from django.conf import settings
 
 try:
     USER_NATURAL_KEY = settings.AUTH_USER_MODEL
-except AttributeError:
+except AttributeError:  # Django < 1.5
     USER_NATURAL_KEY = "auth.User"
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
@@ -35,7 +32,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = self.model._meta
         try:
             info = opts.app_label, opts.model_name
-        except AttributeError:
+        except AttributeError:  # Django < 1.7
             info = opts.app_label, opts.module_name
         history_urls = patterns(
             "",
@@ -115,7 +112,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         try:
             model_name = original_opts.model_name
-        except AttributeError:
+        except AttributeError:  # Django < 1.7
             model_name = original_opts.module_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {

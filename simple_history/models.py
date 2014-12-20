@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 import threading
 import copy
 try:
-    from django.apps import apps  # Django >= 1.7
-except ImportError:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
     apps = None
 from django.db import models, router
 from django.db.models import loading
@@ -15,21 +15,14 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib, six
 from django.utils.encoding import python_2_unicode_compatible
-try:
-    from django.utils.encoding import smart_text
-except ImportError:
-    from django.utils.encoding import smart_unicode as smart_text
-try:
-    from django.utils.timezone import now
-except ImportError:
-    from datetime import datetime
-    now = datetime.now
+from django.utils.encoding import smart_text
+from django.utils.timezone import now
 from django.utils.translation import string_concat
 try:
     from south.modelsinspector import add_introspection_rules
-except ImportError:
+except ImportError:  # south not present
     pass
-else:
+else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 from .manager import HistoryDescriptor
@@ -100,7 +93,7 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            if apps is None:
+            if apps is None:  # Django < 1.7
                 # has meta options with app_label
                 app = loading.get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
@@ -154,7 +147,7 @@ class HistoricalRecords(object):
             opts = model._meta
             try:
                 app_label, model_name = opts.app_label, opts.model_name
-            except AttributeError:
+            except AttributeError:  # Django < 1.7
                 app_label, model_name = opts.app_label, opts.module_name
             return ('%s:%s_%s_simple_history' %
                     (admin.site.name, app_label, model_name),
