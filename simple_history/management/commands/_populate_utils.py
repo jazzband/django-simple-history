@@ -1,9 +1,4 @@
-try:
-    from django.utils.timezone import now
-except ImportError:     # pragma: no cover
-    from datetime import datetime
-    now = datetime.now
-from django.db import transaction
+from django.utils.timezone import now
 
 
 class NotHistorical(TypeError):
@@ -29,10 +24,4 @@ def bulk_history_create(model, history_model):
             **dict((field.attname, getattr(instance, field.attname))
                    for field in instance._meta.fields)
         ) for instance in model.objects.all()]
-    try:
-        history_model.objects.bulk_create(historical_instances)
-    except AttributeError:  # pragma: no cover
-        # bulk_create was added in Django 1.4, handle legacy versions
-        with transaction.commit_on_success():
-            for instance in historical_instances:
-                instance.save()
+    history_model.objects.bulk_create(historical_instances)
