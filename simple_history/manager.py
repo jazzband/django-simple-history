@@ -30,7 +30,7 @@ class HistoryManager(models.Manager):
         if self.instance is None:
             return qs
 
-        if isinstance(self.instance._meta.pk, models.OneToOneField):
+        if isinstance(self.instance._meta.pk, models.ForeignKey):
             key_name = self.instance._meta.pk.name + "_id"
         else:
             key_name = self.instance._meta.pk.name

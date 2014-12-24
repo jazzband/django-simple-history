@@ -25,7 +25,7 @@ from ..models import (
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError, Series, SeriesWork
+    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -281,6 +281,13 @@ class HistoricalRecordsTest(TestCase):
         l.save()
         self.assertEqual('historical quiet please',
                          l.history.get()._meta.verbose_name)
+
+    def test_foreignkey_primarykey(self):
+        """Test saving a tracked model with a `ForeignKey` primary key."""
+        poll = Poll(pub_date=today)
+        poll.save()
+        poll_info = PollInfo(poll=poll)
+        poll_info.save()
 
 
 class RegisterTest(TestCase):
