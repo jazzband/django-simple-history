@@ -167,7 +167,8 @@ class HistoricalRecords(object):
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
             'history_user': models.ForeignKey(
-                user_model, null=True, related_name=self.user_related_name),
+                user_model, null=True, related_name=self.user_related_name,
+                on_delete=models.SET_NULL),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),

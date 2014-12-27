@@ -22,6 +22,7 @@ Authors
 - Micah Denbraver
 - Rajesh Pappula
 - Ross Lote
+- Steven Klass
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
