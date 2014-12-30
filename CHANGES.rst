@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.x (YYYY-MM-DD)
+------------------
+- Do NOT delete the history elements when a user is deleted.
+
 1.5.3 (2014-11-18)
 ------------------
 - Fix migrations while using ``order_with_respsect_to`` (gh-140)

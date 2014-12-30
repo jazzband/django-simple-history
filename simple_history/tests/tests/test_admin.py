@@ -219,3 +219,19 @@ class AdminSiteTest(WebTest):
         self.app.get(history_url)
         change_url = get_history_url(state, 0, site="other_admin")
         self.app.get(change_url)
+
+    def test_deleteting_user(self):
+        """Test deletes of a user does not cascade delete the history"""
+        self.login()
+        poll = Poll(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+
+        historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, self.user)
+
+        self.user.delete()
+
+        historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, None)
+
