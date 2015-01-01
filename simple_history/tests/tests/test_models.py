@@ -646,3 +646,40 @@ class TestOrderWrtField(TestCase):
                 found = True
                 self.assertEqual(type(field), models.IntegerField)
         assert found, '_order not in fields ' + repr(model_state.fields)
+
+
+class TestLatest(TestCase):
+    """"Test behavior of `latest()` without any field parameters"""
+
+    def setUp(self):
+        poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)
+        poll.pub_date = today
+        poll.save()
+
+    def write_history(self, new_attributes):
+        poll_history = HistoricalPoll.objects.all()
+        for historical_poll, new_values in zip(poll_history, new_attributes):
+            for fieldname, value in new_values.items():
+                setattr(historical_poll, fieldname, value)
+            historical_poll.save()
+
+    def test_ordered(self):
+        self.write_history([
+            {'pk': 1, 'history_date': yesterday},
+            {'pk': 2, 'history_date': today},
+        ])
+        assert HistoricalPoll.objects.latest().pk == 2
+
+    def test_jumbled(self):
+        self.write_history([
+            {'pk': 1, 'history_date': today},
+            {'pk': 2, 'history_date': yesterday},
+        ])
+        assert HistoricalPoll.objects.latest().pk == 1
+
+    def test_sameinstant(self):
+        self.write_history([
+            {'pk': 1, 'history_date': yesterday},
+            {'pk': 2, 'history_date': yesterday},
+        ])
+        assert HistoricalPoll.objects.latest().pk == 1

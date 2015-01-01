@@ -1,9 +1,10 @@
 Changes
 =======
 
-1.5.x (YYYY-MM-DD)
-------------------
+tip (unreleased)
+----------------
 - Do NOT delete the history elements when a user is deleted.
+- Add support for ``latest``
 
 1.5.3 (2014-11-18)
 ------------------
