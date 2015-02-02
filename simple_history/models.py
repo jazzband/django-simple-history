@@ -159,6 +159,7 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
+            'history_change_reason': models.CharField(max_length=100, null=True),
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
@@ -204,12 +205,13 @@ class HistoricalRecords(object):
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
+        history_change_reason = getattr(instance, 'changeReason', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user, **attrs)
+                       history_user=history_user, history_change_reason=history_change_reason, **attrs)
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""

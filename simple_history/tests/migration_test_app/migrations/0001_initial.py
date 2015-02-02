@@ -30,6 +30,7 @@ class Migration(migrations.Migration):
                 ('history_id', models.AutoField(serialize=False, primary_key=True)),
                 ('history_date', models.DateTimeField()),
                 ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
+                ('history_change_reason', models.CharField(max_length=100, null=True)),
                 ('history_user', models.ForeignKey(null=True, to=settings.AUTH_USER_MODEL)),
             ],
             options={
