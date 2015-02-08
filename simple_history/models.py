@@ -25,6 +25,7 @@ except ImportError:  # south not present
 else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
+from . import utils
 from .manager import HistoryDescriptor
 
 registered_models = {}
@@ -81,6 +82,7 @@ class HistoricalRecords(object):
         descriptor = HistoryDescriptor(history_model)
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
+        return history_model
 
     def create_history_model(self, model):
         """
@@ -108,7 +110,7 @@ class HistoricalRecords(object):
         # type in python2 wants str as a first argument
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         name = 'Historical%s' % model._meta.object_name
-        registered_models[model._meta.db_table] = model
+        registered_models[utils.natural_key_from_model(model)] = name
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
 

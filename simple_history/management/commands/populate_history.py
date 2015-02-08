@@ -39,7 +39,8 @@ class Command(BaseCommand):
                 to_process.add(model_pair)
 
         elif options['auto']:
-            for model in models.registered_models.values():
+            for app_label, model_name in models.registered_models:
+                model = get_model(app_label, model_name)
                 try:    # avoid issues with mutli-table inheritance
                     history_model = utils.get_history_model_for_model(model)
                 except utils.NotHistorical:
