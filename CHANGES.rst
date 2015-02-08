@@ -1,8 +1,9 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.5.4 (2015-01-03)
+------------------
+- Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
 - Do NOT delete the history elements when a user is deleted.
 - Add support for ``latest``
 
