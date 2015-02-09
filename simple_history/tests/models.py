@@ -117,6 +117,12 @@ class Paper(Document):
         self.changed_by = value
 
 
+class Record(Document):
+
+    class Meta:
+        proxy = True
+
+
 class Profile(User):
     date_of_birth = models.DateField()
 

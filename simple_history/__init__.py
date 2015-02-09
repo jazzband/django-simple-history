@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 __version__ = '1.5.4'
 
+from . import utils
+
 
 def register(
         model, app=None, manager_name='history', records_class=None,
@@ -19,12 +21,13 @@ def register(
     `HistoricalManager` instance directly to `model`.
     """
     from . import models
-    if model._meta.db_table not in models.registered_models:
+    natural_key = utils.natural_key_from_model(model)
+    if natural_key not in models.registered_models:
         if records_class is None:
             records_class = models.HistoricalRecords
         records = records_class(**records_config)
         records.manager_name = manager_name
         records.module = app and ("%s.models" % app) or model.__module__
         records.add_extra_methods(model)
+        records.concrete_natural_key = utils.natural_key_from_model(model._meta.concrete_model or model)
         records.finalize(model)
-        models.registered_models[model._meta.db_table] = model
