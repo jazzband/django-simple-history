@@ -300,7 +300,7 @@ class CustomForeignKeyField(models.ForeignKey):
             except AttributeError:  # when model is reconstituted for migration
                 pass  # happens during migrations
             else:
-                self.related = ForeignObjectRel(other, instance_type, self)
+                self.related = ForeignObjectRel(self, instance_type, parent_link=other)
         transform_field(field)
         field.rel = None
 
