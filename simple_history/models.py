@@ -10,7 +10,12 @@ from django.db import models, router
 from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
-from django.db.models.related import RelatedObject
+try:
+    from django.db.models.related import RelatedObject as ForeignObjectRel
+except ImportError:  # pragma: nocover
+    # Django >= 1.8 replaces RelatedObject with ForeignObjectRel
+    from django.db.models.fields.related import ForeignObjectRel
+
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib, six
@@ -295,7 +300,7 @@ class CustomForeignKeyField(models.ForeignKey):
             except AttributeError:  # when model is reconstituted for migration
                 pass  # happens during migrations
             else:
-                self.related = RelatedObject(other, instance_type, self)
+                self.related = ForeignObjectRel(self, other, parent_link=instance_type)
         transform_field(field)
         field.rel = None
 
