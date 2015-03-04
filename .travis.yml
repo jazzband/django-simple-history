@@ -10,7 +10,7 @@ env:
   - DJANGO="Django>=1.4,<1.5"
   - DJANGO="Django>=1.6,<1.7"
   - DJANGO="Django>=1.7,<1.8"
-  - DJANGO="Django>=1.8a,<1.9 --pre'"
+  - DJANGO="Django>=1.8a,<1.9 --pre"
 
 install:
   - pip install -U coverage coveralls $DJANGO
@@ -24,6 +24,8 @@ matrix:
      env: DJANGO="Django>=1.6,<1.7"
    - python: 2.6
      env: DJANGO="Django>=1.7,<1.8"
+   - python: 2.6
+     env: DJANGO="Django>=1.8a,<1.9 --pre"
    - python: 3.2
      env: DJANGO="Django>=1.4,<1.5"
    - python: 3.3
