@@ -10,7 +10,10 @@ from django.db import models, router
 from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
-from django.db.models.related import RelatedObject
+try:
+    from django.db.models.fields.related import RelatedObject
+except ImportError:
+    pass
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib, six
@@ -121,18 +124,22 @@ class HistoricalRecords(object):
         for field in model._meta.fields:
             field = copy.copy(field)
             field.rel = copy.copy(field.rel)
+            if isinstance(field, OrderWrt):
+                # OrderWrt is a proxy field, switch to a plain IntegerField
+                field.__class__ = models.IntegerField
             if isinstance(field, models.ForeignKey):
                 # Don't allow reverse relations.
                 # ForeignKey knows best what datatype to use for the column
                 # we'll used that as soon as it's finalized by copying rel.to
-                field.__class__ = CustomForeignKeyField
+                old_field = field
+                field = type(field)(field.rel.to, related_name='+', null=True, blank=True)
+                field.rel = old_field.rel
                 field.rel.related_name = '+'
-                field.null = True
-                field.blank = True
-            if isinstance(field, OrderWrt):
-                # OrderWrt is a proxy field, switch to a plain IntegerField
-                field.__class__ = models.IntegerField
-            transform_field(field)
+                field.name = old_field.name
+                field.db_constraint = False
+                field._unique = False
+            else:
+                transform_field(field)
             fields[field.name] = field
         return fields
 
