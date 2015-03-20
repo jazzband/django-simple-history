@@ -124,22 +124,29 @@ class HistoricalRecords(object):
         for field in model._meta.fields:
             field = copy.copy(field)
             field.rel = copy.copy(field.rel)
+            if isinstance(field, models.ForeignKey):
+                if not 'RelatedObject' in globals():
+                    old_field = field
+                    field = type(field)(field.rel.to, related_name='+', null=True, blank=True)
+                    field.rel = old_field.rel
+                    field.rel.related_name = '+'
+                    field.name = old_field.name
+                    field.db_constraint = False
+                    field._unique = False
+                    setattr(field, 'attname', field.name)
+                else:
+                    # Don't allow reverse relations.
+                    # ForeignKey knows best what datatype to use for the column
+                    # we'll used that as soon as it's finalized by copying rel.to
+                    # Django < 1.8
+                    field.__class__ = CustomForeignKeyField
+                    field.rel.related_name = '+'
+                    field.null = True
+                    field.blank = True
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
-            if isinstance(field, models.ForeignKey):
-                # Don't allow reverse relations.
-                # ForeignKey knows best what datatype to use for the column
-                # we'll used that as soon as it's finalized by copying rel.to
-                old_field = field
-                field = type(field)(field.rel.to, related_name='+', null=True, blank=True)
-                field.rel = old_field.rel
-                field.rel.related_name = '+'
-                field.name = old_field.name
-                field.db_constraint = False
-                field._unique = False
-            else:
-                transform_field(field)
+            transform_field(field)
             fields[field.name] = field
         return fields
 
