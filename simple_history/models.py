@@ -10,7 +10,6 @@ from django.db import models, router
 from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
-from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib, six
@@ -18,6 +17,12 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+try:
+    from django.db.models.fields.related import ForeignObjectRel
+except ImportError:  # Django < 1.8
+    from django.db.models.related import RelatedObject as ForeignObjectRel
+
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -295,7 +300,7 @@ class CustomForeignKeyField(models.ForeignKey):
             except AttributeError:  # when model is reconstituted for migration
                 pass  # happens during migrations
             else:
-                self.related = RelatedObject(other, instance_type, self)
+                self.related = ForeignObjectRel(self, other)
         transform_field(field)
         field.rel = None
 
