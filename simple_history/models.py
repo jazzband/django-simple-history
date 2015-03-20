@@ -294,8 +294,16 @@ class CustomForeignKeyField(models.ForeignKey):
 
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
-        if not hasattr(self, 'related'):    
-            self.related = ForeignObjectRel(self, other)
+        if not hasattr(self, 'related'):
+            try:    
+                self.related = ForeignObjectRel(self, other)
+            except TypeError:  # < Django 1.8
+                try:
+                    instance_type = cls.instance_type
+                except AttributeError:  # when model is reconstituted for migration
+                    pass  # happens during migrations
+                else:
+                    self.related = ForeignObjectRel(other, instance_type, self)
         transform_field(field)
         field.rel = None
 
