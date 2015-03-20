@@ -34,5 +34,8 @@ matrix:
   include:
    - python: 3.4
      env: DJANGO="Django>=1.7,<1.8"
+   - python: 3.4
+     env: DJANGO="Django>=1.8a,<1.9 --pre"
+
 
 after_success: coveralls
