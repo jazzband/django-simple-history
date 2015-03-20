@@ -301,7 +301,7 @@ class CustomForeignKeyField(models.ForeignKey):
                 pass  # happens during migrations
             else:
                 try:
-                    self.related = ForeignObjectRel(self, instance_type)
+                    self.related = ForeignObjectRel(self, other)
                 except TypeError:  # < Django 1.8
                     self.related = ForeignObjectRel(other, instance_type, self)
         transform_field(field)
