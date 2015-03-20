@@ -26,6 +26,7 @@ Authors
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
+- Rod Xavier Bondoc
 
 Background
 ==========

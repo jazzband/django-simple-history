@@ -1,5 +1,8 @@
 Changes
 =======
+1.5.x (not yet released)
+------------------
+- Replace ``RelatedObject`` with ``ForeignObjectRel`` (Django 1.8+)
 
 1.5.4 (2015-01-03)
 ------------------

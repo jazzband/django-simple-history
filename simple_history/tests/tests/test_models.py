@@ -486,11 +486,13 @@ class HistoryManagerTest(TestCase):
         for bases in invalid_bases:
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
-    def test_import_related(self):
+    @skipUnless(django.get_version() < "1.8", "Use RelatedObject")
+    def test_import_related_related_objed(self):
         field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
         self.assertEqual(field_object.related.model, Choice)
 
-    def test_string_related(self):
+    @skipUnless(django.get_version() < "1.8", "Use RelatedObject")
+    def test_string_related_related_object(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
 
