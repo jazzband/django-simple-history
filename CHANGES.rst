@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.5.x(not yet released)
+- Add support for Django 1.8+
+
 1.5.4 (2015-01-03)
 ------------------
 - Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
