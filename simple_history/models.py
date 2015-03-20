@@ -19,9 +19,9 @@ from django.utils.timezone import now
 from django.utils.translation import string_concat
 
 try:
-    from django.db.models.fields.related import ForeignObjectRel
-except ImportError:  # Django < 1.8
     from django.db.models.related import RelatedObject as ForeignObjectRel
+except ImportError:  # Django 1.8+
+    from django.db.models.fields.related import ForeignObjectRel
 
 try:
     from south.modelsinspector import add_introspection_rules
