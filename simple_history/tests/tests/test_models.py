@@ -486,25 +486,25 @@ class HistoryManagerTest(TestCase):
         for bases in invalid_bases:
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
-    @skipUnless(django.get_version() >= "1.6", "Use ForeignObjectRel")
-    def test_import_related(self):
-        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
-        self.assertEqual(field_object.related.field.model, Choice)
-
-    @skipUnless(django.get_version() < "1.6", "Use RelatedObject")
-    def test_import_related(self):
+    @skipUnless(django.get_version() < "1.8", "Use RelatedObject")
+    def test_import_related_related_objed(self):
         field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
         self.assertEqual(field_object.related.model, Choice)
 
-    @skipUnless(django.get_version() >= "1.6", "Use ForeignObjectRel")
-    def test_string_related(self):
-        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
-        self.assertEqual(field_object.related.field.model, State)
+    @skipUnless(django.get_version() >= "1.8", "Use ForeignObjectRel")
+    def test_import_related_foreign_object_rel(self):
+        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
+        self.assertEqual(field_object.related.related_model, Choice)
 
-    @skipUnless(django.get_version() < "1.6", "Use RelatedObject")
-    def test_string_related(self):
+    @skipUnless(django.get_version() < "1.8", "Use RelatedObject")
+    def test_string_related_related_object(self):
         field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
         self.assertEqual(field_object.related.model, State)
+
+    @skipUnless(django.get_version() >= "1.8", "Use ForeignObjectRel")
+    def test_string_related_foreign_object_rel(self):
+        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
+        self.assertEqual(field_object.related.related_model, State)
 
     @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
