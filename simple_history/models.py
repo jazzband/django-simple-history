@@ -2,18 +2,12 @@ from __future__ import unicode_literals
 
 import threading
 import copy
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    apps = None
+import warnings
+
 from django.db import models, router
 from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
-try:
-    from django.db.models.fields.related import RelatedObject
-except ImportError:
-    pass
 from django.conf import settings
 from django.contrib import admin
 from django.utils import importlib, six
@@ -21,6 +15,17 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+from .manager import HistoryDescriptor
+
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    apps = None
+try:
+    from django.db.models.fields.related import RelatedObject
+except ImportError:
+    RelatedObject = None
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -28,7 +33,6 @@ except ImportError:  # south not present
 else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
-from .manager import HistoryDescriptor
 
 registered_models = {}
 
@@ -124,29 +128,25 @@ class HistoricalRecords(object):
         for field in model._meta.fields:
             field = copy.copy(field)
             field.rel = copy.copy(field.rel)
-            if isinstance(field, models.ForeignKey):
-                if not 'RelatedObject' in globals():
-                    old_field = field
-                    field = type(field)(field.rel.to, related_name='+', null=True, blank=True)
-                    field.rel = old_field.rel
-                    field.rel.related_name = '+'
-                    field.name = old_field.name
-                    field.db_constraint = False
-                    field._unique = False
-                    setattr(field, 'attname', field.name)
-                else:
-                    # Don't allow reverse relations.
-                    # ForeignKey knows best what datatype to use for the column
-                    # we'll used that as soon as it's finalized by copying rel.to
-                    # Django < 1.8
-                    field.__class__ = CustomForeignKeyField
-                    field.rel.related_name = '+'
-                    field.null = True
-                    field.blank = True
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
-            transform_field(field)
+            if isinstance(field, models.ForeignKey):
+                old_field = field
+                field = type(field)(
+                    field.rel.to,
+                    related_name='+',
+                    null=True,
+                    blank=True,
+                    primary_key=False,
+                    db_index=True,
+                    serialize=True,
+                )
+                field._unique = False
+                field.name = old_field.name
+                field.db_constraint = False
+            else:
+                transform_field(field)
             fields[field.name] = field
         return fields
 
@@ -241,6 +241,8 @@ class HistoricalRecords(object):
 class CustomForeignKeyField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
+        warnings.warn("CustomForeignKeyField is deprecated.",
+                      DeprecationWarning)
         super(CustomForeignKeyField, self).__init__(*args, **kwargs)
         self.db_constraint = False
         self.generate_reverse_relation = False

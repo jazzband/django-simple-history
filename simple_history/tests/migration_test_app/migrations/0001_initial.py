@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import simple_history.models
+import django.db.models.deletion
 from django.conf import settings
 
 
@@ -30,12 +30,9 @@ class Migration(migrations.Migration):
                 ('history_id', models.AutoField(serialize=False, primary_key=True)),
                 ('history_date', models.DateTimeField()),
                 ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('history_user', models.ForeignKey(null=True, to=settings.AUTH_USER_MODEL)),
+                ('history_user', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, null=True)),
             ],
-            options={
-                'verbose_name': 'historical yar',
-                'ordering': ('-history_date', '-history_id'),
-            },
+            options={'ordering': ('-history_date', '-history_id'), 'get_latest_by': 'history_date', 'verbose_name': 'historical yar'},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -59,8 +56,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='historicalyar',
-            name='what_id',
-            field=simple_history.models.CustomForeignKeyField(to='migration_test_app.WhatIMean', blank=True, null=True, related_name='+'),
+            name='what',
+            field=models.ForeignKey(related_name='+', db_constraint=False, blank=True, to='migration_test_app.WhatIMean', null=True),
             preserve_default=True,
         ),
     ]

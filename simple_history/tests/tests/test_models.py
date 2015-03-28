@@ -487,20 +487,20 @@ class HistoryManagerTest(TestCase):
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
     def test_import_related(self):
-        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
+        field_object = HistoricalChoice._meta.get_field_by_name('poll')[0]
         try:
             related_model = field_object.rel.related_model
         except AttributeError:  # Django<1.8
             related_model = field_object.related.model
-        self.assertEqual(related_model, Choice)
+        self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
-        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
+        field_object = HistoricalState._meta.get_field_by_name('library')[0]
         try:
             related_model = field_object.rel.related_model
         except AttributeError:  # Django<1.8
             related_model = field_object.related.model
-        self.assertEqual(related_model, State)
+        self.assertEqual(related_model, HistoricalState)
 
     @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
@@ -660,7 +660,8 @@ class TestLatest(TestCase):
     """"Test behavior of `latest()` without any field parameters"""
 
     def setUp(self):
-        poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)
+        poll = Poll.objects.create(
+            question="Does `latest()` work?", pub_date=yesterday)
         poll.pub_date = today
         poll.save()
 
