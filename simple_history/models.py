@@ -37,7 +37,7 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name=None):
+                 user_related_name='+'):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         try:

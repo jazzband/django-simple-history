@@ -5,6 +5,7 @@ tip (unreleased)
 ----------------
 - Add support for Django 1.8+
 - Deprecated use of ``CustomForeignKeyField`` (to be removed)
+- Remove default reverse accessor to `auth.User` for historical models (gh-121)
 
 1.5.4 (2015-01-03)
 ------------------
