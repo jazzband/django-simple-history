@@ -13,7 +13,8 @@ env:
   - DJANGO="Django>=1.8a,<1.9"
 
 install:
-  - pip install --pre -U coverage coveralls $DJANGO
+  - pip install -U coverage coveralls
+  - pip install --pre -U $DJANGO
   - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
 
 script: coverage run -a setup.py test
