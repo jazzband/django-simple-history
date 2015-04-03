@@ -21,12 +21,12 @@ Authors
 - Mauricio de Abreu Antunes
 - Micah Denbraver
 - Rajesh Pappula
+- Rod Xavier Bondoc
 - Ross Lote
 - Steven Klass
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
-- Rod Xavier Bondoc
 
 Background
 ==========
