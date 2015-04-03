@@ -1,17 +1,9 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
+import unittest
 
 import django
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.loading import get_model
 from django.db.models.fields.proxy import OrderWrt
@@ -28,6 +20,16 @@ from ..models import (
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo
 )
 from ..external.models import ExternalModel2, ExternalModel4
+
+try:
+    from unittest import skipUnless
+except ImportError:
+    from unittest2 import skipUnless
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -324,7 +326,7 @@ class RegisterTest(TestCase):
         self.assertEqual(expected, str(voter.history.all()[0])[:len(expected)])
 
 
-class CreateHistoryModelTests(TestCase):
+class CreateHistoryModelTests(unittest.TestCase):
 
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
         records = HistoricalRecords()
