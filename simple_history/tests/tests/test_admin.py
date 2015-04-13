@@ -234,4 +234,3 @@ class AdminSiteTest(WebTest):
 
         historical_poll = poll.history.all()[0]
         self.assertEqual(historical_poll.history_user, None)
-

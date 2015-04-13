@@ -1,17 +1,9 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
+import unittest
 
 import django
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.loading import get_model
 from django.db.models.fields.proxy import OrderWrt
@@ -28,6 +20,16 @@ from ..models import (
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo
 )
 from ..external.models import ExternalModel2, ExternalModel4
+
+try:
+    from unittest import skipUnless
+except ImportError:
+    from unittest2 import skipUnless
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError:  # django 1.4 compatibility
+    from django.contrib.auth.models import User
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -324,7 +326,7 @@ class RegisterTest(TestCase):
         self.assertEqual(expected, str(voter.history.all()[0])[:len(expected)])
 
 
-class CreateHistoryModelTests(TestCase):
+class CreateHistoryModelTests(unittest.TestCase):
 
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
         records = HistoricalRecords()
@@ -487,12 +489,20 @@ class HistoryManagerTest(TestCase):
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
     def test_import_related(self):
-        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
-        self.assertEqual(field_object.related.model, Choice)
+        field_object = HistoricalChoice._meta.get_field_by_name('poll')[0]
+        try:
+            related_model = field_object.rel.related_model
+        except AttributeError:  # Django<1.8
+            related_model = field_object.related.model
+        self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
-        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
-        self.assertEqual(field_object.related.model, State)
+        field_object = HistoricalState._meta.get_field_by_name('library')[0]
+        try:
+            related_model = field_object.rel.related_model
+        except AttributeError:  # Django<1.8
+            related_model = field_object.related.model
+        self.assertEqual(related_model, HistoricalState)
 
     @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
@@ -652,7 +662,8 @@ class TestLatest(TestCase):
     """"Test behavior of `latest()` without any field parameters"""
 
     def setUp(self):
-        poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)
+        poll = Poll.objects.create(
+            question="Does `latest()` work?", pub_date=yesterday)
         poll.pub_date = today
         poll.save()
 

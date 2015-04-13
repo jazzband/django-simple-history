@@ -1,6 +1,11 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Add support for Django 1.8+
+- Deprecated use of ``CustomForeignKeyField`` (to be removed)
+
 1.5.4 (2015-01-03)
 ------------------
 - Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
