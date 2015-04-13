@@ -23,10 +23,6 @@ try:
 except ImportError:  # Django < 1.7
     apps = None
 try:
-    from django.db.models.fields.related import RelatedObject
-except ImportError:
-    RelatedObject = None
-try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
     pass
@@ -305,13 +301,6 @@ class CustomForeignKeyField(models.ForeignKey):
 
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
-        if not hasattr(self, 'related'):
-            try:
-                instance_type = cls.instance_type
-            except AttributeError:  # when model is reconstituted for migration
-                pass  # happens during migrations
-            else:
-                self.related = RelatedObject(other, instance_type, self)
         transform_field(field)
         field.rel = None
 
