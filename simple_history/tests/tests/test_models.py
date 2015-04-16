@@ -17,7 +17,8 @@ from ..models import (
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo
+    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
+    UserAccessorDefault, UserAccessorOverride
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -694,3 +695,14 @@ class TestLatest(TestCase):
             {'pk': 2, 'history_date': yesterday},
         ])
         assert HistoricalPoll.objects.latest().pk == 1
+
+
+class TestUserAccessor(unittest.TestCase):
+
+    def test_accessor_default(self):
+        register(UserAccessorDefault)
+        assert not hasattr(User, 'historicaluseraccessordefault_set')
+
+    def test_accessor_override(self):
+        register(UserAccessorOverride, user_related_name='my_history_model_accessor')
+        assert hasattr(User, 'my_history_model_accessor')
