@@ -237,3 +237,11 @@ class SeriesWork(models.Model):
 class PollInfo(models.Model):
     poll = models.ForeignKey(Poll, primary_key=True)
     history = HistoricalRecords()
+
+
+class UserAccessorDefault(models.Model):
+    pass
+
+
+class UserAccessorOverride(models.Model):
+    pass
