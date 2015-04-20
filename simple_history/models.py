@@ -4,6 +4,7 @@ import threading
 import copy
 import warnings
 
+import django
 from django.db import models, router
 from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
@@ -129,18 +130,26 @@ class HistoricalRecords(object):
                 field.__class__ = models.IntegerField
             if isinstance(field, models.ForeignKey):
                 old_field = field
-                field = type(field)(
-                    field.rel.to,
+                field_arguments = {}
+                if (getattr(old_field, 'one_to_one', False) or
+                        isinstance(old_field, models.OneToOneField)):
+                    FieldType = models.ForeignKey
+                else:
+                    FieldType = type(old_field)
+                if django.get_version() >= "1.6":
+                    field_arguments['db_constraint'] = False
+                field = FieldType(
+                    old_field.rel.to,
                     related_name='+',
                     null=True,
                     blank=True,
                     primary_key=False,
                     db_index=True,
                     serialize=True,
+                    unique=False,
+                    **field_arguments
                 )
-                field._unique = False
                 field.name = old_field.name
-                field.db_constraint = False
             else:
                 transform_field(field)
             fields[field.name] = field
