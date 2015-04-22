@@ -245,3 +245,8 @@ class UserAccessorDefault(models.Model):
 
 class UserAccessorOverride(models.Model):
     pass
+
+
+class Employee(models.Model):
+    manager = models.OneToOneField('Employee', null=True)
+    history = HistoricalRecords()
