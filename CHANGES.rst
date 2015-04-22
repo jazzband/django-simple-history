@@ -1,7 +1,7 @@
 Changes
 =======
 
-tip (unreleased)
+1.6.1 (2015-04-21)
 ----------------
 - Fix OneToOneField transformation for historical models (gh-166)
 - Disable cascading deletes from related models to historical models
