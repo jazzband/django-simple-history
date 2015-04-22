@@ -1,6 +1,10 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Fix OneToOneField transformation for historical models (gh-166)
+
 1.6.0 (2015-04-16)
 ------------------
 - Add support for Django 1.8+
