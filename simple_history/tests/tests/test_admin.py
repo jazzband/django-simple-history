@@ -12,7 +12,7 @@ from django.contrib.admin.util import quote
 from django.conf import settings
 from simple_history.models import HistoricalRecords
 
-from ..models import Book, Person, Poll, State
+from ..models import Book, Person, Poll, State, Employee
 
 
 today = datetime(2021, 1, 1, 10, 0)
@@ -234,3 +234,14 @@ class AdminSiteTest(WebTest):
 
         historical_poll = poll.history.all()[0]
         self.assertEqual(historical_poll.history_user, None)
+
+    def test_missing_one_to_one(self):
+        """A relation to a missing one-to-one model should still show history"""
+        self.login()
+        manager = Employee.objects.create()
+        employee = Employee.objects.create(manager=manager)
+        employee.manager = None
+        employee.save()
+        manager.delete()
+        response = self.app.get(get_history_url(employee, 0))
+        self.assertEqual(response.status_code, 200)
