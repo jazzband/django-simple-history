@@ -18,7 +18,7 @@ from ..models import (
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
-    UserAccessorDefault, UserAccessorOverride
+    UserAccessorDefault, UserAccessorOverride, Employee
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -706,3 +706,26 @@ class TestUserAccessor(unittest.TestCase):
     def test_accessor_override(self):
         register(UserAccessorOverride, user_related_name='my_history_model_accessor')
         assert hasattr(User, 'my_history_model_accessor')
+
+
+class TestMissingOneToOne(TestCase):
+
+    def setUp(self):
+        self.manager1 = Employee.objects.create()
+        self.manager2 = Employee.objects.create()
+        self.employee = Employee.objects.create(manager=self.manager1)
+        self.employee.manager = self.manager2
+        self.employee.save()
+        self.manager1.delete()
+
+    def test_history_is_complete(self):
+        historical_manager_ids = list(self.employee.history.order_by('pk')
+                                      .values_list('manager_id', flat=True))
+        self.assertEqual(historical_manager_ids, [1, 2])
+
+    def test_restore_employee(self):
+        historical = self.employee.history.order_by('pk')[0]
+        original = historical.instance
+        self.assertEqual(original.manager_id, 1)
+        with self.assertRaises(Employee.DoesNotExist):
+            original.manager

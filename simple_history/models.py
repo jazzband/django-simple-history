@@ -147,6 +147,7 @@ class HistoricalRecords(object):
                     db_index=True,
                     serialize=True,
                     unique=False,
+                    on_delete=models.DO_NOTHING,
                     **field_arguments
                 )
                 field.name = old_field.name
@@ -173,7 +174,8 @@ class HistoricalRecords(object):
                     [getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
-            return model(**dict([(k, getattr(self, k)) for k in fields]))
+            return model(**{field.attname: getattr(self, field.attname)
+                            for field in fields.values()})
 
         return {
             'history_id': models.AutoField(primary_key=True),
