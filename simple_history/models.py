@@ -11,7 +11,11 @@ from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
-from django.utils import importlib, six
+try:
+    import importlib
+except ImportError:
+    from django.utils import importlib
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now

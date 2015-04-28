@@ -8,7 +8,10 @@ try:
     User = get_user_model()
 except ImportError:  # django 1.4 compatibility
     from django.contrib.auth.models import User
-from django.contrib.admin.util import quote
+try:
+    from django.contrib.admin.utils import quote
+except ImportError:  # django 1.7 compatibility
+    from django.contrib.admin.util import quote
 from django.conf import settings
 from simple_history.models import HistoricalRecords
 
