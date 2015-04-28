@@ -6,7 +6,11 @@ import warnings
 
 import django
 from django.db import models, router
-from django.db.models import loading
+try:
+    from django.apps import apps
+    get_app = apps.get_app
+except (ImportError, AttributeError):
+    from django.db.models.loading import get_app
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
 from django.conf import settings
@@ -103,7 +107,7 @@ class HistoricalRecords(object):
         elif app_module != self.module:
             if apps is None:  # Django < 1.7
                 # has meta options with app_label
-                app = loading.get_app(model._meta.app_label)
+                app = get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
                 # Abuse an internal API because the app registry is loading.
