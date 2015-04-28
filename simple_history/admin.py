@@ -7,7 +7,10 @@ from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.contrib.admin.util import unquote
+try:
+    from django.contrib.admin.utils import unquote
+except ImportError:
+    from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _

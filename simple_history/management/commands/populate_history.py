@@ -1,7 +1,10 @@
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models.loading import get_model
-
+try:
+    from django.apps import apps
+    get_model = apps.get_model
+except (ImportError, AttributeError): # django 1.6 compatibility
+    from django.db.models.loading import get_model
 from ... import models
 from . import _populate_utils as utils
 
