@@ -2,6 +2,7 @@ Authors
 =======
 
 - Aleksey Kladov
+- bradford281
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay

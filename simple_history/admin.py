@@ -7,7 +7,6 @@ from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.contrib.admin.util import unquote
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
@@ -15,9 +14,14 @@ from django.utils.encoding import force_text
 from django.conf import settings
 
 try:
+    from django.contrib.admin.utils import unquote
+except ImportError:  # Django < 1.7
+    from django.contrib.admin.util import unquote
+try:
     USER_NATURAL_KEY = settings.AUTH_USER_MODEL
 except AttributeError:  # Django < 1.5
     USER_NATURAL_KEY = "auth.User"
+
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
 

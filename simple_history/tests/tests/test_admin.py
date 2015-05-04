@@ -1,17 +1,22 @@
 from datetime import datetime, timedelta
+
 from django_webtest import WebTest
 from django.test.utils import override_settings
 from django import VERSION
 from django.core.urlresolvers import reverse
+from django.conf import settings
+
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
-except ImportError:  # django 1.4 compatibility
+except ImportError:  # Django < 1.5
     from django.contrib.auth.models import User
-from django.contrib.admin.util import quote
-from django.conf import settings
-from simple_history.models import HistoricalRecords
+try:
+    from django.contrib.admin.utils import quote
+except ImportError:  # Django < 1.7
+    from django.contrib.admin.util import quote
 
+from simple_history.models import HistoricalRecords
 from ..models import Book, Person, Poll, State, Employee
 
 

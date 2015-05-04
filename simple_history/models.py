@@ -6,23 +6,27 @@ import warnings
 
 import django
 from django.db import models, router
-from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import RelatedField
 from django.conf import settings
 from django.contrib import admin
-from django.utils import importlib, six
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
 
-from .manager import HistoryDescriptor
-
+try:
+    import importlib
+except ImportError:
+    from django.utils import importlib
 try:
     from django.apps import apps
 except ImportError:  # Django < 1.7
+    from django.db.models.loading import get_app
     apps = None
+else:
+    get_app = apps.get_app
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -30,6 +34,8 @@ except ImportError:  # south not present
 else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
+
+from .manager import HistoryDescriptor
 
 registered_models = {}
 
@@ -99,7 +105,7 @@ class HistoricalRecords(object):
         elif app_module != self.module:
             if apps is None:  # Django < 1.7
                 # has meta options with app_label
-                app = loading.get_app(model._meta.app_label)
+                app = get_app(model._meta.app_label)
                 attrs['__module__'] = app.__name__  # full dotted name
             else:
                 # Abuse an internal API because the app registry is loading.

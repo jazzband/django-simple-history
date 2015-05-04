@@ -1,6 +1,13 @@
 from optparse import make_option
+
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models.loading import get_model
+
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    from django.db.models.loading import get_model
+else:
+    get_model = apps.get_model
 
 from ... import models
 from . import _populate_utils as utils
