@@ -13,7 +13,7 @@ env:
   - DJANGO="Django>=1.8,<1.9"
 
 install:
-  - pip install -U coverage coveralls $DJANGO
+  - pip install -U coverage codecov $DJANGO
   - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
 
 script: coverage run -a setup.py test
@@ -37,4 +37,4 @@ matrix:
    - python: 3.4
      env: DJANGO="Django>=1.8,<1.9"
 
-after_success: coveralls
+after_success: codecov
