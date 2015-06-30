@@ -16,7 +16,7 @@ install:
   - pip install -U coverage codecov $DJANGO
   - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
 
-script: coverage run -a setup.py test
+script: coverage run setup.py test
 
 matrix:
   exclude:
