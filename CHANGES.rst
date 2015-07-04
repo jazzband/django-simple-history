@@ -1,13 +1,13 @@
 Changes
 =======
 
-tip  (unreleased)
------------------
+1.6.2 (2015-07-04)
+------------------
 - Use app loading system and fix deprecation warnings on Django 1.8 (gh-172)
 - Update Landscape configuration
 
 1.6.1 (2015-04-21)
-----------------
+------------------
 - Fix OneToOneField transformation for historical models (gh-166)
 - Disable cascading deletes from related models to historical models
 - Fix restoring historical instances with missing one-to-one relations (gh-162)
