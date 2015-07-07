@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.utils import six
+from django.utils.encoding import force_str
 
 __all__ = (
     'ReadOnlyFieldsMixin',
@@ -34,6 +35,6 @@ class ReadOnlyFieldsMixin(object):
 
 
 def new_readonly_form(klass, readonly_fields=()):
-    name = "ReadOnly{}".format(klass.__name__)
+    name = force_str("ReadOnly{}".format(klass.__name__))
     klass_fields = {'readonly_fields': readonly_fields}
     return type(name, (ReadOnlyFieldsMixin, klass), klass_fields)
