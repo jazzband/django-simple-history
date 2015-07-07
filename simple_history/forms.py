@@ -34,7 +34,7 @@ class ReadOnlyFieldsMixin(object):
             return cleaned_data
 
 
-def new_readonly_form(klass, readonly_fields=()):
+def new_readonly_form(klass, all_fields=True, readonly_fields=()):
     name = force_str("ReadOnly{}".format(klass.__name__))
-    klass_fields = {'readonly_fields': readonly_fields}
+    klass_fields = {'all_fields': all_fields, 'readonly_fields': readonly_fields}
     return type(name, (ReadOnlyFieldsMixin, klass), klass_fields)
