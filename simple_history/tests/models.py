@@ -250,3 +250,12 @@ class UserAccessorOverride(models.Model):
 class Employee(models.Model):
     manager = models.OneToOneField('Employee', null=True)
     history = HistoricalRecords()
+
+
+class Country(models.Model):
+    code = models.CharField(max_length=15, unique=True)
+
+
+class Province(models.Model):
+    country = models.ForeignKey(Country, to_field='code')
+    history = HistoricalRecords()

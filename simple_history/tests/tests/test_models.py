@@ -18,7 +18,7 @@ from ..models import (
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
-    UserAccessorDefault, UserAccessorOverride, Employee
+    UserAccessorDefault, UserAccessorOverride, Employee, Country, Province
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -256,6 +256,15 @@ class HistoricalRecordsTest(TestCase):
         model.save()
         self.assertEqual([m.fk_id for m in model.history.all()],
                          [other.id, model.id, None])
+
+    def test_to_field_foreign_key_save(self):
+        country = Country.objects.create(code='US')
+        country2 = Country.objects.create(code='CA')
+        province = Province.objects.create(country=country)
+        province.country = country2
+        province.save()
+        self.assertEqual([c.country_id for c in province.history.all()],
+                         [country2.code, country.code])
 
     def test_raw_save(self):
         document = Document()
