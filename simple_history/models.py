@@ -146,8 +146,8 @@ class HistoricalRecords(object):
                     field_arguments['db_constraint'] = False
                 if getattr(old_field, 'to_fields', []):
                     field_arguments['to_field'] = old_field.to_fields[0]
-                elif django.get_version() == "1.4" and getattr(old_field, 'to_field', None):
-                    field_arguments['to_field'] = old_field.to_field
+                elif django.get_version() < "1.6" and old_field.rel.field_name != 'id':
+                    field_arguments['to_field'] = old_field.rel.field_name
                 field = FieldType(
                     old_field.rel.to,
                     related_name='+',
