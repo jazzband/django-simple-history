@@ -259,3 +259,8 @@ class Country(models.Model):
 class Province(models.Model):
     country = models.ForeignKey(Country, to_field='code')
     history = HistoricalRecords()
+
+
+class City(models.Model):
+    country = models.ForeignKey(Country, db_column='countryCode')
+    history = HistoricalRecords()
