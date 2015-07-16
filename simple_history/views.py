@@ -7,7 +7,7 @@ from django.http import Http404
 from django.utils import six
 from django.utils.translation import ugettext as _
 
-from .forms import ReadOnlyFieldsMixin, new_readonly_form
+from .forms import ReadOnlyFieldsMixin, new_readonly_form_class
 
 __all__ = (
     'MissingHistoryRecordsField',
@@ -215,13 +215,12 @@ class RevertFromHistoryRecordViewMixin(object):
 
     def get_form_class(self):
         form_klass = super(RevertFromHistoryRecordViewMixin, self).get_form_class()
-        if issubclass(form_klass, ReadOnlyFieldsMixin):
+        if not self.history_records_readonly_form or issubclass(form_klass, ReadOnlyFieldsMixin):
             return form_klass
         else:
-            return new_readonly_form(form_klass,
-                                     all_fields=self.history_records_readonly_form,
-                                     readonly_fields=()
-                                     )
+            return new_readonly_form_class(form_klass,
+                                           readonly_fields=()
+                                           )
 
     def get_history_records_field_name(self):
         """

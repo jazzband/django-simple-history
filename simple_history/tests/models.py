@@ -264,3 +264,9 @@ class Province(models.Model):
 class City(models.Model):
     country = models.ForeignKey(Country, db_column='countryCode')
     history = HistoricalRecords()
+
+
+class Dummy(models.Model):
+    foo = models.CharField(max_length=100)
+    bar = models.CharField(max_length=100)
+

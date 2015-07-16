@@ -1,6 +1,6 @@
 from django import forms
 
-from simple_history.forms import ReadOnlyFieldsMixin, new_readonly_form
+from simple_history.forms import ReadOnlyFieldsMixin, new_readonly_form_class
 
 from .models import Poll
 
@@ -16,4 +16,4 @@ class ReadOnlyPollRevertForm(ReadOnlyFieldsMixin, PollRevertForm):
 
 
 
-GeneratedByFunctionReadOnlyPollRevertForm = new_readonly_form(PollRevertForm, readonly_fields=())
+GeneratedByFunctionReadOnlyPollRevertForm = new_readonly_form_class(PollRevertForm, readonly_fields=())
