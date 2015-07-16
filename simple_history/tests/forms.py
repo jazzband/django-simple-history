@@ -12,8 +12,7 @@ class PollRevertForm(forms.ModelForm):
 
 
 class ReadOnlyPollRevertForm(ReadOnlyFieldsMixin, PollRevertForm):
-    all_fields = True
-
+    pass
 
 
 GeneratedByFunctionReadOnlyPollRevertForm = new_readonly_form_class(PollRevertForm, readonly_fields=())
