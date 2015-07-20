@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.paginator import InvalidPage, Paginator
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import Http404
 from django.utils import six
@@ -34,6 +35,10 @@ class HistoryRecordListViewMixin(object):
     history_records_page_kwarg = 'hpage'
     history_records_ordering = None
     history_records_object_list = None
+    history_records_not_show_created = True
+
+    def history_records_not_show_created(self):
+        return self.history_records_not_show_created
 
     def get_history_records_field_name(self):
         """
@@ -64,9 +69,13 @@ class HistoryRecordListViewMixin(object):
             queryset = self.history_records_queryset
             if isinstance(queryset, QuerySet):
                 queryset = queryset.all()
+            if self.history_records_not_show_created():
+                queryset = queryset.filter(~Q(history_type='+'))
         elif self.model is not None:
             model_instance = self.get_object()
             queryset = getattr(model_instance, self.get_history_records_field_name()).all()
+            if self.history_records_not_show_created():
+                queryset = queryset.filter(~Q(history_type='+'))
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a HistoryRecords QuerySet. Define "
