@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -75,6 +76,24 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return render(request, template_name=self.object_history_template,
                       dictionary=context, current_app=self.admin_site.name)
 
+    def response_change(self, request, obj):
+        if '_change_history' in request.POST:
+            verbose_name = obj._meta.verbose_name
+
+            msg = _('The %(name)s "%(obj)s" was changed successfully.') % {
+                'name': force_text(verbose_name),
+                'obj': force_text(obj)
+            }
+
+            self.message_user(
+                request, "%s - %s" % (msg, _("You may edit it again below")),
+                fail_silently=True)
+
+            return HttpResponseRedirect(request.path)
+        else:
+            return super(SimpleHistoryAdmin, self).response_change(
+                request, obj)
+
     def history_form_view(self, request, object_id, version_id):
         original_opts = self.model._meta
         model = getattr(
@@ -88,6 +107,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
+
+        if '_change_history' in request.POST:
+            obj = obj.history.get(pk=version_id)
 
         formsets = []
         form_class = self.get_form(request, obj)
