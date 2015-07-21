@@ -18,6 +18,7 @@ Authors
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
 - Micah Denbraver
