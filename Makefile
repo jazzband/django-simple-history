@@ -14,7 +14,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 init:
-	pip install tox>=1.8 coverage Sphinx
+	pip install "tox>=1.8" coverage Sphinx
 
 test:
 	coverage erase
