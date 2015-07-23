@@ -2,7 +2,7 @@ from setuptools import setup
 import simple_history
 
 tests_require = [
-    "Django>=1.4", "webtest==2.0.6", "django-webtest==1.7", "mock==1.2.0"
+    "Django>=1.4", "webtest==2.0.6", "django-webtest==1.7", "mock==1.0.1"
 ]
 try:
     from unittest import skipUnless
