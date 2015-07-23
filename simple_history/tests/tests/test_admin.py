@@ -281,7 +281,7 @@ class AdminSiteTest(WebTest):
         with override_settings(SIMPLE_HISTORY_EDIT=True):
             response = admin.response_change(request, poll)
 
-        self.assertEqual(response.url, '/awesome/url/')
+        self.assertEqual(response['Location'], '/awesome/url/')
 
     def test_response_change_change_history_setting_off(self):
         """
