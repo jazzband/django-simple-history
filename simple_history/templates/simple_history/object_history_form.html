@@ -18,5 +18,5 @@
 {% endblock %}
 
 {% block form_top %}
-  <p>{% blocktrans %}Press the 'Revert' button below to revert to this version of the object. Or press the 'Change History' button to edit the history.{% endblocktrans %}</p>
+<p>{% blocktrans %}Press the 'Revert' button below to revert to this version of the object.{% endblocktrans %} {% if change_history %}{% blocktrans %}Or press the 'Change History' button to edit the history.{% endblocktrans %}{% endif %}</p>
 {% endblock %}

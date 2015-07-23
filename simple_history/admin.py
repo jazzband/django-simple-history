@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import PermissionDenied
 from django.conf.urls import patterns, url
-from django.contrib import admin
 from django.contrib.admin import helpers, ModelAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
@@ -24,6 +23,8 @@ except AttributeError:  # Django < 1.5
     USER_NATURAL_KEY = "auth.User"
 
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
+
+settings.SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
 
 class SimpleHistoryAdmin(ModelAdmin):
@@ -77,7 +78,7 @@ class SimpleHistoryAdmin(ModelAdmin):
                       dictionary=context, current_app=self.admin_site.name)
 
     def response_change(self, request, obj):
-        if '_change_history' in request.POST:
+        if '_change_history' in request.POST and settings.SIMPLE_HISTORY_EDIT:
             verbose_name = obj._meta.verbose_name
 
             msg = _('The %(name)s "%(obj)s" was changed successfully.') % {
@@ -86,8 +87,7 @@ class SimpleHistoryAdmin(ModelAdmin):
             }
 
             self.message_user(
-                request, "%s - %s" % (msg, _("You may edit it again below")),
-                fail_silently=True)
+                request, "%s - %s" % (msg, _("You may edit it again below")))
 
             return HttpResponseRedirect(request.path)
         else:
@@ -108,7 +108,12 @@ class SimpleHistoryAdmin(ModelAdmin):
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
-        if '_change_history' in request.POST:
+        if settings.SIMPLE_HISTORY_EDIT:
+            change_history = True
+        else:
+            change_history = False
+
+        if '_change_history' in request.POST and settings.SIMPLE_HISTORY_EDIT:
             obj = obj.history.get(pk=version_id)
 
         formsets = []
@@ -156,6 +161,8 @@ class SimpleHistoryAdmin(ModelAdmin):
                                   args=(obj.pk,)),
             'history_url': reverse('%s:%s_%s_history' % url_triplet,
                                    args=(obj.pk,)),
+            'change_history': change_history,
+
             # Context variables copied from render_change_form
             'add': False,
             'change': True,
