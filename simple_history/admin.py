@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.core.exceptions import PermissionDenied
 from django.conf.urls import patterns, url
 from django.contrib import admin
-from django.contrib.admin import helpers
+from django.contrib.admin import helpers, ModelAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -26,7 +26,7 @@ except AttributeError:  # Django < 1.5
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
 
-class SimpleHistoryAdmin(admin.ModelAdmin):
+class SimpleHistoryAdmin(ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
