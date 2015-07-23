@@ -353,15 +353,12 @@ class AdminSiteTest(WebTest):
             'original': poll,
             'change_history': False,
 
-            'title': 'Revert {}'.format(force_text(poll)),
+            'title': 'Revert %s' % force_text(poll),
             'adminform': ANY,
             'object_id': poll.id,
             'is_popup': False,
             'media': ANY,
-            'errors': [
-                '<ul class="errorlist"><li>This field is required.</li></ul>',
-                '<ul class="errorlist"><li>This field is required.</li></ul>'
-            ],
+            'errors': ANY,
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
@@ -412,15 +409,12 @@ class AdminSiteTest(WebTest):
             'original': history,
             'change_history': True,
 
-            'title': 'Revert {}'.format(force_text(history)),
+            'title': 'Revert %s' % force_text(history),
             'adminform': ANY,
             'object_id': poll.id,
             'is_popup': False,
             'media': ANY,
-            'errors': [
-                '<ul class="errorlist"><li>This field is required.</li></ul>',
-                '<ul class="errorlist"><li>This field is required.</li></ul>'
-            ],
+            'errors': ANY,
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
@@ -471,15 +465,12 @@ class AdminSiteTest(WebTest):
             'original': poll,
             'change_history': False,
 
-            'title': 'Revert {}'.format(force_text(poll)),
+            'title': 'Revert %s' % force_text(poll),
             'adminform': ANY,
             'object_id': poll.id,
             'is_popup': False,
             'media': ANY,
-            'errors': [
-                '<ul class="errorlist"><li>This field is required.</li></ul>',
-                '<ul class="errorlist"><li>This field is required.</li></ul>'
-            ],
+            'errors': ANY,
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
