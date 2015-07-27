@@ -14,6 +14,7 @@
         <table id="change-history" class="table table-bordered table-striped">
           <thead>
             <tr>
+              {% if change_history %}<th scope="col">{% trans 'Edit' %}</th>{% endif %}
               <th scope="col">{% trans 'Object' %}</th>
               <th scope="col">{% trans 'Date/time' %}</th>
               <th scope="col">{% trans 'Comment' %}</th>
@@ -23,6 +24,7 @@
           <tbody>
             {% for action in action_list %}
               <tr>
+                {% if change_history %}<td><a href="{% url opts|admin_urlname:'simple_history_edit' object.pk action.pk %}">Edit</a></td>{% endif %}
                 <td><a href="{% url opts|admin_urlname:'simple_history' object.pk action.pk %}">{{ action.history_object }}</a></td>
                 <td>{{ action.history_date }}</td>
                 <td>{{ action.get_history_type_display }}</td>

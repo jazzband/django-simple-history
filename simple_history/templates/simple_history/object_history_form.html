@@ -7,9 +7,13 @@
     <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
     <a href="{% url "admin:app_list" app_label %}">{{app_label|capfirst|escape}}</a> &rsaquo;
     <a href="{{changelist_url}}">{{opts.verbose_name_plural|capfirst}}</a> &rsaquo;
-    <a href="{{change_url}}">{{original|truncatewords:"18"}}</a> &rsaquo;
-    <a href="../">{% trans "History" %}</a> &rsaquo;
-    {% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{verbose_name}}{% endblocktrans %}
+    <a href="{{change_url}}">{{original_obj|truncatewords:"18"}}</a> &rsaquo;
+    <a href="{{history_url}}">{% trans "History" %}</a> &rsaquo;
+    {% if change_history %}
+      {% blocktrans with original_opts.verbose_name as verbose_name %}Edit/Revert {{verbose_name}} History{% endblocktrans %}
+    {% else %}
+      {% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{verbose_name}}{% endblocktrans %}
+    {% endif %}
   </div>
 {% endblock %}
 
