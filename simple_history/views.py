@@ -35,10 +35,14 @@ class HistoryRecordListViewMixin(object):
     history_records_page_kwarg = 'hpage'
     history_records_ordering = None
     history_records_object_list = None
-    history_records_not_show_created = True
+    history_records_only_show_changed = True
 
-    def history_records_not_show_created(self):
-        return self.history_records_not_show_created
+    def get_history_records_only_show_changed(self):
+        """
+        Returns ``True`` (by default) to show only the 'change' records,
+        but not the 'creation' and 'deletion'.
+        """
+        return self.history_records_only_show_changed
 
     def get_history_records_field_name(self):
         """
@@ -69,13 +73,9 @@ class HistoryRecordListViewMixin(object):
             queryset = self.history_records_queryset
             if isinstance(queryset, QuerySet):
                 queryset = queryset.all()
-            if self.history_records_not_show_created():
-                queryset = queryset.filter(~Q(history_type='+'))
         elif self.model is not None:
             model_instance = self.get_object()
             queryset = getattr(model_instance, self.get_history_records_field_name()).all()
-            if self.history_records_not_show_created():
-                queryset = queryset.filter(~Q(history_type='+'))
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a HistoryRecords QuerySet. Define "
@@ -84,6 +84,8 @@ class HistoryRecordListViewMixin(object):
                     'cls': self.__class__.__name__
                 }
             )
+        if self.get_history_records_only_show_changed():
+            queryset = queryset.filter(Q(history_type='~'))
         ordering = self.get_history_records_ordering()
         if ordering:
             if isinstance(ordering, six.string_types):
