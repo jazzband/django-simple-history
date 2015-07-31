@@ -3,12 +3,16 @@ django-simple-history
 
 .. image:: https://secure.travis-ci.org/treyhunner/django-simple-history.png?branch=master
    :target: http://travis-ci.org/treyhunner/django-simple-history
+   :alt: Build Status
+
 .. image:: https://img.shields.io/codecov/c/github/treyhunner/django-simple-history/master.svg
    :target: http://codecov.io/github/treyhunner/django-simple-history?branch=master
-.. image:: https://pypip.in/v/django-simple-history/badge.png
-   :target: https://crate.io/packages/django-simple-history
-.. image:: https://pypip.in/d/django-simple-history/badge.png
-   :target: https://crate.io/packages/django-simple-history
+   :alt: Test Coverage
+
+.. image:: https://img.shields.io/pypi/v/django-simple-history.svg
+   :target: https://pypi.python.org/pypi/django-simple-history
+   :alt: PyPI Version
+
 .. image:: https://landscape.io/github/treyhunner/django-simple-history/master/landscape.png
    :target: https://landscape.io/github/treyhunner/django-simple-history/master
    :alt: Code Health
@@ -29,9 +33,3 @@ Pull requests are welcome.  Read the CONTRIBUTING file for tips on
 submitting a pull request.
 
 .. _PyPI: https://pypi.python.org/pypi/django-email-log/
-
-
-.. image:: https://d2weczhvl823v0.cloudfront.net/treyhunner/django-simple-history/trend.png
-   :alt: Bitdeli badge
-   :target: https://bitdeli.com/free
-

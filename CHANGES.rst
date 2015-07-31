@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.6.3 (2015-07-30)
+------------------
 - Respect `to_field` and `db_column` parameters (gh-182)
 
 1.6.2 (2015-07-04)
