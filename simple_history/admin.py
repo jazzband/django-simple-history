@@ -28,7 +28,7 @@ except AttributeError:  # Django < 1.5
 
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
-settings.SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
+SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
 
 class SimpleHistoryAdmin(ModelAdmin):
@@ -84,7 +84,7 @@ class SimpleHistoryAdmin(ModelAdmin):
             'app_label': app_label,
             'opts': opts,
             'admin_user_view': admin_user_view,
-            'change_history': settings.SIMPLE_HISTORY_EDIT
+            'change_history': SIMPLE_HISTORY_EDIT
         }
         context.update(extra_context or {})
         return render(request, template_name=self.object_history_template,
@@ -112,14 +112,19 @@ class SimpleHistoryAdmin(ModelAdmin):
         self.message_user(request, msg)
 
         try:
-            info = original_opts.app_label, original_opts.model_name
+            info = (self.admin_site.name,
+                    original_opts.app_label,
+                    original_opts.model_name)
         except AttributeError:  # Django < 1.7
-            info = original_opts.app_label, original_opts.module_name
+            info = (self.admin_site.name,
+                    original_opts.app_label,
+                    original_opts.module_name)
 
-        return HttpResponseRedirect(reverse('%s_%s_simple_history' % info))
+        return HttpResponseRedirect(
+            reverse('%s:%s_%s_history' % info, args=[object_id]))
 
     def response_change(self, request, obj):
-        if '_change_history' in request.POST and settings.SIMPLE_HISTORY_EDIT:
+        if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
             verbose_name = obj._meta.verbose_name
 
             msg = _('The %(name)s "%(obj)s" was changed successfully.') % {
@@ -152,12 +157,12 @@ class SimpleHistoryAdmin(ModelAdmin):
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
-        if change_history and settings.SIMPLE_HISTORY_EDIT:
+        if change_history and SIMPLE_HISTORY_EDIT:
             obj = obj.history.get(pk=version_id)
             model = get_model(obj._meta.app_label, obj._meta.object_name)
 
         formsets = []
-        form_class = self.get_form(request, obj, model)
+        form_class = self.get_form(request, obj, model, change_history)
         if request.method == 'POST':
             form = form_class(request.POST, request.FILES, instance=obj)
             if form.is_valid():
@@ -174,7 +179,7 @@ class SimpleHistoryAdmin(ModelAdmin):
 
         admin_form = helpers.AdminForm(
             form,
-            self.get_fieldsets(request, obj, model),
+            self.get_fieldsets(request, obj, model, change_history),
             self.prepopulated_fields,
             self.get_readonly_fields(request, obj),
             model_admin=self
@@ -203,6 +208,7 @@ class SimpleHistoryAdmin(ModelAdmin):
             'history_url': reverse('%s:%s_%s_history' % url_triplet,
                                    args=(original_obj.pk,)),
             'change_history': change_history,
+            'allow_revert': not change_history,
             'delete_url': reverse(
                 '%s:%s_%s_simple_history_delete' % url_triplet,
                 args=(original_obj.pk, version_id)),
@@ -231,14 +237,16 @@ class SimpleHistoryAdmin(ModelAdmin):
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)
 
-    def get_form(self, request, obj=None, model=None, **kwargs):
+    def get_form(self, request, obj=None, model=None, change_history=None,
+            **kwargs):
         """
         Returns a Form class for use in the admin add view. This is used by
         add_view and change_view.
         """
         if self.declared_fieldsets:
             fieldsets = self.declared_fieldsets
-            if model and 'Historical' in model._meta.object_name:
+            if (model and change_history
+                    and 'Historical' in model._meta.object_name):
                 fieldsets = fieldsets + self.history_fieldsets
             fields = flatten_fieldsets(fieldsets)
         else:
@@ -269,10 +277,12 @@ class SimpleHistoryAdmin(ModelAdmin):
         else:
             return modelform_factory(self.model, **defaults)
 
-    def get_fieldsets(self, request, obj=None, model=None):
+    def get_fieldsets(
+            self, request, obj=None, model=None, change_history=None):
         if self.declared_fieldsets:
             fieldsets = self.declared_fieldsets
-            if model and 'Historical' in model._meta.object_name:
+            if (model and change_history
+                    and 'Historical' in model._meta.object_name):
                 return fieldsets + self.history_fieldsets
             return fieldsets
         form = self.get_formset(request, obj).form
