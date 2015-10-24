@@ -1,5 +1,7 @@
 language: python
 
+sudo: false
+
 python:
   - 2.6
   - 2.7
@@ -13,7 +15,7 @@ env:
   - DJANGO="Django>=1.8,<1.9"
 
 install:
-  - pip install -U coverage codecov $DJANGO
+  - pip install -U 'coverage<4' codecov $DJANGO
   - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
 
 script: coverage run setup.py test

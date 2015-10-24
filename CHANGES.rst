@@ -1,6 +1,10 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Add ability to list history in admin when the object instance is deleted. (gh-72)
+
 1.6.3 (2015-07-30)
 ------------------
 - Respect `to_field` and `db_column` parameters (gh-182)

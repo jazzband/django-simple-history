@@ -250,3 +250,13 @@ class AdminSiteTest(WebTest):
         manager.delete()
         response = self.app.get(get_history_url(employee, 0))
         self.assertEqual(response.status_code, 200)
+
+    def test_history_deleted_instance(self):
+        """Ensure history page can be retrieved even for deleted instances"""
+        self.login()
+        employee = Employee.objects.create()
+        employee_pk = employee.pk
+        employee.delete()
+        employee.pk = employee_pk
+        response = self.app.get(get_history_url(employee))
+        self.assertEqual(response.status_code, 200)

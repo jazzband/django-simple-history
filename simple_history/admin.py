@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -56,7 +57,13 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         object_id = unquote(object_id)
         action_list = history.filter(**{pk_name: object_id})
         # If no history was found, see whether this object even exists.
-        obj = get_object_or_404(model, pk=object_id)
+        try:
+            obj = model.objects.get(**{pk_name: object_id})
+        except model.DoesNotExist:
+            try:
+                obj = action_list.latest('history_date').instance
+            except action_list.model.DoesNotExist:
+                raise Http404
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
