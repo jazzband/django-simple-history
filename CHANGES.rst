@@ -4,6 +4,7 @@ Changes
 tip (unreleased)
 ----------------
 - Add ability to list history in admin when the object instance is deleted. (gh-72)
+- Support for custom tables names (gh-196)
 
 1.6.3 (2015-07-30)
 ------------------
