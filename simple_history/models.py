@@ -44,9 +44,10 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name='+'):
+                 user_related_name='+', table_name=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
+        self.table_name = table_name
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -117,9 +118,8 @@ class HistoricalRecords(object):
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
-        history_options = self.get_history_options(model)
-        if 'db_history_table' in history_options:
-            attrs['Meta'].db_table = history_options['db_history_table']
+        if self.table_name is not None:
+            attrs['Meta'].db_table = self.table_name
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
@@ -227,27 +227,6 @@ class HistoricalRecords(object):
                                  smart_text(model._meta.verbose_name))
         meta_fields['verbose_name'] = name
         return meta_fields
-
-    def get_history_options(self, model):
-        """
-        Returns a dictionary of options set to the History inner
-        class of the historical record model.
-        """
-        VALID_OPTIONS = ['db_history_table']
-        if hasattr(model, 'History'):
-            history_options = model.History.__dict__.copy()
-            for key in model.History.__dict__:
-                # Ignore any private attributes that we doesn't care about, like
-                # "__module__" or "__dict__".
-                # NOTE: We can't modify a dictionary's contents while looping
-                # over it, so we loop over the *original* dictionary instead.
-                if key.startswith('_'):
-                    del history_options[key]
-            for option in history_options:
-                if not option in VALID_OPTIONS:
-                    raise TypeError("'class History' got invalid attribute: %s" % (option,))
-            return history_options
-        return {}
 
     def post_save(self, instance, created, **kwargs):
         if not created and hasattr(instance, 'skip_history_when_saving'):

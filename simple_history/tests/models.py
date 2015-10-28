@@ -268,7 +268,10 @@ class City(models.Model):
 class Contact(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)
-    history = HistoricalRecords()
+    history = HistoricalRecords(table_name='contacts_history')
 
-    class History:
-        db_history_table = 'contacts_history'
+class ContactRegister(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+
+register(ContactRegister, table_name='contacts_register_history')
