@@ -17,16 +17,13 @@ from django.utils.timezone import now
 from django.utils.translation import string_concat
 
 try:
-    import importlib
-except ImportError:
-    from django.utils import importlib
-try:
     from django.apps import apps
 except ImportError:  # Django < 1.7
-    from django.db.models.loading import get_app
-    apps = None
-else:
-    get_app = apps.get_app
+    from django.db.models import get_app
+try:
+    import importlib
+except ImportError:  # Python < 2.7
+    from django.utils import importlib
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -103,14 +100,14 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            if apps is None:  # Django < 1.7
-                # has meta options with app_label
-                app = get_app(model._meta.app_label)
-                attrs['__module__'] = app.__name__  # full dotted name
-            else:
+            try:
                 # Abuse an internal API because the app registry is loading.
                 app = apps.app_configs[model._meta.app_label]
-                attrs['__module__'] = app.name      # full dotted name
+            except NameError:  # Django < 1.7
+                models_module = get_app(model._meta.app_label).__name__
+            else:
+                models_module = app.name
+            attrs['__module__'] = models_module
 
         fields = self.copy_fields(model)
         attrs.update(fields)
@@ -130,7 +127,10 @@ class HistoricalRecords(object):
         fields = {}
         for field in model._meta.fields:
             field = copy.copy(field)
-            field.rel = copy.copy(field.rel)
+            try:
+                field.remote_field = copy.copy(field.remote_field)
+            except AttributeError:
+                field.rel = copy.copy(field.rel)
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
@@ -146,7 +146,8 @@ class HistoricalRecords(object):
                     field_arguments['db_constraint'] = False
                 if getattr(old_field, 'to_fields', []):
                     field_arguments['to_field'] = old_field.to_fields[0]
-                elif django.get_version() < "1.6" and old_field.rel.field_name != 'id':
+                elif (django.get_version() < "1.6" and
+                      old_field.rel.field_name != 'id'):
                     field_arguments['to_field'] = old_field.rel.field_name
                 if getattr(old_field, 'db_column', None):
                     field_arguments['db_column'] = old_field.db_column

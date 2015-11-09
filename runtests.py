@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-import sys
-from shutil import rmtree
+import logging
 from os.path import abspath, dirname, join
+from shutil import rmtree
+import sys
+import warnings
 
 import django
 from django.conf import settings
 
-
 sys.path.insert(0, abspath(dirname(__file__)))
-
 
 media_root = join(abspath(dirname(__file__)), 'test_files')
 rmtree(media_root, ignore_errors=True)
@@ -39,6 +39,10 @@ DEFAULT_SETTINGS = dict(
         'django.contrib.auth.middleware.AuthenticationMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
     ],
+    TEMPLATES=[{
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+    }],
 )
 
 if django.VERSION >= (1, 5):
@@ -62,4 +66,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
     main()
