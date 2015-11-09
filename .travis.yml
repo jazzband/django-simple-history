@@ -15,7 +15,8 @@ env:
   - DJANGO="Django>=1.9a,<1.10"
 
 install:
-  - pip install -U 'coverage<4' codecov $DJANGO
+  - pip install -U 'coverage<4' codecov
+  - pip install -U --pre $DJANGO
   - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
 
 script: coverage run setup.py test
