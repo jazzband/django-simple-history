@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
+from django import http
 from django.core.exceptions import PermissionDenied
 from django.conf.urls import patterns, url
-from django.contrib import admin
-from django.contrib.admin import helpers
+from django.contrib.admin import helpers, ModelAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -25,8 +24,10 @@ except AttributeError:  # Django < 1.5
 
 USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 
+SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
-class SimpleHistoryAdmin(admin.ModelAdmin):
+
+class SimpleHistoryAdmin(ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
@@ -63,7 +64,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             try:
                 obj = action_list.latest('history_date').instance
             except action_list.model.DoesNotExist:
-                raise Http404
+                raise http.Http404
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
@@ -82,6 +83,23 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return render(request, template_name=self.object_history_template,
                       dictionary=context, current_app=self.admin_site.name)
 
+    def response_change(self, request, obj):
+        if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
+            verbose_name = obj._meta.verbose_name
+
+            msg = _('The %(name)s "%(obj)s" was changed successfully.') % {
+                'name': force_text(verbose_name),
+                'obj': force_text(obj)
+            }
+
+            self.message_user(
+                request, "%s - %s" % (msg, _("You may edit it again below")))
+
+            return http.HttpResponseRedirect(request.path)
+        else:
+            return super(SimpleHistoryAdmin, self).response_change(
+                request, obj)
+
     def history_form_view(self, request, object_id, version_id):
         original_opts = self.model._meta
         model = getattr(
@@ -95,6 +113,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
+
+        if SIMPLE_HISTORY_EDIT:
+            change_history = True
+        else:
+            change_history = False
+
+        if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
+            obj = obj.history.get(pk=version_id)
 
         formsets = []
         form_class = self.get_form(request, obj)
@@ -141,6 +167,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                                   args=(obj.pk,)),
             'history_url': reverse('%s:%s_%s_history' % url_triplet,
                                    args=(obj.pk,)),
+            'change_history': change_history,
+
             # Context variables copied from render_change_form
             'add': False,
             'change': True,

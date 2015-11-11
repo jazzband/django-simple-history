@@ -4,6 +4,7 @@ Changes
 tip (unreleased)
 ----------------
 - Add ability to list history in admin when the object instance is deleted. (gh-72)
+- Add ability to change history through the admin. (Enabled with the `SIMPLE_HISTORY_EDIT` setting.)
 
 1.6.3 (2015-07-30)
 ------------------

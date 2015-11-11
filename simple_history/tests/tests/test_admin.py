@@ -1,10 +1,16 @@
 from datetime import datetime, timedelta
 
+from mock import patch, MagicMock, PropertyMock, ANY
 from django_webtest import WebTest
+from django.contrib.admin import AdminSite
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
+from django.test.client import RequestFactory
 from django import VERSION
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.utils.encoding import force_text
 
 try:
     from django.contrib.auth import get_user_model
@@ -17,6 +23,7 @@ except ImportError:  # Django < 1.7
     from django.contrib.admin.util import quote
 
 from simple_history.models import HistoricalRecords
+from simple_history.admin import SimpleHistoryAdmin
 from ..models import Book, Person, Poll, State, Employee
 
 
@@ -241,7 +248,9 @@ class AdminSiteTest(WebTest):
         self.assertEqual(historical_poll.history_user, None)
 
     def test_missing_one_to_one(self):
-        """A relation to a missing one-to-one model should still show history"""
+        """
+        A relation to a missing one-to-one model should still show history
+        """
         self.login()
         manager = Employee.objects.create()
         employee = Employee.objects.create(manager=manager)
@@ -260,3 +269,240 @@ class AdminSiteTest(WebTest):
         employee.pk = employee_pk
         response = self.app.get(get_history_url(employee))
         self.assertEqual(response.status_code, 200)
+
+    def test_response_change(self):
+        """
+        Test the response_change method that it works with a _change_history
+        in the POST and settings.SIMPLE_HISTORY_EDIT set to True
+        """
+        request = RequestFactory().post('/')
+        request.POST = {'_change_history': True}
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.path = '/awesome/url/'
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
+            response = admin.response_change(request, poll)
+
+        self.assertEqual(response['Location'], '/awesome/url/')
+
+    def test_response_change_change_history_setting_off(self):
+        """
+        Test the response_change method that it works with a _change_history
+        in the POST and settings.SIMPLE_HISTORY_EDIT set to False
+        """
+        request = RequestFactory().post('/')
+        request.POST = {'_change_history': True}
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.path = '/awesome/url/'
+        request.user = self.user
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        response = admin.response_change(request, poll)
+
+        with patch(
+                'simple_history.admin.ModelAdmin.response_change') as m_admin:
+            m_admin.return_value = 'it was called'
+            response = admin.response_change(request, poll)
+
+        self.assertEqual(response, 'it was called')
+
+    def test_response_change_no_change_history(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch(
+                'simple_history.admin.ModelAdmin.response_change') as m_admin:
+            m_admin.return_value = 'it was called'
+            response = admin.response_change(request, poll)
+
+        self.assertEqual(response, 'it was called')
+
+    def test_history_form_view_without_getting_history(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            admin.history_form_view(request, poll.id, history.pk)
+
+        context = {
+            # Verify this is set for original object
+            'original': poll,
+            'change_history': False,
+
+            'title': 'Revert %s' % force_text(poll),
+            'adminform': ANY,
+            'object_id': poll.id,
+            'is_popup': False,
+            'media': ANY,
+            'errors': ANY,
+            'app_label': 'tests',
+            'original_opts': ANY,
+            'changelist_url': '/admin/tests/poll/',
+            'change_url': '/admin/tests/poll/1/',
+            'history_url': '/admin/tests/poll/1/history/',
+            'add': False,
+            'change': True,
+            'has_add_permission': admin.has_add_permission(request),
+            'has_change_permission': admin.has_change_permission(
+                request, poll),
+            'has_delete_permission': admin.has_delete_permission(
+                request, poll),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'form_url': '',
+            'opts': ANY,
+            'content_type_id': ANY,
+            'save_as': admin.save_as,
+            'save_on_top': admin.save_on_top,
+            'root_path': getattr(admin_site, 'root_path', None),
+        }
+
+        mock_render.assert_called_once_with(
+            request, template_name=admin.object_history_form_template,
+            dictionary=context, current_app=admin_site.name)
+
+    def test_history_form_view_getting_history(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+        request.POST = {'_change_history': True}
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
+                admin.history_form_view(request, poll.id, history.pk)
+
+        context = {
+            # Verify this is set for history object not poll object
+            'original': history,
+            'change_history': True,
+
+            'title': 'Revert %s' % force_text(history),
+            'adminform': ANY,
+            'object_id': poll.id,
+            'is_popup': False,
+            'media': ANY,
+            'errors': ANY,
+            'app_label': 'tests',
+            'original_opts': ANY,
+            'changelist_url': '/admin/tests/poll/',
+            'change_url': '/admin/tests/poll/2/',
+            'history_url': '/admin/tests/poll/2/history/',
+            'add': False,
+            'change': True,
+            'has_add_permission': admin.has_add_permission(request),
+            'has_change_permission': admin.has_change_permission(
+                request, poll),
+            'has_delete_permission': admin.has_delete_permission(
+                request, poll),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'form_url': '',
+            'opts': ANY,
+            'content_type_id': ANY,
+            'save_as': admin.save_as,
+            'save_on_top': admin.save_on_top,
+            'root_path': getattr(admin_site, 'root_path', None),
+        }
+
+        mock_render.assert_called_once_with(
+            request, template_name=admin.object_history_form_template,
+            dictionary=context, current_app=admin_site.name)
+
+    def test_history_form_view_getting_history_with_setting_off(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+        request.POST = {'_change_history': True}
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', False):
+                admin.history_form_view(request, poll.id, history.pk)
+
+        context = {
+            # Verify this is set for history object not poll object
+            'original': poll,
+            'change_history': False,
+
+            'title': 'Revert %s' % force_text(poll),
+            'adminform': ANY,
+            'object_id': poll.id,
+            'is_popup': False,
+            'media': ANY,
+            'errors': ANY,
+            'app_label': 'tests',
+            'original_opts': ANY,
+            'changelist_url': '/admin/tests/poll/',
+            'change_url': '/admin/tests/poll/1/',
+            'history_url': '/admin/tests/poll/1/history/',
+            'add': False,
+            'change': True,
+            'has_add_permission': admin.has_add_permission(request),
+            'has_change_permission': admin.has_change_permission(
+                request, poll),
+            'has_delete_permission': admin.has_delete_permission(
+                request, poll),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'form_url': '',
+            'opts': ANY,
+            'content_type_id': ANY,
+            'save_as': admin.save_as,
+            'save_on_top': admin.save_on_top,
+            'root_path': getattr(admin_site, 'root_path', None),
+        }
+
+        mock_render.assert_called_once_with(
+            request, template_name=admin.object_history_form_template,
+            dictionary=context, current_app=admin_site.name)

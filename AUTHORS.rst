@@ -3,6 +3,7 @@ Authors
 
 - Aleksey Kladov
 - bradford281
+- Buddy Lindsey, Jr.
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay
