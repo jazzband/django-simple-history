@@ -1,5 +1,6 @@
 *.pyc
 dist/
+.eggs
 *.egg
 *.egg-info/
 build/
@@ -12,3 +13,5 @@ test_files/
 /.ve
 /.project
 /.pydevproject
+# Pycharm project
+.idea

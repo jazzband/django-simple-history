@@ -10,6 +10,8 @@ Authors
 - Daniel Levy
 - Daniel Roschka
 - David Hite
+- Edgar Gabaldi @edgabaldi
+- Fabio C. Barrionuevo da Luz @luzfcb
 - George Vilches
 - Hamish Downer
 - James Pulec
