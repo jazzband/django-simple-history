@@ -429,7 +429,7 @@ class AdminSiteTest(WebTest):
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
             'change_url': ANY,
-            'history_url': '/admin/tests/poll/{}/history/'.format(poll.pk),
+            'history_url': '/admin/tests/poll/{pk}/history/'.format(pk=poll.pk),
             'add': False,
             'change': True,
             'has_add_permission': admin.has_add_permission(request),
