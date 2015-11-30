@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 
-from mock import patch, MagicMock, PropertyMock, ANY
+from mock import patch, ANY
 from django_webtest import WebTest
 from django.contrib.admin import AdminSite
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
@@ -248,9 +247,8 @@ class AdminSiteTest(WebTest):
         self.assertEqual(historical_poll.history_user, None)
 
     def test_missing_one_to_one(self):
-        """
-        A relation to a missing one-to-one model should still show history
-        """
+        """A relation to a missing one-to-one model should still show
+        history"""
         self.login()
         manager = Employee.objects.create()
         employee = Employee.objects.create(manager=manager)
@@ -315,7 +313,8 @@ class AdminSiteTest(WebTest):
         response = admin.response_change(request, poll)
 
         with patch(
-                'simple_history.admin.ModelAdmin.response_change') as m_admin:
+            'simple_history.admin.admin.ModelAdmin.response_change'
+        ) as m_admin:
             m_admin.return_value = 'it was called'
             response = admin.response_change(request, poll)
 
@@ -335,7 +334,8 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         with patch(
-                'simple_history.admin.ModelAdmin.response_change') as m_admin:
+            'simple_history.admin.admin.ModelAdmin.response_change'
+        ) as m_admin:
             m_admin.return_value = 'it was called'
             response = admin.response_change(request, poll)
 
@@ -372,7 +372,7 @@ class AdminSiteTest(WebTest):
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
-            'change_url': '/admin/tests/poll/1/',
+            'change_url': ANY,
             'history_url': '/admin/tests/poll/1/history/',
             'add': False,
             'change': True,
@@ -416,10 +416,10 @@ class AdminSiteTest(WebTest):
 
         context = {
             # Verify this is set for history object not poll object
-            'original': history,
+            'original': history.instance,
             'change_history': True,
 
-            'title': 'Revert %s' % force_text(history),
+            'title': 'Revert %s' % force_text(history.instance),
             'adminform': ANY,
             'object_id': poll.id,
             'is_popup': False,
@@ -428,8 +428,8 @@ class AdminSiteTest(WebTest):
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
-            'change_url': '/admin/tests/poll/2/',
-            'history_url': '/admin/tests/poll/2/history/',
+            'change_url': ANY,
+            'history_url': '/admin/tests/poll/{pk}/history/'.format(pk=poll.pk),
             'add': False,
             'change': True,
             'has_add_permission': admin.has_add_permission(request),
@@ -484,7 +484,7 @@ class AdminSiteTest(WebTest):
             'app_label': 'tests',
             'original_opts': ANY,
             'changelist_url': '/admin/tests/poll/',
-            'change_url': '/admin/tests/poll/1/',
+            'change_url': ANY,
             'history_url': '/admin/tests/poll/1/history/',
             'add': False,
             'change': True,

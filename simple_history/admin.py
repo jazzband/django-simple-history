@@ -2,8 +2,9 @@ from __future__ import unicode_literals
 
 from django import http
 from django.core.exceptions import PermissionDenied
-from django.conf.urls import patterns, url
-from django.contrib.admin import helpers, ModelAdmin
+from django.conf.urls import url
+from django.contrib import admin
+from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
@@ -27,7 +28,7 @@ USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
 SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
 
-class SimpleHistoryAdmin(ModelAdmin):
+class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
@@ -40,16 +41,16 @@ class SimpleHistoryAdmin(ModelAdmin):
             info = opts.app_label, opts.model_name
         except AttributeError:  # Django < 1.7
             info = opts.app_label, opts.module_name
-        history_urls = patterns(
-            "",
+        history_urls = [
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history' % info),
-        )
+        ]
         return history_urls + urls
 
     def history_view(self, request, object_id, extra_context=None):
-        "The 'history' admin view for this model."
+        """The 'history' admin view for this model."""
+        request.current_app = self.admin_site.name
         model = self.model
         opts = model._meta
         app_label = opts.app_label
@@ -81,7 +82,7 @@ class SimpleHistoryAdmin(ModelAdmin):
         }
         context.update(extra_context or {})
         return render(request, template_name=self.object_history_template,
-                      dictionary=context, current_app=self.admin_site.name)
+                      dictionary=context, current_app=request.current_app)
 
     def response_change(self, request, obj):
         if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
@@ -101,6 +102,7 @@ class SimpleHistoryAdmin(ModelAdmin):
                 request, obj)
 
     def history_form_view(self, request, object_id, version_id):
+        request.current_app = self.admin_site.name
         original_opts = self.model._meta
         model = getattr(
             self.model,
@@ -120,7 +122,7 @@ class SimpleHistoryAdmin(ModelAdmin):
             change_history = False
 
         if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
-            obj = obj.history.get(pk=version_id)
+            obj = obj.history.get(pk=version_id).instance
 
         formsets = []
         form_class = self.get_form(request, obj)
@@ -186,7 +188,7 @@ class SimpleHistoryAdmin(ModelAdmin):
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
         return render(request, template_name=self.object_history_form_template,
-                      dictionary=context, current_app=self.admin_site.name)
+                      dictionary=context, current_app=request.current_app)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""

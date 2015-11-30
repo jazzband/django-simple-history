@@ -8,6 +8,7 @@ charset = utf-8
 indent_style = space
 end_of_line = lf
 insert_final_newline = true
+max_line_length = 79
 trim_trailing_whitespace = true
 
 [*.{py,rst,ini}]

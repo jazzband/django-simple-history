@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
 import unittest
+import warnings
 
 import django
 from django.db import models
-from django.db.models.loading import get_model
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 from django.core.files.base import ContentFile
@@ -23,6 +23,12 @@ from ..models import (
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    from django.db.models import get_model
+else:
+    get_model = apps.get_model
 try:
     from unittest import skipUnless
 except ImportError:
@@ -271,7 +277,8 @@ class HistoricalRecordsTest(TestCase):
         country = Country.objects.create(code='US')
         city = City.objects.create(country=country)
         country_field = City._meta.get_field('country')
-        self.assertTrue(getattr(country_field, 'db_column') in str(city.history.all().query))
+        self.assertIn(getattr(country_field, 'db_column'),
+                      str(city.history.all().query))
 
     def test_raw_save(self):
         document = Document()
@@ -340,7 +347,8 @@ class RegisterTest(TestCase):
         voter = Voter.objects.create(choice=choice, user=user)
         self.assertEqual(len(voter.history.all()), 1)
         expected = 'Voter object changed by None as of '
-        self.assertEqual(expected, str(voter.history.all()[0])[:len(expected)])
+        self.assertEqual(expected,
+                         str(voter.history.all()[0])[:len(expected)])
 
 
 class CreateHistoryModelTests(unittest.TestCase):
@@ -506,7 +514,7 @@ class HistoryManagerTest(TestCase):
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
     def test_import_related(self):
-        field_object = HistoricalChoice._meta.get_field_by_name('poll')[0]
+        field_object = HistoricalChoice._meta.get_field('poll')
         try:
             related_model = field_object.rel.related_model
         except AttributeError:  # Django<1.8
@@ -514,7 +522,7 @@ class HistoryManagerTest(TestCase):
         self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
-        field_object = HistoricalState._meta.get_field_by_name('library')[0]
+        field_object = HistoricalState._meta.get_field('library')
         try:
             related_model = field_object.rel.related_model
         except AttributeError:  # Django<1.8
@@ -541,9 +549,13 @@ class TestConvertAutoField(TestCase):
 
         Default Django ORM uses an integer-based auto field.
         """
-        with self.settings(DATABASES={'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
-            assert convert_auto_field(self.field) == models.IntegerField
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning,
+                                    message='Overriding setting DATABASES ' +
+                                            'can lead to unexpected behavior.')
+            with self.settings(DATABASES={'default': {
+                    'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
+                assert convert_auto_field(self.field) == models.IntegerField
 
     def test_non_relational(self):
         """Non-relational test
@@ -551,9 +563,14 @@ class TestConvertAutoField(TestCase):
         MongoDB uses a string-based auto field. We need to make sure
         the converted field type is string.
         """
-        with self.settings(DATABASES={'default': {
-                'ENGINE': 'django_mongodb_engine'}}):
-            assert convert_auto_field(self.field) == models.TextField
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning,
+                                    message='Overriding setting DATABASES ' +
+                                            'can lead to unexpected behavior.')
+            with self.settings(DATABASES={'default': {
+                    'ENGINE': 'django_mongodb_engine'}}):
+                assert convert_auto_field(self.field) == models.TextField
 
 
 class TestOrderWrtField(TestCase):
@@ -593,7 +610,7 @@ class TestOrderWrtField(TestCase):
             self.w_horse.pk,
             self.w_nephew.pk,
             self.w_battle.pk]
-        self.assertEqual(order, expected)
+        self.assertSequenceEqual(order, expected)
         self.assertEqual(0, self.w_lion._order)
         self.assertEqual(1, self.w_caspian._order)
         self.assertEqual(2, self.w_voyage._order)
@@ -603,11 +620,11 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(6, self.w_battle._order)
 
     def test_order_field_in_historical_model(self):
-        work_order_field = self.w_lion._meta.get_field_by_name('_order')[0]
+        work_order_field = self.w_lion._meta.get_field('_order')
         self.assertEqual(type(work_order_field), OrderWrt)
 
         history = self.w_lion.history.all()[0]
-        history_order_field = history._meta.get_field_by_name('_order')[0]
+        history_order_field = history._meta.get_field('_order')
         self.assertEqual(type(history_order_field), models.IntegerField)
 
     def test_history_object_has_order(self):
@@ -631,7 +648,8 @@ class TestOrderWrtField(TestCase):
             self.w_chair.pk,
             self.w_battle.pk]
         self.series.set_serieswork_order(chronological)
-        self.assertEqual(self.series.get_serieswork_order(), chronological)
+        self.assertSequenceEqual(self.series.get_serieswork_order(),
+                                 chronological)
 
         # This uses an update, not a save, so no new history is created
         w_caspian = SeriesWork.objects.get(id=self.w_caspian.id)
@@ -720,7 +738,8 @@ class TestUserAccessor(unittest.TestCase):
         assert not hasattr(User, 'historicaluseraccessordefault_set')
 
     def test_accessor_override(self):
-        register(UserAccessorOverride, user_related_name='my_history_model_accessor')
+        register(UserAccessorOverride,
+                 user_related_name='my_history_model_accessor')
         assert hasattr(User, 'my_history_model_accessor')
 
 
