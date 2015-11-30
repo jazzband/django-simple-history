@@ -158,3 +158,29 @@ To change the auto-generated HistoricalRecord models base class from
         pub_date = models.DateTimeField('date published')
         changed_by = models.ForeignKey('auth.User')
         history = HistoricalRecords(bases=[RoutableModel])
+
+Custom history table name
+-------------------------
+
+By default, the table name for historical models follow the Django convention
+and just add ``historical`` before model name. For instance, if your application
+name is ``polls`` and your model name ``Question``, then the table name will be
+``polls_historicalquestion``.
+
+You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
+``register()`` to change this behavior.
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        history = HistoricalRecords(table_name='polls_question_history')
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+    register(Question, table_name='polls_question_history')

@@ -16,6 +16,7 @@ Authors
 - Joao Pedro Francese
 - jofusa
 - John Whitlock
+- Jonathan Leroy
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven

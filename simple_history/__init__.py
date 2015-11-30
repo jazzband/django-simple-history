@@ -5,7 +5,7 @@ __version__ = '1.6.3'
 
 def register(
         model, app=None, manager_name='history', records_class=None,
-        **records_config):
+        table_name=None, **records_config):
     """
     Create historical model for `model` and attach history manager to `model`.
 
@@ -14,6 +14,8 @@ def register(
     manager_name -- class attribute name to use for historical manager
     records_class -- class to use for history relation (defaults to
         HistoricalRecords)
+    table_name -- Custom name for history table (defaults to
+        'APPNAME_historicalMODELNAME')
 
     This method should be used as an alternative to attaching an
     `HistoricalManager` instance directly to `model`.
@@ -24,6 +26,7 @@ def register(
             records_class = models.HistoricalRecords
         records = records_class(**records_config)
         records.manager_name = manager_name
+        records.table_name = table_name
         records.module = app and ("%s.models" % app) or model.__module__
         records.add_extra_methods(model)
         records.finalize(model)

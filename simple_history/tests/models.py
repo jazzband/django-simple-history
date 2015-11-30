@@ -264,3 +264,16 @@ class Province(models.Model):
 class City(models.Model):
     country = models.ForeignKey(Country, db_column='countryCode')
     history = HistoricalRecords()
+
+
+class Contact(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+    history = HistoricalRecords(table_name='contacts_history')
+
+
+class ContactRegister(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+
+register(ContactRegister, table_name='contacts_register_history')

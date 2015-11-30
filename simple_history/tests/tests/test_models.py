@@ -19,7 +19,7 @@ from ..models import (
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
     UserAccessorDefault, UserAccessorOverride, Employee, Country, Province,
-    City
+    City, Contact, ContactRegister
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -764,3 +764,22 @@ class TestMissingOneToOne(TestCase):
         self.assertEqual(original.manager_id, 1)
         with self.assertRaises(Employee.DoesNotExist):
             original.manager
+
+
+class CustomTableNameTest1(TestCase):
+
+    @staticmethod
+    def get_table_name(manager):
+        return manager.model._meta.db_table
+
+    def test_custom_table_name(self):
+        self.assertEqual(
+            self.get_table_name(Contact.history),
+            'contacts_history',
+        )
+
+    def test_custom_table_name_from_register(self):
+        self.assertEqual(
+            self.get_table_name(ContactRegister.history),
+            'contacts_register_history',
+        )
