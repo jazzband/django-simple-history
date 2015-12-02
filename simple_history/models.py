@@ -17,13 +17,19 @@ from django.utils.timezone import now
 from django.utils.translation import string_concat
 
 try:
+    import importlib
+except ImportError:
+    from django.utils import importlib
+try:
     from django.apps import apps
 except ImportError:  # Django < 1.7
-    from django.db.models import get_app
-try:
-    import importlib
-except ImportError:  # Python < 2.7
-    from django.utils import importlib
+    from django.db.models.loading import get_app
+    apps = None
+else:
+    try:
+        get_app = apps.get_app
+    except AttributeError: # For Django >= 1.9
+        get_app = lambda app_label: apps.get_app_config(app_label).models_module
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -41,10 +47,9 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name='+', table_name=None):
+                 user_related_name='+'):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
-        self.table_name = table_name
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -101,22 +106,20 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            try:
+            if apps is None:  # Django < 1.7
+                # has meta options with app_label
+                app = get_app(model._meta.app_label)
+                attrs['__module__'] = app.__name__  # full dotted name
+            else:
                 # Abuse an internal API because the app registry is loading.
                 app = apps.app_configs[model._meta.app_label]
-            except NameError:  # Django < 1.7
-                models_module = get_app(model._meta.app_label).__name__
-            else:
-                models_module = app.name
-            attrs['__module__'] = models_module
+                attrs['__module__'] = app.name      # full dotted name
 
         fields = self.copy_fields(model)
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
-        if self.table_name is not None:
-            attrs['Meta'].db_table = self.table_name
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
@@ -130,10 +133,10 @@ class HistoricalRecords(object):
         fields = {}
         for field in model._meta.fields:
             field = copy.copy(field)
-            try:
-                field.remote_field = copy.copy(field.remote_field)
-            except AttributeError:
+            if django.get_version() < "1.9":
                 field.rel = copy.copy(field.rel)
+            else:
+                field.remote_field = copy.copy(field.remote_field)
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
@@ -149,23 +152,36 @@ class HistoricalRecords(object):
                     field_arguments['db_constraint'] = False
                 if getattr(old_field, 'to_fields', []):
                     field_arguments['to_field'] = old_field.to_fields[0]
-                elif (django.get_version() < "1.6" and
-                      old_field.rel.field_name != 'id'):
+                elif django.get_version() < "1.6" and old_field.rel.field_name != 'id':
                     field_arguments['to_field'] = old_field.rel.field_name
                 if getattr(old_field, 'db_column', None):
                     field_arguments['db_column'] = old_field.db_column
-                field = FieldType(
-                    old_field.rel.to,
-                    related_name='+',
-                    null=True,
-                    blank=True,
-                    primary_key=False,
-                    db_index=True,
-                    serialize=True,
-                    unique=False,
-                    on_delete=models.DO_NOTHING,
-                    **field_arguments
-                )
+                if django.get_version() < "1.9":
+                    field = FieldType(
+                        old_field.rel.to,
+                        related_name='+',
+                        null=True,
+                        blank=True,
+                        primary_key=False,
+                        db_index=True,
+                        serialize=True,
+                        unique=False,
+                        on_delete=models.DO_NOTHING,
+                        **field_arguments
+                    )
+                else:
+                    field = FieldType(
+                        old_field.remote_field.to,
+                        related_name='+',
+                        null=True,
+                        blank=True,
+                        primary_key=False,
+                        db_index=True,
+                        serialize=True,
+                        unique=False,
+                        on_delete=models.DO_NOTHING,
+                        **field_arguments
+                    )
                 field.name = old_field.name
             else:
                 transform_field(field)
@@ -277,19 +293,29 @@ class CustomForeignKeyField(models.ForeignKey):
         # HACK This creates a new custom foreign key based on to_field,
         # and calls itself with that, effectively making the calls
         # recursive
-        temp_field = self.__class__(to_field.rel.to._meta.object_name)
+        try:
+            temp_field = self.__class__(to_field.rel.to._meta.object_name)
+        except:
+            temp_field = self.__class__(to_field.remote_field.to._meta.object_name)
         for key, val in to_field.__dict__.items():
             if (isinstance(key, six.string_types)
                     and not key.startswith('_')):
                 setattr(temp_field, key, val)
-        field = self.__class__.get_field(
-            temp_field, other, to_field.rel.to)
+        try:
+            field = self.__class__.get_field(
+                temp_field, other, to_field.rel.to)
+        except:
+            field = self.__class__.get_field(
+                temp_field, other, to_field.remote_field.to)
         return field
 
     def get_field(self, other, cls):
         # this hooks into contribute_to_class() and this is
         # called specifically after the class_prepared signal
-        to_field = copy.copy(self.rel.to._meta.pk)
+        try:
+            to_field = copy.copy(self.rel.to._meta.pk)
+        except:
+            to_field = copy.copy(self.remote_field.to._meta.pk)
         field = self
         if isinstance(to_field, models.OneToOneField):
             field = self.get_one_to_one_field(to_field, other)
@@ -329,7 +355,10 @@ class CustomForeignKeyField(models.ForeignKey):
     def do_related_class(self, other, cls):
         field = self.get_field(other, cls)
         transform_field(field)
-        field.rel = None
+        if django.get_version() < "1.9":
+            field.rel = None
+        else:
+            field.remote_field = None
 
     def contribute_to_class(self, cls, name):
         # HACK: remove annoying descriptor (don't super())
