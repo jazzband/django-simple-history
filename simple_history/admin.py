@@ -19,7 +19,8 @@ try:
 except ImportError:  # Django < 1.7
     from django.contrib.admin.util import unquote
 
-USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
+USER_NATURAL_KEY = tuple(
+    key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
