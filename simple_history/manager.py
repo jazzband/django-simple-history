@@ -20,10 +20,7 @@ class HistoryManager(models.Manager):
         self.instance = instance
 
     def get_super_queryset(self):
-        try:
-            return super(HistoryManager, self).get_queryset()
-        except AttributeError:  # Django < 1.6
-            return super(HistoryManager, self).get_query_set()
+        return super(HistoryManager, self).get_queryset()
 
     def get_queryset(self):
         qs = self.get_super_queryset()
