@@ -179,8 +179,10 @@ class HistoricalRecords(object):
                     [getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
-            return model(**dict([(field.attname, getattr(self, field.attname))
-                                for field in fields.values()]))
+            return model(**{
+                field.attname: getattr(self, field.attname)
+                for field in fields.values()
+            })
 
         return {
             'history_id': models.AutoField(primary_key=True),
