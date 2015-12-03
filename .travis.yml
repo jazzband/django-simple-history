@@ -17,7 +17,7 @@ env:
 install:
   - pip install -U coverage codecov
   - pip install -U $DJANGO
-  - python -c 'from __future__ import print_function; import django; print("Django " + django.get_version())'
+  - pip freeze
 
 script: coverage run setup.py test
 
