@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.7.0 (2015-12-02)
+------------------
 - Add ability to list history in admin when the object instance is deleted. (gh-72)
 - Add ability to change history through the admin. (Enabled with the `SIMPLE_HISTORY_EDIT` setting.)
 - Add Django 1.9 support.
