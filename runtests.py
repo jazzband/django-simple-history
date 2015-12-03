@@ -3,7 +3,6 @@ import logging
 from os.path import abspath, dirname, join
 from shutil import rmtree
 import sys
-import warnings
 
 import django
 from django.conf import settings
@@ -14,17 +13,21 @@ media_root = join(abspath(dirname(__file__)), 'test_files')
 rmtree(media_root, ignore_errors=True)
 
 installed_apps = [
+    'simple_history.tests',
+    'simple_history.tests.custom_user',
+    'simple_history.tests.external',
+    'simple_history.tests.migration_test_app',
+
+    'simple_history',
+
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.admin',
-    'simple_history',
-    'simple_history.tests',
-    'simple_history.tests.external',
-    'simple_history.tests.migration_test_app',
 ]
 
 DEFAULT_SETTINGS = dict(
+    AUTH_USER_MODEL='custom_user.CustomUser',
     ROOT_URLCONF='simple_history.tests.urls',
     MEDIA_ROOT=media_root,
     STATIC_URL='/static/',
@@ -45,9 +48,6 @@ DEFAULT_SETTINGS = dict(
     }],
 )
 
-if django.VERSION >= (1, 5):
-    installed_apps.append('simple_history.tests.custom_user')
-    DEFAULT_SETTINGS['AUTH_USER_MODEL'] = 'custom_user.CustomUser'
 
 def main():
     if not settings.configured:

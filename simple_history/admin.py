@@ -34,10 +34,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         urls = super(SimpleHistoryAdmin, self).get_urls()
         admin_site = self.admin_site
         opts = self.model._meta
-        try:
-            info = opts.app_label, opts.model_name
-        except AttributeError:  # Django < 1.7
-            info = opts.app_label, opts.module_name
+        info = opts.app_label, opts.model_name
         history_urls = [
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
@@ -146,10 +143,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             model_admin=self,
         )
 
-        try:
-            model_name = original_opts.model_name
-        except AttributeError:  # Django < 1.7
-            model_name = original_opts.module_name
+        model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
             'title': _('Revert %s') % force_text(obj),

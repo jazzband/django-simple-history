@@ -31,10 +31,7 @@ tomorrow = today + timedelta(days=1)
 
 
 def get_history_url(obj, history_index=None, site="admin"):
-    try:
-        app, model = obj._meta.app_label, obj._meta.module_name
-    except AttributeError:
-        app, model = obj._meta.app_label, obj._meta.model_name
+    app, model = obj._meta.app_label, obj._meta.model_name
     if history_index is not None:
         history = obj.history.order_by('history_id')[history_index]
         return reverse(
@@ -67,12 +64,8 @@ class AdminSiteTest(WebTest):
         return form.submit()
 
     def test_history_list(self):
-        if VERSION >= (1, 5):
-            try:
-                module_name = self.user._meta.module_name
-            except AttributeError:
-                module_name = self.user._meta.model_name
-            self.assertEqual(module_name, 'customuser')
+        model_name = self.user._meta.model_name
+        self.assertEqual(model_name, 'customuser')
         self.login()
         poll = Poll(question="why?", pub_date=today)
         poll._history_user = self.user

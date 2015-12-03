@@ -170,10 +170,7 @@ class HistoricalRecords(object):
         def revert_url(self):
             """URL for this change in the default admin site."""
             opts = model._meta
-            try:
-                app_label, model_name = opts.app_label, opts.model_name
-            except AttributeError:  # Django < 1.7
-                app_label, model_name = opts.app_label, opts.module_name
+            app_label, model_name = opts.app_label, opts.model_name
             return ('%s:%s_%s_simple_history' %
                     (admin.site.name, app_label, model_name),
                     [getattr(self, opts.pk.attname), self.history_id])
