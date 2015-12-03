@@ -18,12 +18,9 @@ try:
     from django.contrib.admin.utils import unquote
 except ImportError:  # Django < 1.7
     from django.contrib.admin.util import unquote
-try:
-    USER_NATURAL_KEY = settings.AUTH_USER_MODEL
-except AttributeError:  # Django < 1.5
-    USER_NATURAL_KEY = "auth.User"
 
-USER_NATURAL_KEY = tuple(key.lower() for key in USER_NATURAL_KEY.split('.', 1))
+USER_NATURAL_KEY = tuple(
+    key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, 'SIMPLE_HISTORY_EDIT', False)
 
@@ -37,10 +34,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         urls = super(SimpleHistoryAdmin, self).get_urls()
         admin_site = self.admin_site
         opts = self.model._meta
-        try:
-            info = opts.app_label, opts.model_name
-        except AttributeError:  # Django < 1.7
-            info = opts.app_label, opts.module_name
+        info = opts.app_label, opts.model_name
         history_urls = [
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
@@ -149,10 +143,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             model_admin=self,
         )
 
-        try:
-            model_name = original_opts.model_name
-        except AttributeError:  # Django < 1.7
-            model_name = original_opts.module_name
+        model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
             'title': _('Revert %s') % force_text(obj),
