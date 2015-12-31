@@ -10,8 +10,8 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
+from simple_history import exceptions, register
 from simple_history.models import HistoricalRecords, convert_auto_field
-from simple_history import register
 from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Voter, Restaurant,
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
@@ -332,12 +332,8 @@ class RegisterTest(TestCase):
         self.assertEqual(len(user.histories.all()), 1)
 
     def test_reregister(self):
-        register(Restaurant, manager_name='again')
-        register(User, manager_name='again')
-        self.assertTrue(hasattr(Restaurant, 'updates'))
-        self.assertFalse(hasattr(Restaurant, 'again'))
-        self.assertTrue(hasattr(User, 'histories'))
-        self.assertFalse(hasattr(User, 'again'))
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            register(Restaurant, manager_name='again')
 
     def test_register_custome_records(self):
         self.assertEqual(len(Voter.history.all()), 0)

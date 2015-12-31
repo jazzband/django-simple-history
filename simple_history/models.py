@@ -26,6 +26,7 @@ else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 
+from . import exceptions
 from .manager import HistoryDescriptor
 
 registered_models = {}
@@ -75,10 +76,15 @@ class HistoricalRecords(object):
         except AttributeError:  # called via `register`
             pass
         else:
-            if not hint_class is sender:  # set in concrete
+            if hint_class is not sender:  # set in concrete
                 if not (hint_class._meta.abstract
                         and issubclass(sender, hint_class)):  # set in abstract
                     return
+        if hasattr(sender._meta, 'simple_history_manager_attribute'):
+            raise exceptions.MultipleRegistrationsError('{}.{} registered multiple times for history tracking.'.format(
+                sender._meta.app_label,
+                sender._meta.object_name,
+            ))
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
