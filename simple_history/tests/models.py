@@ -286,14 +286,14 @@ register(ContactRegister, table_name='contacts_register_history')
 ###############################################################################
 
 class TrackedAbstractBaseA(models.Model):
-    history = HistoricalRecords()
+    history = HistoricalRecords(inherit=True)
 
     class Meta:
         abstract = True
 
 
 class TrackedAbstractBaseB(models.Model):
-    history_b = HistoricalRecords()
+    history_b = HistoricalRecords(inherit=True)
 
     class Meta:
         abstract = True
@@ -306,7 +306,7 @@ class UntrackedAbstractBase(models.Model):
 
 
 class TrackedConcreteBase(models.Model):
-    history = HistoricalRecords()
+    history = HistoricalRecords(inherit=True)
 
 
 class UntrackedConcreteBase(models.Model):

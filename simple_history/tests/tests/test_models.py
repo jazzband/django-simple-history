@@ -789,13 +789,19 @@ class TestTrackingInheritance(TestCase):
         class TrackedWithAbstractBase(TrackedAbstractBaseA):
             pass
 
-        TrackedWithAbstractBase.history.all()
+        self.assertEqual(
+            [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields],
+            ['id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
 
     def test_tracked_concrete_base(self):
         class TrackedWithConcreteBase(TrackedConcreteBase):
             pass
 
-        TrackedWithConcreteBase.history.all()
+        self.assertEqual(
+            [f.attname for f in TrackedWithConcreteBase.history.model._meta.fields],
+            ['id', 'trackedconcretebase_ptr_id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
 
     def test_multiple_tracked_bases(self):
         with self.assertRaises(exceptions.MultipleRegistrationsError):
@@ -806,7 +812,10 @@ class TestTrackingInheritance(TestCase):
         class TrackedWithTrackedAbstractAndUntrackedConcreteBase(TrackedAbstractBaseA, UntrackedConcreteBase):
             pass
 
-        TrackedWithTrackedAbstractAndUntrackedConcreteBase.history.all()
+        self.assertEqual(
+            [f.attname for f in TrackedWithTrackedAbstractAndUntrackedConcreteBase.history.model._meta.fields],
+            ['id', 'untrackedconcretebase_ptr_id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
 
     def test_indirect_tracked_abstract_base(self):
         class BaseTrackedWithIndirectTrackedAbstractBase(TrackedAbstractBaseA):
@@ -815,7 +824,12 @@ class TestTrackingInheritance(TestCase):
         class TrackedWithIndirectTrackedAbstractBase(BaseTrackedWithIndirectTrackedAbstractBase):
             pass
 
-        TrackedWithIndirectTrackedAbstractBase.history.all()
+        self.assertEqual(
+            [f.attname for f in TrackedWithIndirectTrackedAbstractBase.history.model._meta.fields],
+            [
+                'id', 'basetrackedwithindirecttrackedabstractbase_ptr_id',
+                'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
 
     def test_indirect_tracked_concrete_base(self):
         class BaseTrackedWithIndirectTrackedConcreteBase(TrackedAbstractBaseA):
@@ -824,7 +838,12 @@ class TestTrackingInheritance(TestCase):
         class TrackedWithIndirectTrackedConcreteBase(BaseTrackedWithIndirectTrackedConcreteBase):
             pass
 
-        TrackedWithIndirectTrackedConcreteBase.history.all()
+        self.assertEqual(
+            [f.attname for f in TrackedWithIndirectTrackedConcreteBase.history.model._meta.fields],
+            [
+                'id', 'basetrackedwithindirecttrackedconcretebase_ptr_id',
+                'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
 
     def test_registering_with_tracked_abstract_base(self):
         class TrackedWithAbstractBaseToRegister(TrackedAbstractBaseA):

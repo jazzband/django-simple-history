@@ -36,10 +36,11 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name='+', table_name=None):
+                 user_related_name='+', table_name=None, inherit=False):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
+        self.inherit = inherit
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -77,8 +78,7 @@ class HistoricalRecords(object):
             pass
         else:
             if hint_class is not sender:  # set in concrete
-                if not (hint_class._meta.abstract
-                        and issubclass(sender, hint_class)):  # set in abstract
+                if not (self.inherit and issubclass(sender, hint_class)):  # set in abstract
                     return
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
             raise exceptions.MultipleRegistrationsError('{}.{} registered multiple times for history tracking.'.format(
