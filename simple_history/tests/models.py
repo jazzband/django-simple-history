@@ -279,12 +279,35 @@ class ContactRegister(models.Model):
 register(ContactRegister, table_name='contacts_register_history')
 
 
-class TrackedAbstractBase(models.Model):
+###############################################################################
+#
+# Inheritance examples
+#
+###############################################################################
+
+class TrackedAbstractBaseA(models.Model):
     history = HistoricalRecords()
 
     class Meta:
         abstract = True
 
 
-class Tracked(TrackedAbstractBase):
+class TrackedAbstractBaseB(models.Model):
+    history_b = HistoricalRecords()
+
+    class Meta:
+        abstract = True
+
+
+class UntrackedAbstractBase(models.Model):
+
+    class Meta:
+        abstract = True
+
+
+class TrackedConcreteBase(models.Model):
+    history = HistoricalRecords()
+
+
+class UntrackedConcreteBase(models.Model):
     pass

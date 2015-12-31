@@ -19,7 +19,9 @@ from ..models import (
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
     UserAccessorDefault, UserAccessorOverride, Employee, Country, Province,
-    City, Contact, ContactRegister, Tracked
+    City, Contact, ContactRegister,
+    TrackedAbstractBaseA, TrackedAbstractBaseB, UntrackedAbstractBase,
+    TrackedConcreteBase, UntrackedConcreteBase,
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -781,7 +783,52 @@ class CustomTableNameTest1(TestCase):
         )
 
 
-class TestAbstractHistoricalBaseModel(TestCase):
+class TestTrackingInheritance(TestCase):
 
-    def test_historical_abstract(self):
-        Tracked.history.all()
+    def test_tracked_abstract_base(self):
+        class TrackedWithAbstractBase(TrackedAbstractBaseA):
+            pass
+
+        TrackedWithAbstractBase.history.all()
+
+    def test_tracked_concrete_base(self):
+        class TrackedWithConcreteBase(TrackedConcreteBase):
+            pass
+
+        TrackedWithConcreteBase.history.all()
+
+    def test_multiple_tracked_bases(self):
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            class TrackedWithMultipleAbstractBases(TrackedAbstractBaseA, TrackedAbstractBaseB):
+                pass
+
+    def test_tracked_abstract_and_untracked_concrete_base(self):
+        class TrackedWithTrackedAbstractAndUntrackedConcreteBase(TrackedAbstractBaseA, UntrackedConcreteBase):
+            pass
+
+        TrackedWithTrackedAbstractAndUntrackedConcreteBase.history.all()
+
+    def test_indirect_tracked_abstract_base(self):
+        class BaseTrackedWithIndirectTrackedAbstractBase(TrackedAbstractBaseA):
+            pass
+
+        class TrackedWithIndirectTrackedAbstractBase(BaseTrackedWithIndirectTrackedAbstractBase):
+            pass
+
+        TrackedWithIndirectTrackedAbstractBase.history.all()
+
+    def test_indirect_tracked_concrete_base(self):
+        class BaseTrackedWithIndirectTrackedConcreteBase(TrackedAbstractBaseA):
+            pass
+
+        class TrackedWithIndirectTrackedConcreteBase(BaseTrackedWithIndirectTrackedConcreteBase):
+            pass
+
+        TrackedWithIndirectTrackedConcreteBase.history.all()
+
+    def test_registering_with_tracked_abstract_base(self):
+        class TrackedWithAbstractBaseToRegister(TrackedAbstractBaseA):
+            pass
+
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            register(TrackedWithAbstractBaseToRegister)
