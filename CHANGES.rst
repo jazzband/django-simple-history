@@ -1,6 +1,10 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- History tracking can be inherited by passing `inherit=True`. (gh-63)
+
 1.7.0 (2015-12-02)
 ------------------
 - Add ability to list history in admin when the object instance is deleted. (gh-72)

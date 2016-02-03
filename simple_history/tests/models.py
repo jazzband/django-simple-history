@@ -277,3 +277,37 @@ class ContactRegister(models.Model):
     email = models.EmailField(max_length=255, unique=True)
 
 register(ContactRegister, table_name='contacts_register_history')
+
+
+###############################################################################
+#
+# Inheritance examples
+#
+###############################################################################
+
+class TrackedAbstractBaseA(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class TrackedAbstractBaseB(models.Model):
+    history_b = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class UntrackedAbstractBase(models.Model):
+
+    class Meta:
+        abstract = True
+
+
+class TrackedConcreteBase(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+
+class UntrackedConcreteBase(models.Model):
+    pass

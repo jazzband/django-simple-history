@@ -10,8 +10,8 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 from django.core.files.base import ContentFile
 
+from simple_history import exceptions, register
 from simple_history.models import HistoricalRecords, convert_auto_field
-from simple_history import register
 from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Voter, Restaurant,
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
@@ -19,7 +19,9 @@ from ..models import (
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
     UserAccessorDefault, UserAccessorOverride, Employee, Country, Province,
-    City, Contact, ContactRegister
+    City, Contact, ContactRegister,
+    TrackedAbstractBaseA, TrackedAbstractBaseB, UntrackedAbstractBase,
+    TrackedConcreteBase, UntrackedConcreteBase,
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -332,12 +334,8 @@ class RegisterTest(TestCase):
         self.assertEqual(len(user.histories.all()), 1)
 
     def test_reregister(self):
-        register(Restaurant, manager_name='again')
-        register(User, manager_name='again')
-        self.assertTrue(hasattr(Restaurant, 'updates'))
-        self.assertFalse(hasattr(Restaurant, 'again'))
-        self.assertTrue(hasattr(User, 'histories'))
-        self.assertFalse(hasattr(User, 'again'))
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            register(Restaurant, manager_name='again')
 
     def test_register_custome_records(self):
         self.assertEqual(len(Voter.history.all()), 0)
@@ -783,3 +781,73 @@ class CustomTableNameTest1(TestCase):
             self.get_table_name(ContactRegister.history),
             'contacts_register_history',
         )
+
+
+class TestTrackingInheritance(TestCase):
+
+    def test_tracked_abstract_base(self):
+        class TrackedWithAbstractBase(TrackedAbstractBaseA):
+            pass
+
+        self.assertEqual(
+            [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields],
+            ['id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
+
+    def test_tracked_concrete_base(self):
+        class TrackedWithConcreteBase(TrackedConcreteBase):
+            pass
+
+        self.assertEqual(
+            [f.attname for f in TrackedWithConcreteBase.history.model._meta.fields],
+            ['id', 'trackedconcretebase_ptr_id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
+
+    def test_multiple_tracked_bases(self):
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            class TrackedWithMultipleAbstractBases(TrackedAbstractBaseA, TrackedAbstractBaseB):
+                pass
+
+    def test_tracked_abstract_and_untracked_concrete_base(self):
+        class TrackedWithTrackedAbstractAndUntrackedConcreteBase(TrackedAbstractBaseA, UntrackedConcreteBase):
+            pass
+
+        self.assertEqual(
+            [f.attname for f in TrackedWithTrackedAbstractAndUntrackedConcreteBase.history.model._meta.fields],
+            ['id', 'untrackedconcretebase_ptr_id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
+
+    def test_indirect_tracked_abstract_base(self):
+        class BaseTrackedWithIndirectTrackedAbstractBase(TrackedAbstractBaseA):
+            pass
+
+        class TrackedWithIndirectTrackedAbstractBase(BaseTrackedWithIndirectTrackedAbstractBase):
+            pass
+
+        self.assertEqual(
+            [f.attname for f in TrackedWithIndirectTrackedAbstractBase.history.model._meta.fields],
+            [
+                'id', 'basetrackedwithindirecttrackedabstractbase_ptr_id',
+                'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
+
+    def test_indirect_tracked_concrete_base(self):
+        class BaseTrackedWithIndirectTrackedConcreteBase(TrackedAbstractBaseA):
+            pass
+
+        class TrackedWithIndirectTrackedConcreteBase(BaseTrackedWithIndirectTrackedConcreteBase):
+            pass
+
+        self.assertEqual(
+            [f.attname for f in TrackedWithIndirectTrackedConcreteBase.history.model._meta.fields],
+            [
+                'id', 'basetrackedwithindirecttrackedconcretebase_ptr_id',
+                'history_id', 'history_date', 'history_user_id', 'history_type'],
+        )
+
+    def test_registering_with_tracked_abstract_base(self):
+        class TrackedWithAbstractBaseToRegister(TrackedAbstractBaseA):
+            pass
+
+        with self.assertRaises(exceptions.MultipleRegistrationsError):
+            register(TrackedWithAbstractBaseToRegister)

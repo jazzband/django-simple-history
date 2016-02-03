@@ -21,13 +21,14 @@ def register(
     `HistoricalManager` instance directly to `model`.
     """
     from . import models
-    if model._meta.db_table not in models.registered_models:
-        if records_class is None:
-            records_class = models.HistoricalRecords
-        records = records_class(**records_config)
-        records.manager_name = manager_name
-        records.table_name = table_name
-        records.module = app and ("%s.models" % app) or model.__module__
-        records.add_extra_methods(model)
-        records.finalize(model)
-        models.registered_models[model._meta.db_table] = model
+
+    if records_class is None:
+        records_class = models.HistoricalRecords
+
+    records = records_class(**records_config)
+    records.manager_name = manager_name
+    records.table_name = table_name
+    records.module = app and ("%s.models" % app) or model.__module__
+    records.add_extra_methods(model)
+    records.finalize(model)
+    models.registered_models[model._meta.db_table] = model
