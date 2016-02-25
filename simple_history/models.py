@@ -26,7 +26,7 @@ except ImportError:  # Django < 1.7
     from django.db.models.loading import get_app
     apps = None
 else:
-    get_app = apps.get_app
+    get_app = apps.get_app_config
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
