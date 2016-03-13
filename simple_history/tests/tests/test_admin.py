@@ -386,7 +386,7 @@ class AdminSiteTest(WebTest):
 
         mock_render.assert_called_once_with(
             request, template_name=admin.object_history_form_template,
-            dictionary=context, current_app=admin_site.name)
+            dictionary=context)
 
     def test_history_form_view_getting_history(self):
         request = RequestFactory().post('/')
@@ -443,7 +443,7 @@ class AdminSiteTest(WebTest):
 
         mock_render.assert_called_once_with(
             request, template_name=admin.object_history_form_template,
-            dictionary=context, current_app=admin_site.name)
+            dictionary=context)
 
     def test_history_form_view_getting_history_with_setting_off(self):
         request = RequestFactory().post('/')
@@ -499,4 +499,4 @@ class AdminSiteTest(WebTest):
 
         mock_render.assert_called_once_with(
             request, template_name=admin.object_history_form_template,
-            dictionary=context, current_app=admin_site.name)
+            dictionary=context)

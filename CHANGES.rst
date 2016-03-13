@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.8.1 (2016-03-13)
+------------------
+- Fix deprecation warning because of parameter `current_app` in `render`.
+
 1.8.0 (2016-02-02)
 ------------------
 - History tracking can be inherited by passing `inherit=True`. (gh-63)

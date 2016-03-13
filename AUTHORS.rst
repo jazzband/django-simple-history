@@ -27,6 +27,7 @@ Authors
 - Rajesh Pappula
 - Rod Xavier Bondoc
 - Ross Lote
+- Skuli Arnlaugsson
 - Steven Klass
 - Trey Hunner
 - Ulysses Vilela
