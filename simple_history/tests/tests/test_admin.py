@@ -4,6 +4,7 @@ from mock import patch, ANY
 from django_webtest import WebTest
 from django.contrib.admin import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.db.transaction import atomic
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
 from django import VERSION
@@ -184,6 +185,7 @@ class AdminSiteTest(WebTest):
         )
 
     def test_middleware_saves_user(self):
+        Book.objects.all().delete()
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
                 settings.MIDDLEWARE_CLASSES
@@ -191,11 +193,57 @@ class AdminSiteTest(WebTest):
         }
         with override_settings(**overridden_settings):
             self.login()
-            poll = Poll.objects.create(question="why?", pub_date=today)
-            historical_poll = poll.history.all()[0]
-            self.assertEqual(historical_poll.history_user, self.user,
+            form = self.app.get(reverse('admin:tests_book_add')).form
+            form["isbn"] = "9780147_513731"
+            form.submit()
+            book = Book.objects.get()
+            historical_book = book.history.all()[0]
+
+            self.assertEqual(historical_book.history_user, self.user,
                              "Middleware should make the request available to "
                              "retrieve history_user.")
+
+    def test_middleware_unsets_request(self):
+        overridden_settings = {
+            'MIDDLEWARE_CLASSES':
+                settings.MIDDLEWARE_CLASSES
+                + ['simple_history.middleware.HistoryRequestMiddleware'],
+        }
+        with override_settings(**overridden_settings):
+            self.login()
+            self.app.get(reverse('admin:tests_book_add'))
+            self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
+
+    def test_rolled_back_user_does_not_lead_to_foreign_key_error(self):
+        # This test simulates the rollback of a user after a request (which
+        # happens, e.g. in test cases), and verifies that subsequently
+        # creating a new entry does not fail with a foreign key error.
+
+        class Rollback(Exception):
+            pass
+
+        overridden_settings = {
+            'MIDDLEWARE_CLASSES':
+                settings.MIDDLEWARE_CLASSES
+                + ['simple_history.middleware.HistoryRequestMiddleware'],
+        }
+        with override_settings(**overridden_settings):
+            try:
+                with atomic():
+                    user = User.objects.create_superuser(
+                        'tmp', 't@example.com', 'pass')
+                    self.assertTrue(self.client.login(username='tmp', password='pass'))
+                    self.app.get(reverse('admin:tests_book_add'))
+                    raise Rollback()
+            except Rollback:
+                pass
+
+            book = Book.objects.create(isbn="9780147_513731")
+            historical_book = book.history.all()[0]
+            self.assertIsNone(
+                historical_book.history_user,
+                "No way to know of request, history_user should be unset.",
+            )
 
     def test_middleware_anonymous_user(self):
         overridden_settings = {
