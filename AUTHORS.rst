@@ -31,6 +31,7 @@ Authors
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
+- Lucas Wiman
 
 Background
 ==========

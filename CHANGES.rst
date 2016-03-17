@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.8.1 (2016-03-17)
+------------------
+- Clear the threadlocal request object when processing the response to prevent test interactions. (gh-213)
+
 1.8.0 (2016-02-02)
 ------------------
 - History tracking can be inherited by passing `inherit=True`. (gh-63)
