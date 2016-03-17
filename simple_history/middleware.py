@@ -11,3 +11,8 @@ class HistoryRequestMiddleware(object):
 
     def process_request(self, request):
         HistoricalRecords.thread.request = request
+
+    def process_response(self, request, response):
+        if hasattr(HistoricalRecords.thread, 'request'):
+            del HistoricalRecords.thread.request
+        return response
