@@ -185,7 +185,6 @@ class AdminSiteTest(WebTest):
         )
 
     def test_middleware_saves_user(self):
-        Book.objects.all().delete()
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
                 settings.MIDDLEWARE_CLASSES
