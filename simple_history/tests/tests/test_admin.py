@@ -218,31 +218,26 @@ class AdminSiteTest(WebTest):
         # happens, e.g. in test cases), and verifies that subsequently
         # creating a new entry does not fail with a foreign key error.
 
-        class Rollback(Exception):
-            pass
-
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
                 settings.MIDDLEWARE_CLASSES
                 + ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
-            try:
-                with atomic():
-                    user = User.objects.create_superuser(
-                        'tmp', 't@example.com', 'pass')
-                    self.assertTrue(self.client.login(username='tmp', password='pass'))
-                    self.app.get(reverse('admin:tests_book_add'))
-                    raise Rollback()
-            except Rollback:
-                pass
+            self.login()
+            self.assertEqual(
+                self.app.get(reverse('admin:tests_book_add')).status_code,
+                200,
+            )
 
             book = Book.objects.create(isbn="9780147_513731")
-            historical_book = book.history.all()[0]
-            self.assertIsNone(
-                historical_book.history_user,
-                "No way to know of request, history_user should be unset.",
-            )
+
+        historical_book = book.history.all()[0]
+
+        self.assertIsNone(
+            historical_book.history_user,
+            "No way to know of request, history_user should be unset.",
+        )
 
     def test_middleware_anonymous_user(self):
         overridden_settings = {
