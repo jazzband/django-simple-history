@@ -311,3 +311,35 @@ class TrackedConcreteBase(models.Model):
 
 class UntrackedConcreteBase(models.Model):
     pass
+
+
+class TrackedWithAbstractBase(TrackedAbstractBaseA):
+    pass
+
+
+class TrackedWithConcreteBase(TrackedConcreteBase):
+    pass
+
+
+class TrackedWithTrackedAbstractAndUntrackedConcreteBase(TrackedAbstractBaseA, UntrackedConcreteBase):
+    pass
+
+
+class BaseTrackedWithIndirectTrackedAbstractBase(TrackedAbstractBaseA):
+    pass
+
+
+class TrackedWithIndirectTrackedAbstractBase(BaseTrackedWithIndirectTrackedAbstractBase):
+    pass
+
+
+class BaseTrackedWithIndirectTrackedConcreteBase(TrackedAbstractBaseA):
+    pass
+
+
+class TrackedWithIndirectTrackedConcreteBase(BaseTrackedWithIndirectTrackedConcreteBase):
+    pass
+
+
+class TrackedWithAbstractBaseToRegister(TrackedAbstractBaseA):
+    pass
