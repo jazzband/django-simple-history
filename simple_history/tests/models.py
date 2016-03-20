@@ -321,25 +321,25 @@ class TrackedWithConcreteBase(TrackedConcreteBase):
     pass
 
 
-class TrackedWithTrackedAbstractAndUntrackedConcreteBase(TrackedAbstractBaseA, UntrackedConcreteBase):
+class InheritTracking1(TrackedAbstractBaseA, UntrackedConcreteBase):
     pass
 
 
-class BaseTrackedWithIndirectTrackedAbstractBase(TrackedAbstractBaseA):
+class BaseInheritTracking2(TrackedAbstractBaseA):
     pass
 
 
-class TrackedWithIndirectTrackedAbstractBase(BaseTrackedWithIndirectTrackedAbstractBase):
+class InheritTracking2(BaseInheritTracking2):
     pass
 
 
-class BaseTrackedWithIndirectTrackedConcreteBase(TrackedAbstractBaseA):
+class BaseInheritTracking3(TrackedAbstractBaseA):
     pass
 
 
-class TrackedWithIndirectTrackedConcreteBase(BaseTrackedWithIndirectTrackedConcreteBase):
+class InheritTracking3(BaseInheritTracking3):
     pass
 
 
-class TrackedWithAbstractBaseToRegister(TrackedAbstractBaseA):
+class InheritTracking4(TrackedAbstractBaseA):
     pass

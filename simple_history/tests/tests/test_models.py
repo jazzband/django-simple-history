@@ -22,10 +22,7 @@ from ..models import (
     City, Contact, ContactRegister,
     TrackedAbstractBaseA, TrackedAbstractBaseB,
     TrackedWithAbstractBase, TrackedWithConcreteBase,
-    TrackedWithTrackedAbstractAndUntrackedConcreteBase,
-    TrackedWithIndirectTrackedAbstractBase,
-    TrackedWithIndirectTrackedConcreteBase,
-    TrackedWithAbstractBaseToRegister,
+    InheritTracking1, InheritTracking2, InheritTracking3, InheritTracking4,
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -808,26 +805,26 @@ class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_and_untracked_concrete_base(self):
         self.assertEqual(
-            [f.attname for f in TrackedWithTrackedAbstractAndUntrackedConcreteBase.history.model._meta.fields],
+            [f.attname for f in InheritTracking1.history.model._meta.fields],
             ['id', 'untrackedconcretebase_ptr_id', 'history_id', 'history_date', 'history_user_id', 'history_type'],
         )
 
     def test_indirect_tracked_abstract_base(self):
         self.assertEqual(
-            [f.attname for f in TrackedWithIndirectTrackedAbstractBase.history.model._meta.fields],
+            [f.attname for f in InheritTracking2.history.model._meta.fields],
             [
-                'id', 'basetrackedwithindirecttrackedabstractbase_ptr_id',
+                'id', 'baseinherittracking2_ptr_id',
                 'history_id', 'history_date', 'history_user_id', 'history_type'],
         )
 
     def test_indirect_tracked_concrete_base(self):
         self.assertEqual(
-            [f.attname for f in TrackedWithIndirectTrackedConcreteBase.history.model._meta.fields],
+            [f.attname for f in InheritTracking3.history.model._meta.fields],
             [
-                'id', 'basetrackedwithindirecttrackedconcretebase_ptr_id',
+                'id', 'baseinherittracking3_ptr_id',
                 'history_id', 'history_date', 'history_user_id', 'history_type'],
         )
 
     def test_registering_with_tracked_abstract_base(self):
         with self.assertRaises(exceptions.MultipleRegistrationsError):
-            register(TrackedWithAbstractBaseToRegister)
+            register(InheritTracking4)
