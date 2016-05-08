@@ -1,6 +1,10 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Add Polish locale.
+
 1.8.1 (2016-03-19)
 ------------------
 - Clear the threadlocal request object when processing the response to prevent test interactions. (gh-213)

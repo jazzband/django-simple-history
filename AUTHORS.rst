@@ -11,6 +11,7 @@ Authors
 - Daniel Roschka
 - David Hite
 - George Vilches
+- Grzegorz Bialy
 - Hamish Downer
 - James Pulec
 - Joao Pedro Francese
