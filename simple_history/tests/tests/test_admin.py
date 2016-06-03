@@ -4,7 +4,6 @@ from mock import patch, ANY
 from django_webtest import WebTest
 from django.contrib.admin import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.db.transaction import atomic
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
 from django import VERSION
@@ -187,8 +186,8 @@ class AdminSiteTest(WebTest):
     def test_middleware_saves_user(self):
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES
-                + ['simple_history.middleware.HistoryRequestMiddleware'],
+                settings.MIDDLEWARE_CLASSES +
+                ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
             self.login()
@@ -205,8 +204,8 @@ class AdminSiteTest(WebTest):
     def test_middleware_unsets_request(self):
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES
-                + ['simple_history.middleware.HistoryRequestMiddleware'],
+                settings.MIDDLEWARE_CLASSES +
+                ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
             self.login()
@@ -220,8 +219,8 @@ class AdminSiteTest(WebTest):
 
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES
-                + ['simple_history.middleware.HistoryRequestMiddleware'],
+                settings.MIDDLEWARE_CLASSES +
+                ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
             self.login()
@@ -242,8 +241,8 @@ class AdminSiteTest(WebTest):
     def test_middleware_anonymous_user(self):
         overridden_settings = {
             'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES
-                + ['simple_history.middleware.HistoryRequestMiddleware'],
+                settings.MIDDLEWARE_CLASSES +
+                ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
             self.app.get(reverse('admin:index'))
