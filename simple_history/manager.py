@@ -56,7 +56,7 @@ class HistoryManager(models.Manager):
                                              self.instance._meta.object_name)
         return self.instance.__class__(*values)
 
-    def as_of(self, date):
+    def as_of(self, date, **kwargs):
         """Get a snapshot as of a specific date.
 
         Returns an instance, or an iterable of the instances, of the
@@ -64,8 +64,8 @@ class HistoryManager(models.Manager):
         was present on the object on the date provided.
         """
         if not self.instance:
-            return self._as_of_set(date)
-        queryset = self.get_queryset().filter(history_date__lte=date)
+            return self._as_of_set(date, **kwargs)
+        queryset = self.get_queryset().filter(history_date__lte=date, **kwargs)
         try:
             history_obj = queryset[0]
         except IndexError:
@@ -78,10 +78,10 @@ class HistoryManager(models.Manager):
                 self.instance._meta.object_name)
         return history_obj.instance
 
-    def _as_of_set(self, date):
+    def _as_of_set(self, date, **kwargs):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
-        queryset = self.get_queryset().filter(history_date__lte=date)
+        queryset = self.get_queryset().filter(history_date__lte=date, **kwargs)
         for original_pk in set(
                 queryset.order_by().values_list(pk_attr, flat=True)):
             changes = queryset.filter(**{pk_attr: original_pk})
