@@ -4,6 +4,7 @@ Changes
 tip (unreleased)
 ----------------
 - Add Polish locale.
+- Added --batchsize option to the populate_history management command.
 
 1.8.1 (2016-03-19)
 ------------------

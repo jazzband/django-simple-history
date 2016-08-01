@@ -36,6 +36,14 @@ class Command(BaseCommand):
             help="Automatically search for models with the "
                  "HistoricalRecords field type",
         ),
+        make_option(
+            '--batchsize',
+            action='store',
+            dest='batchsize',
+            default=200,
+            type=int,
+            help='Set a custom batch size when bulk inserting historical records.',
+        ),
     )
 
     def handle(self, *args, **options):
@@ -58,7 +66,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.COMMAND_HINT)
 
-        self._process(to_process)
+        self._process(to_process, batch_size=options['batchsize'])
 
     def _handle_model_list(self, *args):
         failing = False
@@ -94,7 +102,7 @@ class Command(BaseCommand):
                              " < {model} >\n".format(model=natural_key))
         return model, history_model
 
-    def _process(self, to_process):
+    def _process(self, to_process, batch_size):
         for model, history_model in to_process:
             if history_model.objects.count():
                 self.stderr.write("{msg} {model}\n".format(
@@ -103,5 +111,5 @@ class Command(BaseCommand):
                 ))
                 continue
             self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
-            utils.bulk_history_create(model, history_model)
+            utils.bulk_history_create(model, history_model, batch_size)
             self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))
