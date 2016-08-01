@@ -54,6 +54,14 @@ class TestPopulateHistory(TestCase):
                                 stdout=StringIO(), stderr=StringIO())
         self.assertEqual(models.Poll.history.all().count(), 1)
 
+    def test_populate_with_custom_batch_size(self):
+        models.Poll.objects.create(question="Will this populate?",
+                                   pub_date=datetime.now())
+        models.Poll.history.all().delete()
+        management.call_command(self.command_name, auto=True, batchsize=500,
+                                stdout=StringIO(), stderr=StringIO())
+        self.assertEqual(models.Poll.history.all().count(), 1)
+
     def test_specific_populate(self):
         models.Poll.objects.create(question="Will this populate?",
                                    pub_date=datetime.now())
