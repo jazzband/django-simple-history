@@ -76,7 +76,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         }
         context.update(extra_context or {})
         return render(request, template_name=self.object_history_template,
-                      dictionary=context, current_app=request.current_app)
+                      context=context)
 
     def response_change(self, request, obj):
         if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
@@ -179,7 +179,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
         return render(request, template_name=self.object_history_form_template,
-                      dictionary=context, current_app=request.current_app)
+                      context=context)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
