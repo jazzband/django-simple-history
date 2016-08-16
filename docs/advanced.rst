@@ -213,3 +213,10 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+
+
+Excluding fields
+----------------
+
+Some fields, e.g. calculated fields, do not need to be included in the history of a model.
+Set the Meta field ``exclude_from_history`` with a list of field names to exclude them from the history model.

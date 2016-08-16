@@ -5,6 +5,7 @@ import importlib
 import threading
 
 from django.db import models, router
+from django.db.models import options
 from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
@@ -13,6 +14,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('exclude_from_history',)
 
 try:
     from django.apps import apps

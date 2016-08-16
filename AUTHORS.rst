@@ -33,6 +33,7 @@ Authors
 - Ulysses Vilela
 - vnagendra
 - Lucas Wiman
+- Marc-Antoine Parent
 
 Background
 ==========

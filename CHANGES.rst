@@ -4,6 +4,7 @@ Changes
 tip (unreleased)
 ----------------
 - Add Polish locale.
+- Add a Meta option exclude_from_history, which can recevie a collection of field names.
 
 1.8.1 (2016-03-19)
 ------------------
