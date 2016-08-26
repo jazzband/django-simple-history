@@ -35,6 +35,31 @@ class HistoryManager(models.Manager):
 
     get_query_set = get_queryset
 
+    def get_fields(self, instance):
+        meta = instance._meta
+        exclusions = set(getattr(meta, "exclude_from_history", ()))
+        for field in meta.fields:
+            if field.name not in exclusions:
+                yield field
+
+    @classmethod
+    def get_history_manager(cls, instance_or_model, key_name=None):
+        if key_name:
+            manager = getattr(instance_or_model, key_name, None)
+            if manager:
+                return manager
+        if isinstance(instance_or_model, type):
+            model = type
+        else:
+            model = instance_or_model.__class__
+        for (k, v) in model.__dict__.items():
+            if isinstance(v, HistoryDescriptor):
+                return getattr(instance_or_model, k)
+        if model is instance_or_model:
+            return cls(model)
+        else:
+            return cls(model, instance_or_model)
+
     def most_recent(self):
         """
         Returns the most recent copy of the instance available in the history.
@@ -43,7 +68,7 @@ class HistoryManager(models.Manager):
             raise TypeError("Can't use most_recent() without a %s instance." %
                             self.model._meta.object_name)
         tmp = []
-        for field in self.instance._meta.fields:
+        for field in self.get_fields(self.instance):
             if isinstance(field, models.ForeignKey):
                 tmp.append(field.name + "_id")
             else:

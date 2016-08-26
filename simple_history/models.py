@@ -30,7 +30,7 @@ else:  # south configuration for CustomForeignKeyField
         [], ["^simple_history.models.CustomForeignKeyField"])
 
 from . import exceptions
-from .manager import HistoryDescriptor
+from .manager import HistoryDescriptor, HistoryManager
 
 registered_models = {}
 
@@ -135,21 +135,14 @@ class HistoricalRecords(object):
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
 
-    @classmethod
-    def get_fields(cls, model):
-        meta = model._meta
-        exclusions = set(getattr(meta, "exclude_from_history", ()))
-        for field in meta.fields:
-            if field.name not in exclusions:
-                yield field
-
     def copy_fields(self, model):
         """
         Creates copies of the model's original fields, returning
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-        for field in self.get_fields(model):
+        manager = HistoryManager.get_history_manager(model)
+        for field in manager.get_fields(model):
             field = copy.copy(field)
             try:
                 field.remote_field = copy.copy(field.remote_field)
@@ -258,7 +251,7 @@ class HistoricalRecords(object):
         history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
-        for field in self.get_fields(instance):
+        for field in manager.get_fields(instance):
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
@@ -317,6 +310,7 @@ class HistoricalObjectDescriptor(object):
         self.model = model
 
     def __get__(self, instance, owner):
+        manager = HistoryManager.get_history_manager(self.model)
         values = (getattr(instance, f.attname)
-                  for f in HistoricalRecords.get_fields(self.model))
+                  for f in manager.get_fields(self.model))
         return self.model(*values)
