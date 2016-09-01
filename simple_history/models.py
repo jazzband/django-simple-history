@@ -5,6 +5,7 @@ import importlib
 import threading
 
 from django.db import models, router
+from django.db.models import options
 from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
@@ -13,6 +14,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('exclude_from_history',)
 
 try:
     from django.apps import apps
@@ -27,7 +30,7 @@ else:  # south configuration for CustomForeignKeyField
         [], ["^simple_history.models.CustomForeignKeyField"])
 
 from . import exceptions
-from .manager import HistoryDescriptor
+from .manager import HistoryDescriptor, HistoryManager
 
 registered_models = {}
 
@@ -138,7 +141,9 @@ class HistoricalRecords(object):
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-        for field in model._meta.fields:
+        manager = HistoryManager.get_history_manager(
+            model, getattr(self, "manager_name", None))
+        for field in manager.get_fields(model):
             field = copy.copy(field)
             try:
                 field.remote_field = copy.copy(field.remote_field)
@@ -247,7 +252,7 @@ class HistoricalRecords(object):
         history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
-        for field in instance._meta.fields:
+        for field in manager.get_fields(instance):
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
@@ -306,6 +311,7 @@ class HistoricalObjectDescriptor(object):
         self.model = model
 
     def __get__(self, instance, owner):
+        manager = HistoryManager.get_history_manager(instance)
         values = (getattr(instance, f.attname)
-                  for f in self.model._meta.fields)
+                  for f in manager.get_fields(self.model))
         return self.model(*values)

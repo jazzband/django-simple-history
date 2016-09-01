@@ -272,6 +272,15 @@ class Contact(models.Model):
     history = HistoricalRecords(table_name='contacts_history')
 
 
+class Post(models.Model):
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    history = HistoricalRecords(table_name='posts')
+
+    class Meta:
+        exclude_from_history = ("content",)
+
+
 class ContactRegister(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)

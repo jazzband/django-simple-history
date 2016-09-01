@@ -19,7 +19,7 @@ from ..models import (
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
     HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
     UserAccessorDefault, UserAccessorOverride, Employee, Country, Province,
-    City, Contact, ContactRegister,
+    City, Contact, ContactRegister, Post,
     TrackedAbstractBaseA, TrackedAbstractBaseB,
     TrackedWithAbstractBase, TrackedWithConcreteBase,
     InheritTracking1, InheritTracking2, InheritTracking3, InheritTracking4,
@@ -379,6 +379,24 @@ class CreateHistoryModelTests(unittest.TestCase):
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
                       "exception.")
+
+    def test_create_history_model_with_excluded_field(self):
+        records = HistoricalRecords()
+        records.module = Post.__module__
+        try:
+            post_history = records.create_history_model(Post)
+        except:
+            self.fail("SimpleHistory should handle excluded fields without"
+                      " throwing an exception")
+        post_history_fnames = [f.name for f in post_history._meta.local_fields]
+        excluded = getattr(Post._meta, 'exclude_from_history', ())
+        for f in Post._meta.fields:
+            name = f.name
+            if name in excluded:
+                assert name not in post_history_fnames, (
+                    "Should not have been copied" + name)
+            else:
+                assert name in post_history_fnames, "Missing field: " + name
 
 
 class AppLabelTest(TestCase):
