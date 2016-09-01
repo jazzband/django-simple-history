@@ -141,7 +141,8 @@ class HistoricalRecords(object):
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-        manager = HistoryManager.get_history_manager(model)
+        manager = HistoryManager.get_history_manager(
+            model, getattr(self, "manager_name", None))
         for field in manager.get_fields(model):
             field = copy.copy(field)
             try:

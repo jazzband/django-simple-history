@@ -49,7 +49,7 @@ class HistoryManager(models.Manager):
             if manager:
                 return manager
         if isinstance(instance_or_model, type):
-            model = type
+            model = instance_or_model
         else:
             model = instance_or_model.__class__
         for (k, v) in model.__dict__.items():
