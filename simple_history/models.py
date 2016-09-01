@@ -311,7 +311,7 @@ class HistoricalObjectDescriptor(object):
         self.model = model
 
     def __get__(self, instance, owner):
-        manager = HistoryManager.get_history_manager(self.model)
+        manager = HistoryManager.get_history_manager(instance)
         values = (getattr(instance, f.attname)
                   for f in manager.get_fields(self.model))
         return self.model(*values)
