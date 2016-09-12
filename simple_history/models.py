@@ -36,11 +36,13 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name='+', table_name=None, inherit=False):
+                 user_related_name='+', table_name=None, inherit=False,
+                 excluded_fields=[]):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
+        self.excluded_fields = excluded_fields
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -138,7 +140,8 @@ class HistoricalRecords(object):
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-        for field in model._meta.fields:
+        fields_to_copy = set(model._meta.fields) - set(self.excluded_fields)
+        for field in fields_to_copy:
             field = copy.copy(field)
             try:
                 field.remote_field = copy.copy(field.remote_field)
