@@ -23,6 +23,7 @@ from ..models import (
     TrackedAbstractBaseA, TrackedAbstractBaseB,
     TrackedWithAbstractBase, TrackedWithConcreteBase,
     InheritTracking1, InheritTracking2, InheritTracking3, InheritTracking4,
+    PollWithExcludeFields,
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
@@ -317,6 +318,14 @@ class HistoricalRecordsTest(TestCase):
         poll.save()
         poll_info = PollInfo(poll=poll)
         poll_info.save()
+
+    def test_model_with_excluded_fields(self):
+        p = PollWithExcludeFields(question="what's up?", pub_date=today)
+        p.save()
+        history = PollWithExcludeFields.history.all()[0]
+        all_fields_names = history._meta.get_all_field_names()
+        self.assertIn('question', all_fields_names)
+        self.assertNotIn('pub_date', all_fields_names)
 
 
 class RegisterTest(TestCase):

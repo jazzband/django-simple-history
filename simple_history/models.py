@@ -134,14 +134,20 @@ class HistoricalRecords(object):
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
 
+    def fields_included(self, model):
+        fields = []
+        for field in model._meta.fields:
+            if field.name not in self.excluded_fields:
+                fields.append(field)
+        return fields
+
     def copy_fields(self, model):
         """
         Creates copies of the model's original fields, returning
         a dictionary mapping field name to copied field object.
         """
         fields = {}
-        fields_to_copy = set(model._meta.fields) - set(self.excluded_fields)
-        for field in fields_to_copy:
+        for field in self.fields_included(model):
             field = copy.copy(field)
             try:
                 field.remote_field = copy.copy(field.remote_field)
@@ -250,7 +256,7 @@ class HistoricalRecords(object):
         history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
-        for field in instance._meta.fields:
+        for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user, **attrs)
