@@ -217,7 +217,7 @@ class HistoricalRecords(object):
                 ('~', 'Changed'),
                 ('-', 'Deleted'),
             )),
-            'history_object': HistoricalObjectDescriptor(model),
+            'history_object': HistoricalObjectDescriptor(model, self.fields_included(model)),
             'instance': property(get_instance),
             'instance_type': model,
             'revert_url': revert_url,
@@ -311,10 +311,11 @@ def convert_auto_field(field):
 
 
 class HistoricalObjectDescriptor(object):
-    def __init__(self, model):
+    def __init__(self, model, fields_included):
         self.model = model
+        self.fields_included = fields_included
 
     def __get__(self, instance, owner):
         values = (getattr(instance, f.attname)
-                  for f in self.model._meta.fields)
+                  for f in self.fields_included)
         return self.model(*values)
