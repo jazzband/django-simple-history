@@ -1,3 +1,5 @@
+from optparse import make_option
+
 from django.core.management.base import BaseCommand, CommandError
 
 try:
@@ -25,6 +27,11 @@ class Command(BaseCommand):
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
     INVALID_MODEL_ARG = "An invalid model was specified"
 
+    if hasattr(BaseCommand, 'option_list'):  # Django < 1.8
+        option_list = BaseCommand.option_list + (
+            make_option('--auto', action='store_true', dest='auto', default=False),
+        )
+
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
         parser.add_argument('models', nargs='*', type=str)
@@ -39,7 +46,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         to_process = set()
-        model_strings = options['models'] or args
+        model_strings = options.get('models', []) or args
 
         if model_strings:
             for model_pair in self._handle_model_list(*model_strings):
