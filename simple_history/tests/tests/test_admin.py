@@ -6,7 +6,6 @@ from django.contrib.admin import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
-from django import VERSION
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils.encoding import force_text
@@ -22,12 +21,16 @@ except ImportError:  # Django < 1.7
     from django.contrib.admin.util import quote
 
 from simple_history.models import HistoricalRecords
-from simple_history.admin import SimpleHistoryAdmin
+from simple_history.admin import SimpleHistoryAdmin, get_complete_version
 from ..models import Book, Person, Poll, State, Employee
 
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
+
+extra_kwargs = {}
+if get_complete_version() < (1, 8):
+    extra_kwargs = {'current_app': 'admin'}
 
 
 def get_history_url(obj, history_index=None, site="admin"):
@@ -107,12 +110,8 @@ class AdminSiteTest(WebTest):
         response.form['pub_date_0'] = "2021-01-02"
         response = response.form.submit()
         self.assertEqual(response.status_code, 302)
-        if VERSION < (1, 4, 0):
-            self.assertTrue(response.headers['location']
-                            .endswith(get_history_url(poll)))
-        else:
-            self.assertTrue(response.headers['location']
-                            .endswith(reverse('admin:tests_poll_changelist')))
+        self.assertTrue(response.headers['location']
+                        .endswith(reverse('admin:tests_poll_changelist')))
 
         # Ensure form for second version is correct
         response = self.app.get(get_history_url(poll, 1))
@@ -424,9 +423,8 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context)
+            request, admin.object_history_form_template, context, **extra_kwargs)
 
     def test_history_form_view_getting_history(self):
         request = RequestFactory().post('/')
@@ -480,9 +478,8 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context)
+            request, admin.object_history_form_template, context, **extra_kwargs)
 
     def test_history_form_view_getting_history_with_setting_off(self):
         request = RequestFactory().post('/')
@@ -535,6 +532,5 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context)
+            request, admin.object_history_form_template, context, **extra_kwargs)

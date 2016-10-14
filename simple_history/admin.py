@@ -18,6 +18,11 @@ try:
     from django.contrib.admin.utils import unquote
 except ImportError:  # Django < 1.7
     from django.contrib.admin.util import unquote
+try:
+    from django.utils.version import get_complete_version
+except ImportError:
+    from django import VERSION
+    get_complete_version = lambda: VERSION
 
 USER_NATURAL_KEY = tuple(
     key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
@@ -75,7 +80,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
-        return render(request, self.object_history_template, context)
+        extra_kwargs = {}
+        if get_complete_version() < (1, 8):
+            extra_kwargs['current_app'] = request.current_app
+        return render(request, self.object_history_template, context, **extra_kwargs)
 
     def response_change(self, request, obj):
         if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
@@ -177,7 +185,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
-        return render(request, self.object_history_form_template, context)
+        extra_kwargs = {}
+        if get_complete_version() < (1, 8):
+            extra_kwargs['current_app'] = request.current_app
+        return render(request, self.object_history_form_template, context, **extra_kwargs)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""

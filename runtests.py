@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+from os import listdir, unlink
 from os.path import abspath, dirname, join
 from shutil import rmtree
 import sys
@@ -50,6 +51,14 @@ DEFAULT_SETTINGS = dict(
 
 
 def main():
+    # reset the test app migrations
+    for migration_path in [
+        join(dirname(__file__), 'simple_history', 'tests', 'migrations'),
+        join(dirname(__file__), 'simple_history', 'tests', 'migration_test_app', 'migrations'),
+    ]:
+        for migration_file_path in listdir(migration_path):
+            unlink(join(migration_path, migration_file_path))
+
     if not settings.configured:
         settings.configure(**DEFAULT_SETTINGS)
     if hasattr(django, 'setup'):
