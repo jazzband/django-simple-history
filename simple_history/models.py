@@ -213,7 +213,7 @@ class HistoricalRecords(object):
             'instance': property(get_instance),
             'instance_type': model,
             'revert_url': revert_url,
-            '__str__': lambda self: '%s as of %s' % (self.history_object,
+            '__str__': lambda self: '%s as of %s' % (self.auto_id_0,
                                                      self.history_date)
         }
 
