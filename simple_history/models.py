@@ -138,16 +138,12 @@ class HistoricalRecords(object):
         """
         fields = {}
         for field in model._meta.fields:
-            print field
-            print field.unique
             field.unique = False
             field.primary_key = False
             field.null = True
             field.blank = True
             field.required = False
             field = copy.copy(field)
-            print field
-            print field.unique
             # TODO: Change this to work with Mongoengine's fields.ReferenceField
             if isinstance(field, models.ForeignKey):
                 old_field = field
