@@ -108,8 +108,7 @@ class HistoricalRecords(object):
         Creates a historical model to associate with the model provided.
         """
         attrs = {'__module__': self.module}
-
-        app_module = '%s.models' % model._meta.app_label
+        app_module = model.__module__
         if model.__module__ != self.module:
             # registered under different app
             attrs['__module__'] = self.module
