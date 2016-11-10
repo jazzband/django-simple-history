@@ -8,6 +8,7 @@ from django.db import models, router
 from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
@@ -258,8 +259,9 @@ class HistoricalRecords(object):
             return instance._history_user
         except AttributeError:
             try:
-                if self.thread.request.user.is_authenticated():
-                    return self.thread.request.user
+                user = self.thread.request.user
+                if isinstance(user, get_user_model()) and user.is_authenticated():
+                    return user
                 return None
             except AttributeError:
                 return None
