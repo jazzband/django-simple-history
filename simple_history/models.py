@@ -181,7 +181,7 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+        user_model = getattr(settings, 'MONGOENGINE_USER_DOCUMENT')
 
         @models.permalink
         def revert_url(self):
@@ -201,9 +201,7 @@ class HistoricalRecords(object):
         return {
             #'history_id': models.AutoField(primary_key=True),
             'history_date': mongoFields.DateTimeField(),
-            #'history_user': models.ForeignKey(
-            #    user_model, null=True, related_name=self.user_related_name,
-            #    on_delete=models.SET_NULL),
+            'history_user': mongoFields.ReferenceField(user_model, null=True, blank=True),
             'history_type': mongoFields.StringField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
@@ -245,6 +243,9 @@ class HistoricalRecords(object):
 
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
+        history_user = None
+        if getattr(self.thread, 'request', None) and getattr(self.thread.request, 'user', None) and self.thread.request.user.is_authenticated():
+            history_user = self.thread.request.user
         # history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
@@ -252,7 +253,7 @@ class HistoricalRecords(object):
             attrValue = getattr(instance, field.attname)
             attrs[field.attname] = getattr(instance, field.attname)
         manager.objects.create(history_date=history_date, history_type=history_type,
-                       **attrs) # history_user=history_user,
+                       history_user=history_user, **attrs) # history_user=history_user,
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""
