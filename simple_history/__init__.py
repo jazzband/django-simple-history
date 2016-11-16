@@ -31,4 +31,4 @@ def register(
     records.module = app and ("%s.models" % app) or model.__module__
     records.add_extra_methods(model)
     records.finalize(model)
-    models.registered_models[model._meta.db_table] = model
+    # models.registered_models[model._meta.db_table] = model

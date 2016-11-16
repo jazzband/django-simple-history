@@ -5,7 +5,6 @@ import importlib
 import threading
 
 from django.db import models, router
-from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
 from django.utils import six
@@ -13,6 +12,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+from mongoengine import signals
+from django_mongoengine import Document, fields as mongoFields
 
 try:
     from django.apps import apps
@@ -35,7 +36,7 @@ registered_models = {}
 class HistoricalRecords(object):
     thread = threading.local()
 
-    def __init__(self, verbose_name=None, bases=(models.Model,),
+    def __init__(self, verbose_name=None, bases=(Document,),
                  user_related_name='+', table_name=None, inherit=False):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -52,7 +53,7 @@ class HistoricalRecords(object):
         self.manager_name = name
         self.module = cls.__module__
         self.cls = cls
-        models.signals.class_prepared.connect(self.finalize, weak=False)
+        signals.class_prepared.connect(self.finalize, weak=False)
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
@@ -81,23 +82,25 @@ class HistoricalRecords(object):
                 if not (self.inherit and issubclass(sender, hint_class)):  # set in abstract
                     return
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
+            # Don't do anything if already registered
+            pass
+            '''
             raise exceptions.MultipleRegistrationsError('{}.{} registered multiple times for history tracking.'.format(
                 sender._meta.app_label,
                 sender._meta.object_name,
             ))
+            '''
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
 
         # The HistoricalRecords object will be discarded,
         # so the signal handlers can't use weak references.
-        models.signals.post_save.connect(self.post_save, sender=sender,
+        signals.post_save.connect(self.post_save, sender=sender,
                                          weak=False)
-        models.signals.post_delete.connect(self.post_delete, sender=sender,
+        signals.post_delete.connect(self.post_delete, sender=sender,
                                            weak=False)
-
-        descriptor = HistoryDescriptor(history_model)
-        setattr(sender, self.manager_name, descriptor)
+        setattr(sender, self.manager_name, history_model)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
     def create_history_model(self, model):
@@ -105,8 +108,7 @@ class HistoricalRecords(object):
         Creates a historical model to associate with the model provided.
         """
         attrs = {'__module__': self.module}
-
-        app_module = '%s.models' % model._meta.app_label
+        app_module = model.__module__
         if model.__module__ != self.module:
             # registered under different app
             attrs['__module__'] = self.module
@@ -128,7 +130,7 @@ class HistoricalRecords(object):
         if self.table_name is not None:
             attrs['Meta'].db_table = self.table_name
         name = 'Historical%s' % model._meta.object_name
-        registered_models[model._meta.db_table] = model
+        # registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
 
@@ -140,13 +142,12 @@ class HistoricalRecords(object):
         fields = {}
         for field in model._meta.fields:
             field = copy.copy(field)
-            try:
-                field.remote_field = copy.copy(field.remote_field)
-            except AttributeError:
-                field.rel = copy.copy(field.rel)
-            if isinstance(field, OrderWrt):
-                # OrderWrt is a proxy field, switch to a plain IntegerField
-                field.__class__ = models.IntegerField
+            field.unique = False
+            field.primary_key = False
+            field.null = True
+            field.blank = True
+            field.required = False
+            # TODO: Change this to work with Mongoengine's fields.ReferenceField
             if isinstance(field, models.ForeignKey):
                 old_field = field
                 field_arguments = {'db_constraint': False}
@@ -180,7 +181,7 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+        user_model = getattr(settings, 'MONGOENGINE_USER_DOCUMENT')
 
         @models.permalink
         def revert_url(self):
@@ -198,21 +199,19 @@ class HistoricalRecords(object):
             })
 
         return {
-            'history_id': models.AutoField(primary_key=True),
-            'history_date': models.DateTimeField(),
-            'history_user': models.ForeignKey(
-                user_model, null=True, related_name=self.user_related_name,
-                on_delete=models.SET_NULL),
-            'history_type': models.CharField(max_length=1, choices=(
+            #'history_id': models.AutoField(primary_key=True),
+            'history_date': mongoFields.DateTimeField(),
+            'history_user': mongoFields.ReferenceField(user_model, null=True, blank=True),
+            'history_type': mongoFields.StringField(max_length=1, choices=(
                 ('+', 'Created'),
                 ('~', 'Changed'),
                 ('-', 'Deleted'),
             )),
-            'history_object': HistoricalObjectDescriptor(model),
+            # 'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
             'instance_type': model,
             'revert_url': revert_url,
-            '__str__': lambda self: '%s as of %s' % (self.history_object,
+            '__str__': lambda self: '%s as of %s' % (self.auto_id_0,
                                                      self.history_date)
         }
 
@@ -233,24 +232,28 @@ class HistoricalRecords(object):
         meta_fields['verbose_name'] = name
         return meta_fields
 
-    def post_save(self, instance, created, **kwargs):
+    def post_save(self, instance, created, document, **kwargs):
         if not created and hasattr(instance, 'skip_history_when_saving'):
             return
         if not kwargs.get('raw', False):
-            self.create_historical_record(instance, created and '+' or '~')
+            self.create_historical_record(document, created and '+' or '~')
 
-    def post_delete(self, instance, **kwargs):
-        self.create_historical_record(instance, '-')
+    def post_delete(self, instance, document, **kwargs):
+        self.create_historical_record(document, '-')
 
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
-        history_user = self.get_history_user(instance)
+        history_user = None
+        if getattr(self.thread, 'request', None) and getattr(self.thread.request, 'user', None) and self.thread.request.user.is_authenticated():
+            history_user = self.thread.request.user
+        # history_user = self.get_history_user(instance)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
+            attrValue = getattr(instance, field.attname)
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user, **attrs)
+        manager.objects.create(history_date=history_date, history_type=history_type,
+                       history_user=history_user, **attrs) # history_user=history_user,
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""
