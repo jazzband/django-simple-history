@@ -213,3 +213,17 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+Show all change history of model
+--------------------------------
+If you want to see all changes of model just add ``show_all_history = True`` to your admin class. Then you see History button in objects list of your model.
+
+Example:
+
+.. code-block:: python
+
+    class PollAdmin(SimpleHistoryAdmin):
+        show_all_history = True
+
+    admin.site.register(Poll, PollAdmin)
+
+
