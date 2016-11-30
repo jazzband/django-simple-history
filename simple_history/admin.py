@@ -57,12 +57,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             url("^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history' % info),
-            url("^history/$",
-                admin_site.admin_view(self.all_history_view),
-                name='%s_%s_simple_history_objects' % info),
             url("^history/([^/]+)/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name='%s_%s_simple_history_objects_form' % info),
+            url("^history/$",
+                admin_site.admin_view(self.all_history_view),
+                name='%s_%s_simple_history_objects' % info),
         ]
         return history_urls + urls
 
@@ -99,10 +99,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'admin_user_view': admin_user_view
         }
         context.update(extra_context or {})
-        extra_kwargs = {}
-        if get_complete_version() < (1, 8):
-            extra_kwargs['current_app'] = request.current_app
-        return render(request, self.object_history_template, context, **extra_kwargs)
+        return render(request, template_name=self.object_history_template,
+                      dictionary=context, current_app=request.current_app)
 
     def all_history_view(self, request, extra_context=None):
         "The all 'history' admin view for this model."
@@ -240,10 +238,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 context['all_history_url'] = reverse('%s:%s_%s_simple_history_objects' % url_triplet)
         except Resolver404:
             pass
-        extra_kwargs = {}
-        if get_complete_version() < (1, 8):
-            extra_kwargs['current_app'] = request.current_app
-        return render(request, self.object_history_form_template, context, **extra_kwargs)
+        return render(request, template_name=self.object_history_form_template,
+                      dictionary=context, current_app=request.current_app)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
