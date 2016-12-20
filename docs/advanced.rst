@@ -23,7 +23,12 @@ as_of
 ~~~~~
 
 This method will return an instance of the model as it would have existed at
-the provided date and time.
+the provided date and time. Modifying and saving this instance will revert the
+parent instance to the instance snapshot you are saving, creating a new
+historical record at the current time.
+
+Specifying ``edit_history=True`` returns the equivalent historical object
+record, which can be deleted or updated to edit history.
 
 .. code-block:: pycon
 
@@ -32,6 +37,8 @@ the provided date and time.
     <Poll: Poll object as of 2010-10-25 18:03:29.855689>
     >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
+    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0), edit_history=True)
+    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
 
 most_recent
 ~~~~~~~~~~~
