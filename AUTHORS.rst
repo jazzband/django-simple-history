@@ -36,6 +36,7 @@ Authors
 - vnagendra
 - Lucas Wiman
 - Michael England
+- Gregory Bataille
 
 Background
 ==========

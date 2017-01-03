@@ -127,6 +127,36 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
 Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :doc:`/advanced`).
 
 
+Displaying custom columns in the admin history list view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the history log displays one line per change containing
+
+* a link to the detail of the object at that point in time
+* the date and time the object was changed
+* a comment corresponding to the change
+* the author of the change
+
+You can add other columns (for example the object's status if it has one to see
+how it evolved) by adding a ``history_list_display`` array of fields to the
+admin class
+
+.. code-block:: python
+
+    from django.contrib import admin
+    from simple_history.admin import SimpleHistoryAdmin
+    from .models import Poll, Choice
+
+
+    class PollHistoryAdmin(SimpleHistoryAdmin):
+        list_display = ["id", "name", "status"]
+        history_list_display = ["status"]
+        search_fields = ['name', 'user__username']
+
+    admin.site.register(Poll, PollHistoryAdmin)
+    admin.site.register(Choice, SimpleHistoryAdmin)
+
+
 Querying history
 ----------------
 
