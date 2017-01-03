@@ -13,7 +13,7 @@ from django.utils.encoding import force_text
 
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee
+from ..models import Book, Person, Poll, State, Employee, Choice
 
 try:
     from django.contrib.admin.utils import quote
@@ -74,6 +74,27 @@ class AdminSiteTest(WebTest):
         self.assertIn("Poll object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
         self.assertIn(self.user.username, response.unicode_normal_body)
+
+    def test_history_list_custom_fields(self):
+        model_name = self.user._meta.model_name
+        self.assertEqual(model_name, 'customuser')
+        self.login()
+        poll = Poll(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+        choice = Choice(poll=poll, choice='because', votes=12)
+        choice._history_user = self.user
+        choice.save()
+        choice.votes = 15
+        choice.save()
+        response = self.app.get(get_history_url(choice))
+        self.assertIn(get_history_url(choice, 0), response.unicode_normal_body)
+        self.assertIn("Choice object", response.unicode_normal_body)
+        self.assertIn("Created", response.unicode_normal_body)
+        self.assertIn(self.user.username, response.unicode_normal_body)
+        self.assertIn("votes", response.unicode_normal_body)
+        self.assertIn("12", response.unicode_normal_body)
+        self.assertIn("15", response.unicode_normal_body)
 
     def test_history_form_permission(self):
         self.login(self.user)
