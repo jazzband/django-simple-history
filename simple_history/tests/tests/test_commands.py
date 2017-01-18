@@ -1,13 +1,10 @@
 from contextlib import contextmanager
-from six.moves import cStringIO as StringIO
 from datetime import datetime
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
-import django
+
+from six.moves import cStringIO as StringIO
 from django.test import TestCase
 from django.core import management
+
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
 
@@ -106,15 +103,3 @@ class TestPopulateHistory(TestCase):
                                     stdout=out)
         self.assertIn(populate_history.Command.NO_REGISTERED_MODELS,
                       out.getvalue())
-
-
-@skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
-class TestMigrate(TestCase):
-
-    def test_makemigration_command(self):
-        management.call_command(
-            'makemigrations', 'migration_test_app', stdout=StringIO())
-
-    def test_migrate_command(self):
-        management.call_command(
-            'migrate', 'migration_test_app', fake=True, stdout=StringIO())
