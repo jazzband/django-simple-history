@@ -4,7 +4,7 @@ import simple_history
 tests_require = [
     'Django>=1.4', 'WebTest==2.0.18', 'django-webtest==1.7.8', 'mock==1.0.1']
 try:
-    from unittest import skipUnless
+    from unittest import skipUnless  # noqa
 except ImportError:  # Python 2.6 compatibility
     tests_require.append("unittest2")
 

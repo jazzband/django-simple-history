@@ -78,13 +78,15 @@ class HistoricalRecords(object):
             pass
         else:
             if hint_class is not sender:  # set in concrete
-                if not (self.inherit and issubclass(sender, hint_class)):  # set in abstract
-                    return
+                if not (self.inherit and issubclass(sender, hint_class)):
+                    return  # set in abstract
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
-            raise exceptions.MultipleRegistrationsError('{}.{} registered multiple times for history tracking.'.format(
-                sender._meta.app_label,
-                sender._meta.object_name,
-            ))
+            raise exceptions.MultipleRegistrationsError(
+                '{}.{} registered multiple times for history tracking.'.format(
+                    sender._meta.app_label,
+                    sender._meta.object_name,
+                )
+            )
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)

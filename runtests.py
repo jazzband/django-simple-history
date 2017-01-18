@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+from os import listdir, unlink
 from os.path import abspath, dirname, join
 from shutil import rmtree
 import sys
@@ -16,7 +17,7 @@ installed_apps = [
     'simple_history.tests',
     'simple_history.tests.custom_user',
     'simple_history.tests.external',
-    'simple_history.tests.migration_test_app',
+    'simple_history.registry_tests.migration_test_app',
 
     'simple_history',
 
@@ -50,6 +51,7 @@ DEFAULT_SETTINGS = dict(
 
 
 def main():
+
     if not settings.configured:
         settings.configure(**DEFAULT_SETTINGS)
     if hasattr(django, 'setup'):
@@ -59,9 +61,10 @@ def main():
     except ImportError:
         from django.test.simple import DjangoTestSuiteRunner
         failures = DjangoTestSuiteRunner(failfast=False).run_tests(['tests'])
+        failures |= DjangoTestSuiteRunner(failfast=False).run_tests(['registry_tests'])
     else:
-        failures = DiscoverRunner(failfast=False).run_tests(
-            ['simple_history.tests'])
+        failures = DiscoverRunner(failfast=False).run_tests(['simple_history.tests'])
+        failures |= DiscoverRunner(failfast=False).run_tests(['simple_history.registry_tests'])
     sys.exit(failures)
 
 
