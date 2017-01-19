@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-from os import listdir, unlink
 from os.path import abspath, dirname, join
 from shutil import rmtree
 import sys

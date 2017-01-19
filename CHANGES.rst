@@ -4,6 +4,7 @@ Changes
 tip (unreleased)
 ----------------
 - Add Polish locale.
+- Add Django 1.10 support.
 
 1.8.1 (2016-03-19)
 ------------------

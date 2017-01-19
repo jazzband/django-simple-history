@@ -37,7 +37,7 @@ settings:
 
 .. code-block:: python
 
-    MIDDLEWARE_CLASSES = [
+    MIDDLEWARE = [
         # ...
         'simple_history.middleware.HistoryRequestMiddleware',
     ]
@@ -168,5 +168,6 @@ records for all ``Choice`` instances can be queried by using the manager on the
     <simple_history.manager.HistoryManager object at 0x1cc4290>
     >>> Choice.history.all()
     [<HistoricalChoice: Choice object as of 2010-10-25 18:05:12.183340>, <HistoricalChoice: Choice object as of 2010-10-25 18:04:59.047351>]
-    
-Because the history is model, you can also filter it like regulary QuerySets, a.k. Choice.history.filter(choice_text='Not Much') will work!
+
+Because the history is model, you can also filter it like regularly QuerySets,
+a.k. Choice.history.filter(choice_text='Not Much') will work!

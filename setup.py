@@ -2,11 +2,7 @@ from setuptools import setup
 import simple_history
 
 tests_require = [
-    'Django>=1.4', 'WebTest==2.0.18', 'django-webtest==1.7.8', 'mock==1.0.1']
-try:
-    from unittest import skipUnless  # noqa
-except ImportError:  # Python 2.6 compatibility
-    tests_require.append("unittest2")
+    'Django>=1.6', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
 
 setup(
     name='django-simple-history',
@@ -29,7 +25,6 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',

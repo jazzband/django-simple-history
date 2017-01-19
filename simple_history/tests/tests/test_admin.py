@@ -8,23 +8,19 @@ from django.test.utils import override_settings
 from django.test.client import RequestFactory
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
-
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django < 1.5
-    from django.contrib.auth.models import User
-try:
-    from django.contrib.admin.utils import quote
-except ImportError:  # Django < 1.7
-    from django.contrib.admin.util import quote
 
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
 from ..models import Book, Person, Poll, State, Employee
 
+try:
+    from django.contrib.admin.utils import quote
+except ImportError:  # Django < 1.7
+    from django.contrib.admin.util import quote
 
+User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 

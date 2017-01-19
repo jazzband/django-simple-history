@@ -5,10 +5,11 @@ import unittest
 import warnings
 
 import django
+from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
-from django.core.files.base import ContentFile
 
 from simple_history.models import HistoricalRecords, convert_auto_field
 from ..models import (
@@ -28,16 +29,8 @@ except ImportError:  # Django < 1.7
     from django.db.models import get_model
 else:
     get_model = apps.get_model
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 
+User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 yesterday = today - timedelta(days=1)
@@ -499,7 +492,7 @@ class HistoryManagerTest(TestCase):
             related_model = field_object.related.model
         self.assertEqual(related_model, HistoricalState)
 
-    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
@@ -651,7 +644,7 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(order[5], self.w_chair.pk)
         self.assertEqual(order[6], self.w_battle.pk)
 
-    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_migrations_include_order(self):
         from django.db.migrations import state
         model_state = state.ModelState.from_model(SeriesWork.history.model)
