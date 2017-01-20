@@ -1,8 +1,8 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
+1.8.2 (2017-01-19)
+------------------
 - Add Polish locale.
 - Add Django 1.10 support.
 
