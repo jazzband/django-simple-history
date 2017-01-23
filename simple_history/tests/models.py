@@ -15,6 +15,13 @@ class Poll(models.Model):
     history = HistoricalRecords()
 
 
+class PollWithExcludeFields(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+    history = HistoricalRecords(excluded_fields=['pub_date'])
+
+
 class Temperature(models.Model):
     location = models.CharField(max_length=200)
     temperature = models.IntegerField()
