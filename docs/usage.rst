@@ -83,6 +83,9 @@ initial change for preexisting model instances:
 
     $ python manage.py populate_history --auto
 
+By default, history rows are inserted in batches of 200. This can be changed if needed for large tables
+by using the ``--batchsize`` option, for example ``--batchsize 500``.
+
 .. _admin_integration:
 
 Integration with Django Admin
