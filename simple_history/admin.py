@@ -65,6 +65,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 obj = action_list.latest('history_date').instance
             except action_list.model.DoesNotExist:
                 raise http.Http404
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
