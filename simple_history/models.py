@@ -37,11 +37,13 @@ class HistoricalRecords(object):
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
-                 excluded_fields=[]):
+                 excluded_fields=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
+        if excluded_fields is None:
+            excluded_fields = []
         self.excluded_fields = excluded_fields
         try:
             if isinstance(bases, six.string_types):
