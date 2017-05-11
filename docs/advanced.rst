@@ -213,3 +213,29 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+
+Choosing fields to not be stored
+--------------------------------
+
+It is possible to use the parameter ``excluded_fields`` to choice which fields
+will be stored on every create/update/delete.
+
+For example, if you have the model:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+And you don't want to stored the changes for the field ``pub_date``, it is necessary to update the model to:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+        history = HistoricalRecords(excluded_fields=['pub_date'])
+
+By default, django-simple-history stores the changes for all fields in the model.
