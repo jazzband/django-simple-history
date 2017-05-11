@@ -14,7 +14,7 @@ Authors
 - Grzegorz Bialy
 - Hamish Downer
 - James Pulec
-- Joao Junior
+- Joao Junior(@joaojunior)
 - Joao Pedro Francese
 - jofusa
 - John Whitlock
