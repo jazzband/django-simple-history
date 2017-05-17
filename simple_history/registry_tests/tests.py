@@ -11,12 +11,10 @@ from django.test import TestCase
 
 from simple_history import exceptions, register
 from ..tests.models import (
-    Poll, Choice, Voter, Restaurant, HistoricalPoll, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError,
-    UserAccessorDefault, UserAccessorOverride,
-    TrackedAbstractBaseA, TrackedAbstractBaseB,
-    TrackedWithAbstractBase, TrackedWithConcreteBase,
-    InheritTracking1, InheritTracking2, InheritTracking3, InheritTracking4,
+    Poll, Choice, Voter, Restaurant, UserAccessorDefault, UserAccessorOverride,
+    TrackedAbstractBaseA, TrackedAbstractBaseB, TrackedWithAbstractBase,
+    TrackedWithConcreteBase, InheritTracking1, InheritTracking2,
+    InheritTracking3, InheritTracking4,
 )
 
 try:
