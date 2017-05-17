@@ -86,7 +86,8 @@ class TestTrackingInheritance(TestCase):
                 for f in TrackedWithAbstractBase.history.model._meta.fields
             ],
             [
-                'id', 'history_id', 'history_date', 'history_user_id',
+                'id', 'history_id', 'history_date',
+                'history_change_reason', 'history_user_id',
                 'history_type',
             ],
         )
@@ -99,7 +100,8 @@ class TestTrackingInheritance(TestCase):
             ],
             [
                 'id', 'trackedconcretebase_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason', 'history_user_id',
+                'history_type',
             ],
         )
 
@@ -114,7 +116,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking1.history.model._meta.fields],
             [
                 'id', 'untrackedconcretebase_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
@@ -123,7 +126,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking2.history.model._meta.fields],
             [
                 'id', 'baseinherittracking2_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
@@ -132,7 +136,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking3.history.model._meta.fields],
             [
                 'id', 'baseinherittracking3_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
