@@ -65,6 +65,35 @@ third-party apps you don't have control over.  Here's an example of using
     register(User)
 
 
+Allow tracking to be inherited
+---------------------------------
+
+By default history tracking is only added for the model that is passed
+to ``register()`` or has the ``HistoricalRecords`` descriptor. By
+passing ``inherit=True`` to either way of registering you can change
+that behavior so that any child model inheriting from it will have
+historical tracking as well. Be careful though, in cases where a model
+can be tracked more than once, ``MultipleRegistrationsError`` will be
+raised.
+
+.. code-block:: python
+
+    from django.contrib.auth.models import User
+    from django.db import models
+    from simple_history import register
+    from simple_history.models import HistoricalRecords
+
+    # register() example
+    register(User, inherit=True)
+
+    # HistoricalRecords example
+    class Poll(models.Model):
+        history = HistoricalRecords(inherit=True)
+
+Both ``User`` and ``Poll`` in the example above will cause any model
+inheriting from them to have historical tracking as well.
+
+
 .. recording_user:
 
 Recording Which User Changed a Model
@@ -158,3 +187,29 @@ To change the auto-generated HistoricalRecord models base class from
         pub_date = models.DateTimeField('date published')
         changed_by = models.ForeignKey('auth.User')
         history = HistoricalRecords(bases=[RoutableModel])
+
+Custom history table name
+-------------------------
+
+By default, the table name for historical models follow the Django convention
+and just add ``historical`` before model name. For instance, if your application
+name is ``polls`` and your model name ``Question``, then the table name will be
+``polls_historicalquestion``.
+
+You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
+``register()`` to change this behavior.
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        history = HistoricalRecords(table_name='polls_question_history')
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+    register(Question, table_name='polls_question_history')

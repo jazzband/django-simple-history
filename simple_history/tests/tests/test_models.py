@@ -1,34 +1,36 @@
 from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
+import unittest
+import warnings
 
 import django
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db import models
-from django.db.models.loading import get_model
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
-from django.core.files.base import ContentFile
 
 from simple_history.models import HistoricalRecords, convert_auto_field
-from simple_history import register
 from ..models import (
-    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Voter, Restaurant,
+    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant,
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
     AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
     ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo
+    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
+    Employee, Country, Province,
+    City, Contact, ContactRegister,
 )
 from ..external.models import ExternalModel2, ExternalModel4
 
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    from django.db.models import get_model
+else:
+    get_model = apps.get_model
+
+User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 yesterday = today - timedelta(days=1)
@@ -260,6 +262,22 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual([m.fk_id for m in model.history.all()],
                          [other.id, model.id, None])
 
+    def test_to_field_foreign_key_save(self):
+        country = Country.objects.create(code='US')
+        country2 = Country.objects.create(code='CA')
+        province = Province.objects.create(country=country)
+        province.country = country2
+        province.save()
+        self.assertEqual([c.country_id for c in province.history.all()],
+                         [country2.code, country.code])
+
+    def test_db_column_foreign_key_save(self):
+        country = Country.objects.create(code='US')
+        city = City.objects.create(country=country)
+        country_field = City._meta.get_field('country')
+        self.assertIn(getattr(country_field, 'db_column'),
+                      str(city.history.all().query))
+
     def test_raw_save(self):
         document = Document()
         document.save_base(raw=True)
@@ -296,41 +314,7 @@ class HistoricalRecordsTest(TestCase):
         poll_info.save()
 
 
-class RegisterTest(TestCase):
-    def test_register_no_args(self):
-        self.assertEqual(len(Choice.history.all()), 0)
-        poll = Poll.objects.create(pub_date=today)
-        choice = Choice.objects.create(poll=poll, votes=0)
-        self.assertEqual(len(choice.history.all()), 1)
-
-    def test_register_separate_app(self):
-        get_history = lambda model: model.history
-        self.assertRaises(AttributeError, get_history, User)
-        self.assertEqual(len(User.histories.all()), 0)
-        user = User.objects.create(username='bob', password='pass')
-        self.assertEqual(len(User.histories.all()), 1)
-        self.assertEqual(len(user.histories.all()), 1)
-
-    def test_reregister(self):
-        register(Restaurant, manager_name='again')
-        register(User, manager_name='again')
-        self.assertTrue(hasattr(Restaurant, 'updates'))
-        self.assertFalse(hasattr(Restaurant, 'again'))
-        self.assertTrue(hasattr(User, 'histories'))
-        self.assertFalse(hasattr(User, 'again'))
-
-    def test_register_custome_records(self):
-        self.assertEqual(len(Voter.history.all()), 0)
-        poll = Poll.objects.create(pub_date=today)
-        choice = Choice.objects.create(poll=poll, votes=0)
-        user = User.objects.create(username='voter')
-        voter = Voter.objects.create(choice=choice, user=user)
-        self.assertEqual(len(voter.history.all()), 1)
-        expected = 'Voter object changed by None as of '
-        self.assertEqual(expected, str(voter.history.all()[0])[:len(expected)])
-
-
-class CreateHistoryModelTests(TestCase):
+class CreateHistoryModelTests(unittest.TestCase):
 
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
         records = HistoricalRecords()
@@ -451,7 +435,10 @@ class HistoryManagerTest(TestCase):
         most_recent = poll.history.most_recent()
         self.assertEqual(most_recent.question, "why?")
         times = [r.history_date for r in poll.history.all()]
-        question_as_of = lambda time: poll.history.as_of(time).question
+
+        def question_as_of(time):
+            return poll.history.as_of(time).question
+
         self.assertEqual(question_as_of(times[0]), "why?")
         self.assertEqual(question_as_of(times[1]), "how's it going?")
         self.assertEqual(question_as_of(times[2]), "what's up?")
@@ -475,7 +462,10 @@ class HistoryManagerTest(TestCase):
         most_recent = choice.history.most_recent()
         self.assertEqual(most_recent.poll.pk, how_poll.pk)
         times = [r.history_date for r in choice.history.all()]
-        poll_as_of = lambda time: choice.history.as_of(time).poll
+
+        def poll_as_of(time):
+            return choice.history.as_of(time).poll
+
         self.assertEqual(poll_as_of(times[0]).pk, how_poll.pk)
         self.assertEqual(poll_as_of(times[1]).pk, why_poll.pk)
 
@@ -493,14 +483,22 @@ class HistoryManagerTest(TestCase):
             self.assertRaises(TypeError, HistoricalRecords, bases=bases)
 
     def test_import_related(self):
-        field_object = HistoricalChoice._meta.get_field_by_name('poll_id')[0]
-        self.assertEqual(field_object.related.model, Choice)
+        field_object = HistoricalChoice._meta.get_field('poll')
+        try:
+            related_model = field_object.rel.related_model
+        except AttributeError:  # Django<1.8
+            related_model = field_object.related.model
+        self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
-        field_object = HistoricalState._meta.get_field_by_name('library_id')[0]
-        self.assertEqual(field_object.related.model, State)
+        field_object = HistoricalState._meta.get_field('library')
+        try:
+            related_model = field_object.rel.related_model
+        except AttributeError:  # Django<1.8
+            related_model = field_object.related.model
+        self.assertEqual(related_model, HistoricalState)
 
-    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
@@ -520,9 +518,13 @@ class TestConvertAutoField(TestCase):
 
         Default Django ORM uses an integer-based auto field.
         """
-        with self.settings(DATABASES={'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
-            assert convert_auto_field(self.field) == models.IntegerField
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning,
+                                    message='Overriding setting DATABASES ' +
+                                            'can lead to unexpected behavior.')
+            with self.settings(DATABASES={'default': {
+                    'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
+                assert convert_auto_field(self.field) == models.IntegerField
 
     def test_non_relational(self):
         """Non-relational test
@@ -530,9 +532,14 @@ class TestConvertAutoField(TestCase):
         MongoDB uses a string-based auto field. We need to make sure
         the converted field type is string.
         """
-        with self.settings(DATABASES={'default': {
-                'ENGINE': 'django_mongodb_engine'}}):
-            assert convert_auto_field(self.field) == models.TextField
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning,
+                                    message='Overriding setting DATABASES ' +
+                                            'can lead to unexpected behavior.')
+            with self.settings(DATABASES={'default': {
+                    'ENGINE': 'django_mongodb_engine'}}):
+                assert convert_auto_field(self.field) == models.TextField
 
 
 class TestOrderWrtField(TestCase):
@@ -572,7 +579,7 @@ class TestOrderWrtField(TestCase):
             self.w_horse.pk,
             self.w_nephew.pk,
             self.w_battle.pk]
-        self.assertEqual(order, expected)
+        self.assertSequenceEqual(order, expected)
         self.assertEqual(0, self.w_lion._order)
         self.assertEqual(1, self.w_caspian._order)
         self.assertEqual(2, self.w_voyage._order)
@@ -582,11 +589,11 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(6, self.w_battle._order)
 
     def test_order_field_in_historical_model(self):
-        work_order_field = self.w_lion._meta.get_field_by_name('_order')[0]
+        work_order_field = self.w_lion._meta.get_field('_order')
         self.assertEqual(type(work_order_field), OrderWrt)
 
         history = self.w_lion.history.all()[0]
-        history_order_field = history._meta.get_field_by_name('_order')[0]
+        history_order_field = history._meta.get_field('_order')
         self.assertEqual(type(history_order_field), models.IntegerField)
 
     def test_history_object_has_order(self):
@@ -610,7 +617,8 @@ class TestOrderWrtField(TestCase):
             self.w_chair.pk,
             self.w_battle.pk]
         self.series.set_serieswork_order(chronological)
-        self.assertEqual(self.series.get_serieswork_order(), chronological)
+        self.assertSequenceEqual(self.series.get_serieswork_order(),
+                                 chronological)
 
         # This uses an update, not a save, so no new history is created
         w_caspian = SeriesWork.objects.get(id=self.w_caspian.id)
@@ -642,7 +650,7 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(order[5], self.w_chair.pk)
         self.assertEqual(order[6], self.w_battle.pk)
 
-    @skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
     def test_migrations_include_order(self):
         from django.db.migrations import state
         model_state = state.ModelState.from_model(SeriesWork.history.model)
@@ -658,7 +666,8 @@ class TestLatest(TestCase):
     """"Test behavior of `latest()` without any field parameters"""
 
     def setUp(self):
-        poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)
+        poll = Poll.objects.create(
+            question="Does `latest()` work?", pub_date=yesterday)
         poll.pub_date = today
         poll.save()
 
@@ -689,3 +698,45 @@ class TestLatest(TestCase):
             {'pk': 2, 'history_date': yesterday},
         ])
         assert HistoricalPoll.objects.latest().pk == 1
+
+
+class TestMissingOneToOne(TestCase):
+
+    def setUp(self):
+        self.manager1 = Employee.objects.create()
+        self.manager2 = Employee.objects.create()
+        self.employee = Employee.objects.create(manager=self.manager1)
+        self.employee.manager = self.manager2
+        self.employee.save()
+        self.manager1.delete()
+
+    def test_history_is_complete(self):
+        historical_manager_ids = list(self.employee.history.order_by('pk')
+                                      .values_list('manager_id', flat=True))
+        self.assertEqual(historical_manager_ids, [1, 2])
+
+    def test_restore_employee(self):
+        historical = self.employee.history.order_by('pk')[0]
+        original = historical.instance
+        self.assertEqual(original.manager_id, 1)
+        with self.assertRaises(Employee.DoesNotExist):
+            original.manager
+
+
+class CustomTableNameTest1(TestCase):
+
+    @staticmethod
+    def get_table_name(manager):
+        return manager.model._meta.db_table
+
+    def test_custom_table_name(self):
+        self.assertEqual(
+            self.get_table_name(Contact.history),
+            'contacts_history',
+        )
+
+    def test_custom_table_name_from_register(self):
+        self.assertEqual(
+            self.get_table_name(ContactRegister.history),
+            'contacts_register_history',
+        )

@@ -1,11 +1,8 @@
 from setuptools import setup
 import simple_history
 
-tests_require = ["Django>=1.4", "webtest==2.0.6", "django-webtest==1.7"]
-try:
-    from unittest import skipUnless
-except ImportError:  # Python 2.6 compatibility
-    tests_require.append("unittest2")
+tests_require = [
+    'Django>=1.6', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
 
 setup(
     name='django-simple-history',
@@ -19,14 +16,15 @@ setup(
     author_email='corey@qr7.com',
     maintainer='Trey Hunner',
     url='https://github.com/treyhunner/django-simple-history',
-    packages=["simple_history", "simple_history.management", "simple_history.management.commands"],
+    packages=[
+        'simple_history', 'simple_history.management',
+        'simple_history.management.commands', 'simple_history.templatetags'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',

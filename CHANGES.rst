@@ -3,6 +3,52 @@ Changes
 
 tip (unreleased)
 ----------------
+- Added --batchsize option to the populate_history management command.
+
+1.8.2 (2017-01-19)
+------------------
+- Add Polish locale.
+- Add Django 1.10 support.
+
+1.8.1 (2016-03-19)
+------------------
+- Clear the threadlocal request object when processing the response to prevent test interactions. (gh-213)
+
+1.8.0 (2016-02-02)
+------------------
+- History tracking can be inherited by passing `inherit=True`. (gh-63)
+
+1.7.0 (2015-12-02)
+------------------
+- Add ability to list history in admin when the object instance is deleted. (gh-72)
+- Add ability to change history through the admin. (Enabled with the `SIMPLE_HISTORY_EDIT` setting.)
+- Add Django 1.9 support.
+- Support for custom tables names. (gh-196)
+
+1.6.3 (2015-07-30)
+------------------
+- Respect `to_field` and `db_column` parameters (gh-182)
+
+1.6.2 (2015-07-04)
+------------------
+- Use app loading system and fix deprecation warnings on Django 1.8 (gh-172)
+- Update Landscape configuration
+
+1.6.1 (2015-04-21)
+------------------
+- Fix OneToOneField transformation for historical models (gh-166)
+- Disable cascading deletes from related models to historical models
+- Fix restoring historical instances with missing one-to-one relations (gh-162)
+
+1.6.0 (2015-04-16)
+------------------
+- Add support for Django 1.8+
+- Deprecated use of ``CustomForeignKeyField`` (to be removed)
+- Remove default reverse accessor to `auth.User` for historical models (gh-121)
+
+1.5.4 (2015-01-03)
+------------------
+- Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
 - Do NOT delete the history elements when a user is deleted.
 - Add support for ``latest``
 - Allow setting a reason for change. [using option changeReason]

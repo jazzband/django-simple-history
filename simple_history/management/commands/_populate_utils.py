@@ -15,13 +15,15 @@ def get_history_model_for_model(model):
     return getattr(model, manager_name).model
 
 
-def bulk_history_create(model, history_model):
+def bulk_history_create(model, history_model, batch_size):
     """Save a copy of all instances to the historical model."""
     historical_instances = [
         history_model(
             history_date=getattr(instance, '_history_date', now()),
             history_user=getattr(instance, '_history_user', None),
-            **dict((field.attname, getattr(instance, field.attname))
-                   for field in instance._meta.fields)
+            **{
+                field.attname: getattr(instance, field.attname)
+                for field in instance._meta.fields
+            }
         ) for instance in model.objects.all()]
-    history_model.objects.bulk_create(historical_instances)
+    history_model.objects.bulk_create(historical_instances, batch_size=batch_size)

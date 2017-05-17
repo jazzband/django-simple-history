@@ -37,13 +37,13 @@ settings:
 
 .. code-block:: python
 
-    MIDDLEWARE_CLASSES = [
+    MIDDLEWARE = [
         # ...
         'simple_history.middleware.HistoryRequestMiddleware',
     ]
 
 If you do not want to use the middleware, you can explicitly indicate
-the user making the change as documented in :ref:`recording_user`.
+the user making the change as documented in :doc:`/advanced`.
 
 Models
 ~~~~~~
@@ -83,6 +83,9 @@ initial change for preexisting model instances:
 
     $ python manage.py populate_history --auto
 
+By default, history rows are inserted in batches of 200. This can be changed if needed for large tables
+by using the ``--batchsize`` option, for example ``--batchsize 500``.
+
 .. _admin_integration:
 
 Integration with Django Admin
@@ -121,7 +124,7 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
     admin.site.register(Poll, SimpleHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)
 
-Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :ref:`recording_user`).
+Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :doc:`/advanced`).
 
 
 Querying history
@@ -168,3 +171,6 @@ records for all ``Choice`` instances can be queried by using the manager on the
     <simple_history.manager.HistoryManager object at 0x1cc4290>
     >>> Choice.history.all()
     [<HistoricalChoice: Choice object as of 2010-10-25 18:05:12.183340>, <HistoricalChoice: Choice object as of 2010-10-25 18:04:59.047351>]
+
+Because the history is model, you can also filter it like regularly QuerySets,
+a.k. Choice.history.filter(choice_text='Not Much') will work!

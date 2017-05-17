@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
 
-import django
 from django.db import models
-if django.VERSION >= (1, 5):
-    from .custom_user.models import CustomUser as User
-else:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
+
+from .custom_user.models import CustomUser as User
 
 
 class Poll(models.Model):
@@ -237,3 +234,109 @@ class SeriesWork(models.Model):
 class PollInfo(models.Model):
     poll = models.ForeignKey(Poll, primary_key=True)
     history = HistoricalRecords()
+
+
+class UserAccessorDefault(models.Model):
+    pass
+
+
+class UserAccessorOverride(models.Model):
+    pass
+
+
+class Employee(models.Model):
+    manager = models.OneToOneField('Employee', null=True)
+    history = HistoricalRecords()
+
+
+class Country(models.Model):
+    code = models.CharField(max_length=15, unique=True)
+
+
+class Province(models.Model):
+    country = models.ForeignKey(Country, to_field='code')
+    history = HistoricalRecords()
+
+
+class City(models.Model):
+    country = models.ForeignKey(Country, db_column='countryCode')
+    history = HistoricalRecords()
+
+
+class Contact(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+    history = HistoricalRecords(table_name='contacts_history')
+
+
+class ContactRegister(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+
+register(ContactRegister, table_name='contacts_register_history')
+
+
+###############################################################################
+#
+# Inheritance examples
+#
+###############################################################################
+
+class TrackedAbstractBaseA(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class TrackedAbstractBaseB(models.Model):
+    history_b = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class UntrackedAbstractBase(models.Model):
+
+    class Meta:
+        abstract = True
+
+
+class TrackedConcreteBase(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+
+class UntrackedConcreteBase(models.Model):
+    pass
+
+
+class TrackedWithAbstractBase(TrackedAbstractBaseA):
+    pass
+
+
+class TrackedWithConcreteBase(TrackedConcreteBase):
+    pass
+
+
+class InheritTracking1(TrackedAbstractBaseA, UntrackedConcreteBase):
+    pass
+
+
+class BaseInheritTracking2(TrackedAbstractBaseA):
+    pass
+
+
+class InheritTracking2(BaseInheritTracking2):
+    pass
+
+
+class BaseInheritTracking3(TrackedAbstractBaseA):
+    pass
+
+
+class InheritTracking3(BaseInheritTracking3):
+    pass
+
+
+class InheritTracking4(TrackedAbstractBaseA):
+    pass

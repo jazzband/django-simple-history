@@ -2,6 +2,8 @@ Authors
 =======
 
 - Aleksey Kladov
+- bradford281
+- Buddy Lindsey, Jr.
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay
@@ -9,24 +11,29 @@ Authors
 - Daniel Roschka
 - David Hite
 - George Vilches
+- Grzegorz Bialy
 - Hamish Downer
 - James Pulec
 - Joao Pedro Francese
 - jofusa
 - John Whitlock
+- Jonathan Leroy
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
 - Micah Denbraver
 - Rajesh Pappula
+- Rod Xavier Bondoc
 - Ross Lote
 - Steven Klass
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
-- hmit
+- Lucas Wiman
+- Michael England
 
 Background
 ==========

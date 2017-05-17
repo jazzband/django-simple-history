@@ -1,23 +1,23 @@
 from __future__ import unicode_literals
 
-import threading
 import copy
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    apps = None
+import importlib
+import threading
+
 from django.db import models, router
-from django.db.models import loading
 from django.db.models.fields.proxy import OrderWrt
-from django.db.models.fields.related import RelatedField
-from django.db.models.related import RelatedObject
 from django.conf import settings
 from django.contrib import admin
-from django.utils import importlib, six
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    from django.db.models import get_app
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
@@ -25,6 +25,8 @@ except ImportError:  # south not present
 else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
+
+from . import exceptions
 from .manager import HistoryDescriptor
 
 registered_models = {}
@@ -34,9 +36,11 @@ class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
-                 user_related_name=None):
+                 user_related_name='+', table_name=None, inherit=False):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
+        self.table_name = table_name
+        self.inherit = inherit
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -47,7 +51,8 @@ class HistoricalRecords(object):
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
-        models.signals.class_prepared.connect(self.finalize, sender=cls)
+        self.cls = cls
+        models.signals.class_prepared.connect(self.finalize, weak=False)
         self.add_extra_methods(cls)
 
     def add_extra_methods(self, cls):
@@ -67,6 +72,21 @@ class HistoricalRecords(object):
                 save_without_historical_record)
 
     def finalize(self, sender, **kwargs):
+        try:
+            hint_class = self.cls
+        except AttributeError:  # called via `register`
+            pass
+        else:
+            if hint_class is not sender:  # set in concrete
+                if not (self.inherit and issubclass(sender, hint_class)):
+                    return  # set in abstract
+        if hasattr(sender._meta, 'simple_history_manager_attribute'):
+            raise exceptions.MultipleRegistrationsError(
+                '{}.{} registered multiple times for history tracking.'.format(
+                    sender._meta.app_label,
+                    sender._meta.object_name,
+                )
+            )
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
@@ -93,20 +113,22 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            if apps is None:  # Django < 1.7
-                # has meta options with app_label
-                app = loading.get_app(model._meta.app_label)
-                attrs['__module__'] = app.__name__  # full dotted name
-            else:
+            try:
                 # Abuse an internal API because the app registry is loading.
                 app = apps.app_configs[model._meta.app_label]
-                attrs['__module__'] = app.name      # full dotted name
+            except NameError:  # Django < 1.7
+                models_module = get_app(model._meta.app_label).__name__
+            else:
+                models_module = app.name
+            attrs['__module__'] = models_module
 
         fields = self.copy_fields(model)
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
+        if self.table_name is not None:
+            attrs['Meta'].db_table = self.table_name
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
@@ -120,19 +142,40 @@ class HistoricalRecords(object):
         fields = {}
         for field in model._meta.fields:
             field = copy.copy(field)
-            field.rel = copy.copy(field.rel)
-            if isinstance(field, models.ForeignKey):
-                # Don't allow reverse relations.
-                # ForeignKey knows best what datatype to use for the column
-                # we'll used that as soon as it's finalized by copying rel.to
-                field.__class__ = CustomForeignKeyField
-                field.rel.related_name = '+'
-                field.null = True
-                field.blank = True
+            try:
+                field.remote_field = copy.copy(field.remote_field)
+            except AttributeError:
+                field.rel = copy.copy(field.rel)
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
-            transform_field(field)
+            if isinstance(field, models.ForeignKey):
+                old_field = field
+                field_arguments = {'db_constraint': False}
+                if (getattr(old_field, 'one_to_one', False) or
+                        isinstance(old_field, models.OneToOneField)):
+                    FieldType = models.ForeignKey
+                else:
+                    FieldType = type(old_field)
+                if getattr(old_field, 'to_fields', []):
+                    field_arguments['to_field'] = old_field.to_fields[0]
+                if getattr(old_field, 'db_column', None):
+                    field_arguments['db_column'] = old_field.db_column
+                field = FieldType(
+                    old_field.rel.to,
+                    related_name='+',
+                    null=True,
+                    blank=True,
+                    primary_key=False,
+                    db_index=True,
+                    serialize=True,
+                    unique=False,
+                    on_delete=models.DO_NOTHING,
+                    **field_arguments
+                )
+                field.name = old_field.name
+            else:
+                transform_field(field)
             fields[field.name] = field
         return fields
 
@@ -145,16 +188,16 @@ class HistoricalRecords(object):
         def revert_url(self):
             """URL for this change in the default admin site."""
             opts = model._meta
-            try:
-                app_label, model_name = opts.app_label, opts.model_name
-            except AttributeError:  # Django < 1.7
-                app_label, model_name = opts.app_label, opts.module_name
+            app_label, model_name = opts.app_label, opts.model_name
             return ('%s:%s_%s_simple_history' %
                     (admin.site.name, app_label, model_name),
                     [getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
-            return model(**dict([(k, getattr(self, k)) for k in fields]))
+            return model(**{
+                field.attname: getattr(self, field.attname)
+                for field in fields.values()
+            })
 
         return {
             'history_id': models.AutoField(primary_key=True),
@@ -224,86 +267,6 @@ class HistoricalRecords(object):
                 return None
             except AttributeError:
                 return None
-
-
-class CustomForeignKeyField(models.ForeignKey):
-
-    def __init__(self, *args, **kwargs):
-        super(CustomForeignKeyField, self).__init__(*args, **kwargs)
-        self.db_constraint = False
-        self.generate_reverse_relation = False
-
-    def get_attname(self):
-        return self.name
-
-    def get_one_to_one_field(self, to_field, other):
-        # HACK This creates a new custom foreign key based on to_field,
-        # and calls itself with that, effectively making the calls
-        # recursive
-        temp_field = self.__class__(to_field.rel.to._meta.object_name)
-        for key, val in to_field.__dict__.items():
-            if (isinstance(key, six.string_types)
-                    and not key.startswith('_')):
-                setattr(temp_field, key, val)
-        field = self.__class__.get_field(
-            temp_field, other, to_field.rel.to)
-        return field
-
-    def get_field(self, other, cls):
-        # this hooks into contribute_to_class() and this is
-        # called specifically after the class_prepared signal
-        to_field = copy.copy(self.rel.to._meta.pk)
-        field = self
-        if isinstance(to_field, models.OneToOneField):
-            field = self.get_one_to_one_field(to_field, other)
-        elif isinstance(to_field, models.AutoField):
-            field.__class__ = convert_auto_field(to_field)
-        else:
-            field.__class__ = to_field.__class__
-            excluded_prefixes = ("_", "__")
-            excluded_attributes = (
-                "rel",
-                "creation_counter",
-                "validators",
-                "error_messages",
-                "attname",
-                "column",
-                "help_text",
-                "name",
-                "model",
-                "unique_for_year",
-                "unique_for_date",
-                "unique_for_month",
-                "db_tablespace",
-                "db_index",
-                "db_column",
-                "default",
-                "auto_created",
-                "null",
-                "blank",
-            )
-            for key, val in to_field.__dict__.items():
-                if (isinstance(key, six.string_types)
-                        and not key.startswith(excluded_prefixes)
-                        and key not in excluded_attributes):
-                    setattr(field, key, val)
-        return field
-
-    def do_related_class(self, other, cls):
-        field = self.get_field(other, cls)
-        if not hasattr(self, 'related'):
-            try:
-                instance_type = cls.instance_type
-            except AttributeError:  # when model is reconstituted for migration
-                pass  # happens during migrations
-            else:
-                self.related = RelatedObject(other, instance_type, self)
-        transform_field(field)
-        field.rel = None
-
-    def contribute_to_class(self, cls, name):
-        # HACK: remove annoying descriptor (don't super())
-        RelatedField.contribute_to_class(self, cls, name)
 
 
 def transform_field(field):
