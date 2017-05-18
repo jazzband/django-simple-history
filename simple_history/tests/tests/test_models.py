@@ -520,7 +520,8 @@ class HistoryManagerTest(TestCase):
             related_model = field_object.related.model
         self.assertEqual(related_model, HistoricalState)
 
-    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7",
+                         "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
@@ -672,7 +673,8 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(order[5], self.w_chair.pk)
         self.assertEqual(order[6], self.w_battle.pk)
 
-    @unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
+    @unittest.skipUnless(django.get_version() >= "1.7",
+                         "Requires 1.7 migrations")
     def test_migrations_include_order(self):
         from django.db.migrations import state
         model_state = state.ModelState.from_model(SeriesWork.history.model)
