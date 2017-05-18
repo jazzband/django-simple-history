@@ -213,3 +213,43 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+
+Change Reason
+-------------
+
+Change reason is a message to explain why the change was made in the instance. It is stored in the
+field ``history_change_reason`` and its default value is ``None``.
+
+By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
+the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+function ``utils.update_change_reason``. The first argument of this function is the instance and the seccond
+is the message that represents the change reason.
+
+For instance, for the model:
+
+.. code-block:: python
+
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+You can create a instance with a implicity change reason.
+
+.. code-block:: python
+
+    poll = Poll(question='Question 1')
+    poll.changeReason = 'Add a question'
+    poll.save()
+
+Or you can pass the change reason explicitly:
+
+.. code-block:: python
+
+    from simple_history.utils import update_change_reason
+
+    poll = Poll(question='Question 1')
+    poll.save()
+    update_change_reason(poll, 'Add a question')
