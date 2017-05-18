@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-from datetime import datetime, timedelta
 import unittest
 import warnings
+from datetime import datetime, timedelta
 
 import django
 from django.contrib.auth import get_user_model
@@ -10,19 +10,18 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
-
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
-from ..models import (
-    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant,
-    Person, FileModel, Document, Book, HistoricalPoll, Library, State,
-    AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
-    ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
-    Employee, Country, Province,
-    City, Contact, ContactRegister,
-)
+
 from ..external.models import ExternalModel2, ExternalModel4
+from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
+                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
+                      Country, Document, Employee, ExternalModel1,
+                      ExternalModel3, FileModel, HistoricalChoice,
+                      HistoricalCustomFKError, HistoricalPoll, HistoricalState,
+                      Library, MultiOneToOne, Person, Poll, PollInfo, Province,
+                      Restaurant, SelfFK, Series, SeriesWork, State,
+                      Temperature, UnicodeVerboseName, WaterLevel)
 
 try:
     from django.apps import apps

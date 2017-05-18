@@ -4,15 +4,17 @@ import copy
 import importlib
 import threading
 
-from django.db import models, router
-from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
+from django.db import models, router
+from django.db.models.fields.proxy import OrderWrt
 from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.encoding import smart_text
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
 from django.utils.translation import string_concat
+
+from . import exceptions
+from .manager import HistoryDescriptor
 
 try:
     from django.apps import apps
@@ -26,8 +28,6 @@ else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 
-from . import exceptions
-from .manager import HistoryDescriptor
 
 registered_models = {}
 
