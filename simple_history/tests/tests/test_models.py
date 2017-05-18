@@ -12,6 +12,7 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 
 from simple_history.models import HistoricalRecords, convert_auto_field
+from simple_history.utils import update_change_reason
 from ..models import (
     AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant,
     Person, FileModel, Document, Book, HistoricalPoll, Library, State,
@@ -52,7 +53,7 @@ class HistoricalRecordsTest(TestCase):
             self.assertEqual(getattr(record, key), value)
         self.assertEqual(record.history_object.__class__, klass)
         for key, value in values_dict.items():
-            if key not in ['history_type', 'history_change_reason'] :
+            if key not in ['history_type', 'history_change_reason']:
                 self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
@@ -71,8 +72,8 @@ class HistoricalRecordsTest(TestCase):
         Poll.objects.create(question="what's up?", pub_date=today)
         p = Poll.objects.get()
         p.pub_date = tomorrow
-        p.changeReason = 'future poll'
         p.save()
+        update_change_reason(p, 'future poll')
         update_record, create_record = p.history.all()
         self.assertRecordValues(create_record, Poll, {
             'question': "what's up?",
@@ -90,11 +91,32 @@ class HistoricalRecordsTest(TestCase):
         })
         self.assertDatetimesEqual(update_record.history_date, datetime.now())
 
-    def test_delete(self):
+    def test_delete_verify_change_reason_implicitly(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         poll_id = p.id
         p.changeReason = 'wrongEntry'
         p.delete()
+        delete_record, create_record = Poll.history.all()
+        self.assertRecordValues(create_record, Poll, {
+            'question': "what's up?",
+            'pub_date': today,
+            'id': poll_id,
+            'history_change_reason': None,
+            'history_type': "+"
+        })
+        self.assertRecordValues(delete_record, Poll, {
+            'question': "what's up?",
+            'pub_date': today,
+            'id': poll_id,
+            'history_change_reason': 'wrongEntry',
+            'history_type': "-"
+        })
+
+    def test_delete_verify_change_reason_explicity(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        poll_id = p.id
+        p.delete()
+        update_change_reason(p, 'wrongEntry')
         delete_record, create_record = Poll.history.all()
         self.assertRecordValues(create_record, Poll, {
             'question': "what's up?",
