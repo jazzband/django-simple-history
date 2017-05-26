@@ -213,3 +213,22 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+
+
+History Subtraction
+-------------------
+
+When you have two instances of the same HistoricalRecord, such as HistoricalPoll example above,
+you can make subtractions. This will result in a ModelDelta containing some properties such as a
+dictionary with each field changed between this historical records, a list with all
+fields that suffered changes from one record to another and the date and user from the last change.
+This may be useful when you want timelines, and need to get only the model modifications. 
+
+.. code-block:: python
+
+    p = Poll.objects.create(question="what's up?")
+    p.question = "what's up, man?"
+    p.save()
+
+    new_record, old_record = p.history.all()
+    delta = new_record - old_record

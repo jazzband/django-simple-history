@@ -44,7 +44,7 @@ class HistoricalRecords(object):
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
-            self.bases = tuple(bases)
+            self.bases = (HistoricalChanges,) + tuple(bases)
         except TypeError:
             raise TypeError("The `bases` option must be a list or a tuple.")
 
@@ -311,3 +311,46 @@ class HistoricalObjectDescriptor(object):
         values = (getattr(instance, f.attname)
                   for f in self.model._meta.fields)
         return self.model(*values)
+
+
+class HistoricalChanges(models.Model):
+
+    class Meta:
+        abstract = True
+
+    def __sub__(self, old_history):
+        if not isinstance(old_history, type(self)):
+            raise TypeError(("unsupported operand type(s) for -: "
+                             "'{}' and '{}'").format(
+                            type(self),
+                            type(old_history)))
+        model_delta_class = getattr(self, 'model_delta_class', ModelDelta)
+        changes = {}
+        changed_fields = []
+        for field in self._meta.fields:
+            if hasattr(self.instance, field.name) and \
+               hasattr(old_history.instance, field.name):
+                old_value = getattr(old_history, field.name, '')
+                new_value = getattr(self, field.name)
+                if old_value != new_value:
+                    changes[field.name] = {'old_value': old_value,
+                                           'new_value': new_value}
+                    changed_fields.append(field.name)
+        return model_delta_class(changes,
+                                 changed_fields=changed_fields,
+                                 date=self.history_date,
+                                 user=self.history_user,
+                                 old_history=old_history,
+                                 new_history=self)
+
+
+class ModelDelta:
+
+    def __init__(self, changes, changed_fields, date, user, old_history,
+                 new_history):
+        self.changes = changes
+        self.changed_fields = changed_fields
+        self.date = date
+        self.user = user
+        self.old_history = old_history
+        self.new_history = new_history
