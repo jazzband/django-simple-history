@@ -12,7 +12,7 @@ from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
-from django.utils.translation import string_concat
+from django.utils.translation import string_concat, ugettext as _
 
 try:
     from django.apps import apps
@@ -206,9 +206,9 @@ class HistoricalRecords(object):
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
             'history_type': models.CharField(max_length=1, choices=(
-                ('+', 'Created'),
-                ('~', 'Changed'),
-                ('-', 'Deleted'),
+                ('+', _('Created')),
+                ('~', _('Changed')),
+                ('-', _('Deleted')),
             )),
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
