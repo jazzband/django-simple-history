@@ -22,6 +22,7 @@ Authors
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Leticia Portella
 - Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes

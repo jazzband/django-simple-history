@@ -307,6 +307,26 @@ class HistoricalRecordsTest(TestCase):
         poll_info = PollInfo(poll=poll)
         poll_info.save()
 
+    def test_history_subtraction(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        delta = new_record - old_record
+        expected_changes = {'old_value': "what's up?",
+                            'new_value': "what's up, man?"}
+        self.assertEqual(delta.changed_fields, ['question'])
+        self.assertEqual(delta.old_history, old_record)
+        self.assertEqual(delta.new_history, new_record)
+        self.assertEqual(delta.changes['question'], expected_changes)
+
+    def test_history_subtraction_wrong_type(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertRaises(TypeError):
+            delta = new_record - 'something'
 
 class CreateHistoryModelTests(unittest.TestCase):
 
