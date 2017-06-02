@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-01 11:02-0300\n"
-"PO-Revision-Date: 2017-06-01 11:06-0300\n"
+"POT-Creation-Date: 2017-06-01 15:47-0300\n"
+"PO-Revision-Date: 2017-06-01 15:47-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"Last-Translator: \n"
-"Language-Team: \n"
 "X-Generator: Poedit 1.8.11\n"
 
 #: simple_history/admin.py:73
@@ -36,6 +36,18 @@ msgstr "Você pode fazer novas modificações abaixo:"
 #, python-format
 msgid "Revert %s"
 msgstr "Reverter %s"
+
+#: simple_history/models.py:209
+msgid "Created"
+msgstr "Criado"
+
+#: simple_history/models.py:210
+msgid "Changed"
+msgstr "Modificado"
+
+#: simple_history/models.py:211
+msgid "Deleted"
+msgstr "Excluído"
 
 #: simple_history/templates/simple_history/object_history.html:10
 msgid ""
@@ -60,6 +72,10 @@ msgstr "Comentário"
 #: simple_history/templates/simple_history/object_history.html:20
 msgid "Changed by"
 msgstr "Modificado por"
+
+#: simple_history/templates/simple_history/object_history.html:38
+msgid "None"
+msgstr "-"
 
 #: simple_history/templates/simple_history/object_history.html:46
 msgid "This object doesn't have a change history."
@@ -86,8 +102,7 @@ msgstr ""
 
 #: simple_history/templates/simple_history/object_history_form.html:21
 msgid "Or press the 'Change History' button to edit the history."
-msgstr ""
-"Ou clique em 'Histórico de Modificações' para modificar o histórico."
+msgstr "Ou clique em 'Histórico de Modificações' para modificar o histórico."
 
 #: simple_history/templates/simple_history/submit_line.html:3
 msgid "Revert"
