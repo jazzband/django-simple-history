@@ -51,6 +51,7 @@ tip (unreleased)
 - Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
 - Do NOT delete the history elements when a user is deleted.
 - Add support for ``latest``
+- Allow setting a reason for change. [using option changeReason]
 
 1.5.3 (2014-11-18)
 ------------------

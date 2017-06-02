@@ -1,23 +1,21 @@
 from __future__ import unicode_literals
 
-from datetime import datetime, timedelta
-from six.moves import cStringIO as StringIO
 import unittest
+from datetime import datetime, timedelta
 
 import django
 from django.contrib.auth import get_user_model
 from django.core import management
 from django.test import TestCase
-
 from simple_history import exceptions, register
-from ..tests.models import (
-    Poll, Choice, Voter, Restaurant, HistoricalPoll, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError,
-    UserAccessorDefault, UserAccessorOverride,
-    TrackedAbstractBaseA, TrackedAbstractBaseB,
-    TrackedWithAbstractBase, TrackedWithConcreteBase,
-    InheritTracking1, InheritTracking2, InheritTracking3, InheritTracking4,
-)
+from six.moves import cStringIO as StringIO
+
+from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
+                            InheritTracking3, InheritTracking4, Poll,
+                            Restaurant, TrackedAbstractBaseA,
+                            TrackedAbstractBaseB, TrackedWithAbstractBase,
+                            TrackedWithConcreteBase, UserAccessorDefault,
+                            UserAccessorOverride, Voter)
 
 try:
     from django.apps import apps
@@ -86,7 +84,8 @@ class TestTrackingInheritance(TestCase):
                 for f in TrackedWithAbstractBase.history.model._meta.fields
             ],
             [
-                'id', 'history_id', 'history_date', 'history_user_id',
+                'id', 'history_id', 'history_date',
+                'history_change_reason', 'history_user_id',
                 'history_type',
             ],
         )
@@ -99,7 +98,8 @@ class TestTrackingInheritance(TestCase):
             ],
             [
                 'id', 'trackedconcretebase_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason', 'history_user_id',
+                'history_type',
             ],
         )
 
@@ -114,7 +114,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking1.history.model._meta.fields],
             [
                 'id', 'untrackedconcretebase_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
@@ -123,7 +124,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking2.history.model._meta.fields],
             [
                 'id', 'baseinherittracking2_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
@@ -132,7 +134,8 @@ class TestTrackingInheritance(TestCase):
             [f.attname for f in InheritTracking3.history.model._meta.fields],
             [
                 'id', 'baseinherittracking3_ptr_id', 'history_id',
-                'history_date', 'history_user_id', 'history_type',
+                'history_date', 'history_change_reason',
+                'history_user_id', 'history_type',
             ],
         )
 
