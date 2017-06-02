@@ -10,6 +10,7 @@ Authors
 - Daniel Levy
 - Daniel Roschka
 - David Hite
+- Eduardo Cuducos
 - George Vilches
 - Grzegorz Bialy
 - Hamish Downer
