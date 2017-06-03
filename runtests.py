@@ -27,6 +27,7 @@ installed_apps = [
 ]
 
 DEFAULT_SETTINGS = dict(
+    ALLOWED_HOSTS=['localhost'],
     AUTH_USER_MODEL='custom_user.CustomUser',
     ROOT_URLCONF='simple_history.tests.urls',
     MEDIA_ROOT=media_root,
@@ -45,6 +46,11 @@ DEFAULT_SETTINGS = dict(
     TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+            ]
+        },
     }],
 )
 

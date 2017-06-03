@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-from datetime import datetime, timedelta
 import unittest
 import warnings
+from datetime import datetime, timedelta
 
 import django
 from django.contrib.auth import get_user_model
@@ -10,18 +10,19 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
-
 from simple_history.models import HistoricalRecords, convert_auto_field
-from ..models import (
-    AdminProfile, Bookcase, MultiOneToOne, Poll, Choice, Restaurant,
-    Person, FileModel, Document, Book, HistoricalPoll, Library, State,
-    AbstractBase, ConcreteAttr, ConcreteUtil, SelfFK, Temperature, WaterLevel,
-    ExternalModel1, ExternalModel3, UnicodeVerboseName, HistoricalChoice,
-    HistoricalState, HistoricalCustomFKError, Series, SeriesWork, PollInfo,
-    Employee, Country, Province,
-    City, Contact, ContactRegister, PollWithExcludeFields,
-)
+from simple_history.utils import update_change_reason
+
 from ..external.models import ExternalModel2, ExternalModel4
+from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
+                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
+                      Country, Document, Employee, ExternalModel1,
+                      ExternalModel3, FileModel, HistoricalChoice,
+                      HistoricalCustomFKError, HistoricalPoll, HistoricalState,
+                      Library, MultiOneToOne, Person, Poll, PollInfo,
+                      PollWithExcludeFields, Province, Restaurant, SelfFK,
+                      Series, SeriesWork, State, Temperature,
+                      UnicodeVerboseName, WaterLevel)
 
 try:
     from django.apps import apps
@@ -52,7 +53,7 @@ class HistoricalRecordsTest(TestCase):
             self.assertEqual(getattr(record, key), value)
         self.assertEqual(record.history_object.__class__, klass)
         for key, value in values_dict.items():
-            if key != 'history_type':
+            if key not in ['history_type', 'history_change_reason']:
                 self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
@@ -72,36 +73,63 @@ class HistoricalRecordsTest(TestCase):
         p = Poll.objects.get()
         p.pub_date = tomorrow
         p.save()
+        update_change_reason(p, 'future poll')
         update_record, create_record = p.history.all()
         self.assertRecordValues(create_record, Poll, {
             'question': "what's up?",
             'pub_date': today,
             'id': p.id,
+            'history_change_reason': None,
             'history_type': "+"
         })
         self.assertRecordValues(update_record, Poll, {
             'question': "what's up?",
             'pub_date': tomorrow,
             'id': p.id,
+            'history_change_reason': 'future poll',
             'history_type': "~"
         })
         self.assertDatetimesEqual(update_record.history_date, datetime.now())
 
-    def test_delete(self):
+    def test_delete_verify_change_reason_implicitly(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         poll_id = p.id
+        p.changeReason = 'wrongEntry'
         p.delete()
         delete_record, create_record = Poll.history.all()
         self.assertRecordValues(create_record, Poll, {
             'question': "what's up?",
             'pub_date': today,
             'id': poll_id,
+            'history_change_reason': None,
             'history_type': "+"
         })
         self.assertRecordValues(delete_record, Poll, {
             'question': "what's up?",
             'pub_date': today,
             'id': poll_id,
+            'history_change_reason': 'wrongEntry',
+            'history_type': "-"
+        })
+
+    def test_delete_verify_change_reason_explicity(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        poll_id = p.id
+        p.delete()
+        update_change_reason(p, 'wrongEntry')
+        delete_record, create_record = Poll.history.all()
+        self.assertRecordValues(create_record, Poll, {
+            'question': "what's up?",
+            'pub_date': today,
+            'id': poll_id,
+            'history_change_reason': None,
+            'history_type': "+"
+        })
+        self.assertRecordValues(delete_record, Poll, {
+            'question': "what's up?",
+            'pub_date': today,
+            'id': poll_id,
+            'history_change_reason': 'wrongEntry',
             'history_type': "-"
         })
 

@@ -4,15 +4,17 @@ import copy
 import importlib
 import threading
 
-from django.db import models, router
-from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
+from django.db import models, router
+from django.db.models.fields.proxy import OrderWrt
 from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.encoding import smart_text
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
-from django.utils.translation import string_concat
+from django.utils.translation import string_concat, ugettext as _
+
+from . import exceptions
+from .manager import HistoryDescriptor
 
 try:
     from django.apps import apps
@@ -26,8 +28,6 @@ else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 
-from . import exceptions
-from .manager import HistoryDescriptor
 
 registered_models = {}
 
@@ -213,13 +213,15 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
+            'history_change_reason': models.CharField(max_length=100,
+                                                      null=True),
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
             'history_type': models.CharField(max_length=1, choices=(
-                ('+', 'Created'),
-                ('~', 'Changed'),
-                ('-', 'Deleted'),
+                ('+', _('Created')),
+                ('~', _('Changed')),
+                ('-', _('Deleted')),
             )),
             'history_object': HistoricalObjectDescriptor(model, self.fields_included(model)),
             'instance': property(get_instance),
@@ -258,12 +260,14 @@ class HistoricalRecords(object):
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
+        history_change_reason = getattr(instance, 'changeReason', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user, **attrs)
+                       history_user=history_user,
+                       history_change_reason=history_change_reason, **attrs)
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""

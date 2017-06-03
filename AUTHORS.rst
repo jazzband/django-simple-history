@@ -10,6 +10,7 @@ Authors
 - Daniel Levy
 - Daniel Roschka
 - David Hite
+- Eduardo Cuducos
 - George Vilches
 - Grzegorz Bialy
 - Hamish Downer
@@ -22,6 +23,7 @@ Authors
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Maciej "RooTer" Urbański
 - Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
