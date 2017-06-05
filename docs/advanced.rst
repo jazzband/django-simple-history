@@ -217,7 +217,7 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
 Choosing fields to not be stored
 --------------------------------
 
-It is possible to use the parameter ``excluded_fields`` to choice which fields
+It is possible to use the parameter ``excluded_fields`` to choose which fields
 will be stored on every create/update/delete.
 
 For example, if you have the model:
@@ -228,7 +228,7 @@ For example, if you have the model:
         question = models.CharField(max_length=200)
         pub_date = models.DateTimeField('date published')
 
-And you don't want to stored the changes for the field ``pub_date``, it is necessary to update the model to:
+And you don't want to store the changes for the field ``pub_date``, it is necessary to update the model to:
 
 .. code-block:: python
 
