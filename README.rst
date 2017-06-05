@@ -18,9 +18,10 @@ django-simple-history
    :alt: Code Health
 
 
+
 django-simple-history stores Django model state on every create/update/delete.
 
-This app requires Django 1.6 or greater and Python 2.7, 3.3, or greater.
+This app requires Django 1.6 or greater up to Django 1.9.x and Python 2.7, 3.3, or greater. There are known compatibility issues with Django 1.10 and it is not yet supported.
 
 Getting Help
 ------------
