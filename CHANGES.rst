@@ -1,6 +1,15 @@
 Changes
 =======
 
+tip (unreleased)
+----------------
+- Added --batchsize option to the populate_history management command.
+
+1.8.2 (2017-01-19)
+------------------
+- Add Polish locale.
+- Add Django 1.10 support.
+
 1.8.1 (2016-03-19)
 ------------------
 - Clear the threadlocal request object when processing the response to prevent test interactions. (gh-213)
@@ -42,6 +51,7 @@ Changes
 - Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
 - Do NOT delete the history elements when a user is deleted.
 - Add support for ``latest``
+- Allow setting a reason for change. [using option changeReason]
 
 1.5.3 (2014-11-18)
 ------------------

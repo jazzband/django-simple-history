@@ -4,15 +4,17 @@ import copy
 import importlib
 import threading
 
-from django.db import models, router
-from django.db.models.fields.proxy import OrderWrt
 from django.conf import settings
 from django.contrib import admin
+from django.db import models, router
+from django.db.models.fields.proxy import OrderWrt
 from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.encoding import smart_text
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
-from django.utils.translation import string_concat
+from django.utils.translation import string_concat, ugettext as _
+
+from . import exceptions
+from .manager import HistoryDescriptor
 
 try:
     from django.apps import apps
@@ -26,8 +28,6 @@ else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 
-from . import exceptions
-from .manager import HistoryDescriptor
 
 registered_models = {}
 
@@ -78,13 +78,15 @@ class HistoricalRecords(object):
             pass
         else:
             if hint_class is not sender:  # set in concrete
-                if not (self.inherit and issubclass(sender, hint_class)):  # set in abstract
-                    return
+                if not (self.inherit and issubclass(sender, hint_class)):
+                    return  # set in abstract
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
-            raise exceptions.MultipleRegistrationsError('{}.{} registered multiple times for history tracking.'.format(
-                sender._meta.app_label,
-                sender._meta.object_name,
-            ))
+            raise exceptions.MultipleRegistrationsError(
+                '{}.{} registered multiple times for history tracking.'.format(
+                    sender._meta.app_label,
+                    sender._meta.object_name,
+                )
+            )
         history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
@@ -200,13 +202,15 @@ class HistoricalRecords(object):
         return {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
+            'history_change_reason': models.CharField(max_length=100,
+                                                      null=True),
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
             'history_type': models.CharField(max_length=1, choices=(
-                ('+', 'Created'),
-                ('~', 'Changed'),
-                ('-', 'Deleted'),
+                ('+', _('Created')),
+                ('~', _('Changed')),
+                ('-', _('Deleted')),
             )),
             'history_object': HistoricalObjectDescriptor(model),
             'instance': property(get_instance),
@@ -245,12 +249,14 @@ class HistoricalRecords(object):
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
+        history_change_reason = getattr(instance, 'changeReason', None)
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in instance._meta.fields:
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user, **attrs)
+                       history_user=history_user,
+                       history_change_reason=history_change_reason, **attrs)
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""
