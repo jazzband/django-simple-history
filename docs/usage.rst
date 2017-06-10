@@ -137,7 +137,7 @@ By default, the history log displays one line per change containing
 * a comment corresponding to the change
 * the author of the change
 
-You can add other columns (for example the object's status if it has one to see
+You can add other columns (for example the object's status to see
 how it evolved) by adding a ``history_list_display`` array of fields to the
 admin class
 
@@ -155,6 +155,9 @@ admin class
 
     admin.site.register(Poll, PollHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)
+
+
+.. image:: screens/5_history_list_display.png
 
 
 Querying history
