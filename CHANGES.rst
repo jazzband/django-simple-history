@@ -1,11 +1,15 @@
 Changes
 =======
 
-tip (unreleased)
-----------------
-- Added --batchsize option to the populate_history management command.
-- Add the ability to display object attributes in the history list view to see
-  what has changed easily
+1.9.0 (2017-06-11)
+------------------
+- Add --batchsize option to the populate_history management command. (gh-231)
+- Add ability to show specific attributes in admin history list view. (gh-256)
+- Add Brazilian Portuguese translation file. (gh-279)
+- Fix locale file packaging issue. (gh-280)
+- Add ability to specify reason for history change. (gh-275)
+- Test against Django 1.11 and Python 3.6. (gh-276)
+- Add `excluded_fields` option to exclude fields from history. (gh-274)
 
 1.8.2 (2017-01-19)
 ------------------
