@@ -4,6 +4,8 @@ Changes
 tip (unreleased)
 ----------------
 - Added --batchsize option to the populate_history management command.
+- Add the ability to display object attributes in the history list view to see
+  what has changed easily
 
 1.8.2 (2017-01-19)
 ------------------
