@@ -19,9 +19,10 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       Country, Document, Employee, ExternalModel1,
                       ExternalModel3, FileModel, HistoricalChoice,
                       HistoricalCustomFKError, HistoricalPoll, HistoricalState,
-                      Library, MultiOneToOne, Person, Poll, PollInfo, Province,
-                      Restaurant, SelfFK, Series, SeriesWork, State,
-                      Temperature, UnicodeVerboseName, WaterLevel)
+                      Library, MultiOneToOne, Person, Poll, PollInfo,
+                      PollWithExcludeFields, Province, Restaurant, SelfFK,
+                      Series, SeriesWork, State, Temperature,
+                      UnicodeVerboseName, WaterLevel)
 
 try:
     from django.apps import apps
@@ -333,6 +334,14 @@ class HistoricalRecordsTest(TestCase):
         poll.save()
         poll_info = PollInfo(poll=poll)
         poll_info.save()
+
+    def test_model_with_excluded_fields(self):
+        p = PollWithExcludeFields(question="what's up?", pub_date=today)
+        p.save()
+        history = PollWithExcludeFields.history.all()[0]
+        all_fields_names = [f.name for f in history._meta.fields]
+        self.assertIn('question', all_fields_names)
+        self.assertNotIn('pub_date', all_fields_names)
 
 
 class CreateHistoryModelTests(unittest.TestCase):
