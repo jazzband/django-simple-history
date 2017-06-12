@@ -34,12 +34,11 @@ dist: clean
 	ls -l dist
 
 test-release: dist
-	pip install -U twine
+	pip install -U twine bumpversion
 	gpg --detach-sign -a dist/*
 	twine upload -r pypitest dist/*
 
 release: dist
-	pip install -U twine
+	pip install -U twine bumpversion
 	gpg --detach-sign -a dist/*
 	twine upload dist/*
-
