@@ -279,3 +279,32 @@ Or you can pass the change reason explicitly:
     poll = Poll(question='Question 1')
     poll.save()
     update_change_reason(poll, 'Add a question')
+
+Save Without Historical Record
+------------------------------
+
+You want save model without saving a historical record. You can use this method. 
+
+.. code-block:: python
+    def save_without_historical_record(self, *args, **kwargs):
+        self.skip_history_when_saving = True
+        try:
+            ret = self.save(*args, **kwargs)
+        finally:
+            del self.skip_history_when_saving
+        return ret
+       
+
+.. code-block:: python
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+
+.. code-block:: python
+    poll = Poll(quetions='somthing')
+    poll.save_without_historical_record()
+
+
+
+
