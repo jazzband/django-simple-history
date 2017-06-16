@@ -13,28 +13,7 @@ class HistoryDescriptor(object):
         return HistoryManager(self.model, instance)
 
 
-class HistoryManager(models.Manager):
-    def __init__(self, model, instance=None):
-        super(HistoryManager, self).__init__()
-        self.model = model
-        self.instance = instance
-
-    def get_super_queryset(self):
-        return super(HistoryManager, self).get_queryset()
-
-    def get_queryset(self):
-        qs = self.get_super_queryset()
-        if self.instance is None:
-            return qs
-
-        if isinstance(self.instance._meta.pk, models.ForeignKey):
-            key_name = self.instance._meta.pk.name + "_id"
-        else:
-            key_name = self.instance._meta.pk.name
-        return self.get_super_queryset().filter(**{key_name: self.instance.pk})
-
-    get_query_set = get_queryset
-
+class HistoryQueryMixin(object):
     def most_recent(self):
         """
         Returns the most recent copy of the instance available in the history.
@@ -90,3 +69,30 @@ class HistoryManager(models.Manager):
                               history_type='-').exists():
                 continue
             yield last_change.instance
+
+
+class HistoryQuerySet(HistoryQueryMixin, models.QuerySet):
+    pass
+
+
+class HistoryManager(HistoryQueryMixin, models.Manager):
+    def __init__(self, model, instance=None):
+        super(HistoryManager, self).__init__()
+        self.model = model
+        self.instance = instance
+
+    def get_super_queryset(self):
+        return HistoryQuerySet(self.model)
+
+    def get_queryset(self):
+        qs = self.get_super_queryset()
+        if self.instance is None:
+            return qs
+
+        if isinstance(self.instance._meta.pk, models.ForeignKey):
+            key_name = self.instance._meta.pk.name + "_id"
+        else:
+            key_name = self.instance._meta.pk.name
+        return self.get_super_queryset().filter(**{key_name: self.instance.pk})
+
+    get_query_set = get_queryset
