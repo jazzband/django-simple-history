@@ -11,7 +11,7 @@ from django.db.models.fields.proxy import OrderWrt
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
-from django.utils.translation import string_concat, ugettext as _
+from django.utils.translation import string_concat, ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor

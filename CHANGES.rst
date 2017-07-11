@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Change ugettext calls in models.py to ugettext_lazy
+
 1.9.0 (2017-06-11)
 ------------------
 - Add --batchsize option to the populate_history management command. (gh-231)

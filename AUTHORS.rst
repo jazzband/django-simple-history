@@ -38,6 +38,7 @@ Authors
 - Lucas Wiman
 - Michael England
 - Gregory Bataille
+- Jesse Shapiro
 
 Background
 ==========
