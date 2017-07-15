@@ -32,6 +32,7 @@ Authors
 - Rod Xavier Bondoc
 - Ross Lote
 - Steven Klass
+- Steeve Chailloux
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra

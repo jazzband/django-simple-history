@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Use get_queryset rather than model.objects in history_view. (gh-303)
+
 1.9.0 (2017-06-11)
 ------------------
 - Add --batchsize option to the populate_history management command. (gh-231)
