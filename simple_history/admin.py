@@ -60,7 +60,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
-            obj = model.objects.get(**{pk_name: object_id})
+            obj = self.get_queryset(request).get(**{pk_name: object_id})
         except model.DoesNotExist:
             try:
                 obj = action_list.latest('history_date').instance
