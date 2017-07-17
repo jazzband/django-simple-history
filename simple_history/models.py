@@ -110,7 +110,10 @@ class HistoricalRecords(object):
         """
         Creates a historical model to associate with the model provided.
         """
-        attrs = {'__module__': self.module}
+        attrs = {
+            '__module__': self.module,
+            'excluded_fields': self.excluded_fields
+        }
 
         app_module = '%s.models' % model._meta.app_label
         if model.__module__ != self.module:
