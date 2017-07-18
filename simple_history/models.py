@@ -312,7 +312,7 @@ def convert_auto_field(field):
     must be replaced with an IntegerField.
     """
     connection = router.db_for_write(field.model)
-    if settings.DATABASES[connection]['ENGINE'] in ('django_mongodb_engine',):
+    if settings.DATABASES[connection].get('ENGINE') in ('django_mongodb_engine',):
         # Check if AutoField is string for django-non-rel support
         return models.TextField
     return models.IntegerField
