@@ -22,7 +22,7 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       Library, MultiOneToOne, Person, Poll, PollInfo,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
-                      UnicodeVerboseName, WaterLevel)
+                      UnicodeVerboseName, WaterLevel, Record)
 
 try:
     from django.apps import apps
@@ -342,6 +342,11 @@ class HistoricalRecordsTest(TestCase):
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
+
+    def test_proxy_generates_history(self):
+        previous_count = Document.history.count()
+        Record.objects.create()
+        self.assertEqual(Document.history.count(), previous_count + 1)
 
 
 class CreateHistoryModelTests(unittest.TestCase):

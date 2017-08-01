@@ -75,14 +75,40 @@ class HistoricalRecords(object):
         setattr(cls, 'save_without_historical_record',
                 save_without_historical_record)
 
+    def find_concrete_parent(self, model, parent_candidate):
+        if not model._meta.proxy:
+            raise TypeError
+        if parent_candidate in model.__bases__:
+            return parent_candidate
+        for base_class in model.__bases__:
+            try:
+                base_meta = getattr(base_class, '_meta')
+            except AttributeError:
+                continue
+            if base_meta.proxy:
+                try:
+                    concrete_parent = self.find_concrete_parent(base_class, parent_candidate)
+                except TypeError:
+                    pass
+                else:
+                    return concrete_parent
+        raise TypeError
+
+
     def finalize(self, sender, **kwargs):
+        tracked_model = None
         try:
             hint_class = self.cls
         except AttributeError:  # called via `register`
             pass
         else:
             if hint_class is not sender:  # set in concrete
-                if not (self.inherit and issubclass(sender, hint_class)):
+                if sender._meta.proxy:
+                    try:
+                        tracked_model = self.find_concrete_parent(sender, hint_class)
+                    except TypeError:
+                        return
+                elif not (self.inherit and issubclass(sender, hint_class)):
                     return  # set in abstract
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
             raise exceptions.MultipleRegistrationsError(
@@ -91,7 +117,10 @@ class HistoricalRecords(object):
                     sender._meta.object_name,
                 )
             )
-        history_model = self.create_history_model(sender)
+        if tracked_model:
+            history_model = getattr(tracked_model, tracked_model._meta.simple_history_manager_attribute).model
+        else:
+            history_model = self.create_history_model(sender)
         module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
 
