@@ -129,13 +129,17 @@ class Paper(Document):
         self.changed_by = value
 
 
+class NotAModel:
+    pass
+
+
 class RecordType(Document):
 
     class Meta:
         proxy = True
 
 
-class Record(RecordType):
+class Record(NotAModel, RecordType):
 
     class Meta:
         proxy = True
