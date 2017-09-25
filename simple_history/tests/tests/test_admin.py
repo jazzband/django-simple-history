@@ -412,7 +412,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for original object
             'original': poll,
             'change_history': False,
-
+            'inline_admin_formsets': [],
             'title': 'Revert %s' % force_text(poll),
             'adminform': ANY,
             'object_id': poll.id,
@@ -466,7 +466,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             'original': history.instance,
             'change_history': True,
-
+            'inline_admin_formsets': [],
             'title': 'Revert %s' % force_text(history.instance),
             'adminform': ANY,
             'object_id': poll.id,
@@ -521,6 +521,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             'original': poll,
             'change_history': False,
+            'inline_admin_formsets': [],
 
             'title': 'Revert %s' % force_text(poll),
             'adminform': ANY,

@@ -154,6 +154,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
+        formset, inline_instances = self._create_formsets(request, obj,
+                                                          change=False)
+        inline_formsets = self.get_inline_formsets(
+            request, formset, inline_instances, obj)
         context = {
             'title': _('Revert %s') % force_text(obj),
             'adminform': admin_form,
@@ -170,6 +174,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'history_url': reverse('%s:%s_%s_history' % url_triplet,
                                    args=(obj.pk,)),
             'change_history': change_history,
+            'inline_admin_formsets': inline_formsets,
 
             # Context variables copied from render_change_form
             'add': False,
