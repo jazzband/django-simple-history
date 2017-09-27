@@ -23,6 +23,7 @@ class ChoiceAdmin(SimpleHistoryAdmin):
 class PollAdmin(SimpleHistoryAdmin):
     inlines = [ChoiceInline, ]
 
+
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Book, SimpleHistoryAdmin)
@@ -30,4 +31,3 @@ admin.site.register(Document, SimpleHistoryAdmin)
 admin.site.register(Paper, SimpleHistoryAdmin)
 admin.site.register(Employee, SimpleHistoryAdmin)
 admin.site.register(Poll, PollAdmin)
-
