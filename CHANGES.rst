@@ -5,7 +5,7 @@ Unreleased
 ----------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
-- Add ability of displaying inlines in the admin history form view
+- Add ability to display inlines in the admin history form view
 
 1.9.0 (2017-06-11)
 ------------------
