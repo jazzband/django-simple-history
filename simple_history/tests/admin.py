@@ -21,8 +21,7 @@ class ChoiceAdmin(SimpleHistoryAdmin):
 
 
 class PollAdmin(SimpleHistoryAdmin):
-    inlines = [ChoiceInline, ]
-
+    inlines = [ChoiceInline, ChoiceInline]
 
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Person, PersonAdmin)
