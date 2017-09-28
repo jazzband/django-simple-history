@@ -40,6 +40,7 @@ Authors
 - Michael England
 - Gregory Bataille
 - Jesse Shapiro
+- Mathieu Hentges
 
 Background
 ==========

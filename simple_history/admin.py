@@ -154,6 +154,32 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
+
+        inline_instances = self.get_inline_instances(request, obj)
+        prefixes = {}
+        formset = []
+
+        for FormSet, inline in self.get_admin_formsets_with_inline(
+                *[request]):
+            prefix = FormSet.get_default_prefix()
+            prefixes[prefix] = prefixes.get(prefix, 0) + 1
+            if prefixes[prefix] != 1 or not prefix:
+                prefix = "%s-%s" % (prefix, prefixes[prefix])
+            formset_params = {
+                'instance': obj,
+                'prefix': prefix,
+                'queryset': inline.get_queryset(request),
+            }
+            if request.method == 'POST':
+                formset_params.update({
+                    'data': request.POST.copy(),
+                    'files': request.FILES,
+                    'save_as_new': '_saveasnew' in request.POST
+                })
+            formset.append(FormSet(**formset_params))
+
+        inline_formsets = self.get_admin_inline_formsets(
+            request, formset, inline_instances, obj)
         context = {
             'title': _('Revert %s') % force_text(obj),
             'adminform': admin_form,
@@ -170,6 +196,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'history_url': reverse('%s:%s_%s_history' % url_triplet,
                                    args=(obj.pk,)),
             'change_history': change_history,
+            'inline_admin_formsets': inline_formsets,
 
             # Context variables copied from render_change_form
             'add': False,
@@ -190,7 +217,33 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         extra_kwargs = {}
         if get_complete_version() < (1, 8):
             extra_kwargs['current_app'] = request.current_app
-        return render(request, self.object_history_form_template, context, **extra_kwargs)
+        return render(request,
+                      self.object_history_form_template,
+                      context,
+                      **extra_kwargs)
+
+    def get_admin_inline_formsets(self,
+                                  request,
+                                  formsets,
+                                  inline_instances,
+                                  obj=None):
+        """ Django < 1.7 """
+        inline_admin_formsets = []
+        for inline, formset in zip(inline_instances, formsets):
+            fieldsets = list(inline.get_fieldsets(request, obj))
+            readonly = list(inline.get_readonly_fields(request, obj))
+            prepopulated = dict(inline.get_prepopulated_fields(request, obj))
+            inline_admin_formset = helpers.InlineAdminFormSet(
+                inline, formset, fieldsets, prepopulated, readonly,
+                model_admin=self,
+            )
+            inline_admin_formsets.append(inline_admin_formset)
+        return inline_admin_formsets
+
+    def get_admin_formsets_with_inline(self, request, obj=None):
+        """ Django < 1.7 """
+        for inline in self.get_inline_instances(request, obj):
+            yield inline.get_formset(request, obj), inline
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
