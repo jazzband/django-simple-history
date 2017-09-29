@@ -3,8 +3,11 @@ Changes
 
 Unreleased
 ----------
+
+1.9.1 (2017-10-02)
+------------------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
-- Change ugettext calls in models.py to ugettext_lazy
+- Change ugettext calls in models.py to ugettext_lazy.
 
 1.9.0 (2017-06-11)
 ------------------
