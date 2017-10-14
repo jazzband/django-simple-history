@@ -1,13 +1,10 @@
 from contextlib import contextmanager
-from six.moves import cStringIO as StringIO
 from datetime import datetime
-try:
-    from unittest import skipUnless
-except ImportError:
-    from unittest2 import skipUnless
-import django
+
+from six.moves import cStringIO as StringIO
 from django.test import TestCase
 from django.core import management
+
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
 
@@ -54,6 +51,14 @@ class TestPopulateHistory(TestCase):
                                    pub_date=datetime.now())
         models.Poll.history.all().delete()
         management.call_command(self.command_name, auto=True,
+                                stdout=StringIO(), stderr=StringIO())
+        self.assertEqual(models.Poll.history.all().count(), 1)
+
+    def test_populate_with_custom_batch_size(self):
+        models.Poll.objects.create(question="Will this populate?",
+                                   pub_date=datetime.now())
+        models.Poll.history.all().delete()
+        management.call_command(self.command_name, auto=True, batchsize=500,
                                 stdout=StringIO(), stderr=StringIO())
         self.assertEqual(models.Poll.history.all().count(), 1)
 
@@ -106,15 +111,3 @@ class TestPopulateHistory(TestCase):
                                     stdout=out)
         self.assertIn(populate_history.Command.NO_REGISTERED_MODELS,
                       out.getvalue())
-
-
-@skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
-class TestMigrate(TestCase):
-
-    def test_makemigration_command(self):
-        management.call_command(
-            'makemigrations', 'migration_test_app', stdout=StringIO())
-
-    def test_migrate_command(self):
-        management.call_command(
-            'migrate', 'migration_test_app', fake=True, stdout=StringIO())

@@ -213,6 +213,7 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+    
 Show all change history of model
 --------------------------------
 If you want to see all changes of model just add ``show_all_history = True`` to your admin class. Then you see History button in objects list of your model.
@@ -227,3 +228,92 @@ Example:
     admin.site.register(Poll, PollAdmin)
 
 
+
+Choosing fields to not be stored
+--------------------------------
+
+It is possible to use the parameter ``excluded_fields`` to choose which fields
+will be stored on every create/update/delete.
+
+For example, if you have the model:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+And you don't want to store the changes for the field ``pub_date``, it is necessary to update the model to:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+        history = HistoricalRecords(excluded_fields=['pub_date'])
+
+By default, django-simple-history stores the changes for all fields in the model.
+
+Change Reason
+-------------
+
+Change reason is a message to explain why the change was made in the instance. It is stored in the
+field ``history_change_reason`` and its default value is ``None``.
+
+By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
+the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+function ``utils.update_change_reason``. The first argument of this function is the instance and the seccond
+is the message that represents the change reason.
+
+For instance, for the model:
+
+.. code-block:: python
+
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+You can create a instance with a implicity change reason.
+
+.. code-block:: python
+
+    poll = Poll(question='Question 1')
+    poll.changeReason = 'Add a question'
+    poll.save()
+
+Or you can pass the change reason explicitly:
+
+.. code-block:: python
+
+    from simple_history.utils import update_change_reason
+
+    poll = Poll(question='Question 1')
+    poll.save()
+    update_change_reason(poll, 'Add a question')
+
+Save without a historical record
+--------------------------------
+
+If you want to save a model without a historical record, you can use the following:
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+        def save_without_historical_record(self, *args, **kwargs):
+            self.skip_history_when_saving = True
+            try:
+                ret = self.save(*args, **kwargs)
+            finally:
+                del self.skip_history_when_saving
+            return ret
+
+
+    poll = Poll(question='something')
+    poll.save_without_historical_record()

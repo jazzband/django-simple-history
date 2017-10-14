@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
 
-import django
 from django.db import models
-if django.VERSION >= (1, 5):
-    from .custom_user.models import CustomUser as User
-else:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
+
+from .custom_user.models import CustomUser as User
 
 
 class Poll(models.Model):
@@ -16,6 +13,13 @@ class Poll(models.Model):
     pub_date = models.DateTimeField('date published')
 
     history = HistoricalRecords()
+
+
+class PollWithExcludeFields(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+    history = HistoricalRecords(excluded_fields=['pub_date'])
 
 
 class Temperature(models.Model):
@@ -47,7 +51,7 @@ class WaterLevel(models.Model):
 
 
 class Choice(models.Model):
-    poll = models.ForeignKey(Poll)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.CharField(max_length=200)
     votes = models.IntegerField()
 
@@ -55,8 +59,12 @@ register(Choice)
 
 
 class Voter(models.Model):
-    user = models.ForeignKey(User)
-    choice = models.ForeignKey(Choice, related_name='voters')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    choice = models.ForeignKey(
+        Choice,
+        on_delete=models.CASCADE,
+        related_name='voters',
+    )
 
 
 class HistoricalRecordsVerbose(HistoricalRecords):
@@ -101,7 +109,11 @@ class FileModel(models.Model):
 
 
 class Document(models.Model):
-    changed_by = models.ForeignKey(User, null=True, blank=True)
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+    )
     history = HistoricalRecords()
 
     @property
@@ -122,11 +134,11 @@ class Profile(User):
 
 
 class AdminProfile(models.Model):
-    profile = models.ForeignKey(Profile)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
 class State(models.Model):
-    library = models.ForeignKey('Library', null=True)
+    library = models.ForeignKey('Library', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
@@ -140,11 +152,11 @@ class HardbackBook(Book):
 
 
 class Bookcase(models.Model):
-    books = models.ForeignKey(HardbackBook)
+    books = models.ForeignKey(HardbackBook, on_delete=models.CASCADE)
 
 
 class Library(models.Model):
-    book = models.ForeignKey(Book, null=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
     class Meta:
@@ -180,11 +192,11 @@ register(ConcreteUtil, bases=[AbstractBase])
 
 
 class MultiOneToOne(models.Model):
-    fk = models.ForeignKey(SecondLevelInheritedModel)
+    fk = models.ForeignKey(SecondLevelInheritedModel, on_delete=models.CASCADE)
 
 
 class SelfFK(models.Model):
-    fk = models.ForeignKey('self', null=True)
+    fk = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
@@ -215,7 +227,7 @@ class UnicodeVerboseName(models.Model):
 
 
 class CustomFKError(models.Model):
-    fk = models.ForeignKey(SecondLevelInheritedModel)
+    fk = models.ForeignKey(SecondLevelInheritedModel, on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 
@@ -226,7 +238,11 @@ class Series(models.Model):
 
 
 class SeriesWork(models.Model):
-    series = models.ForeignKey('Series', related_name='works')
+    series = models.ForeignKey(
+        'Series',
+        on_delete=models.CASCADE,
+        related_name='works',
+    )
     title = models.CharField(max_length=100)
     history = HistoricalRecords()
 
@@ -235,7 +251,11 @@ class SeriesWork(models.Model):
 
 
 class PollInfo(models.Model):
-    poll = models.ForeignKey(Poll, primary_key=True)
+    poll = models.ForeignKey(
+        Poll,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
     history = HistoricalRecords()
 
 
@@ -257,12 +277,20 @@ class Country(models.Model):
 
 
 class Province(models.Model):
-    country = models.ForeignKey(Country, to_field='code')
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        to_field='code',
+    )
     history = HistoricalRecords()
 
 
 class City(models.Model):
-    country = models.ForeignKey(Country, db_column='countryCode')
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        db_column='countryCode',
+    )
     history = HistoricalRecords()
 
 
