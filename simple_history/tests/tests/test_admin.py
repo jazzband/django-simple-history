@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django import http
 from mock import patch, ANY
 from django_webtest import WebTest
 from django.contrib.admin import AdminSite
@@ -27,6 +28,9 @@ tomorrow = today + timedelta(days=1)
 extra_kwargs = {}
 if get_complete_version() < (1, 8):
     extra_kwargs = {'current_app': 'admin'}
+
+class AllHistoryAdmin(SimpleHistoryAdmin):
+    show_all_history = True
 
 
 def get_history_url(obj, history_index=None, site="admin"):
@@ -569,7 +573,7 @@ class AdminSiteTest(WebTest):
         history = poll.history.all()[0]
 
         admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Poll, admin_site)
+        admin = AllHistoryAdmin(Poll, admin_site)
         admin.show_all_history = True
 
         with patch('simple_history.admin.render') as mock_render:
@@ -588,3 +592,15 @@ class AdminSiteTest(WebTest):
         }
 
         mock_render.assert_called_once_with(request, admin.objects_history_template, context, **extra_kwargs)
+
+    def test_history_does_not_exist(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+        admin.show_all_history = True
+        with self.assertRaises(http.Http404) as cm:
+            admin.history_view(request, '9')
