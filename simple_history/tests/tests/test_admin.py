@@ -570,6 +570,7 @@ class AdminSiteTest(WebTest):
 
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
+        admin.show_all_history = True
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
