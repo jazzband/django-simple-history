@@ -26,7 +26,7 @@ except ImportError:
     get_complete_version = lambda: VERSION
 
 try:
-    from django.urls import resolve, reverse
+    from django.urls import resolve, reverse, Resolver404
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse, resolve, Resolver404
 
@@ -233,13 +233,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'save_as': self.save_as,
             'save_on_top': self.save_on_top,
             'root_path': getattr(self.admin_site, 'root_path', None),
+            'all_history_url': reverse('%s:%s_%s_simple_history_objects' % url_triplet),
+            'from_all_history': True
         }
-        try:
-            if "simple_history_objects_form" in resolve(request.path).view_name:
-                context['from_all_history'] = True
-                context['all_history_url'] = reverse('%s:%s_%s_simple_history_objects' % url_triplet)
-        except Resolver404:
-            pass
         extra_kwargs = {}
         if get_complete_version() < (1, 8):
             extra_kwargs['current_app'] = request.current_app

@@ -14,6 +14,7 @@ from django.utils.encoding import force_text
 
 try:
     from django.contrib.auth import get_user_model
+
     User = get_user_model()
 except ImportError:  # Django < 1.5
     from django.contrib.auth.models import User
@@ -25,7 +26,6 @@ except ImportError:  # Django < 1.7
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin
 from ..models import Book, Person, Poll, State, Employee
-
 
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -541,4 +541,37 @@ class AdminSiteTest(WebTest):
 
         mock_render.assert_called_once_with(
             request, template_name=admin.object_history_form_template,
+            dictionary=context, current_app=admin_site.name)
+
+    def test_all_history_view(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
+                admin.all_history_view(request, )
+
+        context = {
+            # Verify this is set for history object not poll object
+            'title': 'All History: %s' % force_text(Poll._meta.verbose_name.title()),
+            'action_list': ANY,
+            'module_name': "Polls",
+            'root_path': getattr(admin_site, 'root_path', None),
+            'app_label': 'tests',
+            'opts': ANY,
+            'admin_user_view': ANY
+        }
+
+        mock_render.assert_called_once_with(
+            request, template_name=admin.objects_history_template,
             dictionary=context, current_app=admin_site.name)
