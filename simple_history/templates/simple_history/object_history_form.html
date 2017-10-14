@@ -3,14 +3,24 @@
 {% load url from simple_history_compat %}
 
 {% block breadcrumbs %}
-  <div class="breadcrumbs">
-    <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
-    <a href="{% url "admin:app_list" app_label %}">{{app_label|capfirst|escape}}</a> &rsaquo;
-    <a href="{{changelist_url}}">{{opts.verbose_name_plural|capfirst}}</a> &rsaquo;
-    <a href="{{change_url}}">{{original|truncatewords:"18"}}</a> &rsaquo;
-    <a href="../">{% trans "History" %}</a> &rsaquo;
-    {% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{verbose_name}}{% endblocktrans %}
-  </div>
+  {% if from_all_history %}
+    <div class="breadcrumbs">
+      <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
+      <a href="{% url "admin:app_list" app_label %}">{{ app_label|capfirst|escape }}</a> &rsaquo;
+      <a href="{{ changelist_url }}">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+      <a href="{{ all_history_url }}">{% trans "History" %}</a> &rsaquo;
+      {% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{ verbose_name }}{% endblocktrans %}
+    </div>
+  {% else %}
+    <div class="breadcrumbs">
+      <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
+      <a href="{% url "admin:app_list" app_label %}">{{ app_label|capfirst|escape }}</a> &rsaquo;
+      <a href="{{ changelist_url }}">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+      <a href="{{ change_url }}">{{ original|truncatewords:"18" }}</a> &rsaquo;
+      <a href="../">{% trans "History" %}</a> &rsaquo;
+      {% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{ verbose_name }}{% endblocktrans %}
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block submit_buttons_bottom %}
@@ -18,5 +28,10 @@
 {% endblock %}
 
 {% block form_top %}
-<p>{% blocktrans %}Press the 'Revert' button below to revert to this version of the object.{% endblocktrans %} {% if change_history %}{% blocktrans %}Or press the 'Change History' button to edit the history.{% endblocktrans %}{% endif %}</p>
+  {% if from_all_history %}<a href="{{ change_url }}">
+    {% blocktrans with original_opts.verbose_name|title as verbose_name %}{{ verbose_name }}
+      object{% endblocktrans %}</a>{% endif %}
+  <p>{% blocktrans %}Press the 'Revert' button below to revert to this version of the object.{% endblocktrans %}
+    {% if change_history %}{% blocktrans %}Or press the 'Change History' button to edit the history.
+    {% endblocktrans %}{% endif %}</p>
 {% endblock %}

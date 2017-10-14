@@ -37,6 +37,7 @@ Authors
 - Ulysses Vilela
 - vnagendra
 - Lucas Wiman
+- mikelarg
 - Michael England
 - Gregory Bataille
 - Jesse Shapiro

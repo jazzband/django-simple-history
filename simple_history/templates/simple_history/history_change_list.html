@@ -1,0 +1,12 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_static admin_list %}
+{% load admin_urls %}
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    {% url cl.opts|admin_urlname:'simple_history_objects' as history_objects %}
+    <a href="{% add_preserved_filters history_objects is_popup to_field %}" style="margin-right: 5px;">
+      {% blocktrans with cl.opts.verbose_name as name %}History {{ name }}{% endblocktrans %}
+    </a>
+  </li>
+{% endblock %}
