@@ -549,10 +549,7 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-        mock_render.assert_called_once_with(
-<<<<<<< HEAD
-            request, template_name=admin.object_history_form_template,
-            dictionary=context, current_app=admin_site.name)
+        mock_render.assert_called_once_with(request, admin.object_history_form_template, context, **extra_kwargs)
 
     def test_all_history_view(self):
         request = RequestFactory().post('/')
@@ -583,9 +580,4 @@ class AdminSiteTest(WebTest):
             'admin_user_view': ANY
         }
 
-        mock_render.assert_called_once_with(
-            request, template_name=admin.objects_history_template,
-            dictionary=context, current_app=admin_site.name)
-=======
-            request, admin.object_history_form_template, context, **extra_kwargs)
->>>>>>> 901b3526a2927b2a9a1be7e7dc9d0b4c7ad80494
+        mock_render.assert_called_once_with(request, admin.objects_history_template, context, **extra_kwargs)
