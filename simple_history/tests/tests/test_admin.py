@@ -439,6 +439,8 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
+            'all_history_url': '/admin/tests/poll/history/',
+            'from_all_history': True
         }
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context, **extra_kwargs)
@@ -494,6 +496,8 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
+            'all_history_url': '/admin/tests/poll/history/',
+            'from_all_history': True
         }
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context, **extra_kwargs)
@@ -548,6 +552,8 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
+            'all_history_url': '/admin/tests/poll/history/',
+            'from_all_history': True
         }
         mock_render.assert_called_once_with(request, admin.object_history_form_template, context, **extra_kwargs)
 
