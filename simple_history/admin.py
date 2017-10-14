@@ -26,7 +26,7 @@ except ImportError:
     get_complete_version = lambda: VERSION
 
 try:
-    from django.urls import resolve, reverse
+    from django.urls import resolve, reverse, Resolver404
 except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse, resolve, Resolver404
 
@@ -76,9 +76,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
         action_list = history.filter(**{pk_name: object_id})
+        history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
-            obj = model.objects.get(**{pk_name: object_id})
+            obj = self.get_queryset(request).get(**{pk_name: object_id})
         except model.DoesNotExist:
             try:
                 obj = action_list.latest('history_date').instance
@@ -96,7 +97,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'root_path': getattr(self.admin_site, 'root_path', None),
             'app_label': app_label,
             'opts': opts,
-            'admin_user_view': admin_user_view
+            'admin_user_view': admin_user_view,
+            'history_list_display': history_list_display,
         }
         context.update(extra_context or {})
         extra_kwargs = {}

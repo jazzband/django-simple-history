@@ -4,9 +4,25 @@ Nov 30, 2016
 ------------
 - Add ability to see all change history of model.
 
-tip (unreleased)
-----------------
+Unreleased
+----------
+- Use get_queryset rather than model.objects in history_view. (gh-303)
+- Change ugettext calls in models.py to ugettext_lazy
+
+1.9.0 (2017-06-11)
+------------------
+- Add --batchsize option to the populate_history management command. (gh-231)
+- Add ability to show specific attributes in admin history list view. (gh-256)
+- Add Brazilian Portuguese translation file. (gh-279)
+- Fix locale file packaging issue. (gh-280)
+- Add ability to specify reason for history change. (gh-275)
+- Test against Django 1.11 and Python 3.6. (gh-276)
+- Add `excluded_fields` option to exclude fields from history. (gh-274)
+
+1.8.2 (2017-01-19)
+------------------
 - Add Polish locale.
+- Add Django 1.10 support.
 
 1.8.1 (2016-03-19)
 ------------------
@@ -49,6 +65,7 @@ tip (unreleased)
 - Fix a bug when models have a ``ForeignKey`` with ``primary_key=True``
 - Do NOT delete the history elements when a user is deleted.
 - Add support for ``latest``
+- Allow setting a reason for change. [using option changeReason]
 
 1.5.3 (2014-11-18)
 ------------------
