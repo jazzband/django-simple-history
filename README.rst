@@ -25,7 +25,7 @@ This app requires Django 1.6 or greater and Python 2.7, 3.3, or greater.
 Getting Help
 ------------
 
-Documentation is available at https://django-simple-history.readthedocs.org/
+Documentation is available at https://django-simple-history.readthedocs.io/
 
 Issue tracker is at https://github.com/treyhunner/django-simple-history/issues
 
