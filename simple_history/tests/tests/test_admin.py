@@ -443,8 +443,6 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
-            'all_history_url': '/admin/tests/poll/history/',
-            'from_all_history': True
         }
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context, **extra_kwargs)
@@ -500,8 +498,6 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
-            'all_history_url': '/admin/tests/poll/history/',
-            'from_all_history': True
         }
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context, **extra_kwargs)
@@ -556,8 +552,6 @@ class AdminSiteTest(WebTest):
             'save_as': admin.save_as,
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
-            'all_history_url': '/admin/tests/poll/history/',
-            'from_all_history': True
         }
         mock_render.assert_called_once_with(request, admin.object_history_form_template, context, **extra_kwargs)
 
@@ -604,3 +598,60 @@ class AdminSiteTest(WebTest):
         admin.show_all_history = True
         with self.assertRaises(http.Http404) as cm:
             admin.history_view(request, '9')
+
+    def test_history_form_from_allhistory(self):
+        request = RequestFactory().post('/admin/tests/poll/history/1/1/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+        request.POST = {'_change_history': True}
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
+                admin.history_form_view(request, poll.id, history.pk)
+
+        context = {
+            # Verify this is set for history object not poll object
+            'original': history.instance,
+            'change_history': True,
+
+            'title': 'Revert %s' % force_text(history.instance),
+            'adminform': ANY,
+            'object_id': poll.id,
+            'is_popup': False,
+            'media': ANY,
+            'errors': ANY,
+            'app_label': 'tests',
+            'original_opts': ANY,
+            'changelist_url': '/admin/tests/poll/',
+            'change_url': ANY,
+            'history_url': '/admin/tests/poll/{pk}/history/'.format(
+                pk=poll.pk),
+            'add': False,
+            'change': True,
+            'has_add_permission': admin.has_add_permission(request),
+            'has_change_permission': admin.has_change_permission(
+                request, poll),
+            'has_delete_permission': admin.has_delete_permission(
+                request, poll),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'form_url': '',
+            'opts': ANY,
+            'content_type_id': ANY,
+            'save_as': admin.save_as,
+            'save_on_top': admin.save_on_top,
+            'root_path': getattr(admin_site, 'root_path', None),
+            'all_history_url': '/admin/tests/poll/history/',
+            'from_all_history': True
+        }
+        mock_render.assert_called_once_with(
+            request, admin.object_history_form_template, context, **extra_kwargs)
