@@ -1,14 +1,16 @@
 Advanced Usage
 ==============
 
-Version-controlling with South
-------------------------------
+Database Migrations
+-------------------
 
-By default, Historical models live in the same app as the model they track.
-Historical models are tracked by South in the same way as any other model.
-Whenever the original model changes, the historical model will change also.
+By default, Historical models live in the same app as the model they
+track. Historical models are tracked by migrations in the same way as
+any other model. Whenever the original model changes, the historical
+model will change also.
 
-Therefore tracking historical models with South should work automatically.
+Therefore tracking historical models with migrations should work
+automatically.
 
 
 Locating past model instance
@@ -44,8 +46,10 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-History for Third-Party Model
------------------------------
+.. _register:
+
+History for a Third-Party Model
+-------------------------------
 
 To track history for a model you didn't create, use the
 ``simple_history.register`` utility.  You can use this to track models from
@@ -61,7 +65,36 @@ third-party apps you don't have control over.  Here's an example of using
     register(User)
 
 
-.. _recording_user:
+Allow tracking to be inherited
+---------------------------------
+
+By default history tracking is only added for the model that is passed
+to ``register()`` or has the ``HistoricalRecords`` descriptor. By
+passing ``inherit=True`` to either way of registering you can change
+that behavior so that any child model inheriting from it will have
+historical tracking as well. Be careful though, in cases where a model
+can be tracked more than once, ``MultipleRegistrationsError`` will be
+raised.
+
+.. code-block:: python
+
+    from django.contrib.auth.models import User
+    from django.db import models
+    from simple_history import register
+    from simple_history.models import HistoricalRecords
+
+    # register() example
+    register(User, inherit=True)
+
+    # HistoricalRecords example
+    class Poll(models.Model):
+        history = HistoricalRecords(inherit=True)
+
+Both ``User`` and ``Poll`` in the example above will cause any model
+inheriting from them to have historical tracking as well.
+
+
+.. recording_user:
 
 Recording Which User Changed a Model
 ------------------------------------
@@ -154,3 +187,118 @@ To change the auto-generated HistoricalRecord models base class from
         pub_date = models.DateTimeField('date published')
         changed_by = models.ForeignKey('auth.User')
         history = HistoricalRecords(bases=[RoutableModel])
+
+Custom history table name
+-------------------------
+
+By default, the table name for historical models follow the Django convention
+and just add ``historical`` before model name. For instance, if your application
+name is ``polls`` and your model name ``Question``, then the table name will be
+``polls_historicalquestion``.
+
+You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
+``register()`` to change this behavior.
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        history = HistoricalRecords(table_name='polls_question_history')
+
+.. code-block:: python
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+    register(Question, table_name='polls_question_history')
+
+Choosing fields to not be stored
+--------------------------------
+
+It is possible to use the parameter ``excluded_fields`` to choose which fields
+will be stored on every create/update/delete.
+
+For example, if you have the model:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+And you don't want to store the changes for the field ``pub_date``, it is necessary to update the model to:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+        history = HistoricalRecords(excluded_fields=['pub_date'])
+
+By default, django-simple-history stores the changes for all fields in the model.
+
+Change Reason
+-------------
+
+Change reason is a message to explain why the change was made in the instance. It is stored in the
+field ``history_change_reason`` and its default value is ``None``.
+
+By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
+the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+function ``utils.update_change_reason``. The first argument of this function is the instance and the seccond
+is the message that represents the change reason.
+
+For instance, for the model:
+
+.. code-block:: python
+
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+You can create a instance with a implicity change reason.
+
+.. code-block:: python
+
+    poll = Poll(question='Question 1')
+    poll.changeReason = 'Add a question'
+    poll.save()
+
+Or you can pass the change reason explicitly:
+
+.. code-block:: python
+
+    from simple_history.utils import update_change_reason
+
+    poll = Poll(question='Question 1')
+    poll.save()
+    update_change_reason(poll, 'Add a question')
+
+Save without a historical record
+--------------------------------
+
+If you want to save a model without a historical record, you can use the following:
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords()
+
+        def save_without_historical_record(self, *args, **kwargs):
+            self.skip_history_when_saving = True
+            try:
+                ret = self.save(*args, **kwargs)
+            finally:
+                del self.skip_history_when_saving
+            return ret
+
+
+    poll = Poll(question='something')
+    poll.save_without_historical_record()

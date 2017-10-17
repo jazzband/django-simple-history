@@ -2,27 +2,44 @@ Authors
 =======
 
 - Aleksey Kladov
+- bradford281
+- Buddy Lindsey, Jr.
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay
 - Daniel Levy
 - Daniel Roschka
 - David Hite
+- Eduardo Cuducos
 - George Vilches
+- Grzegorz Bialy
 - Hamish Downer
-- jofusa
+- James Pulec
+- Joao Junior(@joaojunior)
 - Joao Pedro Francese
+- jofusa
+- John Whitlock
+- Jonathan Leroy
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
-- Ross Lote
-- macro1
+- Maciej "RooTer" Urbański
+- Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
+- Micah Denbraver
 - Rajesh Pappula
+- Rod Xavier Bondoc
+- Ross Lote
+- Steven Klass
+- Steeve Chailloux
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
+- Lucas Wiman
+- Michael England
+- Gregory Bataille
+- Jesse Shapiro
 
 Background
 ==========

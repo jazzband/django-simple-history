@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
 
-import django
 from django.db import models
-if django.VERSION >= (1, 5):
-    from .custom_user.models import CustomUser as User
-else:  # django 1.4 compatibility
-    from django.contrib.auth.models import User
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
+
+from .custom_user.models import CustomUser as User
 
 
 class Poll(models.Model):
@@ -16,6 +13,13 @@ class Poll(models.Model):
     pub_date = models.DateTimeField('date published')
 
     history = HistoricalRecords()
+
+
+class PollWithExcludeFields(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+    history = HistoricalRecords(excluded_fields=['pub_date'])
 
 
 class Temperature(models.Model):
@@ -47,11 +51,34 @@ class WaterLevel(models.Model):
 
 
 class Choice(models.Model):
-    poll = models.ForeignKey(Poll)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.CharField(max_length=200)
     votes = models.IntegerField()
 
 register(Choice)
+
+
+class Voter(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    choice = models.ForeignKey(
+        Choice,
+        on_delete=models.CASCADE,
+        related_name='voters',
+    )
+
+
+class HistoricalRecordsVerbose(HistoricalRecords):
+    def get_extra_fields(self, model, fields):
+        def verbose_str(self):
+            return '%s changed by %s as of %s' % (
+                self.history_object, self.history_user, self.history_date)
+
+        extra_fields = super(
+            HistoricalRecordsVerbose, self).get_extra_fields(model, fields)
+        extra_fields['__str__'] = verbose_str
+        return extra_fields
+
+register(Voter, records_class=HistoricalRecordsVerbose)
 
 
 class Place(models.Model):
@@ -82,7 +109,11 @@ class FileModel(models.Model):
 
 
 class Document(models.Model):
-    changed_by = models.ForeignKey(User, null=True, blank=True)
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+    )
     history = HistoricalRecords()
 
     @property
@@ -103,11 +134,11 @@ class Profile(User):
 
 
 class AdminProfile(models.Model):
-    profile = models.ForeignKey(Profile)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
 class State(models.Model):
-    library = models.ForeignKey('Library', null=True)
+    library = models.ForeignKey('Library', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
@@ -121,11 +152,11 @@ class HardbackBook(Book):
 
 
 class Bookcase(models.Model):
-    books = models.ForeignKey(HardbackBook)
+    books = models.ForeignKey(HardbackBook, on_delete=models.CASCADE)
 
 
 class Library(models.Model):
-    book = models.ForeignKey(Book, null=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
     class Meta:
@@ -161,11 +192,11 @@ register(ConcreteUtil, bases=[AbstractBase])
 
 
 class MultiOneToOne(models.Model):
-    fk = models.ForeignKey(SecondLevelInheritedModel)
+    fk = models.ForeignKey(SecondLevelInheritedModel, on_delete=models.CASCADE)
 
 
 class SelfFK(models.Model):
-    fk = models.ForeignKey('self', null=True)
+    fk = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
@@ -196,5 +227,147 @@ class UnicodeVerboseName(models.Model):
 
 
 class CustomFKError(models.Model):
-    fk = models.ForeignKey(SecondLevelInheritedModel)
+    fk = models.ForeignKey(SecondLevelInheritedModel, on_delete=models.CASCADE)
     history = HistoricalRecords()
+
+
+class Series(models.Model):
+    """A series of works, like a trilogy of books."""
+    name = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+
+
+class SeriesWork(models.Model):
+    series = models.ForeignKey(
+        'Series',
+        on_delete=models.CASCADE,
+        related_name='works',
+    )
+    title = models.CharField(max_length=100)
+    history = HistoricalRecords()
+
+    class Meta:
+        order_with_respect_to = 'series'
+
+
+class PollInfo(models.Model):
+    poll = models.ForeignKey(
+        Poll,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    history = HistoricalRecords()
+
+
+class UserAccessorDefault(models.Model):
+    pass
+
+
+class UserAccessorOverride(models.Model):
+    pass
+
+
+class Employee(models.Model):
+    manager = models.OneToOneField('Employee', null=True)
+    history = HistoricalRecords()
+
+
+class Country(models.Model):
+    code = models.CharField(max_length=15, unique=True)
+
+
+class Province(models.Model):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        to_field='code',
+    )
+    history = HistoricalRecords()
+
+
+class City(models.Model):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        db_column='countryCode',
+    )
+    history = HistoricalRecords()
+
+
+class Contact(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+    history = HistoricalRecords(table_name='contacts_history')
+
+
+class ContactRegister(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=255, unique=True)
+
+register(ContactRegister, table_name='contacts_register_history')
+
+
+###############################################################################
+#
+# Inheritance examples
+#
+###############################################################################
+
+class TrackedAbstractBaseA(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class TrackedAbstractBaseB(models.Model):
+    history_b = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
+class UntrackedAbstractBase(models.Model):
+
+    class Meta:
+        abstract = True
+
+
+class TrackedConcreteBase(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+
+class UntrackedConcreteBase(models.Model):
+    pass
+
+
+class TrackedWithAbstractBase(TrackedAbstractBaseA):
+    pass
+
+
+class TrackedWithConcreteBase(TrackedConcreteBase):
+    pass
+
+
+class InheritTracking1(TrackedAbstractBaseA, UntrackedConcreteBase):
+    pass
+
+
+class BaseInheritTracking2(TrackedAbstractBaseA):
+    pass
+
+
+class InheritTracking2(BaseInheritTracking2):
+    pass
+
+
+class BaseInheritTracking3(TrackedAbstractBaseA):
+    pass
+
+
+class InheritTracking3(BaseInheritTracking3):
+    pass
+
+
+class InheritTracking4(TrackedAbstractBaseA):
+    pass

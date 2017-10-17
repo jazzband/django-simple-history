@@ -10,6 +10,7 @@ Documentation
    :maxdepth: 2
 
    usage
+   reference
    advanced
 
 Code
