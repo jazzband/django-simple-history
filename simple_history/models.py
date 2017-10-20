@@ -173,7 +173,8 @@ class HistoricalRecords(object):
                 if getattr(old_field, 'db_column', None):
                     field_arguments['db_column'] = old_field.db_column
                 field = FieldType(
-                    old_field.rel.to,
+                    # required for Django <= 1.8                     # required for Django >= 2.0
+                    old_field.rel.to if hasattr(old_field, 'rel') else old_field.remote_field.model,
                     related_name='+',
                     null=True,
                     blank=True,
