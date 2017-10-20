@@ -6,7 +6,6 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -14,6 +13,10 @@ from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text
 from django.conf import settings
 
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:  # Django < 1.10
+    from django.urls import reverse
 try:
     from django.contrib.admin.utils import unquote
 except ImportError:  # Django < 1.7
