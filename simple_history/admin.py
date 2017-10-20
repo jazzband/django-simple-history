@@ -14,9 +14,9 @@ from django.utils.encoding import force_text
 from django.conf import settings
 
 try:
-    from django.core.urlresolvers import reverse
-except ImportError:  # Django < 1.10
     from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 try:
     from django.contrib.admin.utils import unquote
 except ImportError:  # Django < 1.7
