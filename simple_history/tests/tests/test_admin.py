@@ -13,7 +13,7 @@ from django.utils.encoding import force_text
 
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee, Choice, TrackedConcreteBaseExternal
+from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
 
 try:
     from django.contrib.admin.utils import quote
@@ -559,13 +559,13 @@ class AdminSiteTest(WebTest):
         request.user = self.user
         request.POST = {'_change_history': True}
 
-        obj = TrackedConcreteBaseExternal.objects.create(name='test')
+        obj = ConcreteExternal.objects.create(name='test')
         obj.name = "new_test"
         obj.save()
         history = obj.history.all()[0]
 
         admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(TrackedConcreteBaseExternal, admin_site)
+        admin = SimpleHistoryAdmin(ConcreteExternal, admin_site)
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
@@ -584,9 +584,9 @@ class AdminSiteTest(WebTest):
             'errors': ANY,
             'app_label': 'tests',
             'original_opts': ANY,
-            'changelist_url': '/admin/tests/trackedconcretebaseexternal/',
+            'changelist_url': '/admin/tests/concreteexternal/',
             'change_url': ANY,
-            'history_url': '/admin/tests/trackedconcretebaseexternal/{pk}/history/'.format(
+            'history_url': '/admin/tests/concreteexternal/{pk}/history/'.format(
                 pk=obj.pk),
             'add': False,
             'change': True,

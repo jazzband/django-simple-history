@@ -342,7 +342,7 @@ class UntrackedConcreteBase(models.Model):
     pass
 
 
-class TrackedConcreteBaseExternal(AbstractExternal):
+class ConcreteExternal(AbstractExternal):
     name = models.CharField(max_length=50)
 
     class Meta:
