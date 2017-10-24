@@ -572,7 +572,7 @@ class AdminSiteTest(WebTest):
                 admin.history_form_view(request, obj.id, history.pk)
 
         context = {
-            # Verify this is set for history object not poll object
+            # Verify this is set for history object
             'original': history.instance,
             'change_history': True,
 

@@ -6,7 +6,8 @@ from simple_history.models import HistoricalRecords
 from simple_history import register
 
 from .custom_user.models import CustomUser as User
-from .external.models.model2 import TrackedAbstractBaseExternal
+from .external.models.model2 import AbstractExternal
+
 
 class Poll(models.Model):
     question = models.CharField(max_length=200)
@@ -341,7 +342,7 @@ class UntrackedConcreteBase(models.Model):
     pass
 
 
-class TrackedConcreteBaseExternal(TrackedAbstractBaseExternal):
+class TrackedConcreteBaseExternal(AbstractExternal):
     name = models.CharField(max_length=50)
 
     class Meta:
