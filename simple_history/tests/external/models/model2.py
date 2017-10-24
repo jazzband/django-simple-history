@@ -10,3 +10,11 @@ class ExternalModel2(models.Model):
 
     class Meta:
         app_label = 'external'
+
+
+class TrackedAbstractBaseExternal(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+        app_label = 'external'
