@@ -13,12 +13,18 @@ from django.test import TestCase
 
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
+
 from ..external.models import ExternalModel2, ExternalModel4
-from ..models import AbstractBase, AdminProfile, Book, Bookcase, Choice, City, ConcreteAttr, ConcreteExternal, \
-    ConcreteUtil, Contact, ContactRegister, Country, Document, Employee, ExternalModel1, ExternalModel3, FileModel, \
-    HistoricalChoice, HistoricalCustomFKError, HistoricalPoll, HistoricalState, Library, MultiOneToOne, Person, Poll, \
-    PollInfo, PollWithExcludeFields, Province, Restaurant, SelfFK, Series, SeriesWork, State, Temperature, \
-    UnicodeVerboseName, WaterLevel
+from ..models import (AbstractBase, AdminProfile, Book, Bookcase,
+                      Choice, City, ConcreteAttr, ConcreteExternal,
+                      ConcreteUtil, Contact, ContactRegister, Country,
+                      Document, Employee, ExternalModel1, ExternalModel3,
+                      FileModel, HistoricalChoice, HistoricalCustomFKError,
+                      HistoricalPoll, HistoricalState, Library,
+                      MultiOneToOne, Person, Poll, PollInfo,
+                      PollWithExcludeFields, Province, Restaurant, SelfFK,
+                      Series, SeriesWork, State, Temperature,
+                      UnicodeVerboseName, WaterLevel)
 
 try:
     from django.apps import apps
