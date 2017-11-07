@@ -31,6 +31,7 @@ Authors
 - Rajesh Pappula
 - Rod Xavier Bondoc
 - Ross Lote
+- Ross Mechanic
 - Steven Klass
 - Steeve Chailloux
 - Trey Hunner
