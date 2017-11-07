@@ -41,6 +41,7 @@ Authors
 - Michael England
 - Gregory Bataille
 - Jesse Shapiro
+- Kevin Foster
 
 Background
 ==========
