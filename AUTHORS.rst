@@ -42,6 +42,7 @@ Authors
 - Gregory Bataille
 - Jesse Shapiro
 - Kevin Foster
+- Shane Engelman
 
 Background
 ==========
