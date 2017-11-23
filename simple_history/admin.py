@@ -211,7 +211,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'is_popup': False,
             'media': mark_safe(self.media + admin_form.media),
             'errors': helpers.AdminErrorList(form, formsets),
-            'app_label': model._meta.app_label,
+            'app_label': original_opts.app_label,
             'original_opts': original_opts,
             'changelist_url': reverse('%s:%s_%s_changelist' % url_triplet),
             'change_url': reverse('%s:%s_%s_change' % url_triplet,

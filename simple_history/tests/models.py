@@ -1,11 +1,30 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django import VERSION
 
 from simple_history.models import HistoricalRecords
 from simple_history import register
 
 from .custom_user.models import CustomUser as User
+
+try:
+    from django.apps import apps
+except ImportError:  # Django < 1.7
+    from django.db.models import get_model
+else:
+    get_model = apps.get_model
+
+# 1.6 has different way of importing models
+if VERSION[:3] >= (1, 7, 0):
+    from .external.models.model1 import AbstractExternal
+else:
+    class AbstractExternal(models.Model):
+        history = HistoricalRecords(inherit=True)
+
+        class Meta:
+            abstract = True
+            app_label = 'external'
 
 
 class Poll(models.Model):
@@ -339,6 +358,13 @@ class TrackedConcreteBase(models.Model):
 
 class UntrackedConcreteBase(models.Model):
     pass
+
+
+class ConcreteExternal(AbstractExternal):
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        app_label = 'tests'
 
 
 class TrackedWithAbstractBase(TrackedAbstractBaseA):
