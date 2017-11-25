@@ -120,5 +120,3 @@ class TestPopulateHistory(TestCase):
                                 'tests.pollwithexcludefields', auto=True)
         update_record = models.PollWithExcludeFields.history.all()[0]
         self.assertEqual(update_record.question, poll.question)
-        with self.assertRaises(AttributeError):
-            update_record.pub_date
