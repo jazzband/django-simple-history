@@ -111,3 +111,14 @@ class TestPopulateHistory(TestCase):
                                     stdout=out)
         self.assertIn(populate_history.Command.NO_REGISTERED_MODELS,
                       out.getvalue())
+
+    def test_excluded_fields(self):
+        poll = models.PollWithExcludeFields.objects.create(
+            question="Will this work?", pub_date=datetime.now())
+        models.PollWithExcludeFields.history.all().delete()
+        management.call_command(self.command_name,
+                                'tests.pollwithexcludefields', auto=True)
+        update_record = models.PollWithExcludeFields.history.all()[0]
+        self.assertEqual(update_record.question, poll.question)
+        with self.assertRaises(AttributeError):
+            update_record.pub_date

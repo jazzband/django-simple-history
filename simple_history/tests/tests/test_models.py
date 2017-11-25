@@ -946,3 +946,12 @@ class CustomTableNameTest1(TestCase):
             self.get_table_name(ContactRegister.history),
             'contacts_register_history',
         )
+
+
+class ExcludeFieldsTest(TestCase):
+    def test_restore_pollwithexclude(self):
+        poll = PollWithExcludeFields.objects.create(question="what's up?",
+                                                    pub_date=today)
+        historical = poll.history.order_by('pk')[0]
+        original = historical.instance
+        self.assertEqual(original.pub_date, poll.pub_date)
