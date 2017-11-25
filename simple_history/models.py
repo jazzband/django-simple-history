@@ -228,10 +228,14 @@ class HistoricalRecords(object):
                 for field in fields.values()
             }
             if self.excluded_fields:
-                actual_model = self.instance_type.objects.get(pk=getattr(self, self.instance_type._meta.pk.attname))
-                for field in self.excluded_fields:
-                    attrs[field] = getattr(actual_model, field)
-
+                excluded_attnames = [
+                    model._meta.get_field(field).attname
+                    for field in self.excluded_fields
+                ]
+                values = model.objects.filter(
+                    pk=getattr(self, model._meta.pk.attname)
+                ).values(*excluded_attnames).get()
+                attrs.update(values)
             return model(**attrs)
 
         def get_next_record(self):

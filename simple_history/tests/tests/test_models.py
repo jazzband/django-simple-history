@@ -985,7 +985,7 @@ class ExcludeForeignKeyTest(TestCase):
             historical.place
 
     def test_nb_queries(self):
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             historical = self.get_first_historical()
             historical.instance
 
