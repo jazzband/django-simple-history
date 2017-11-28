@@ -276,12 +276,11 @@ class HistoricalRecords(object):
             return instance._history_user
         except AttributeError:
             try:
+                is_authenticated = self.thread.request.user.is_authenticated
                 try:
-                    # Django < 1.10
-                    is_authenticated = self.thread.request.user.is_authenticated()
+                    is_authenticated = is_authenticated() # Django < 1.10
                 except TypeError:
-                    # Django >= 2.0
-                    is_authenticated = self.thread.request.user.is_authenticated
+                    pass
                 if is_authenticated:
                     return self.thread.request.user
                 return None
