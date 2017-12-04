@@ -268,7 +268,11 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField('Employee', null=True)
+    manager = models.OneToOneField(
+        'Employee',
+        on_delete=models.CASCADE,
+        null=True,
+    )
     history = HistoricalRecords()
 
 

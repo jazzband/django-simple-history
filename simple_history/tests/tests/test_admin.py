@@ -6,7 +6,10 @@ from django.contrib.admin import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError: # Django <1.10
+    from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
