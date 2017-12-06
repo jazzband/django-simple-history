@@ -21,6 +21,10 @@ try:
 except ImportError:  # Django < 1.7
     from django.db.models import get_app
 try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
+try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
     pass
@@ -204,14 +208,12 @@ class HistoricalRecords(object):
 
         user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
-        @models.permalink
         def revert_url(self):
             """URL for this change in the default admin site."""
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
-            return ('%s:%s_%s_simple_history' %
-                    (admin.site.name, app_label, model_name),
-                    [getattr(self, opts.pk.attname), self.history_id])
+            viewname = '%s:%s_%s_simple_history' % (admin.site.name, app_label, model_name)
+            return reverse(viewname, args=[getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
             return model(**{

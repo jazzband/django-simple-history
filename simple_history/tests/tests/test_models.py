@@ -343,6 +343,14 @@ class HistoricalRecordsTest(TestCase):
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
 
+    def test_revert_url(self):
+        p = Poll(question="what's up?", pub_date=today)
+        p.save()
+        record = p.history.all()[0]
+        revert_url = record.revert_url()
+        expected_url = '/admin/tests/poll/{}/history/{}/'.format(p.id, record.id)
+        self.assertEqual(revert_url, expected_url)
+
 
 class CreateHistoryModelTests(unittest.TestCase):
 
