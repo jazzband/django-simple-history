@@ -2,7 +2,7 @@ from setuptools import setup
 import simple_history
 
 tests_require = [
-    'Django>=1.6', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
+    'Django>=1.7', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
 
 setup(
     name='django-simple-history',
@@ -27,13 +27,12 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         "License :: OSI Approved :: BSD License",
     ],
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     tests_require=tests_require,
     include_package_data=True,
     test_suite='runtests.main',

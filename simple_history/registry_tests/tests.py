@@ -17,13 +17,9 @@ from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
                             TrackedWithConcreteBase, UserAccessorDefault,
                             UserAccessorOverride, Voter)
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
+from django.apps import apps
 
+get_model = apps.get_model
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -144,7 +140,6 @@ class TestTrackingInheritance(TestCase):
             register(InheritTracking4)
 
 
-@unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
 class TestMigrate(TestCase):
 
     def test_makemigration_command(self):

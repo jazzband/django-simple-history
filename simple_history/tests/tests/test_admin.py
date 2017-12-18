@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from mock import patch, ANY
 from django_webtest import WebTest
 from django.contrib.admin import AdminSite
+from django.contrib.admin.utils import quote
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
@@ -14,11 +15,6 @@ from django.utils.encoding import force_text
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
 from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
-
-try:
-    from django.contrib.admin.utils import quote
-except ImportError:  # Django < 1.7
-    from django.contrib.admin.util import quote
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)

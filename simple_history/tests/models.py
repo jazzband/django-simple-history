@@ -8,23 +8,11 @@ from simple_history import register
 
 from .custom_user.models import CustomUser as User
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
+from django.apps import apps
 
-# 1.6 has different way of importing models
-if VERSION[:3] >= (1, 7, 0):
-    from .external.models.model1 import AbstractExternal
-else:
-    class AbstractExternal(models.Model):
-        history = HistoricalRecords(inherit=True)
+get_model = apps.get_model
 
-        class Meta:
-            abstract = True
-            app_label = 'external'
+from .external.models.model1 import AbstractExternal
 
 
 class Poll(models.Model):

@@ -4,6 +4,7 @@ import copy
 import importlib
 import threading
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.db import models, router
@@ -16,10 +17,6 @@ from django.utils.translation import string_concat, ugettext_lazy as _
 from . import exceptions
 from .manager import HistoryDescriptor
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_app
 try:
     from south.modelsinspector import add_introspection_rules
 except ImportError:  # south not present
