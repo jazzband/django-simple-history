@@ -6,6 +6,7 @@ build/
 docs/_build
 MANIFEST
 .coverage
+.idea
 .tox/
 htmlcov/
 test_files/
