@@ -70,6 +70,16 @@ Django tutorial:
 Now all changes to ``Poll`` and ``Choice`` model instances will be tracked in
 the database.
 
+Run Migrations
+~~~~~~~~~~~~~~
+
+With your model changes in place, create and apply the database migrations:
+
+.. code-block:: bash
+
+    $ python manage.py makemigrations
+    $ python manage.py migrate
+
 Existing Projects
 ~~~~~~~~~~~~~~~~~
 

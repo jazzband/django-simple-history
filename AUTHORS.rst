@@ -29,8 +29,10 @@ Authors
 - Mauricio de Abreu Antunes
 - Micah Denbraver
 - Rajesh Pappula
+- Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote
+- Ross Mechanic
 - Steven Klass
 - Steeve Chailloux
 - Trey Hunner
@@ -40,6 +42,8 @@ Authors
 - Michael England
 - Gregory Bataille
 - Jesse Shapiro
+- Kevin Foster
+- Shane Engelman
 
 Background
 ==========
