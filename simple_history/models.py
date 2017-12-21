@@ -172,9 +172,18 @@ class HistoricalRecords(object):
                     field_arguments['to_field'] = old_field.to_fields[0]
                 if getattr(old_field, 'db_column', None):
                     field_arguments['db_column'] = old_field.db_column
+
+                # If old_field.rel.to is 'self' then we have a case where object has a foreign key
+                # to itself. In this case we update need to set the `to` value of the field
+                # to be set to a model. We can use the old_field.model value.
+                if isinstance(old_field.rel.to, str) and old_field.rel.to == 'self':
+                    object_to = old_field.model
+                else:
+                    #           required for Django <= 1.8                       # required for Django >= 2.0
+                    object_to = old_field.rel.to if hasattr(old_field, 'rel') else old_field.remote_field.model
+
                 field = FieldType(
-                    # required for Django <= 1.8                     # required for Django >= 2.0
-                    old_field.rel.to if hasattr(old_field, 'rel') else old_field.remote_field.model,
+                    object_to,
                     related_name='+',
                     null=True,
                     blank=True,
@@ -316,7 +325,7 @@ def convert_auto_field(field):
     must be replaced with an IntegerField.
     """
     connection = router.db_for_write(field.model)
-    if settings.DATABASES[connection]['ENGINE'] in ('django_mongodb_engine',):
+    if settings.DATABASES[connection].get('ENGINE') in ('django_mongodb_engine',):
         # Check if AutoField is string for django-non-rel support
         return models.TextField
     return models.IntegerField
