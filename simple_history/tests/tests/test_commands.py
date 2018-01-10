@@ -120,13 +120,3 @@ class TestPopulateHistory(TestCase):
                                 'tests.pollwithexcludefields', auto=True)
         update_record = models.PollWithExcludeFields.history.all()[0]
         self.assertEqual(update_record.question, poll.question)
-
-    def test_excluded_fk_field(self):
-        poll = models.PollWithExcludedFKField.objects.create(
-            question="Will this work?", pub_date=datetime.now(),
-            place=models.Place(name="Over the rainbow"))
-        models.PollWithExcludedFKField.history.all().delete()
-        management.call_command(self.command_name,
-                                'tests.pollwithexcludedfkfield', auto=True)
-        update_record = models.PollWithExcludedFKField.history.all()[0]
-        self.assertEqual(update_record.question, poll.question)
