@@ -44,6 +44,8 @@ Authors
 - Jesse Shapiro
 - Kevin Foster
 - Shane Engelman
+- Adnan Umer
+- Jonathan Zvesper
 
 Background
 ==========
