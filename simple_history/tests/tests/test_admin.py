@@ -13,7 +13,7 @@ from django.utils.encoding import force_text
 
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee, Choice
+from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
 
 try:
     from django.contrib.admin.utils import quote
@@ -540,6 +540,61 @@ class AdminSiteTest(WebTest):
                 request, poll),
             'has_delete_permission': admin.has_delete_permission(
                 request, poll),
+            'has_file_field': True,
+            'has_absolute_url': False,
+            'form_url': '',
+            'opts': ANY,
+            'content_type_id': ANY,
+            'save_as': admin.save_as,
+            'save_on_top': admin.save_on_top,
+            'root_path': getattr(admin_site, 'root_path', None),
+        }
+        mock_render.assert_called_once_with(
+            request, admin.object_history_form_template, context, **extra_kwargs)
+
+    def test_history_form_view_getting_history_abstract_external(self):
+        request = RequestFactory().post('/')
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+        request.POST = {'_change_history': True}
+
+        obj = ConcreteExternal.objects.create(name='test')
+        obj.name = "new_test"
+        obj.save()
+        history = obj.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(ConcreteExternal, admin_site)
+
+        with patch('simple_history.admin.render') as mock_render:
+            with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
+                admin.history_form_view(request, obj.id, history.pk)
+
+        context = {
+            # Verify this is set for history object
+            'original': history.instance,
+            'change_history': True,
+
+            'title': 'Revert %s' % force_text(history.instance),
+            'adminform': ANY,
+            'object_id': obj.id,
+            'is_popup': False,
+            'media': ANY,
+            'errors': ANY,
+            'app_label': 'tests',
+            'original_opts': ANY,
+            'changelist_url': '/admin/tests/concreteexternal/',
+            'change_url': ANY,
+            'history_url': '/admin/tests/concreteexternal/{pk}/history/'.format(
+                pk=obj.pk),
+            'add': False,
+            'change': True,
+            'has_add_permission': admin.has_add_permission(request),
+            'has_change_permission': admin.has_change_permission(
+                request, obj),
+            'has_delete_permission': admin.has_delete_permission(
+                request, obj),
             'has_file_field': True,
             'has_absolute_url': False,
             'form_url': '',
