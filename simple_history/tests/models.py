@@ -85,6 +85,9 @@ class Voter(models.Model):
         related_name='voters',
     )
 
+    def __str__(self):
+        return 'Voter object'
+
 
 class HistoricalRecordsVerbose(HistoricalRecords):
     def get_extra_fields(self, model, fields):
@@ -287,7 +290,7 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField('Employee', null=True)
+    manager = models.OneToOneField('Employee', null=True, on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 

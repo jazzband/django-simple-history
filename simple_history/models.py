@@ -176,10 +176,17 @@ class HistoricalRecords(object):
                 # If old_field.rel.to is 'self' then we have a case where object has a foreign key
                 # to itself. In this case we update need to set the `to` value of the field
                 # to be set to a model. We can use the old_field.model value.
-                if isinstance(old_field.rel.to, str) and old_field.rel.to == 'self':
+                try:
+                    old_remote_field = old_field.remote_field
+                except AttributeError:  # Django < 1.9
+                    old_remote_field = old_field.rel
+                if isinstance(old_remote_field, str) and old_remote_field == 'self':
                     object_to = old_field.model
                 else:
-                    object_to = old_field.rel.to
+                    try:
+                        object_to = old_remote_field.model
+                    except AttributeError:  # Django < 1.8
+                        object_to = old_remote_field.to
 
                 field = FieldType(
                     object_to,

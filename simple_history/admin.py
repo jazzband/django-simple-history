@@ -6,7 +6,6 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import capfirst
 from django.utils.html import mark_safe
@@ -23,6 +22,10 @@ try:
 except ImportError:
     from django import VERSION
     get_complete_version = lambda: VERSION
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 
 USER_NATURAL_KEY = tuple(
     key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
