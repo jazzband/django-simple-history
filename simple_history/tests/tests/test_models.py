@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import mock
 import unittest
 import warnings
 from datetime import datetime, timedelta
@@ -346,6 +347,16 @@ class HistoricalRecordsTest(TestCase):
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
+
+    def test_get_history_user(self):
+        poll = Poll()
+        historical_records = HistoricalRecords()
+        historical_records.thread = mock.Mock()
+        test_user = User()
+        historical_records.thread.request.user = test_user
+
+        self.assertRaises(AttributeError, lambda: poll._history_user)
+        self.assertEquals(historical_records.get_history_user(poll), test_user)
 
 
 class CreateHistoryModelTests(unittest.TestCase):
