@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import copy
 import importlib
 import threading
+from contextlib import contextmanager
+from functools import partial
 
 from django.apps import apps
 from django.conf import settings
@@ -10,6 +12,7 @@ from django.contrib import admin
 from django.db import models, router
 from django.db.models.fields.proxy import OrderWrt
 from django.urls import reverse
+from django.db.models.signals import m2m_changed
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import format_lazy
@@ -27,7 +30,7 @@ class HistoricalRecords(object):
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
-                 excluded_fields=None):
+                 excluded_fields=None, m2m_fields=()):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
@@ -35,6 +38,7 @@ class HistoricalRecords(object):
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
+        self.m2m_fields = m2m_fields
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
@@ -63,8 +67,16 @@ class HistoricalRecords(object):
                 del self.skip_history_when_saving
             return ret
 
+        @contextmanager
+        def use_last_historical_record(self):
+            self.skip_history_when_saving = True
+            yield
+            del self.skip_history_when_saving
+
         setattr(cls, 'save_without_historical_record',
                 save_without_historical_record)
+        setattr(cls, 'use_last_historical_record',
+                use_last_historical_record)
 
     def finalize(self, sender, **kwargs):
         inherited = False
@@ -98,6 +110,9 @@ class HistoricalRecords(object):
                                          weak=False)
         models.signals.post_delete.connect(self.post_delete, sender=sender,
                                            weak=False)
+        for field in self.m2m_fields:
+            m2m_changed.connect(partial(self.m2m_changed, attr=field.name),
+                                sender=field.remote_field.through, weak=False)
 
         descriptor = HistoryDescriptor(history_model)
         setattr(sender, self.manager_name, descriptor)
@@ -219,7 +234,7 @@ class HistoricalRecords(object):
                 for field in fields.values()
             })
 
-        return {
+        fields = {
             'history_id': models.AutoField(primary_key=True),
             'history_date': models.DateTimeField(),
             'history_change_reason': models.CharField(max_length=100,
@@ -242,6 +257,9 @@ class HistoricalRecords(object):
             '__str__': lambda self: '%s as of %s' % (self.history_object,
                                                      self.history_date)
         }
+        for field in self.m2m_fields:
+            fields[field.name] = models.ManyToManyField(field.remote_field.model)
+        return fields
 
     def get_meta_options(self, model):
         """
@@ -268,6 +286,29 @@ class HistoricalRecords(object):
 
     def post_delete(self, instance, **kwargs):
         self.create_historical_record(instance, '-')
+
+    def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
+        if reverse:
+            # TODO - Reverse m2m update does not work
+            # HistoricalModel contains the ManyToManyField, so this call
+            # modifies the reverse relation
+            return
+
+        if hasattr(instance, 'skip_history_when_saving'):
+            historical = instance.history.latest()
+        else:
+            # TODO - m2m update should create new version
+            # Currently updates latest version, but in fact should create new one
+            historical = None
+
+        field = getattr(historical, attr)
+
+        if action == 'post_add':
+            field.add(*pk_set)
+        if action == 'post_remove':
+            field.remove(*pk_set)
+        if action == 'post_clear':
+            field.clear()
 
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
