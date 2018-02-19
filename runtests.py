@@ -6,6 +6,10 @@ import sys
 
 import django
 from django.conf import settings
+try:
+    from django.utils.version import get_complete_version
+except ImportError:
+    get_complete_version = lambda: django.VERSION
 
 sys.path.insert(0, abspath(dirname(__file__)))
 
@@ -38,11 +42,6 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
-    MIDDLEWARE_CLASSES=[
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-    ],
     TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
@@ -53,6 +52,16 @@ DEFAULT_SETTINGS = dict(
         },
     }],
 )
+
+MIDDLEWARE = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+]
+if get_complete_version() >= (1, 10):
+    DEFAULT_SETTINGS['MIDDLEWARE'] = MIDDLEWARE
+else:
+    DEFAULT_SETTINGS['MIDDLEWARE_CLASSES'] = MIDDLEWARE
 
 
 def main():
