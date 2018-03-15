@@ -44,6 +44,7 @@ Authors
 - Jesse Shapiro
 - Kevin Foster
 - Shane Engelman
+- Ray Logel
 
 Background
 ==========

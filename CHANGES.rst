@@ -6,6 +6,8 @@ Unreleased
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
+- Add ability to specify custom history_id field 
+- Add ability to specify alternative user_model for tracking
 
 1.9.0 (2017-06-11)
 ------------------

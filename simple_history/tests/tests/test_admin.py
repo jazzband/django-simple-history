@@ -13,7 +13,8 @@ from django.utils.encoding import force_text
 
 from simple_history.models import HistoricalRecords
 from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
+from ..models import (Book, Person, Poll, State, Employee, Choice, ConcreteExternal,
+                      BucketMember, BucketData)
 
 try:
     from django.contrib.admin.utils import quote
@@ -294,6 +295,21 @@ class AdminSiteTest(WebTest):
         self.user.delete()
 
         historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, None)
+
+    def test_deleteting_member(self):
+        """Test deletes of a bucket member does not cascade delete the history"""
+        self.login()
+        member = BucketMember.objects.create(name="member1")
+        bucket_data = BucketData(changed_by=member)
+        bucket_data.save()
+
+        historical_poll = bucket_data.history.all()[0]
+        self.assertEqual(historical_poll.history_user, member)
+
+        member.delete()
+
+        historical_poll = bucket_data.history.all()[0]
         self.assertEqual(historical_poll.history_user, None)
 
     def test_missing_one_to_one(self):

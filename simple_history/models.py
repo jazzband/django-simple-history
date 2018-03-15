@@ -37,11 +37,14 @@ class HistoricalRecords(object):
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
+                 history_id_field=None, user_model=None,
                  excluded_fields=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
+        self.history_id_field = history_id_field
+        self.user_model = user_model
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -202,7 +205,7 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+        user_model = self.user_model or getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
         @models.permalink
         def revert_url(self):
@@ -219,8 +222,15 @@ class HistoricalRecords(object):
                 for field in fields.values()
             })
 
+        if self.history_id_field:
+            history_id_field = self.history_id_field
+            history_id_field.primary_key = True
+            history_id_field.editable = False
+        else:
+            history_id_field = models.AutoField(primary_key=True)
+
         return {
-            'history_id': models.AutoField(primary_key=True),
+            'history_id': history_id_field,
             'history_date': models.DateTimeField(),
             'history_change_reason': models.CharField(max_length=100,
                                                       null=True),
