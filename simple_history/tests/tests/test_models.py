@@ -20,6 +20,8 @@ from ..models import (
     AdminProfile,
     Book,
     Bookcase,
+    BucketData,
+    BucketMember,
     Choice,
     City,
     ConcreteAttr,
@@ -374,6 +376,17 @@ class HistoricalRecordsTest(TestCase):
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
+
+    def test_user_model_override(self):
+        member1 = BucketMember.objects.create(name="member1")
+        member2 = BucketMember.objects.create(name="member2")
+        bucket_data = BucketData.objects.create(changed_by=member1)
+        bucket_data.changed_by = member2
+        bucket_data.save()
+        bucket_data.changed_by = None
+        bucket_data.save()
+        self.assertEqual([d.history_user for d in bucket_data.history.all()],
+                         [None, member2, member1])
 
     def test_uuid_history_id(self):
         entry = UUIDModel.objects.create()

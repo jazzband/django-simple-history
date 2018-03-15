@@ -415,6 +415,23 @@ class InheritTracking4(TrackedAbstractBaseA):
     pass
 
 
+class BucketMember(models.Model):
+    name = models.CharField(max_length=30)
+
+
+class BucketData(models.Model):
+    changed_by = models.ForeignKey(
+        BucketMember,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+    history = HistoricalRecords(user_model=BucketMember)
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     history = HistoricalRecords(

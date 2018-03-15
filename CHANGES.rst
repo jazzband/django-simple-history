@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add ability to specify alternative user_model for tracking
+
 2.1.1 (2018-06-15)
 ------------------
 - Fixed out-of-memory exception when running populate_history management command (gh-408)

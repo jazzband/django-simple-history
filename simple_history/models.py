@@ -30,13 +30,14 @@ class HistoricalRecords(object):
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
                  excluded_fields=None,
-                 history_id_field=None,
+                 history_id_field=None, user_model=None,
                  history_change_reason_field=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
+        self.user_model = user_model
         self.history_change_reason_field = history_change_reason_field
         if excluded_fields is None:
             excluded_fields = []
@@ -207,7 +208,9 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+        user_model = self.user_model or getattr(
+            settings, 'AUTH_USER_MODEL', 'auth.User'
+        )
 
         def revert_url(self):
             """URL for this change in the default admin site."""
