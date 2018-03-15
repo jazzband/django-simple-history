@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 import warnings
 from datetime import datetime, timedelta
 
@@ -50,6 +51,7 @@ from ..models import (
     State,
     Temperature,
     UnicodeVerboseName,
+    UUIDModel,
     WaterLevel
 )
 
@@ -366,6 +368,12 @@ class HistoricalRecordsTest(TestCase):
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
+
+    def test_uuid_history_id(self):
+        entry = UUIDModel.objects.create()
+
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
 
 
 class CreateHistoryModelTests(unittest.TestCase):

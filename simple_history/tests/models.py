@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import uuid
+
 from django.apps import apps
 from django.db import models
 from django.urls import reverse
@@ -401,3 +403,9 @@ class InheritTracking3(BaseInheritTracking3):
 
 class InheritTracking4(TrackedAbstractBaseA):
     pass
+
+
+class UUIDModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords(history_id_field=models.UUIDField(default=uuid.uuid4))
+
