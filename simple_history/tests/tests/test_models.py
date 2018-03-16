@@ -345,7 +345,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = AdminProfile.__module__
         try:
-            records.create_history_model(AdminProfile)
+            records.create_history_model(AdminProfile, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to integer fields without throwing an exception")
@@ -354,7 +354,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = Bookcase.__module__
         try:
-            records.create_history_model(Bookcase)
+            records.create_history_model(Bookcase, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
@@ -363,7 +363,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = MultiOneToOne.__module__
         try:
-            records.create_history_model(MultiOneToOne)
+            records.create_history_model(MultiOneToOne, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
