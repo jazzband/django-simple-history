@@ -75,6 +75,21 @@ class TestUserAccessor(unittest.TestCase):
         assert hasattr(User, 'my_history_model_accessor')
 
 
+class TestInheritedModule(TestCase):
+
+    def test_using_app_label(self):
+        try:
+            from ..tests.models import HistoricalConcreteExternal
+        except ImportError:
+            self.fail("HistoricalConcreteExternal is in wrong module")
+
+    def test_default(self):
+        try:
+            from ..tests.models import HistoricalConcreteExternal2
+        except ImportError:
+            self.fail("HistoricalConcreteExternal2 is in wrong module")
+
+
 class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_base(self):

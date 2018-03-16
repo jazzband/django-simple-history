@@ -367,6 +367,13 @@ class ConcreteExternal(AbstractExternal):
         app_label = 'tests'
 
 
+class ConcreteExternal2(AbstractExternal):
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        pass    # Don't set app_label to test inherited module path
+
+
 class TrackedWithAbstractBase(TrackedAbstractBaseA):
     pass
 
