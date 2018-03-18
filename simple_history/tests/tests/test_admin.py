@@ -6,10 +6,6 @@ from django.contrib.admin import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.utils import override_settings
 from django.test.client import RequestFactory
-try:
-    from django.urls import reverse
-except ImportError: # Django <1.10
-    from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
@@ -22,7 +18,17 @@ try:
     from django.contrib.admin.utils import quote
 except ImportError:  # Django < 1.7
     from django.contrib.admin.util import quote
+try:
+    from django.urls import reverse
+except ImportError:  # Django < 1.10
+    from django.core.urlresolvers import reverse
 
+try:
+    settings.MIDDLEWARE
+except AttributeError:  # Django < 1.10
+    MIDDLEWARE_SETTING = 'MIDDLEWARE_CLASSES'
+else:
+    MIDDLEWARE_SETTING = 'MIDDLEWARE'
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -204,8 +210,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_saves_user(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            MIDDLEWARE_SETTING:
+                getattr(settings, MIDDLEWARE_SETTING) +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -222,8 +228,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_unsets_request(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            MIDDLEWARE_SETTING:
+                getattr(settings, MIDDLEWARE_SETTING) +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -237,8 +243,8 @@ class AdminSiteTest(WebTest):
         # creating a new entry does not fail with a foreign key error.
 
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            MIDDLEWARE_SETTING:
+                getattr(settings, MIDDLEWARE_SETTING) +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -259,8 +265,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_anonymous_user(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            MIDDLEWARE_SETTING:
+                getattr(settings, MIDDLEWARE_SETTING) +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):

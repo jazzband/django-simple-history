@@ -85,6 +85,9 @@ class Voter(models.Model):
         related_name='voters',
     )
 
+    def __str__(self):
+        return 'Voter object'
+
 
 class HistoricalRecordsVerbose(HistoricalRecords):
     def get_extra_fields(self, model, fields):
