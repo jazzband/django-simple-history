@@ -7,10 +7,12 @@ Authors
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay
+- Daniel Gilge
 - Daniel Levy
 - Daniel Roschka
 - David Hite
 - Eduardo Cuducos
+- Florian Eßer
 - George Vilches
 - Grzegorz Bialy
 - Hamish Downer
@@ -33,6 +35,7 @@ Authors
 - Rod Xavier Bondoc
 - Ross Lote
 - Ross Mechanic
+- Ross Rogers
 - Steven Klass
 - Steeve Chailloux
 - Trey Hunner
