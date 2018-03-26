@@ -79,28 +79,28 @@ class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_base(self):
         self.assertEqual(
-            [
+            sorted([
                 f.attname
                 for f in TrackedWithAbstractBase.history.model._meta.fields
-            ],
-            [
+            ]),
+            sorted([
                 'id', 'history_id', 'history_date',
                 'history_change_reason', 'history_user_id',
                 'history_type',
-            ],
+            ]),
         )
 
     def test_tracked_concrete_base(self):
         self.assertEqual(
-            [
+            sorted([
                 f.attname
                 for f in TrackedWithConcreteBase.history.model._meta.fields
-            ],
-            [
+            ]),
+            sorted([
                 'id', 'trackedconcretebase_ptr_id', 'history_id',
                 'history_date', 'history_change_reason', 'history_user_id',
                 'history_type',
-            ],
+            ]),
         )
 
     def test_multiple_tracked_bases(self):
@@ -111,32 +111,41 @@ class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_and_untracked_concrete_base(self):
         self.assertEqual(
-            [f.attname for f in InheritTracking1.history.model._meta.fields],
-            [
+            sorted([
+                f.attname
+                for f in InheritTracking1.history.model._meta.fields
+            ]),
+            sorted([
                 'id', 'untrackedconcretebase_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ],
+            ]),
         )
 
     def test_indirect_tracked_abstract_base(self):
         self.assertEqual(
-            [f.attname for f in InheritTracking2.history.model._meta.fields],
-            [
+            sorted([
+                f.attname
+                for f in InheritTracking2.history.model._meta.fields
+            ]),
+            sorted([
                 'id', 'baseinherittracking2_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ],
+            ]),
         )
 
     def test_indirect_tracked_concrete_base(self):
         self.assertEqual(
-            [f.attname for f in InheritTracking3.history.model._meta.fields],
-            [
+            sorted([
+                f.attname
+                for f in InheritTracking3.history.model._meta.fields
+            ]),
+            sorted([
                 'id', 'baseinherittracking3_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ],
+            ]),
         )
 
     def test_registering_with_tracked_abstract_base(self):

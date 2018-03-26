@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 import warnings
 from datetime import datetime, timedelta
 
 import django
+from django import VERSION
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
@@ -14,7 +16,8 @@ from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
 
 from ..external.models import ExternalModel2, ExternalModel4
-from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
+from ..models import (AbstractBase, AdminProfile, Book, Bookcase,
+                      BucketMember, BucketData, Choice, City,
                       ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
                       Country, Document, Employee, ExternalModel1,
                       ExternalModel3, FileModel, HistoricalChoice,
@@ -22,7 +25,7 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       Library, MultiOneToOne, Person, Poll, PollInfo,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
-                      UnicodeVerboseName, WaterLevel)
+                      UnicodeVerboseName, UUIDModel, WaterLevel)
 
 try:
     from django.apps import apps
@@ -342,6 +345,26 @@ class HistoricalRecordsTest(TestCase):
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
+
+    def test_user_model_override(self):
+        member1 = BucketMember.objects.create(name="member1")
+        member2 = BucketMember.objects.create(name="member2")
+        bucket_data = BucketData.objects.create(changed_by=member1)
+        bucket_data.changed_by = member2
+        bucket_data.save()
+        bucket_data.changed_by = None
+        bucket_data.save()
+        self.assertEqual([d.history_user for d in bucket_data.history.all()],
+                         [None, member2, member1])
+
+    def test_uuid_history_id(self):
+        entry = UUIDModel.objects.create()
+
+        history = entry.history.all()[0]
+        if VERSION[:3] >= (1, 8, 0):
+            self.assertTrue(isinstance(history.history_id, uuid.UUID))
+        else:
+            self.assertEqual(history.history_id, str(uuid.UUID(history.history_id)))
 
 
 class CreateHistoryModelTests(unittest.TestCase):

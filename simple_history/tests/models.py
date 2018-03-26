@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import uuid
+
 from django.db import models
 from django import VERSION
 
@@ -397,3 +399,36 @@ class InheritTracking3(BaseInheritTracking3):
 
 class InheritTracking4(TrackedAbstractBaseA):
     pass
+
+
+class BucketMember(models.Model):
+    name = models.CharField(max_length=30)
+
+
+class BucketData(models.Model):
+    changed_by = models.ForeignKey(
+        BucketMember,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+    history = HistoricalRecords(user_model=BucketMember)
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+## 1.8 has UUIDField
+if VERSION[:3] >= (1, 8, 0):
+    class UUIDModel(models.Model):
+        id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+        history = HistoricalRecords(history_id_field=models.UUIDField(default=uuid.uuid4))
+else:
+    def uuid_default():
+        return str(uuid.uuid4());
+
+    class UUIDModel(models.Model):
+        id = models.CharField(max_length=36, default=uuid_default, primary_key=True)
+        history = HistoricalRecords(
+            history_id_field=models.CharField(max_length=36, default=uuid_default)
+        )
+
