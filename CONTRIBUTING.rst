@@ -45,7 +45,7 @@ If not using a virtualenv, the command should be prepended with ``sudo``.
 Documentation
 -------------
 
-To regenate the documentation run::
+To regenerate the documentation run::
 
     make docs
 
