@@ -1,5 +1,8 @@
 Changes
 =======
+Nov 30, 2016
+------------
+- Add ability to see all change history of model.
 
 Unreleased
 ----------
