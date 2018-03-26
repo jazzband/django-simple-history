@@ -11,5 +11,5 @@ class WhatIMean(DoYouKnow):
 
 
 class Yar(models.Model):
-    what = models.ForeignKey(WhatIMean)
+    what = models.ForeignKey(WhatIMean, on_delete=models.CASCADE)
     history = HistoricalRecords()
