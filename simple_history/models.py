@@ -73,13 +73,15 @@ class HistoricalRecords(object):
                 save_without_historical_record)
 
     def finalize(self, sender, **kwargs):
+        inherited = False
         try:
             hint_class = self.cls
         except AttributeError:  # called via `register`
             pass
         else:
             if hint_class is not sender:  # set in concrete
-                if not (self.inherit and issubclass(sender, hint_class)):
+                inherited = (self.inherit and issubclass(sender, hint_class))
+                if not inherited:
                     return  # set in abstract
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
             raise exceptions.MultipleRegistrationsError(
@@ -88,8 +90,12 @@ class HistoricalRecords(object):
                     sender._meta.object_name,
                 )
             )
-        history_model = self.create_history_model(sender)
-        module = importlib.import_module(self.module)
+        history_model = self.create_history_model(sender, inherited)
+        if inherited:
+            # Make sure history model is in same module as inherited class
+            module = importlib.import_module(history_model.__module__)
+        else:
+            module = importlib.import_module(self.module)
         setattr(module, history_model.__name__, history_model)
 
         # The HistoricalRecords object will be discarded,
@@ -103,14 +109,18 @@ class HistoricalRecords(object):
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
-    def create_history_model(self, model):
+    def create_history_model(self, model, inherited):
         """
         Creates a historical model to associate with the model provided.
         """
         attrs = {'__module__': self.module}
 
         app_module = '%s.models' % model._meta.app_label
-        if model.__module__ != self.module:
+
+        if inherited:
+            # inherited use models module
+            attrs['__module__'] = model.__module__
+        elif model.__module__ != self.module:
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:

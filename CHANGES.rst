@@ -6,6 +6,7 @@ Unreleased
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
+- History models for inherited models will be located in the same module as the inherited model
 
 1.9.0 (2017-06-11)
 ------------------
