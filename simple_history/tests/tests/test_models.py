@@ -10,16 +10,18 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
+
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
 
 from ..external.models import ExternalModel2, ExternalModel4
-from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
-                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
-                      Country, Document, Employee, ExternalModel1,
-                      ExternalModel3, FileModel, HistoricalChoice,
-                      HistoricalCustomFKError, HistoricalPoll, HistoricalState,
-                      Library, MultiOneToOne, Person, Poll, PollInfo,
+from ..models import (AbstractBase, AdminProfile, Book, Bookcase,
+                      Choice, City, ConcreteAttr, ConcreteExternal,
+                      ConcreteUtil, Contact, ContactRegister, Country,
+                      Document, Employee, ExternalModel1, ExternalModel3,
+                      FileModel, HistoricalChoice, HistoricalCustomFKError,
+                      HistoricalPoll, HistoricalState, Library,
+                      MultiOneToOne, Person, Poll, PollInfo,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
                       UnicodeVerboseName, WaterLevel)
@@ -417,6 +419,13 @@ class AppLabelTest(TestCase):
                          ExternalModel4)
         self.assertEqual(get_model('tests', 'HistoricalExternalModel4'),
                          ExternalModel4.histories.model)
+
+        # Test that historical model is defined within app of concrete
+        # model rather than abstract base model
+        self.assertEqual(get_model('tests', 'ConcreteExternal'),
+                         ConcreteExternal)
+        self.assertEqual(get_model('tests', 'HistoricalConcreteExternal'),
+                         ConcreteExternal.history.model)
 
 
 class HistoryManagerTest(TestCase):

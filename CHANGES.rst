@@ -5,6 +5,8 @@ Unreleased
 ----------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
+- Fix history detail view on django-admin for abstract models (gh-308)
+- Fix issue with tracking an inherited model (abstract class) (gh-269)
 - Resolve issue where model references itself (gh-278)
 
 1.9.0 (2017-06-11)

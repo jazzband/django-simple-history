@@ -39,6 +39,7 @@ class HistoricalRecords(object):
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
+        self.called_by_register = False
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -112,7 +113,7 @@ class HistoricalRecords(object):
         app_module = '%s.models' % model._meta.app_label
         if model.__module__ != self.module:
             # registered under different app
-            attrs['__module__'] = self.module
+            attrs['__module__'] = self.module if self.called_by_register else app_module
         elif app_module != self.module:
             try:
                 # Abuse an internal API because the app registry is loading.
@@ -128,6 +129,8 @@ class HistoricalRecords(object):
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
+        if not self.called_by_register:
+            attrs['Meta'].app_label = model._meta.app_label
         if self.table_name is not None:
             attrs['Meta'].db_table = self.table_name
         name = 'Historical%s' % model._meta.object_name
