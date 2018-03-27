@@ -13,11 +13,8 @@ from django.utils.html import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text
 from django.conf import settings
+from django.contrib.admin.utils import unquote
 
-try:
-    from django.contrib.admin.utils import unquote
-except ImportError:  # Django < 1.7
-    from django.contrib.admin.util import unquote
 try:
     from django.utils.version import get_complete_version
 except ImportError:

@@ -23,14 +23,9 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
                       UnicodeVerboseName, WaterLevel)
+from django.apps import apps
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
-
+get_model = apps.get_model
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -528,8 +523,6 @@ class HistoryManagerTest(TestCase):
             related_model = field_object.related.model
         self.assertEqual(related_model, HistoricalState)
 
-    @unittest.skipUnless(django.get_version() >= "1.7",
-                         "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
@@ -681,8 +674,6 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(order[5], self.w_chair.pk)
         self.assertEqual(order[6], self.w_battle.pk)
 
-    @unittest.skipUnless(django.get_version() >= "1.7",
-                         "Requires 1.7 migrations")
     def test_migrations_include_order(self):
         from django.db.migrations import state
         model_state = state.ModelState.from_model(SeriesWork.history.model)
