@@ -92,7 +92,7 @@ class HistoricalRecords(object):
             )
         history_model = self.create_history_model(sender, inherited)
         if inherited:
-            # Make sure history model is in same module as inherited class
+            # Make sure history model is in same module as concrete model
             module = importlib.import_module(history_model.__module__)
         else:
             module = importlib.import_module(self.module)

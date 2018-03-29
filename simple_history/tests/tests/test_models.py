@@ -4,15 +4,15 @@ import unittest
 import warnings
 from datetime import datetime, timedelta
 
-import django
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
+
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
-
 from ..external.models import ExternalModel2, ExternalModel4
 from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       ConcreteAttr, ConcreteExternal, ConcreteUtil, Contact, ContactRegister,
@@ -395,6 +395,10 @@ class AppLabelTest(TestCase):
                          'external_externalmodel4')
         self.assertEqual(self.get_table_name(ExternalModel4.histories),
                          'tests_historicalexternalmodel4')
+        self.assertEqual(self.get_table_name(ConcreteExternal.objects),
+                         'tests_concreteexternal')
+        self.assertEqual(self.get_table_name(ConcreteExternal.history),
+                         'tests_historicalconcreteexternal')
 
     def test_get_model(self):
         self.assertEqual(get_model('external', 'ExternalModel1'),
