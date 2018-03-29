@@ -15,7 +15,7 @@ from simple_history.utils import update_change_reason
 
 from ..external.models import ExternalModel2, ExternalModel4
 from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
-                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
+                      ConcreteAttr, ConcreteExternal, ConcreteUtil, Contact, ContactRegister,
                       Country, Document, Employee, ExternalModel1,
                       ExternalModel3, FileModel, HistoricalChoice,
                       HistoricalCustomFKError, HistoricalPoll, HistoricalState,
@@ -23,7 +23,6 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
                       UnicodeVerboseName, WaterLevel)
-from django.apps import apps
 
 get_model = apps.get_model
 User = get_user_model()
@@ -417,6 +416,13 @@ class AppLabelTest(TestCase):
                          ExternalModel4)
         self.assertEqual(get_model('tests', 'HistoricalExternalModel4'),
                          ExternalModel4.histories.model)
+
+        # Test that historical model is defined within app of concrete
+        # model rather than abstract base model
+        self.assertEqual(get_model('tests', 'ConcreteExternal'),
+                         ConcreteExternal)
+        self.assertEqual(get_model('tests', 'HistoricalConcreteExternal'),
+                         ConcreteExternal.history.model)
 
 
 class HistoryManagerTest(TestCase):
