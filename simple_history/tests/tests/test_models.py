@@ -4,18 +4,18 @@ import unittest
 import warnings
 from datetime import datetime, timedelta
 
-import django
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
+
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
-
 from ..external.models import ExternalModel2, ExternalModel4
 from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
-                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
+                      ConcreteAttr, ConcreteExternal, ConcreteUtil, Contact, ContactRegister,
                       Country, Document, Employee, ExternalModel1,
                       ExternalModel3, FileModel, HistoricalChoice,
                       HistoricalCustomFKError, HistoricalPoll, HistoricalState,
@@ -23,7 +23,6 @@ from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
                       PollWithExcludeFields, Province, Restaurant, SelfFK,
                       Series, SeriesWork, State, Temperature,
                       UnicodeVerboseName, WaterLevel)
-from django.apps import apps
 
 get_model = apps.get_model
 User = get_user_model()
@@ -345,7 +344,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = AdminProfile.__module__
         try:
-            records.create_history_model(AdminProfile)
+            records.create_history_model(AdminProfile, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to integer fields without throwing an exception")
@@ -354,7 +353,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = Bookcase.__module__
         try:
-            records.create_history_model(Bookcase)
+            records.create_history_model(Bookcase, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
@@ -363,7 +362,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = MultiOneToOne.__module__
         try:
-            records.create_history_model(MultiOneToOne)
+            records.create_history_model(MultiOneToOne, False)
         except:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
@@ -396,6 +395,10 @@ class AppLabelTest(TestCase):
                          'external_externalmodel4')
         self.assertEqual(self.get_table_name(ExternalModel4.histories),
                          'tests_historicalexternalmodel4')
+        self.assertEqual(self.get_table_name(ConcreteExternal.objects),
+                         'tests_concreteexternal')
+        self.assertEqual(self.get_table_name(ConcreteExternal.history),
+                         'tests_historicalconcreteexternal')
 
     def test_get_model(self):
         self.assertEqual(get_model('external', 'ExternalModel1'),
@@ -417,6 +420,13 @@ class AppLabelTest(TestCase):
                          ExternalModel4)
         self.assertEqual(get_model('tests', 'HistoricalExternalModel4'),
                          ExternalModel4.histories.model)
+
+        # Test that historical model is defined within app of concrete
+        # model rather than abstract base model
+        self.assertEqual(get_model('tests', 'ConcreteExternal'),
+                         ConcreteExternal)
+        self.assertEqual(get_model('tests', 'HistoricalConcreteExternal'),
+                         ConcreteExternal.history.model)
 
 
 class HistoryManagerTest(TestCase):
