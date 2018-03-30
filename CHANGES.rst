@@ -1,13 +1,14 @@
 Changes
 =======
 
-Unreleased
+1.9.1 (2018-03-30)
 ----------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
 - Fix issue with tracking an inherited model (abstract class) (gh-269)
 - Fix history detail view on django-admin for abstract models (gh-308)
+- Dropped support for Django<=1.6 and Python 3.3 (gh-292)
 
 1.9.0 (2017-06-11)
 ------------------

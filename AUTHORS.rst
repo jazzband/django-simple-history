@@ -1,3 +1,9 @@
+Maintainers
+===========
+- Trey Hunner
+- Micah Denbraver
+- Ross Mechanic
+
 Authors
 =======
 
