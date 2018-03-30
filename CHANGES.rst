@@ -7,7 +7,7 @@ Unreleased
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
 - Fix issue with tracking an inherited model (abstract class) (gh-269)
-- Resolve issue where model references itself (gh-278)
+- Fix history detail view on django-admin for abstract models (gh-308)
 
 1.9.0 (2017-06-11)
 ------------------
