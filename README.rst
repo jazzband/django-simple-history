@@ -20,7 +20,7 @@ django-simple-history
 
 django-simple-history stores Django model state on every create/update/delete.
 
-This app requires Django 1.7 or greater and Python 2.7, or 3.4 or greater.
+This app requires Django 1.8 or greater and Python 2.7, or 3.4 or greater.
 
 Getting Help
 ------------
