@@ -94,7 +94,7 @@ class Command(BaseCommand):
         else:
             try:
                 model = get_model(app_label, model)
-            except LookupError:  # Django >= 1.7
+            except LookupError:
                 model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +

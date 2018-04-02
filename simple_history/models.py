@@ -124,13 +124,9 @@ class HistoricalRecords(object):
             # registered under different app
             attrs['__module__'] = self.module
         elif app_module != self.module:
-            try:
-                # Abuse an internal API because the app registry is loading.
-                app = apps.app_configs[model._meta.app_label]
-            except NameError:  # Django < 1.7
-                models_module = get_app(model._meta.app_label).__name__
-            else:
-                models_module = app.name
+            # Abuse an internal API because the app registry is loading.
+            app = apps.app_configs[model._meta.app_label]
+            models_module = app.name
             attrs['__module__'] = models_module
 
         fields = self.copy_fields(model)
