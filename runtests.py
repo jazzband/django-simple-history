@@ -6,6 +6,7 @@ import sys
 
 import django
 from django.conf import settings
+from django.test.runner import DiscoverRunner
 
 sys.path.insert(0, abspath(dirname(__file__)))
 
@@ -59,17 +60,9 @@ def main():
 
     if not settings.configured:
         settings.configure(**DEFAULT_SETTINGS)
-    if hasattr(django, 'setup'):
-        django.setup()
-    try:
-        from django.test.runner import DiscoverRunner
-    except ImportError:
-        from django.test.simple import DjangoTestSuiteRunner
-        failures = DjangoTestSuiteRunner(failfast=False).run_tests(['tests'])
-        failures |= DjangoTestSuiteRunner(failfast=False).run_tests(['registry_tests'])
-    else:
-        failures = DiscoverRunner(failfast=False).run_tests(['simple_history.tests'])
-        failures |= DiscoverRunner(failfast=False).run_tests(['simple_history.registry_tests'])
+    django.setup()
+    failures = DiscoverRunner(failfast=False).run_tests(['simple_history.tests'])
+    failures |= DiscoverRunner(failfast=False).run_tests(['simple_history.registry_tests'])
     sys.exit(failures)
 
 

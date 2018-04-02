@@ -1,6 +1,10 @@
 Changes
 =======
 
+Latest
+------
+- Dropped support for Django<=1.8
+
 1.9.1 (2018-03-30)
 ------------------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
