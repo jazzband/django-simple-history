@@ -25,7 +25,6 @@ else:  # south configuration for CustomForeignKeyField
     add_introspection_rules(
         [], ["^simple_history.models.CustomForeignKeyField"])
 
-
 registered_models = {}
 
 
@@ -69,6 +68,7 @@ class HistoricalRecords(object):
             finally:
                 del self.skip_history_when_saving
             return ret
+
         setattr(cls, 'save_without_historical_record',
                 save_without_historical_record)
 
@@ -156,10 +156,7 @@ class HistoricalRecords(object):
         fields = {}
         for field in self.fields_included(model):
             field = copy.copy(field)
-            try:
-                field.remote_field = copy.copy(field.remote_field)
-            except AttributeError:
-                field.rel = copy.copy(field.rel)
+            field.remote_field = copy.copy(field.remote_field)
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
@@ -167,7 +164,7 @@ class HistoricalRecords(object):
                 old_field = field
                 field_arguments = {'db_constraint': False}
                 if (getattr(old_field, 'one_to_one', False) or
-                        isinstance(old_field, models.OneToOneField)):
+                    isinstance(old_field, models.OneToOneField)):
                     FieldType = models.ForeignKey
                 else:
                     FieldType = type(old_field)
@@ -176,13 +173,15 @@ class HistoricalRecords(object):
                 if getattr(old_field, 'db_column', None):
                     field_arguments['db_column'] = old_field.db_column
 
-                # If old_field.rel.to is 'self' then we have a case where object has a foreign key
-                # to itself. In this case we update need to set the `to` value of the field
-                # to be set to a model. We can use the old_field.model value.
-                if isinstance(old_field.rel.to, str) and old_field.rel.to == 'self':
+                # If old_field.remote_field.model is 'self' then we have a
+                # case where object has a foreign key to itself. In this case
+                # we need to set the `model` value of the field to a model. We
+                # can use the old_field.model value.
+                if isinstance(old_field.remote_field.model, str) and \
+                    old_field.remote_field.model == 'self':
                     object_to = old_field.model
                 else:
-                    object_to = old_field.rel.to
+                    object_to = old_field.remote_field.model
 
                 field = FieldType(
                     object_to,

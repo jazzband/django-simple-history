@@ -255,7 +255,7 @@ class SeriesWork(models.Model):
 
 
 class PollInfo(models.Model):
-    poll = models.ForeignKey(
+    poll = models.OneToOneField(
         Poll,
         on_delete=models.CASCADE,
         primary_key=True,
@@ -272,7 +272,8 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField('Employee', null=True)
+    manager = models.OneToOneField('Employee', null=True,
+                                   on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 

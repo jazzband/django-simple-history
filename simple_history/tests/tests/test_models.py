@@ -184,7 +184,7 @@ class HistoricalRecordsTest(TestCase):
         lib = Library.objects.create()
         state = State.objects.create(library=lib)
         self.assertTrue(hasattr(lib, 'state_set'))
-        self.assertIsNone(state._meta.get_field('library').rel.related_name,
+        self.assertIsNone(state._meta.get_field('library').remote_field.related_name,
                           "the '+' shouldn't leak through to the original "
                           "model's field related_name")
 
@@ -519,12 +519,12 @@ class HistoryManagerTest(TestCase):
 
     def test_import_related(self):
         field_object = HistoricalChoice._meta.get_field('poll')
-        related_model = field_object.rel.related_model
+        related_model = field_object.remote_field.related_model
         self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field('library')
-        related_model = field_object.rel.related_model
+        related_model = field_object.remote_field.related_model
         self.assertEqual(related_model, HistoricalState)
 
     def test_state_serialization_of_customfk(self):
