@@ -198,8 +198,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_saves_user(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            'MIDDLEWARE':
+                settings.MIDDLEWARE +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -216,8 +216,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_unsets_request(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            'MIDDLEWARE':
+                settings.MIDDLEWARE +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -231,8 +231,8 @@ class AdminSiteTest(WebTest):
         # creating a new entry does not fail with a foreign key error.
 
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            'MIDDLEWARE':
+                settings.MIDDLEWARE +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
@@ -253,8 +253,8 @@ class AdminSiteTest(WebTest):
 
     def test_middleware_anonymous_user(self):
         overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
+            'MIDDLEWARE':
+                settings.MIDDLEWARE +
                 ['simple_history.middleware.HistoryRequestMiddleware'],
         }
         with override_settings(**overridden_settings):
