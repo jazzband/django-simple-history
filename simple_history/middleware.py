@@ -1,9 +1,9 @@
-from django.utils.deprecation import MiddlewareMixin as MiddlewareBase
+from django.utils.deprecation import MiddlewareMixin
 
 from .models import HistoricalRecords
 
 
-class HistoryRequestMiddleware(MiddlewareBase):
+class HistoryRequestMiddleware(MiddlewareMixin):
     """Expose request to HistoricalRecords.
 
     This middleware sets request as a local thread variable, making it
