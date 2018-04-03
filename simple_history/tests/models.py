@@ -1,18 +1,14 @@
 from __future__ import unicode_literals
 
-from django.db import models
-from django import VERSION
-
-from simple_history.models import HistoricalRecords
-from simple_history import register
-
-from .custom_user.models import CustomUser as User
-
 from django.apps import apps
+from django.db import models
+
+from simple_history import register
+from simple_history.models import HistoricalRecords
+from .custom_user.models import CustomUser as User
+from .external.models.model1 import AbstractExternal
 
 get_model = apps.get_model
-
-from .external.models.model1 import AbstractExternal
 
 
 class Poll(models.Model):
@@ -84,6 +80,7 @@ class HistoricalRecordsVerbose(HistoricalRecords):
             HistoricalRecordsVerbose, self).get_extra_fields(model, fields)
         extra_fields['__str__'] = verbose_str
         return extra_fields
+
 
 register(Voter, records_class=HistoricalRecordsVerbose)
 

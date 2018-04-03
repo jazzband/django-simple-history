@@ -1,28 +1,24 @@
 from datetime import datetime, timedelta
 
-from mock import patch, ANY
-from django_webtest import WebTest
+from django.conf import settings
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test.utils import override_settings
-from django.test.client import RequestFactory
-from django.core.urlresolvers import reverse
-from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.urlresolvers import reverse
+from django.test.client import RequestFactory
+from django.test.utils import override_settings
 from django.utils.encoding import force_text
+from django_webtest import WebTest
+from mock import ANY, patch
 
+from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
+from ..models import Book, Choice, ConcreteExternal, Employee, Person, Poll, State
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
-
-extra_kwargs = {}
-if get_complete_version() < (1, 8):
-    extra_kwargs = {'current_app': 'admin'}
 
 
 def get_history_url(obj, history_index=None, site="admin"):
@@ -437,7 +433,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history(self):
         request = RequestFactory().post('/')
@@ -492,7 +488,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history_with_setting_off(self):
         request = RequestFactory().post('/')
@@ -546,7 +542,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history_abstract_external(self):
         request = RequestFactory().post('/')
@@ -601,4 +597,4 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
