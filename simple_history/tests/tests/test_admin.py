@@ -92,6 +92,11 @@ class AdminSiteTest(WebTest):
         self.assertIn("12", response.unicode_normal_body)
         self.assertIn("15", response.unicode_normal_body)
 
+    def test_history_view_permission(self):
+        self.login()
+        person = Person.objects.create(name='Sandra Hale')
+        self.app.get(get_history_url(person), status=403)
+
     def test_history_form_permission(self):
         self.login(self.user)
         person = Person.objects.create(name='Sandra Hale')
