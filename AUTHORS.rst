@@ -51,6 +51,7 @@ Authors
 - Kevin Foster
 - Shane Engelman
 - Ray Logel
+- Nathan Villagaray-Carski
 
 Background
 ==========
