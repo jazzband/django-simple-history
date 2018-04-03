@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Fix bug where history_view ignored user permissions
+
 1.9.1 (2018-03-30)
 ------------------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
