@@ -1,9 +1,6 @@
-from . models import HistoricalRecords
+from django.utils.deprecation import MiddlewareMixin as MiddlewareBase
 
-try:
-    from django.utils.deprecation import MiddlewareMixin as MiddlewareBase
-except ImportError:  # Django < 1.10
-    MiddlewareBase = object
+from .models import HistoricalRecords
 
 
 class HistoryRequestMiddleware(MiddlewareBase):

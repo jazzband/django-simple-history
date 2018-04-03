@@ -3,8 +3,8 @@ Changes
 
 Unreleased
 ----------
-- Fix bug where history_view ignored user permissions
-- Dropped support for Django<=1.8
+- Dropped support for Django<=1.9 (gh-356)
+- Fix bug where history_view ignored user permissions (gh-361)
 
 1.9.1 (2018-03-30)
 ------------------
