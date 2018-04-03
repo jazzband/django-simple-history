@@ -33,8 +33,6 @@ class HistoryManager(models.Manager):
             key_name = self.instance._meta.pk.name
         return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
-    get_query_set = get_queryset
-
     def most_recent(self):
         """
         Returns the most recent copy of the instance available in the history.

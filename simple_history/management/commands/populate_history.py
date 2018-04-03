@@ -1,12 +1,10 @@
-from optparse import make_option
-
-from django.core.management.base import BaseCommand, CommandError
 from django.apps import apps
+from django.core.management.base import BaseCommand, CommandError
+
+from . import _populate_utils as utils
+from ... import models
 
 get_model = apps.get_model
-
-from ... import models
-from . import _populate_utils as utils
 
 
 class Command(BaseCommand):
@@ -22,12 +20,6 @@ class Command(BaseCommand):
     DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}\n"
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
     INVALID_MODEL_ARG = "An invalid model was specified"
-
-    if hasattr(BaseCommand, 'option_list'):  # Django < 1.8
-        option_list = BaseCommand.option_list + (
-            make_option('--auto', action='store_true', dest='auto', default=False),
-            make_option('--batchsize', action='store', dest='batchsize', default=200, type=int),
-        )
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)

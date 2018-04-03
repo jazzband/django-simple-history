@@ -519,18 +519,12 @@ class HistoryManagerTest(TestCase):
 
     def test_import_related(self):
         field_object = HistoricalChoice._meta.get_field('poll')
-        try:
-            related_model = field_object.rel.related_model
-        except AttributeError:  # Django<1.8
-            related_model = field_object.related.model
+        related_model = field_object.rel.related_model
         self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field('library')
-        try:
-            related_model = field_object.rel.related_model
-        except AttributeError:  # Django<1.8
-            related_model = field_object.related.model
+        related_model = field_object.rel.related_model
         self.assertEqual(related_model, HistoricalState)
 
     def test_state_serialization_of_customfk(self):
