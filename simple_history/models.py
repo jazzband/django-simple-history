@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models, router
 from django.db.models.fields.proxy import OrderWrt
+from django.urls import reverse
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
@@ -206,14 +207,13 @@ class HistoricalRecords(object):
 
         user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
-        @models.permalink
         def revert_url(self):
             """URL for this change in the default admin site."""
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
-            return ('%s:%s_%s_simple_history' %
+            return reverse('%s:%s_%s_simple_history' %
                     (admin.site.name, app_label, model_name),
-                    [getattr(self, opts.pk.attname), self.history_id])
+                    args=[getattr(self, opts.pk.attname), self.history_id])
 
         def get_instance(self):
             return model(**{
