@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.apps import apps
 from django.db import models
+from django.urls import reverse
 
 from simple_history import register
 from simple_history.models import HistoricalRecords
@@ -16,6 +17,9 @@ class Poll(models.Model):
     pub_date = models.DateTimeField('date published')
 
     history = HistoricalRecords()
+
+    def get_absolute_url(self):
+        return reverse('poll-detail', kwargs={'pk': self.pk})
 
 
 class PollWithExcludeFields(models.Model):
@@ -308,6 +312,7 @@ class Contact(models.Model):
 class ContactRegister(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)
+
 
 register(ContactRegister, table_name='contacts_register_history')
 

@@ -35,6 +35,12 @@ def get_history_url(obj, history_index=None, site="admin"):
             site=site, app=app, model=model), args=[quote(obj.pk)])
 
 
+overridden_settings = {
+    'MIDDLEWARE': settings.MIDDLEWARE +
+                  ['simple_history.middleware.HistoryRequestMiddleware'],
+}
+
+
 class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser('user_login',
@@ -196,53 +202,37 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
+    @override_settings(**overridden_settings)
     def test_middleware_saves_user(self):
-        overridden_settings = {
-            'MIDDLEWARE':
-                settings.MIDDLEWARE +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            form = self.app.get(reverse('admin:tests_book_add')).form
-            form["isbn"] = "9780147_513731"
-            form.submit()
-            book = Book.objects.get()
-            historical_book = book.history.all()[0]
+        self.login()
+        form = self.app.get(reverse('admin:tests_book_add')).form
+        form["isbn"] = "9780147_513731"
+        form.submit()
+        book = Book.objects.get()
+        historical_book = book.history.all()[0]
 
-            self.assertEqual(historical_book.history_user, self.user,
-                             "Middleware should make the request available to "
-                             "retrieve history_user.")
+        self.assertEqual(historical_book.history_user, self.user,
+                         "Middleware should make the request available to "
+                         "retrieve history_user.")
 
+    @override_settings(**overridden_settings)
     def test_middleware_unsets_request(self):
-        overridden_settings = {
-            'MIDDLEWARE':
-                settings.MIDDLEWARE +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            self.app.get(reverse('admin:tests_book_add'))
-            self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
+        self.login()
+        self.app.get(reverse('admin:tests_book_add'))
+        self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
 
+    @override_settings(**overridden_settings)
     def test_rolled_back_user_does_not_lead_to_foreign_key_error(self):
         # This test simulates the rollback of a user after a request (which
         # happens, e.g. in test cases), and verifies that subsequently
         # creating a new entry does not fail with a foreign key error.
+        self.login()
+        self.assertEqual(
+            self.app.get(reverse('admin:tests_book_add')).status_code,
+            200,
+        )
 
-        overridden_settings = {
-            'MIDDLEWARE':
-                settings.MIDDLEWARE +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            self.assertEqual(
-                self.app.get(reverse('admin:tests_book_add')).status_code,
-                200,
-            )
-
-            book = Book.objects.create(isbn="9780147_513731")
+        book = Book.objects.create(isbn="9780147_513731")
 
         historical_book = book.history.all()[0]
 
@@ -251,19 +241,14 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
+    @override_settings(**overridden_settings)
     def test_middleware_anonymous_user(self):
-        overridden_settings = {
-            'MIDDLEWARE':
-                settings.MIDDLEWARE +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.app.get(reverse('admin:index'))
-            poll = Poll.objects.create(question="why?", pub_date=today)
-            historical_poll = poll.history.all()[0]
-            self.assertEqual(historical_poll.history_user, None,
-                             "Middleware request user should be able to "
-                             "be anonymous.")
+        self.app.get(reverse('admin:index'))
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, None,
+                         "Middleware request user should be able to "
+                         "be anonymous.")
 
     def test_other_admin(self):
         """Test non-default admin instances.
