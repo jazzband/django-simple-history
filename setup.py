@@ -2,7 +2,7 @@ from setuptools import setup
 import simple_history
 
 tests_require = [
-    'Django>=1.10', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
+    'Django>=1.11', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1']
 
 setup(
     name='django-simple-history',
@@ -25,8 +25,8 @@ setup(
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "Framework :: Django",
-        "Framework :: Django :: 1.10",
         "Framework :: Django :: 1.11",
+        "Framework :: Django :: 2.0"
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
         'Programming Language :: Python :: 3',

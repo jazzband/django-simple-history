@@ -12,8 +12,9 @@ from django.db.models.fields.proxy import OrderWrt
 from django.urls import reverse
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.text import format_lazy
 from django.utils.timezone import now
-from django.utils.translation import string_concat, ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor
@@ -254,8 +255,8 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
-            name = string_concat('historical ',
-                                 smart_text(model._meta.verbose_name))
+            name = format_lazy('historical {}',
+                               smart_text(model._meta.verbose_name))
         meta_fields['verbose_name'] = name
         return meta_fields
 

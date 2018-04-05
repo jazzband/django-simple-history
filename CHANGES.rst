@@ -3,7 +3,8 @@ Changes
 
 Unreleased
 ----------
-- Dropped support for Django<=1.9 (gh-356)
+- Added Django 2.0 support
+- Dropped support for Django<=1.10 (gh-356)
 - Fix bug where history_view ignored user permissions (gh-361)
 - Fixed HistoryRequestMiddleware which hadn't been working for Django>1.9 (gh-364)
 
