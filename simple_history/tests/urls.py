@@ -3,7 +3,13 @@ from __future__ import unicode_literals
 from django.conf.urls import url
 from django.contrib import admin
 
-from simple_history.tests.view import PollCreate, PollUpdate, PollDelete, PollDetail, PollList
+from simple_history.tests.view import (
+    PollCreate,
+    PollDelete,
+    PollDetail,
+    PollList,
+    PollUpdate
+)
 from . import other_admin
 
 admin.autodiscover()

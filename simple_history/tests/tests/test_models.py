@@ -14,15 +14,44 @@ from django.test import TestCase
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
 from ..external.models import ExternalModel2, ExternalModel4
-from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
-                      ConcreteAttr, ConcreteExternal, ConcreteUtil, Contact, ContactRegister,
-                      Country, Document, Employee, ExternalModel1,
-                      ExternalModel3, FileModel, HistoricalChoice,
-                      HistoricalCustomFKError, HistoricalPoll, HistoricalState,
-                      Library, MultiOneToOne, Person, Poll, PollInfo,
-                      PollWithExcludeFields, Province, Restaurant, SelfFK,
-                      Series, SeriesWork, State, Temperature,
-                      UnicodeVerboseName, WaterLevel)
+from ..models import (
+    AbstractBase,
+    AdminProfile,
+    Book,
+    Bookcase,
+    Choice,
+    City,
+    ConcreteAttr,
+    ConcreteExternal,
+    ConcreteUtil,
+    Contact,
+    ContactRegister,
+    Country,
+    Document,
+    Employee,
+    ExternalModel1,
+    ExternalModel3,
+    FileModel,
+    HistoricalChoice,
+    HistoricalCustomFKError,
+    HistoricalPoll,
+    HistoricalState,
+    Library,
+    MultiOneToOne,
+    Person,
+    Poll,
+    PollInfo,
+    PollWithExcludeFields,
+    Province,
+    Restaurant,
+    SelfFK,
+    Series,
+    SeriesWork,
+    State,
+    Temperature,
+    UnicodeVerboseName,
+    WaterLevel
+)
 
 get_model = apps.get_model
 User = get_user_model()
@@ -184,7 +213,8 @@ class HistoricalRecordsTest(TestCase):
         lib = Library.objects.create()
         state = State.objects.create(library=lib)
         self.assertTrue(hasattr(lib, 'state_set'))
-        self.assertIsNone(state._meta.get_field('library').remote_field.related_name,
+        self.assertIsNone(state._meta.get_field('library')
+                          .remote_field.related_name,
                           "the '+' shouldn't leak through to the original "
                           "model's field related_name")
 
@@ -317,10 +347,10 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual('dead trees', b.history.all()[0]._meta.verbose_name)
 
     def test_historical_verbose_name_follows_model_verbose_name(self):
-        l = Library()
-        l.save()
+        library = Library()
+        library.save()
         self.assertEqual('historical quiet please',
-                         l.history.get()._meta.verbose_name)
+                         library.history.get()._meta.verbose_name)
 
     def test_foreignkey_primarykey(self):
         """Test saving a tracked model with a `ForeignKey` primary key."""
@@ -345,7 +375,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records.module = AdminProfile.__module__
         try:
             records.create_history_model(AdminProfile, False)
-        except:
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to integer fields without throwing an exception")
 
@@ -354,7 +384,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records.module = Bookcase.__module__
         try:
             records.create_history_model(Bookcase, False)
-        except:
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
 
@@ -363,7 +393,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         records.module = MultiOneToOne.__module__
         try:
             records.create_history_model(MultiOneToOne, False)
-        except:
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
                       "exception.")

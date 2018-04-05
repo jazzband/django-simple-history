@@ -38,7 +38,8 @@ class Command(BaseCommand):
             dest='batchsize',
             default=200,
             type=int,
-            help='Set a custom batch size when bulk inserting historical records.',
+            help='Set a custom batch size when bulk inserting historical '
+                 'records.',
         )
 
     def handle(self, *args, **options):

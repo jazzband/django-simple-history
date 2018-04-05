@@ -8,8 +8,8 @@ from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import Poll
 
 overridden_settings = {
-    'MIDDLEWARE': settings.MIDDLEWARE +
-                  ['simple_history.middleware.HistoryRequestMiddleware'],
+    'MIDDLEWARE': (settings.MIDDLEWARE +
+                   ['simple_history.middleware.HistoryRequestMiddleware']),
 }
 
 

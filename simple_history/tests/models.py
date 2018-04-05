@@ -62,6 +62,7 @@ class Choice(models.Model):
     choice = models.CharField(max_length=200)
     votes = models.IntegerField()
 
+
 register(Choice)
 
 
@@ -199,6 +200,7 @@ class ConcreteAttr(AbstractBase):
 class ConcreteUtil(AbstractBase):
     pass
 
+
 register(ConcreteUtil, bases=[AbstractBase])
 
 
@@ -224,6 +226,7 @@ class ExternalModel1(models.Model):
 
 class ExternalModel3(models.Model):
     name = models.CharField(max_length=100)
+
 
 register(ExternalModel3, app='simple_history.tests.external',
          manager_name='histories')
