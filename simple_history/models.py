@@ -286,7 +286,7 @@ class HistoricalRecords(object):
             return instance._history_user
         except AttributeError:
             try:
-                if self.thread.request.user.is_authenticated():
+                if self.thread.request.user.is_authenticated:
                     return self.thread.request.user
                 return None
             except AttributeError:
