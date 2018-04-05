@@ -1,8 +1,8 @@
 Changes
 =======
 
-Unreleased
-----------
+2.0 (2018-04-05)
+----------------
 - Added Django 2.0 support (gh-330)
 - Dropped support for Django<=1.10 (gh-356)
 - Fix bug where history_view ignored user permissions (gh-361)
