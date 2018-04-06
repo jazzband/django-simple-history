@@ -19,14 +19,6 @@ from django.utils.translation import ugettext_lazy as _
 from . import exceptions
 from .manager import HistoryDescriptor
 
-try:
-    from south.modelsinspector import add_introspection_rules
-except ImportError:  # south not present
-    pass
-else:  # south configuration for CustomForeignKeyField
-    add_introspection_rules(
-        [], ["^simple_history.models.CustomForeignKeyField"])
-
 registered_models = {}
 
 
