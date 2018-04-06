@@ -165,8 +165,8 @@ class HistoricalRecords(object):
             if isinstance(field, models.ForeignKey):
                 old_field = field
                 field_arguments = {'db_constraint': False}
-                if (getattr(old_field, 'one_to_one', False) or
-                    isinstance(old_field, models.OneToOneField)):
+                if getattr(old_field, 'one_to_one', False) \
+                   or isinstance(old_field, models.OneToOneField):
                     FieldType = models.ForeignKey
                 else:
                     FieldType = type(old_field)
@@ -180,7 +180,7 @@ class HistoricalRecords(object):
                 # we need to set the `model` value of the field to a model. We
                 # can use the old_field.model value.
                 if isinstance(old_field.remote_field.model, str) and \
-                    old_field.remote_field.model == 'self':
+                   old_field.remote_field.model == 'self':
                     object_to = old_field.model
                 else:
                     object_to = old_field.remote_field.model
@@ -212,9 +212,14 @@ class HistoricalRecords(object):
             """URL for this change in the default admin site."""
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
-            return reverse('%s:%s_%s_simple_history' %
-                    (admin.site.name, app_label, model_name),
-                    args=[getattr(self, opts.pk.attname), self.history_id])
+            return reverse(
+                '%s:%s_%s_simple_history' % (
+                    admin.site.name,
+                    app_label,
+                    model_name
+                ),
+                args=[getattr(self, opts.pk.attname), self.history_id]
+            )
 
         def get_instance(self):
             return model(**{
@@ -235,7 +240,10 @@ class HistoricalRecords(object):
                 ('~', _('Changed')),
                 ('-', _('Deleted')),
             )),
-            'history_object': HistoricalObjectDescriptor(model, self.fields_included(model)),
+            'history_object': HistoricalObjectDescriptor(
+                model,
+                self.fields_included(model)
+            ),
             'instance': property(get_instance),
             'instance_type': model,
             'revert_url': revert_url,
@@ -324,7 +332,8 @@ def convert_auto_field(field):
     must be replaced with an IntegerField.
     """
     connection = router.db_for_write(field.model)
-    if settings.DATABASES[connection].get('ENGINE') in ('django_mongodb_engine',):
+    if settings.DATABASES[connection].get('ENGINE') in \
+       ('django_mongodb_engine',):
         # Check if AutoField is string for django-non-rel support
         return models.TextField
     return models.IntegerField

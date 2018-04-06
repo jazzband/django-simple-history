@@ -14,7 +14,15 @@ from mock import ANY, patch
 
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from ..models import Book, Choice, ConcreteExternal, Employee, Person, Poll, State
+from ..models import (
+    Book,
+    Choice,
+    ConcreteExternal,
+    Employee,
+    Person,
+    Poll,
+    State
+)
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -27,7 +35,8 @@ def get_history_url(obj, history_index=None, site="admin"):
         history = obj.history.order_by('history_id')[history_index]
         return reverse(
             "{site}:{app}_{model}_simple_history".format(
-                site=site, app=app, model=model),
+                site=site, app=app, model=model
+            ),
             args=[quote(obj.pk), quote(history.history_id)],
         )
     else:
@@ -36,8 +45,8 @@ def get_history_url(obj, history_index=None, site="admin"):
 
 
 overridden_settings = {
-    'MIDDLEWARE': settings.MIDDLEWARE +
-                  ['simple_history.middleware.HistoryRequestMiddleware'],
+    'MIDDLEWARE': (settings.MIDDLEWARE +
+                   ['simple_history.middleware.HistoryRequestMiddleware']),
 }
 
 
@@ -568,8 +577,9 @@ class AdminSiteTest(WebTest):
             'original_opts': ANY,
             'changelist_url': '/admin/tests/concreteexternal/',
             'change_url': ANY,
-            'history_url': '/admin/tests/concreteexternal/{pk}/history/'.format(
-                pk=obj.pk),
+            'history_url':
+                '/admin/tests/concreteexternal/{pk}/history/'
+                .format(pk=obj.pk),
             'add': False,
             'change': True,
             'has_add_permission': admin.has_add_permission(request),

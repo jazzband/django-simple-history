@@ -3,21 +3,19 @@ from __future__ import unicode_literals
 import unittest
 from datetime import datetime, timedelta
 
-import django
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core import management
 from django.test import TestCase
-from simple_history import exceptions, register
 from six.moves import cStringIO as StringIO
 
+from simple_history import exceptions, register
 from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
                             InheritTracking3, InheritTracking4, Poll,
                             Restaurant, TrackedAbstractBaseA,
                             TrackedAbstractBaseB, TrackedWithAbstractBase,
                             TrackedWithConcreteBase, UserAccessorDefault,
                             UserAccessorOverride, Voter)
-
-from django.apps import apps
 
 get_model = apps.get_model
 User = get_user_model()

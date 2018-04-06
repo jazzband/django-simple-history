@@ -8,4 +8,5 @@ def getattribute(value, arg):
 
     return getattr(value, arg, None)
 
+
 register.filter('getattribute', getattribute)

@@ -10,5 +10,6 @@ class ExternalModel4(models.Model):
     class Meta:
         app_label = 'external'
 
+
 register(ExternalModel4, app='simple_history.tests',
          manager_name='histories')

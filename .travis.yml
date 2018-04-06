@@ -14,10 +14,13 @@ env:
 
 install:
   - pip install -U coverage codecov
+  - pip install -U flake8
   - pip install -U $DJANGO
   - pip freeze
 
-script: coverage run setup.py test
+script:
+  - flake8 simple_history
+  - coverage run setup.py test
 
 matrix:
   exclude:
