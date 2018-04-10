@@ -130,12 +130,16 @@ Admin integration requires that you use a ``_history_user.setter`` attribute wit
 Custom ``history_id``
 ---------------------
 
-If you want to use something other then an ``AutoField`` for the history
-table primary key you can pass in a ``history_id_field``.  A common use case
-for this would be to use a ``UUIDField``.
+By default, the historical table of a model will use an ``AutoField`` for the table's
+``history_id`` (the history table's primary key). However, you can specify a different
+type of field for ``history_id`` buy passing a different field to ``history_id_field``
+parameter.  A common use case for this would be to use a ``UUIDField``.
 
-For any field provided it will automatically set ``primary_key=True`` and
-``editable=False``.
+You can use the ``history_id_field`` parameter with both ``HistoricalRecords()`` or
+``register()`` to change this behavior.
+
+Note: regardless of what field type you specify as your history_id field, that field will
+automatically set ``primary_key=True`` and ``editable=False``.
 
 .. code-block:: python
 

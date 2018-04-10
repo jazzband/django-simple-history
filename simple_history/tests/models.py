@@ -407,5 +407,14 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    history = HistoricalRecords(history_id_field=models.UUIDField(default=uuid.uuid4))
+    history = HistoricalRecords(
+        history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
 
+
+class UUIDRegisterModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+
+register(UUIDRegisterModel,
+         history_id_field=models.UUIDField(default=uuid.uuid4))

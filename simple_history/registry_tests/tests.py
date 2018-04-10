@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 from datetime import datetime, timedelta
 
 from django.apps import apps
@@ -15,7 +16,7 @@ from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
                             Restaurant, TrackedAbstractBaseA,
                             TrackedAbstractBaseB, TrackedWithAbstractBase,
                             TrackedWithConcreteBase, UserAccessorDefault,
-                            UserAccessorOverride, Voter)
+                            UserAccessorOverride, UUIDRegisterModel, Voter)
 
 get_model = apps.get_model
 User = get_user_model()
@@ -56,6 +57,13 @@ class RegisterTest(TestCase):
         self.assertEqual(expected,
                          str(voter.history.all()[0])[:len(expected)])
 
+    def test_register_history_id_field(self):
+        self.assertEqual(len(UUIDRegisterModel.history.all()), 0)
+        entry = UUIDRegisterModel.objects.create()
+        self.assertEqual(len(entry.history.all()), 1)
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
+
 
 class TestUserAccessor(unittest.TestCase):
 
@@ -88,28 +96,28 @@ class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_base(self):
         self.assertEqual(
-            sorted([
+            [
                 f.attname
                 for f in TrackedWithAbstractBase.history.model._meta.fields
-            ]),
-            sorted([
+            ],
+            [
                 'id', 'history_id', 'history_date',
                 'history_change_reason', 'history_user_id',
                 'history_type',
-            ]),
+            ],
         )
 
     def test_tracked_concrete_base(self):
         self.assertEqual(
-            sorted([
+            [
                 f.attname
                 for f in TrackedWithConcreteBase.history.model._meta.fields
-            ]),
-            sorted([
+            ],
+            [
                 'id', 'trackedconcretebase_ptr_id', 'history_id',
                 'history_date', 'history_change_reason', 'history_user_id',
                 'history_type',
-            ]),
+            ],
         )
 
     def test_multiple_tracked_bases(self):
@@ -120,41 +128,32 @@ class TestTrackingInheritance(TestCase):
 
     def test_tracked_abstract_and_untracked_concrete_base(self):
         self.assertEqual(
-            sorted([
-                f.attname
-                for f in InheritTracking1.history.model._meta.fields
-            ]),
-            sorted([
+            [f.attname for f in InheritTracking1.history.model._meta.fields],
+            [
                 'id', 'untrackedconcretebase_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ]),
+            ],
         )
 
     def test_indirect_tracked_abstract_base(self):
         self.assertEqual(
-            sorted([
-                f.attname
-                for f in InheritTracking2.history.model._meta.fields
-            ]),
-            sorted([
+            [f.attname for f in InheritTracking2.history.model._meta.fields],
+            [
                 'id', 'baseinherittracking2_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ]),
+            ],
         )
 
     def test_indirect_tracked_concrete_base(self):
         self.assertEqual(
-            sorted([
-                f.attname
-                for f in InheritTracking3.history.model._meta.fields
-            ]),
-            sorted([
+            [f.attname for f in InheritTracking3.history.model._meta.fields],
+            [
                 'id', 'baseinherittracking3_ptr_id', 'history_id',
                 'history_date', 'history_change_reason',
                 'history_user_id', 'history_type',
-            ]),
+            ],
         )
 
     def test_registering_with_tracked_abstract_base(self):
