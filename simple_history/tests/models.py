@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import uuid
 
 from django.apps import apps
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -418,3 +419,18 @@ class UUIDRegisterModel(models.Model):
 
 register(UUIDRegisterModel,
          history_id_field=models.UUIDField(default=uuid.uuid4))
+
+
+# Set the SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD
+setattr(settings,
+        'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD',
+        models.UUIDField(default=uuid.uuid4))
+
+
+class UUIDDefaultModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords()
+
+
+# Clear the SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD')

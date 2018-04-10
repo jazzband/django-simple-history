@@ -52,6 +52,7 @@ from ..models import (
     Temperature,
     UnicodeVerboseName,
     UUIDModel,
+    UUIDDefaultModel,
     WaterLevel
 )
 
@@ -371,6 +372,12 @@ class HistoricalRecordsTest(TestCase):
 
     def test_uuid_history_id(self):
         entry = UUIDModel.objects.create()
+
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
+
+    def test_uuid_default_history_id(self):
+        entry = UUIDDefaultModel.objects.create()
 
         history = entry.history.all()[0]
         self.assertTrue(isinstance(history.history_id, uuid.UUID))

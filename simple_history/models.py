@@ -221,8 +221,13 @@ class HistoricalRecords(object):
                 for field in fields.values()
             })
 
-        if self.history_id_field:
-            history_id_field = self.history_id_field
+        history_id_field = self.history_id_field or getattr(
+            settings,
+            'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD',
+            None
+        )
+
+        if history_id_field:
             history_id_field.primary_key = True
             history_id_field.editable = False
         else:
