@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import copy
 import importlib
 import threading
+import uuid
 
 from django.apps import apps
 from django.conf import settings
@@ -221,15 +222,14 @@ class HistoricalRecords(object):
                 for field in fields.values()
             })
 
-        history_id_field = self.history_id_field or getattr(
-            settings,
-            'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD',
-            None
-        )
-
-        if history_id_field:
+        if self.history_id_field:
+            history_id_field = self.history_id_field
             history_id_field.primary_key = True
             history_id_field.editable = False
+        elif getattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID', False):
+            history_id_field = models.UUIDField(
+                primary_key=True, default=uuid.uuid4, editable=False
+            )
         else:
             history_id_field = models.AutoField(primary_key=True)
 

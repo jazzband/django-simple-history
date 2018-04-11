@@ -421,10 +421,8 @@ register(UUIDRegisterModel,
          history_id_field=models.UUIDField(default=uuid.uuid4))
 
 
-# Set the SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD
-setattr(settings,
-        'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD',
-        models.UUIDField(default=uuid.uuid4))
+# Set the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+setattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID', True)
 
 
 class UUIDDefaultModel(models.Model):
@@ -432,5 +430,5 @@ class UUIDDefaultModel(models.Model):
     history = HistoricalRecords()
 
 
-# Clear the SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD
-delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD')
+# Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')

@@ -133,11 +133,11 @@ Custom ``history_id``
 By default, the historical table of a model will use an ``AutoField`` for the table's
 ``history_id`` (the history table's primary key). However, you can specify a different
 type of field for ``history_id`` buy passing a different field to ``history_id_field``
-parameter.  A common use case for this would be to use a ``UUIDField``.
+parameter.
 
-You can also change the default ``history_id`` field for all classes using the
-setting ``SIMPLE_HISTORY_HISTORY_ID_DEFAULT_FIELD``.  This setting can still be overridden
-using the ``history_id_field`` parameter on a per model basis.
+A common use case for this would be to use a ``UUIDField``.  If you want to use a ``UUIDField``
+as the default for all classes set ``SIMPLE_HISTORY_HISTORY_ID_USE_UUID=True`` in the settings.
+This setting can still be overridden using the ``history_id_field`` parameter on a per model basis.
 
 You can use the ``history_id_field`` parameter with both ``HistoricalRecords()`` or
 ``register()`` to change this behavior.
