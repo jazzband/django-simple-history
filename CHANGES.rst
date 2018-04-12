@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add ability to specify custom history_id field (gh-368)
+
 2.0 (2018-04-05)
 ----------------
 - Added Django 2.0 support (gh-330)

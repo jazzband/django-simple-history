@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 from datetime import datetime, timedelta
 
 from django.apps import apps
@@ -15,7 +16,7 @@ from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
                             Restaurant, TrackedAbstractBaseA,
                             TrackedAbstractBaseB, TrackedWithAbstractBase,
                             TrackedWithConcreteBase, UserAccessorDefault,
-                            UserAccessorOverride, Voter)
+                            UserAccessorOverride, UUIDRegisterModel, Voter)
 
 get_model = apps.get_model
 User = get_user_model()
@@ -55,6 +56,13 @@ class RegisterTest(TestCase):
         expected = 'Voter object changed by None as of '
         self.assertEqual(expected,
                          str(voter.history.all()[0])[:len(expected)])
+
+    def test_register_history_id_field(self):
+        self.assertEqual(len(UUIDRegisterModel.history.all()), 0)
+        entry = UUIDRegisterModel.objects.create()
+        self.assertEqual(len(entry.history.all()), 1)
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
 
 
 class TestUserAccessor(unittest.TestCase):

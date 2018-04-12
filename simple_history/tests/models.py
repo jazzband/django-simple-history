@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import uuid
+
 from django.apps import apps
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -401,3 +404,31 @@ class InheritTracking3(BaseInheritTracking3):
 
 class InheritTracking4(TrackedAbstractBaseA):
     pass
+
+
+class UUIDModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords(
+        history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class UUIDRegisterModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+
+register(UUIDRegisterModel,
+         history_id_field=models.UUIDField(default=uuid.uuid4))
+
+
+# Set the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+setattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID', True)
+
+
+class UUIDDefaultModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords()
+
+
+# Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')
