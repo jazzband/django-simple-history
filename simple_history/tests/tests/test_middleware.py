@@ -4,7 +4,11 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from simple_history.tests.custom_user.models import CustomUser
-from simple_history.tests.models import Poll
+from simple_history.tests.models import (
+    BucketDataRegister2,
+    BucketMember,
+    Poll
+)
 from simple_history.tests.tests.utils import middleware_override_settings
 
 
@@ -160,3 +164,18 @@ class MiddlewareTest(TestCase):
 
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None, None])
+
+    def test_bucket_member_is_set_on_create_view_when_logged_in(self):
+        self.client.force_login(self.user)
+        member1 = BucketMember.objects.create(name="member1", user=self.user)
+        data = {
+            'data': 'Test Data',
+        }
+        self.client.post(reverse('bucket_data-add'), data=data)
+        bucket_datas = BucketDataRegister2.objects.all()
+        self.assertEqual(bucket_datas.count(), 1)
+
+        history = bucket_datas.first().history.all()
+
+        self.assertListEqual([h.history_user_id for h in history],
+                             [member1.id])

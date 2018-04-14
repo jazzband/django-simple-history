@@ -417,6 +417,11 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class BucketMember(models.Model):
     name = models.CharField(max_length=30)
+    user = models.OneToOneField(
+        User,
+        related_name="bucket_member",
+        on_delete=models.CASCADE
+    )
 
 
 class BucketData(models.Model):
@@ -430,6 +435,49 @@ class BucketData(models.Model):
     @property
     def _history_user(self):
         return self.changed_by
+
+
+def get_bucket_member1(instance, **kwargs):
+    try:
+        return instance.changed_by
+    except AttributeError:
+        return None
+
+
+class BucketDataRegister1(models.Model):
+    changed_by = models.ForeignKey(
+        BucketMember,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+
+
+register(
+    BucketDataRegister1,
+    user_model=BucketMember,
+    get_user=get_bucket_member1
+)
+
+
+def get_bucket_member2(request, **kwargs):
+    try:
+        return request.user.bucket_member
+    except AttributeError:
+        return None
+
+
+class BucketDataRegister2(models.Model):
+    data = models.CharField(max_length=30)
+
+    def get_absolute_url(self):
+        return reverse('bucket_data-detail', kwargs={'pk': self.pk})
+
+
+register(
+    BucketDataRegister2,
+    user_model=BucketMember,
+    get_user=get_bucket_member2
+)
 
 
 class UUIDModel(models.Model):

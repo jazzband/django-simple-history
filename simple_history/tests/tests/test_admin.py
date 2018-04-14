@@ -306,7 +306,7 @@ class AdminSiteTest(WebTest):
     def test_deleteting_member(self):
         """Test deletes of a BucketMember doesn't cascade delete the history"""
         self.login()
-        member = BucketMember.objects.create(name="member1")
+        member = BucketMember.objects.create(name="member1", user=self.user)
         bucket_data = BucketData(changed_by=member)
         bucket_data.save()
 
