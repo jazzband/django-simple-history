@@ -132,7 +132,7 @@ Custom ``history_id``
 
 By default, the historical table of a model will use an ``AutoField`` for the table's
 ``history_id`` (the history table's primary key). However, you can specify a different
-type of field for ``history_id`` buy passing a different field to ``history_id_field``
+type of field for ``history_id`` by passing a different field to ``history_id_field``
 parameter.
 
 A common use case for this would be to use a ``UUIDField``.  If you want to use a ``UUIDField``
@@ -279,7 +279,7 @@ field ``history_change_reason`` and its default value is ``None``.
 
 By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
 the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
-function ``utils.update_change_reason``. The first argument of this function is the instance and the seccond
+function ``utils.update_change_reason``. The first argument of this function is the instance and the second
 is the message that represents the change reason.
 
 For instance, for the model:
