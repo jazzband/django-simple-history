@@ -9,6 +9,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.db import models, router
+from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
 from django.urls import reverse
 from django.utils import six
@@ -222,6 +223,22 @@ class HistoricalRecords(object):
                 for field in fields.values()
             })
 
+        def get_next_record(self):
+            """
+            Get the next history record for the instance. `None` if last.
+            """
+            return self.instance.history.filter(
+                Q(history_date__gt=self.history_date)
+            ).order_by('history_date').first()
+
+        def get_prev_record(self):
+            """
+            Get the previous history record for the instance. `None` if first.
+            """
+            return self.instance.history.filter(
+                Q(history_date__lt=self.history_date)
+            ).order_by('history_date').last()
+
         if self.history_id_field:
             history_id_field = self.history_id_field
             history_id_field.primary_key = True
@@ -252,6 +269,8 @@ class HistoricalRecords(object):
             ),
             'instance': property(get_instance),
             'instance_type': model,
+            'next_record': property(get_next_record),
+            'prev_record': property(get_prev_record),
             'revert_url': revert_url,
             '__str__': lambda self: '%s as of %s' % (self.history_object,
                                                      self.history_date)

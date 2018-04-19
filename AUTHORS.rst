@@ -56,6 +56,7 @@ Authors
 - Shane Engelman
 - Ray Logel
 - Nathan Villagaray-Carski
+- Mike Spainhower
 
 Background
 ==========
