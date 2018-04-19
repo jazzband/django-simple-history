@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 - Add ability to specify custom history_id field (gh-368)
+- Add HistoricalRecord instance properties `prev_record` and `next_record` (gh-365)
 
 2.0 (2018-04-05)
 ----------------

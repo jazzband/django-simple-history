@@ -382,6 +382,80 @@ class HistoricalRecordsTest(TestCase):
         history = entry.history.all()[0]
         self.assertTrue(isinstance(history.history_id, uuid.UUID))
 
+    def test_get_prev_record(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        poll.question = "eh?"
+        poll.save()
+        poll.question = "one more?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        second_record = poll.history.filter(question="ask questions?").get()
+        third_record = poll.history.filter(question="eh?").get()
+        fourth_record = poll.history.filter(question="one more?").get()
+        self.assertIsNone(first_record.prev_record)
+
+        def assertRecordsMatch(record_a, record_b):
+            self.assertEqual(record_a, record_b)
+            self.assertEqual(record_a.question, record_b.question)
+        assertRecordsMatch(second_record.prev_record, first_record)
+        assertRecordsMatch(third_record.prev_record, second_record)
+        assertRecordsMatch(fourth_record.prev_record, third_record)
+
+    def test_get_prev_record_none_if_only(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        self.assertEqual(poll.history.count(), 1)
+        record = poll.history.get()
+        self.assertIsNone(record.prev_record)
+
+    def test_get_prev_record_none_if_earliest(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        self.assertIsNone(first_record.prev_record)
+
+    def test_get_next_record(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        poll.question = "eh?"
+        poll.save()
+        poll.question = "one more?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        second_record = poll.history.filter(question="ask questions?").get()
+        third_record = poll.history.filter(question="eh?").get()
+        fourth_record = poll.history.filter(question="one more?").get()
+        self.assertIsNone(fourth_record.next_record)
+
+        def assertRecordsMatch(record_a, record_b):
+            self.assertEqual(record_a, record_b)
+            self.assertEqual(record_a.question, record_b.question)
+        assertRecordsMatch(first_record.next_record, second_record)
+        assertRecordsMatch(second_record.next_record, third_record)
+        assertRecordsMatch(third_record.next_record, fourth_record)
+
+    def test_get_next_record_none_if_only(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        self.assertEqual(poll.history.count(), 1)
+        record = poll.history.get()
+        self.assertIsNone(record.next_record)
+
+    def test_get_next_record_none_if_most_recent(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        recent_record = poll.history.filter(question="ask questions?").get()
+        self.assertIsNone(recent_record.next_record)
+
 
 class CreateHistoryModelTests(unittest.TestCase):
 

@@ -214,3 +214,26 @@ records for all ``Choice`` instances can be queried by using the manager on the
 
 Because the history is model, you can also filter it like regularly QuerySets,
 a.k. Choice.history.filter(choice_text='Not Much') will work!
+
+Getting previous and next historical record
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a historical record for an instance and would like to retrieve the previous historical record (older) or next historical record (newer), `prev_record` and `next_record` read-only attributes can be used, respectively.
+
+.. code-block:: pycon
+
+    >>> from polls.models import Poll, Choice
+    >>> from datetime import datetime
+    >>> poll = Poll.objects.create(question="what's up?", pub_date=datetime.now())
+    >>>
+    >>> record = poll.history.first()
+    >>> record.prev_record
+    None
+    >>> record.next_record
+    None
+    >>> poll.question = "what is up?"
+    >>> poll.save()
+    >>> record.next_record
+    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+
+If a historical record is the first record, `prev_record` will be `None`.  Similarly, if it is the latest record, `next_record` will be `None`
