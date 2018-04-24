@@ -237,3 +237,27 @@ If you have a historical record for an instance and would like to retrieve the p
     <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
 
 If a historical record is the first record, `prev_record` will be `None`.  Similarly, if it is the latest record, `next_record` will be `None`
+
+Reverting the Model
+~~~~~~~~~~~~~~~~~~~
+
+``SimpleHistoryAdmin`` allows users to revert back to an old version of the
+model through the admin interface. You can also do this programmatically. To
+do so, you can take any historical object, and save the associated instance.
+For example, if we want to access the earliest ``HistoricalPoll``, for an
+instance of ``Poll``, we can do:
+
+.. code-block:: pycon
+
+    >>> poll.history.earliest()
+    <HistoricalPoll: Poll object as of 2010-10-25 18:04:13.814128>
+
+And to revert to that ``HistoricalPoll`` instance, we can do:
+
+.. code-block:: pycon
+    >>> earliest_poll = poll.history.earliest()
+    >>> earliest_poll.instance.save()
+
+This will change the ``poll`` instance to have the data from the
+``HistoricalPoll`` object and it will create a new row in the
+``HistoricalPoll`` table indicating that a new change has been made.
