@@ -1,28 +1,19 @@
 from __future__ import unicode_literals
 
 from django import http
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
+from django.contrib.admin.utils import unquote
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
-from django.utils.text import capfirst
-from django.utils.html import mark_safe
-from django.utils.translation import ugettext as _
+from django.urls import reverse
 from django.utils.encoding import force_text
-from django.conf import settings
-
-try:
-    from django.contrib.admin.utils import unquote
-except ImportError:  # Django < 1.7
-    from django.contrib.admin.util import unquote
-try:
-    from django.utils.version import get_complete_version
-except ImportError:
-    from django import VERSION
-    get_complete_version = lambda: VERSION
+from django.utils.html import mark_safe
+from django.utils.text import capfirst
+from django.utils.translation import ugettext as _
 
 USER_NATURAL_KEY = tuple(
     key.lower() for key in settings.AUTH_USER_MODEL.split('.', 1))
@@ -66,6 +57,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 obj = action_list.latest('history_date').instance
             except action_list.model.DoesNotExist:
                 raise http.Http404
+
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
+
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
@@ -83,9 +78,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         }
         context.update(extra_context or {})
         extra_kwargs = {}
-        if get_complete_version() < (1, 8):
-            extra_kwargs['current_app'] = request.current_app
-        return render(request, self.object_history_template, context, **extra_kwargs)
+        return render(request, self.object_history_template, context,
+                      **extra_kwargs)
 
     def response_change(self, request, obj):
         if '_change_history' in request.POST and SIMPLE_HISTORY_EDIT:
@@ -188,9 +182,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             'root_path': getattr(self.admin_site, 'root_path', None),
         }
         extra_kwargs = {}
-        if get_complete_version() < (1, 8):
-            extra_kwargs['current_app'] = request.current_app
-        return render(request, self.object_history_form_template, context, **extra_kwargs)
+        return render(request, self.object_history_form_template, context,
+                      **extra_kwargs)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""

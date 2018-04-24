@@ -1,16 +1,10 @@
-from optparse import make_option
-
+from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models.loading import get_model
-else:
-    get_model = apps.get_model
-
-from ... import models
 from . import _populate_utils as utils
+from ... import models
+
+get_model = apps.get_model
 
 
 class Command(BaseCommand):
@@ -26,12 +20,6 @@ class Command(BaseCommand):
     DONE_SAVING_FOR_MODEL = "Finished saving historical records for {model}\n"
     EXISTING_HISTORY_FOUND = "Existing history found, skipping model"
     INVALID_MODEL_ARG = "An invalid model was specified"
-
-    if hasattr(BaseCommand, 'option_list'):  # Django < 1.8
-        option_list = BaseCommand.option_list + (
-            make_option('--auto', action='store_true', dest='auto', default=False),
-            make_option('--batchsize', action='store', dest='batchsize', default=200, type=int),
-        )
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
@@ -50,7 +38,8 @@ class Command(BaseCommand):
             dest='batchsize',
             default=200,
             type=int,
-            help='Set a custom batch size when bulk inserting historical records.',
+            help='Set a custom batch size when bulk inserting historical '
+                 'records.',
         )
 
     def handle(self, *args, **options):
@@ -98,7 +87,7 @@ class Command(BaseCommand):
         else:
             try:
                 model = get_model(app_label, model)
-            except LookupError:  # Django >= 1.7
+            except LookupError:
                 model = None
         if not model:
             raise ValueError(self.MODEL_NOT_FOUND +

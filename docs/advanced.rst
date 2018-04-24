@@ -127,6 +127,37 @@ referencing the ``changed_by`` field:
 
 Admin integration requires that you use a ``_history_user.setter`` attribute with your custom ``_history_user`` property (see :ref:`admin_integration`).
 
+Custom ``history_id``
+---------------------
+
+By default, the historical table of a model will use an ``AutoField`` for the table's
+``history_id`` (the history table's primary key). However, you can specify a different
+type of field for ``history_id`` by passing a different field to ``history_id_field``
+parameter.
+
+A common use case for this would be to use a ``UUIDField``.  If you want to use a ``UUIDField``
+as the default for all classes set ``SIMPLE_HISTORY_HISTORY_ID_USE_UUID=True`` in the settings.
+This setting can still be overridden using the ``history_id_field`` parameter on a per model basis.
+
+You can use the ``history_id_field`` parameter with both ``HistoricalRecords()`` or
+``register()`` to change this behavior.
+
+Note: regardless of what field type you specify as your history_id field, that field will
+automatically set ``primary_key=True`` and ``editable=False``.
+
+.. code-block:: python
+
+    import uuid
+    from django.db import models
+    from simple_history.models import HistoricalRecords
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        history = HistoricalRecords(
+            history_id_field=models.UUIDField(default=uuid.uuid4)
+        )
+
 
 Custom ``history_date``
 -----------------------
@@ -248,7 +279,7 @@ field ``history_change_reason`` and its default value is ``None``.
 
 By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
 the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
-function ``utils.update_change_reason``. The first argument of this function is the instance and the seccond
+function ``utils.update_change_reason``. The first argument of this function is the instance and the second
 is the message that represents the change reason.
 
 For instance, for the model:

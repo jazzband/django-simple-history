@@ -3,7 +3,16 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from simple_history.admin import SimpleHistoryAdmin
-from .models import Poll, Choice, Person, Book, Document, Paper, Employee, ConcreteExternal
+from .models import (
+    Book,
+    Choice,
+    ConcreteExternal,
+    Document,
+    Employee,
+    Paper,
+    Person,
+    Poll
+)
 
 
 class PersonAdmin(SimpleHistoryAdmin):

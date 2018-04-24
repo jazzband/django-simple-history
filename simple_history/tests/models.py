@@ -1,30 +1,18 @@
 from __future__ import unicode_literals
 
+import uuid
+
+from django.apps import apps
+from django.conf import settings
 from django.db import models
-from django import VERSION
+from django.urls import reverse
 
-from simple_history.models import HistoricalRecords
 from simple_history import register
-
+from simple_history.models import HistoricalRecords
 from .custom_user.models import CustomUser as User
+from .external.models.model1 import AbstractExternal
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
-
-# 1.6 has different way of importing models
-if VERSION[:3] >= (1, 7, 0):
-    from .external.models.model1 import AbstractExternal
-else:
-    class AbstractExternal(models.Model):
-        history = HistoricalRecords(inherit=True)
-
-        class Meta:
-            abstract = True
-            app_label = 'external'
+get_model = apps.get_model
 
 
 class Poll(models.Model):
@@ -32,6 +20,9 @@ class Poll(models.Model):
     pub_date = models.DateTimeField('date published')
 
     history = HistoricalRecords()
+
+    def get_absolute_url(self):
+        return reverse('poll-detail', kwargs={'pk': self.pk})
 
 
 class PollWithExcludeFields(models.Model):
@@ -82,6 +73,7 @@ class Choice(models.Model):
     choice = models.CharField(max_length=200)
     votes = models.IntegerField()
 
+
 register(Choice)
 
 
@@ -92,6 +84,9 @@ class Voter(models.Model):
         on_delete=models.CASCADE,
         related_name='voters',
     )
+
+    def __str__(self):
+        return 'Voter object'
 
 
 class HistoricalRecordsVerbose(HistoricalRecords):
@@ -104,6 +99,7 @@ class HistoricalRecordsVerbose(HistoricalRecords):
             HistoricalRecordsVerbose, self).get_extra_fields(model, fields)
         extra_fields['__str__'] = verbose_str
         return extra_fields
+
 
 register(Voter, records_class=HistoricalRecordsVerbose)
 
@@ -215,6 +211,7 @@ class ConcreteAttr(AbstractBase):
 class ConcreteUtil(AbstractBase):
     pass
 
+
 register(ConcreteUtil, bases=[AbstractBase])
 
 
@@ -240,6 +237,7 @@ class ExternalModel1(models.Model):
 
 class ExternalModel3(models.Model):
     name = models.CharField(max_length=100)
+
 
 register(ExternalModel3, app='simple_history.tests.external',
          manager_name='histories')
@@ -278,7 +276,7 @@ class SeriesWork(models.Model):
 
 
 class PollInfo(models.Model):
-    poll = models.ForeignKey(
+    poll = models.OneToOneField(
         Poll,
         on_delete=models.CASCADE,
         primary_key=True,
@@ -295,7 +293,8 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField('Employee', null=True)
+    manager = models.OneToOneField('Employee', null=True,
+                                   on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 
@@ -330,6 +329,7 @@ class Contact(models.Model):
 class ContactRegister(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)
+
 
 register(ContactRegister, table_name='contacts_register_history')
 
@@ -375,6 +375,13 @@ class ConcreteExternal(AbstractExternal):
         app_label = 'tests'
 
 
+class ConcreteExternal2(AbstractExternal):
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        pass    # Don't set app_label to test inherited module path
+
+
 class TrackedWithAbstractBase(TrackedAbstractBaseA):
     pass
 
@@ -405,3 +412,31 @@ class InheritTracking3(BaseInheritTracking3):
 
 class InheritTracking4(TrackedAbstractBaseA):
     pass
+
+
+class UUIDModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords(
+        history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class UUIDRegisterModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+
+register(UUIDRegisterModel,
+         history_id_field=models.UUIDField(default=uuid.uuid4))
+
+
+# Set the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+setattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID', True)
+
+
+class UUIDDefaultModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    history = HistoricalRecords()
+
+
+# Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')

@@ -27,4 +27,5 @@ def bulk_history_create(model, history_model, batch_size):
                 if field.attname not in history_model.excluded_fields
             }
         ) for instance in model.objects.all()]
-    history_model.objects.bulk_create(historical_instances, batch_size=batch_size)
+    history_model.objects.bulk_create(historical_instances,
+                                      batch_size=batch_size)

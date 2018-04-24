@@ -3,10 +3,25 @@ Changes
 
 Unreleased
 ----------
+- Add ability to specify custom history_id field (gh-368)
+- Add HistoricalRecord instance properties `prev_record` and `next_record` (gh-365)
+- Fix TypeError on populate_history if excluded_fields are specified
+
+2.0 (2018-04-05)
+----------------
+- Added Django 2.0 support (gh-330)
+- Dropped support for Django<=1.10 (gh-356)
+- Fix bug where history_view ignored user permissions (gh-361)
+- Fixed HistoryRequestMiddleware which hadn't been working for Django>1.9 (gh-364)
+
+1.9.1 (2018-03-30)
+------------------
 - Use get_queryset rather than model.objects in history_view. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
-- Fix TypeError on populate_history if excluded_fields are specified
+- Fix issue with tracking an inherited model (abstract class) (gh-269)
+- Fix history detail view on django-admin for abstract models (gh-308)
+- Dropped support for Django<=1.6 and Python 3.3 (gh-292)
 
 1.9.0 (2017-06-11)
 ------------------

@@ -1,29 +1,24 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 from datetime import datetime, timedelta
 
-import django
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core import management
 from django.test import TestCase
-from simple_history import exceptions, register
 from six.moves import cStringIO as StringIO
 
+from simple_history import exceptions, register
 from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
                             InheritTracking3, InheritTracking4, Poll,
                             Restaurant, TrackedAbstractBaseA,
                             TrackedAbstractBaseB, TrackedWithAbstractBase,
                             TrackedWithConcreteBase, UserAccessorDefault,
-                            UserAccessorOverride, Voter)
+                            UserAccessorOverride, UUIDRegisterModel, Voter)
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
-
+get_model = apps.get_model
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -62,6 +57,13 @@ class RegisterTest(TestCase):
         self.assertEqual(expected,
                          str(voter.history.all()[0])[:len(expected)])
 
+    def test_register_history_id_field(self):
+        self.assertEqual(len(UUIDRegisterModel.history.all()), 0)
+        entry = UUIDRegisterModel.objects.create()
+        self.assertEqual(len(entry.history.all()), 1)
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
+
 
 class TestUserAccessor(unittest.TestCase):
 
@@ -73,6 +75,21 @@ class TestUserAccessor(unittest.TestCase):
         register(UserAccessorOverride,
                  user_related_name='my_history_model_accessor')
         assert hasattr(User, 'my_history_model_accessor')
+
+
+class TestInheritedModule(TestCase):
+
+    def test_using_app_label(self):
+        try:
+            from ..tests.models import HistoricalConcreteExternal
+        except ImportError:
+            self.fail("HistoricalConcreteExternal is in wrong module")
+
+    def test_default(self):
+        try:
+            from ..tests.models import HistoricalConcreteExternal2
+        except ImportError:
+            self.fail("HistoricalConcreteExternal2 is in wrong module")
 
 
 class TestTrackingInheritance(TestCase):
@@ -144,7 +161,6 @@ class TestTrackingInheritance(TestCase):
             register(InheritTracking4)
 
 
-@unittest.skipUnless(django.get_version() >= "1.7", "Requires 1.7 migrations")
 class TestMigrate(TestCase):
 
     def test_makemigration_command(self):

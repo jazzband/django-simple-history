@@ -1,36 +1,62 @@
 from __future__ import unicode_literals
 
 import unittest
+import uuid
 import warnings
 from datetime import datetime, timedelta
 
-import django
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
+
 from simple_history.models import HistoricalRecords, convert_auto_field
 from simple_history.utils import update_change_reason
-
 from ..external.models import ExternalModel2, ExternalModel4
-from ..models import (AbstractBase, AdminProfile, Book, Bookcase, Choice, City,
-                      ConcreteAttr, ConcreteUtil, Contact, ContactRegister,
-                      Country, Document, Employee, ExternalModel1,
-                      ExternalModel3, FileModel, HistoricalChoice,
-                      HistoricalCustomFKError, HistoricalPoll, HistoricalState,
-                      Library, MultiOneToOne, Person, Place, Poll, PollInfo,
-                      PollWithExcludeFields, PollWithExcludedFKField, Province,
-                      Restaurant, SelfFK, Series, SeriesWork, State,
-                      Temperature, UnicodeVerboseName, WaterLevel)
+from ..models import (
+    AbstractBase,
+    AdminProfile,
+    Book,
+    Bookcase,
+    Choice,
+    City,
+    ConcreteAttr,
+    ConcreteExternal,
+    ConcreteUtil,
+    Contact,
+    ContactRegister,
+    Country,
+    Document,
+    Employee,
+    ExternalModel1,
+    ExternalModel3,
+    FileModel,
+    HistoricalChoice,
+    HistoricalCustomFKError,
+    HistoricalPoll,
+    HistoricalState,
+    Library,
+    MultiOneToOne,
+    Person,
+    Poll,
+    PollInfo,
+    PollWithExcludeFields,
+    Province,
+    Restaurant,
+    SelfFK,
+    Series,
+    SeriesWork,
+    State,
+    Temperature,
+    UnicodeVerboseName,
+    UUIDModel,
+    UUIDDefaultModel,
+    WaterLevel
+)
 
-try:
-    from django.apps import apps
-except ImportError:  # Django < 1.7
-    from django.db.models import get_model
-else:
-    get_model = apps.get_model
-
+get_model = apps.get_model
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
@@ -190,7 +216,8 @@ class HistoricalRecordsTest(TestCase):
         lib = Library.objects.create()
         state = State.objects.create(library=lib)
         self.assertTrue(hasattr(lib, 'state_set'))
-        self.assertIsNone(state._meta.get_field('library').rel.related_name,
+        self.assertIsNone(state._meta.get_field('library')
+                          .remote_field.related_name,
                           "the '+' shouldn't leak through to the original "
                           "model's field related_name")
 
@@ -323,10 +350,10 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual('dead trees', b.history.all()[0]._meta.verbose_name)
 
     def test_historical_verbose_name_follows_model_verbose_name(self):
-        l = Library()
-        l.save()
+        library = Library()
+        library.save()
         self.assertEqual('historical quiet please',
-                         l.history.get()._meta.verbose_name)
+                         library.history.get()._meta.verbose_name)
 
     def test_foreignkey_primarykey(self):
         """Test saving a tracked model with a `ForeignKey` primary key."""
@@ -343,6 +370,92 @@ class HistoricalRecordsTest(TestCase):
         self.assertIn('question', all_fields_names)
         self.assertNotIn('pub_date', all_fields_names)
 
+    def test_uuid_history_id(self):
+        entry = UUIDModel.objects.create()
+
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
+
+    def test_uuid_default_history_id(self):
+        entry = UUIDDefaultModel.objects.create()
+
+        history = entry.history.all()[0]
+        self.assertTrue(isinstance(history.history_id, uuid.UUID))
+
+    def test_get_prev_record(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        poll.question = "eh?"
+        poll.save()
+        poll.question = "one more?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        second_record = poll.history.filter(question="ask questions?").get()
+        third_record = poll.history.filter(question="eh?").get()
+        fourth_record = poll.history.filter(question="one more?").get()
+        self.assertIsNone(first_record.prev_record)
+
+        def assertRecordsMatch(record_a, record_b):
+            self.assertEqual(record_a, record_b)
+            self.assertEqual(record_a.question, record_b.question)
+        assertRecordsMatch(second_record.prev_record, first_record)
+        assertRecordsMatch(third_record.prev_record, second_record)
+        assertRecordsMatch(fourth_record.prev_record, third_record)
+
+    def test_get_prev_record_none_if_only(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        self.assertEqual(poll.history.count(), 1)
+        record = poll.history.get()
+        self.assertIsNone(record.prev_record)
+
+    def test_get_prev_record_none_if_earliest(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        self.assertIsNone(first_record.prev_record)
+
+    def test_get_next_record(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        poll.question = "eh?"
+        poll.save()
+        poll.question = "one more?"
+        poll.save()
+        first_record = poll.history.filter(question="what's up?").get()
+        second_record = poll.history.filter(question="ask questions?").get()
+        third_record = poll.history.filter(question="eh?").get()
+        fourth_record = poll.history.filter(question="one more?").get()
+        self.assertIsNone(fourth_record.next_record)
+
+        def assertRecordsMatch(record_a, record_b):
+            self.assertEqual(record_a, record_b)
+            self.assertEqual(record_a.question, record_b.question)
+        assertRecordsMatch(first_record.next_record, second_record)
+        assertRecordsMatch(second_record.next_record, third_record)
+        assertRecordsMatch(third_record.next_record, fourth_record)
+
+    def test_get_next_record_none_if_only(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        self.assertEqual(poll.history.count(), 1)
+        record = poll.history.get()
+        self.assertIsNone(record.next_record)
+
+    def test_get_next_record_none_if_most_recent(self):
+        poll = Poll(question="what's up?", pub_date=today)
+        poll.save()
+        poll.question = "ask questions?"
+        poll.save()
+        recent_record = poll.history.filter(question="ask questions?").get()
+        self.assertIsNone(recent_record.next_record)
+
 
 class CreateHistoryModelTests(unittest.TestCase):
 
@@ -350,8 +463,8 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = AdminProfile.__module__
         try:
-            records.create_history_model(AdminProfile)
-        except:
+            records.create_history_model(AdminProfile, False)
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to integer fields without throwing an exception")
 
@@ -359,8 +472,8 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = Bookcase.__module__
         try:
-            records.create_history_model(Bookcase)
-        except:
+            records.create_history_model(Bookcase, False)
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to char fields without throwing an exception.")
 
@@ -368,8 +481,8 @@ class CreateHistoryModelTests(unittest.TestCase):
         records = HistoricalRecords()
         records.module = MultiOneToOne.__module__
         try:
-            records.create_history_model(MultiOneToOne)
-        except:
+            records.create_history_model(MultiOneToOne, False)
+        except Exception:
             self.fail("SimpleHistory should handle foreign keys to one to one"
                       "fields to one to one fields without throwing an "
                       "exception.")
@@ -401,6 +514,10 @@ class AppLabelTest(TestCase):
                          'external_externalmodel4')
         self.assertEqual(self.get_table_name(ExternalModel4.histories),
                          'tests_historicalexternalmodel4')
+        self.assertEqual(self.get_table_name(ConcreteExternal.objects),
+                         'tests_concreteexternal')
+        self.assertEqual(self.get_table_name(ConcreteExternal.history),
+                         'tests_historicalconcreteexternal')
 
     def test_get_model(self):
         self.assertEqual(get_model('external', 'ExternalModel1'),
@@ -422,6 +539,13 @@ class AppLabelTest(TestCase):
                          ExternalModel4)
         self.assertEqual(get_model('tests', 'HistoricalExternalModel4'),
                          ExternalModel4.histories.model)
+
+        # Test that historical model is defined within app of concrete
+        # model rather than abstract base model
+        self.assertEqual(get_model('tests', 'ConcreteExternal'),
+                         ConcreteExternal)
+        self.assertEqual(get_model('tests', 'HistoricalConcreteExternal'),
+                         ConcreteExternal.history.model)
 
 
 class HistoryManagerTest(TestCase):
@@ -514,22 +638,14 @@ class HistoryManagerTest(TestCase):
 
     def test_import_related(self):
         field_object = HistoricalChoice._meta.get_field('poll')
-        try:
-            related_model = field_object.rel.related_model
-        except AttributeError:  # Django<1.8
-            related_model = field_object.related.model
+        related_model = field_object.remote_field.related_model
         self.assertEqual(related_model, HistoricalChoice)
 
     def test_string_related(self):
         field_object = HistoricalState._meta.get_field('library')
-        try:
-            related_model = field_object.rel.related_model
-        except AttributeError:  # Django<1.8
-            related_model = field_object.related.model
+        related_model = field_object.remote_field.related_model
         self.assertEqual(related_model, HistoricalState)
 
-    @unittest.skipUnless(django.get_version() >= "1.7",
-                         "Requires 1.7 migrations")
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
@@ -681,8 +797,6 @@ class TestOrderWrtField(TestCase):
         self.assertEqual(order[5], self.w_chair.pk)
         self.assertEqual(order[6], self.w_battle.pk)
 
-    @unittest.skipUnless(django.get_version() >= "1.7",
-                         "Requires 1.7 migrations")
     def test_migrations_include_order(self):
         from django.db.migrations import state
         model_state = state.ModelState.from_model(SeriesWork.history.model)

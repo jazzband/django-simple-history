@@ -1,32 +1,32 @@
 from datetime import datetime, timedelta
 
-from mock import patch, ANY
-from django_webtest import WebTest
-from django.contrib.admin import AdminSite
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test.utils import override_settings
-from django.test.client import RequestFactory
-from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.admin import AdminSite
+from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test.client import RequestFactory
+from django.test.utils import override_settings
+from django.urls import reverse
 from django.utils.encoding import force_text
+from django_webtest import WebTest
+from mock import ANY, patch
 
+from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from simple_history.admin import SimpleHistoryAdmin, get_complete_version
-from ..models import Book, Person, Poll, State, Employee, Choice, ConcreteExternal
-
-try:
-    from django.contrib.admin.utils import quote
-except ImportError:  # Django < 1.7
-    from django.contrib.admin.util import quote
+from ..models import (
+    Book,
+    Choice,
+    ConcreteExternal,
+    Employee,
+    Person,
+    Poll,
+    State
+)
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
-
-extra_kwargs = {}
-if get_complete_version() < (1, 8):
-    extra_kwargs = {'current_app': 'admin'}
 
 
 def get_history_url(obj, history_index=None, site="admin"):
@@ -35,12 +35,19 @@ def get_history_url(obj, history_index=None, site="admin"):
         history = obj.history.order_by('history_id')[history_index]
         return reverse(
             "{site}:{app}_{model}_simple_history".format(
-                site=site, app=app, model=model),
+                site=site, app=app, model=model
+            ),
             args=[quote(obj.pk), quote(history.history_id)],
         )
     else:
         return reverse("{site}:{app}_{model}_history".format(
             site=site, app=app, model=model), args=[quote(obj.pk)])
+
+
+overridden_settings = {
+    'MIDDLEWARE': (settings.MIDDLEWARE +
+                   ['simple_history.middleware.HistoryRequestMiddleware']),
+}
 
 
 class AdminSiteTest(WebTest):
@@ -95,6 +102,11 @@ class AdminSiteTest(WebTest):
         self.assertIn("votes", response.unicode_normal_body)
         self.assertIn("12", response.unicode_normal_body)
         self.assertIn("15", response.unicode_normal_body)
+
+    def test_history_view_permission(self):
+        self.login()
+        person = Person.objects.create(name='Sandra Hale')
+        self.app.get(get_history_url(person), status=403)
 
     def test_history_form_permission(self):
         self.login(self.user)
@@ -199,53 +211,37 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
+    @override_settings(**overridden_settings)
     def test_middleware_saves_user(self):
-        overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            form = self.app.get(reverse('admin:tests_book_add')).form
-            form["isbn"] = "9780147_513731"
-            form.submit()
-            book = Book.objects.get()
-            historical_book = book.history.all()[0]
+        self.login()
+        form = self.app.get(reverse('admin:tests_book_add')).form
+        form["isbn"] = "9780147_513731"
+        form.submit()
+        book = Book.objects.get()
+        historical_book = book.history.all()[0]
 
-            self.assertEqual(historical_book.history_user, self.user,
-                             "Middleware should make the request available to "
-                             "retrieve history_user.")
+        self.assertEqual(historical_book.history_user, self.user,
+                         "Middleware should make the request available to "
+                         "retrieve history_user.")
 
+    @override_settings(**overridden_settings)
     def test_middleware_unsets_request(self):
-        overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            self.app.get(reverse('admin:tests_book_add'))
-            self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
+        self.login()
+        self.app.get(reverse('admin:tests_book_add'))
+        self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
 
+    @override_settings(**overridden_settings)
     def test_rolled_back_user_does_not_lead_to_foreign_key_error(self):
         # This test simulates the rollback of a user after a request (which
         # happens, e.g. in test cases), and verifies that subsequently
         # creating a new entry does not fail with a foreign key error.
+        self.login()
+        self.assertEqual(
+            self.app.get(reverse('admin:tests_book_add')).status_code,
+            200,
+        )
 
-        overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.login()
-            self.assertEqual(
-                self.app.get(reverse('admin:tests_book_add')).status_code,
-                200,
-            )
-
-            book = Book.objects.create(isbn="9780147_513731")
+        book = Book.objects.create(isbn="9780147_513731")
 
         historical_book = book.history.all()[0]
 
@@ -254,19 +250,14 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
+    @override_settings(**overridden_settings)
     def test_middleware_anonymous_user(self):
-        overridden_settings = {
-            'MIDDLEWARE_CLASSES':
-                settings.MIDDLEWARE_CLASSES +
-                ['simple_history.middleware.HistoryRequestMiddleware'],
-        }
-        with override_settings(**overridden_settings):
-            self.app.get(reverse('admin:index'))
-            poll = Poll.objects.create(question="why?", pub_date=today)
-            historical_poll = poll.history.all()[0]
-            self.assertEqual(historical_poll.history_user, None,
-                             "Middleware request user should be able to "
-                             "be anonymous.")
+        self.app.get(reverse('admin:index'))
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, None,
+                         "Middleware request user should be able to "
+                         "be anonymous.")
 
     def test_other_admin(self):
         """Test non-default admin instances.
@@ -441,7 +432,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history(self):
         request = RequestFactory().post('/')
@@ -496,7 +487,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history_with_setting_off(self):
         request = RequestFactory().post('/')
@@ -550,7 +541,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)
 
     def test_history_form_view_getting_history_abstract_external(self):
         request = RequestFactory().post('/')
@@ -586,8 +577,9 @@ class AdminSiteTest(WebTest):
             'original_opts': ANY,
             'changelist_url': '/admin/tests/concreteexternal/',
             'change_url': ANY,
-            'history_url': '/admin/tests/concreteexternal/{pk}/history/'.format(
-                pk=obj.pk),
+            'history_url':
+                '/admin/tests/concreteexternal/{pk}/history/'
+                .format(pk=obj.pk),
             'add': False,
             'change': True,
             'has_add_permission': admin.has_add_permission(request),
@@ -605,4 +597,4 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context, **extra_kwargs)
+            request, admin.object_history_form_template, context)

@@ -1,3 +1,9 @@
+Maintainers
+===========
+- Trey Hunner
+- Micah Denbraver
+- Ross Mechanic
+
 Authors
 =======
 
@@ -7,10 +13,12 @@ Authors
 - Brian Dixon
 - Corey Bertram
 - Damien Nozay
+- Daniel Gilge
 - Daniel Levy
 - Daniel Roschka
 - David Hite
 - Eduardo Cuducos
+- Florian Eßer
 - George Vilches
 - Grzegorz Bialy
 - Hamish Downer
@@ -28,11 +36,13 @@ Authors
 - Marty Alchin
 - Mauricio de Abreu Antunes
 - Micah Denbraver
+- Phillip Marshall
 - Rajesh Pappula
 - Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote
 - Ross Mechanic
+- Ross Rogers
 - Steven Klass
 - Steeve Chailloux
 - Trey Hunner
@@ -46,6 +56,9 @@ Authors
 - Shane Engelman
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
+- Ray Logel
+- Nathan Villagaray-Carski
+- Mike Spainhower
 
 Background
 ==========
