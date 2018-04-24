@@ -98,6 +98,21 @@ inheriting from them to have historical tracking as well.
 
 Recording Which User Changed a Model
 ------------------------------------
+There are three documented ways to attach users to a tracked change:
+
+1. Use the middleware as described in :doc:`/usage`. The middleware sets the
+User instance that made the request as the ``history_user`` on the history
+table.
+
+2. Use ``simple_history.admin.SimpleHistoryAdmin`. Under the hood,
+``SimpleHistoryAdmin`` actually sets the ``_history_user`` on the object to
+attach the user to the tracked change by overriding the `save_model` method.
+
+3. Assign a user to the ``_history_user`` attribute of the object as described
+below:
+
+Using ``_history_user`` to Record Which User Changed a Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To denote which user changed a model, assign a ``_history_user`` attribute on
 your model.
