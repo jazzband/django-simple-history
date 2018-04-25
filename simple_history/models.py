@@ -240,7 +240,7 @@ class HistoricalRecords(object):
             ).order_by('history_date').last()
 
         def get_history_change_reason(self):
-            cls = getattr(
+            field_cls = getattr(
                 settings,
                 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD',
                 models.CharField
@@ -252,7 +252,7 @@ class HistoricalRecords(object):
                 100
             )
 
-            return cls(max_length=max_length, null=True)
+            return field_cls(max_length=max_length, null=True)
 
         if self.history_id_field:
             history_id_field = self.history_id_field
