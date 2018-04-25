@@ -258,7 +258,7 @@ class HistoricalRecords(object):
         elif getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', False):
             # User specific field from settings
             history_change_reason_field = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD')
-            max_length = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', 100)
+            max_length = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH', 100)
             history_change_reason_field.max_length = max_length
         else:
             # Current default
