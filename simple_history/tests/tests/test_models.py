@@ -398,7 +398,9 @@ class HistoricalRecordsTest(TestCase):
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
-        history = entry.history.objects.last()
+        entry.save()
+
+        history = entry.history.all()[0]
 
         self.assertTrue(
             isinstance(history.history_change_reason, models.CharField)
@@ -411,7 +413,8 @@ class HistoricalRecordsTest(TestCase):
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
-        history = entry.history.objects.last()
+        entry.save()
+        history = entry.history.all()[0]
 
         self.assertTrue(
            isinstance(history.history_change_reason, models.TextField)
@@ -424,7 +427,8 @@ class HistoricalRecordsTest(TestCase):
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
-        history = entry.history.objects.last()
+        entry.save()
+        history = entry.history.all()[0]
 
         self.assertTrue(
            isinstance(history.history_change_reason, models.TextField)
