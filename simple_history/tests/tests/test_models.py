@@ -886,3 +886,51 @@ class CustomTableNameTest1(TestCase):
             self.get_table_name(ContactRegister.history),
             'contacts_register_history',
         )
+
+
+class ExcludeFieldsTest(TestCase):
+    def test_restore_pollwithexclude(self):
+        poll = PollWithExcludeFields.objects.create(question="what's up?",
+                                                    pub_date=today)
+        historical = poll.history.order_by('pk')[0]
+        with self.assertRaises(AttributeError):
+            historical.pub_date
+        original = historical.instance
+        self.assertEqual(original.pub_date, poll.pub_date)
+
+
+class ExcludeForeignKeyTest(TestCase):
+    def setUp(self):
+        self.poll = PollWithExcludedFKField.objects.create(
+            question="Is it?", pub_date=today,
+            place=Place.objects.create(name="Somewhere")
+        )
+
+    def get_first_historical(self):
+        """
+        Retrieve the idx'th HistoricalPoll, ordered by time.
+        """
+        return self.poll.history.order_by('history_date')[0]
+
+    def test_instance_fk_value(self):
+        historical = self.get_first_historical()
+        original = historical.instance
+        self.assertEqual(original.place, self.poll.place)
+
+    def test_history_lacks_fk(self):
+        historical = self.get_first_historical()
+        with self.assertRaises(AttributeError):
+            historical.place
+
+    def test_nb_queries(self):
+        with self.assertNumQueries(2):
+            historical = self.get_first_historical()
+            historical.instance
+
+    def test_changed_value_lost(self):
+        new_place = Place.objects.create(name="More precise")
+        self.poll.place = new_place
+        self.poll.save()
+        historical = self.get_first_historical()
+        instance = historical.instance
+        self.assertEqual(instance.place, new_place)

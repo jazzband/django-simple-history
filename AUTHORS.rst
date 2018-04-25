@@ -54,6 +54,8 @@ Authors
 - Jesse Shapiro
 - Kevin Foster
 - Shane Engelman
+- Adnan Umer (@uadnan)
+- Jonathan Zvesper (@zvesp)
 - Ray Logel
 - Nathan Villagaray-Carski
 - Mike Spainhower
