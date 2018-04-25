@@ -255,15 +255,14 @@ class HistoricalRecords(object):
         if self.history_change_reason_field:
             # User specific field from init
             history_change_reason_field = self.history_change_reason_field
-            history_change_reason_field.null = True
         elif getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', False):
             # User specific field from settings
             history_change_reason_field = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD')
-            history_change_reason_field.null = True
-            history_change_reason_field.max_length = 500
+            max_length = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', 100)
+            history_change_reason_field.max_length = max_length
         else:
             # Current default
-            history_change_reason_field = models.TextField(
+            history_change_reason_field = models.CharField(
                 max_length=100, null=True
             )
 
