@@ -439,7 +439,7 @@ setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', models.TextField
 setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH', 1024)
 
 
-class TextFieldChangeReasonDefaultModel(models.Model):
+class TextFieldChangeReasonModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     history = HistoricalRecords()
 
