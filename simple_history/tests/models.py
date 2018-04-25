@@ -452,3 +452,8 @@ delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH')
 class TextFieldChangeReasonModel2(models.Model):
     greeting = models.CharField(max_length=100)
     history = HistoricalRecords(history_change_reason_field=models.TextField)
+
+
+class CharFieldChangeReasonModel(models.Model):
+    greeting = models.CharField(max_length=100)
+    history = HistoricalRecords()

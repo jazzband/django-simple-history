@@ -56,6 +56,7 @@ from ..models import (
     WaterLevel,
     TextFieldChangeReasonModel1,
     TextFieldChangeReasonModel2,
+    CharFieldChangeReasonModel,
 )
 
 get_model = apps.get_model
@@ -384,17 +385,51 @@ class HistoricalRecordsTest(TestCase):
         history = entry.history.all()[0]
         self.assertTrue(isinstance(history.history_id, uuid.UUID))
 
-    def test_text_field_history_change_reason(self):
-        entry = TextFieldChangeReasonModel1.objects.create(greeting="what's up?")
-        entry.greeting = "what is happening?"
-        entry.save()
+    def test_default_history_change_reason(self):
+        CharFieldChangeReasonModel.objects.create(greeting="what's up?")
+        entry = CharFieldChangeReasonModel.objects.get()
         history = entry.history.get()
 
-        #self.assertTrue(
-        #    isinstance(history.model.history_change_reason, models.TextField)
-        #)
-        #self.assertTrue(history.model.history_change_reason.max_length, 1024)
-        pass
+        self.assertEqual(history.history_change_reason, None)
+
+    def test_charfield_history_change_reason(self):
+        CharFieldChangeReasonModel.objects.create(greeting="what's up?")
+        entry = CharFieldChangeReasonModel.objects.get()
+        entry.greeting = "what is happening?"
+        entry.save()
+        update_change_reason(entry, 'Change greeting.')
+        history = entry.history.objects.last()
+
+        self.assertTrue(
+            isinstance(history.history_change_reason, models.CharField)
+        )
+        self.assertTrue(history.history_change_reason.max_length, 100)
+
+    def test_textfield_history_change_reason1(self):
+        TextFieldChangeReasonModel1.objects.create(greeting="what's up?")
+        entry = TextFieldChangeReasonModel1.objects.get()
+        entry.greeting = "what is happening?"
+        entry.save()
+        update_change_reason(entry, 'Change greeting.')
+        history = entry.history.objects.last()
+
+        self.assertTrue(
+           isinstance(history.history_change_reason, models.TextField)
+        )
+        self.assertTrue(history.history_change_reason.max_length, 1024)
+
+    def test_textfield_history_change_reason2(self):
+        TextFieldChangeReasonModel2.objects.create(greeting="what's up?")
+        entry = TextFieldChangeReasonModel2.objects.get()
+        entry.greeting = "what is happening?"
+        entry.save()
+        update_change_reason(entry, 'Change greeting.')
+        history = entry.history.objects.last()
+
+        self.assertTrue(
+           isinstance(history.history_change_reason, models.TextField)
+        )
+        self.assertTrue(history.history_change_reason.max_length, 1024)
 
     def test_get_prev_record(self):
         poll = Poll(question="what's up?", pub_date=today)
