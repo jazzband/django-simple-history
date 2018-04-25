@@ -30,12 +30,14 @@ class HistoricalRecords(object):
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
                  history_id_field=None,
+                 history_change_reason_field=None,
                  excluded_fields=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
+        self.history_change_reason_field = history_change_reason_field
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -239,21 +241,6 @@ class HistoricalRecords(object):
                 Q(history_date__lt=self.history_date)
             ).order_by('history_date').last()
 
-        def get_history_change_reason(self):
-            field_cls = getattr(
-                settings,
-                'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD',
-                models.CharField
-            )
-
-            max_length = getattr(
-                settings,
-                'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH',
-                100
-            )
-
-            return field_cls(max_length=max_length, null=True)
-
         if self.history_id_field:
             history_id_field = self.history_id_field
             history_id_field.primary_key = True
@@ -265,10 +252,25 @@ class HistoricalRecords(object):
         else:
             history_id_field = models.AutoField(primary_key=True)
 
+        if self.history_change_reason_field:
+            # User specific field from init
+            history_change_reason_field = self.history_change_reason_field
+            history_change_reason_field.null = True
+        elif getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', False):
+            # User specific field from settings
+            history_change_reason_field = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD')
+            history_change_reason_field.null = True
+            history_change_reason_field.max_length = 500
+        else:
+            # Current default
+            history_change_reason_field = models.TextField(
+                max_length=100, null=True
+            )
+
         return {
             'history_id': history_id_field,
             'history_date': models.DateTimeField(),
-            'history_change_reason': property(get_history_change_reason),
+            'history_change_reason': history_change_reason_field,
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
@@ -320,6 +322,7 @@ class HistoricalRecords(object):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
+
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in self.fields_included(instance):
