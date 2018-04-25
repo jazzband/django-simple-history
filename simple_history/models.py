@@ -239,6 +239,21 @@ class HistoricalRecords(object):
                 Q(history_date__lt=self.history_date)
             ).order_by('history_date').last()
 
+        def get_history_change_reason(self):
+            cls = getattr(
+                settings,
+                'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD',
+                models.CharField
+            )
+
+            max_length = getattr(
+                settings,
+                'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH',
+                100
+            )
+
+            return cls(max_length=max_length, null=True)
+
         if self.history_id_field:
             history_id_field = self.history_id_field
             history_id_field.primary_key = True
@@ -253,8 +268,7 @@ class HistoricalRecords(object):
         return {
             'history_id': history_id_field,
             'history_date': models.DateTimeField(),
-            'history_change_reason': models.CharField(max_length=100,
-                                                      null=True),
+            'history_change_reason': property(get_history_change_reason),
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),

@@ -31,6 +31,7 @@ Authors
 - Jonathan Sanchez
 - Josh Fyne
 - Klaas van Schelven
+- Kris Neuharth
 - Maciej "RooTer" Urbański
 - Martin Bachwerk
 - Marty Alchin
