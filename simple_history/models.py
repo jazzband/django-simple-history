@@ -260,6 +260,7 @@ class HistoricalRecords(object):
             history_change_reason_field = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD')
             max_length = getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH', 100)
             history_change_reason_field.max_length = max_length
+            history_change_reason_field.null = True
         else:
             # Current default
             history_change_reason_field = models.CharField(
