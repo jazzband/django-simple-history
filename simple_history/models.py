@@ -113,7 +113,10 @@ class HistoricalRecords(object):
         """
         Creates a historical model to associate with the model provided.
         """
-        attrs = {'__module__': self.module}
+        attrs = {
+            '__module__': self.module,
+            'excluded_fields': self.excluded_fields
+        }
 
         app_module = '%s.models' % model._meta.app_label
 
@@ -220,10 +223,16 @@ class HistoricalRecords(object):
             )
 
         def get_instance(self):
-            return model(**{
+            attrs = {
                 field.attname: getattr(self, field.attname)
                 for field in fields.values()
-            })
+            }
+            if self.excluded_fields:
+                actual_model = self.instance_type.objects.get(pk=getattr(self, self.instance_type._meta.pk.attname))
+                for field in self.excluded_fields:
+                    attrs[field] = getattr(actual_model, field)
+
+            return model(**attrs)
 
         def get_next_record(self):
             """
