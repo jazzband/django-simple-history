@@ -434,9 +434,8 @@ class UUIDDefaultModel(models.Model):
 delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')
 
 
-# Set the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD and MAX_LENGTH
-setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD', models.TextField)
-setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH', 1024)
+# Set the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
+setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD', True)
 
 
 class TextFieldChangeReasonModel1(models.Model):
@@ -444,14 +443,13 @@ class TextFieldChangeReasonModel1(models.Model):
     history = HistoricalRecords()
 
 
-# Clear the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD and MAX_LENGTH
-delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD')
-delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_MAX_LENGTH')
+# Clear the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD')
 
 
 class TextFieldChangeReasonModel2(models.Model):
     greeting = models.CharField(max_length=100)
-    history = HistoricalRecords(history_change_reason_field=models.TextField)
+    history = HistoricalRecords(history_change_reason_field=models.TextField())
 
 
 class CharFieldChangeReasonModel(models.Model):
