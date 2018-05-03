@@ -46,8 +46,9 @@ def get_history_url(obj, history_index=None, site="admin"):
 
 
 overridden_settings = {
-    'MIDDLEWARE': (settings.MIDDLEWARE +
-                   ['simple_history.middleware.HistoryRequestMiddleware']),
+    'MIDDLEWARE_CLASSES': (
+        settings.MIDDLEWARE_CLASSES +
+        ['simple_history.middleware.HistoryRequestMiddleware']),
 }
 
 

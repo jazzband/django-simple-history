@@ -7,13 +7,19 @@ from django.urls import reverse
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import Poll
 
-overridden_settings = {
-    'MIDDLEWARE': (settings.MIDDLEWARE +
+new_style_middleware_settings = {
+    'MIDDLEWARE': (settings.MIDDLEWARE_CLASSES +
                    ['simple_history.middleware.HistoryRequestMiddleware']),
+}
+old_style_middleware_settings = {
+    'MIDDLEWARE_CLASSES': (
+        settings.MIDDLEWARE_CLASSES +
+        ['simple_history.middleware.HistoryRequestMiddleware']),
 }
 
 
-class MiddlewareTest(TestCase):
+@override_settings(**new_style_middleware_settings)
+class NewMiddlewareTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_superuser(
             'user_login',
@@ -21,7 +27,6 @@ class MiddlewareTest(TestCase):
             'pass'
         )
 
-    @override_settings(**overridden_settings)
     def test_user_is_set_on_create_view_when_logged_in(self):
         self.client.force_login(self.user)
         data = {
@@ -37,7 +42,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [self.user.id])
 
-    @override_settings(**overridden_settings)
     def test_user_is_not_set_on_create_view_not_logged_in(self):
         data = {
             'question': 'Test question',
@@ -52,7 +56,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None])
 
-    @override_settings(**overridden_settings)
     def test_user_is_set_on_update_view_when_logged_in(self):
         self.client.force_login(self.user)
         poll = Poll.objects.create(
@@ -76,7 +79,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [self.user.id, None])
 
-    @override_settings(**overridden_settings)
     def test_user_is_not_set_on_update_view_when_not_logged_in(self):
         poll = Poll.objects.create(
             question='Test question',
@@ -99,7 +101,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None, None])
 
-    @override_settings(**overridden_settings)
     def test_user_is_unset_on_update_view_after_logging_out(self):
         self.client.force_login(self.user)
         poll = Poll.objects.create(
@@ -137,7 +138,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None, self.user.id, None])
 
-    @override_settings(**overridden_settings)
     def test_user_is_set_on_delete_view_when_logged_in(self):
         self.client.force_login(self.user)
         poll = Poll.objects.create(
@@ -155,7 +155,6 @@ class MiddlewareTest(TestCase):
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [self.user.id, None])
 
-    @override_settings(**overridden_settings)
     def test_user_is_not_set_on_delete_view_when_not_logged_in(self):
         poll = Poll.objects.create(
             question='Test question',
@@ -171,3 +170,8 @@ class MiddlewareTest(TestCase):
 
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None, None])
+
+
+@override_settings(**old_style_middleware_settings)
+class OldMiddlewareTest(NewMiddlewareTest):
+    pass
