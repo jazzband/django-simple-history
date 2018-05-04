@@ -255,6 +255,7 @@ instance of ``Poll``, we can do:
 And to revert to that ``HistoricalPoll`` instance, we can do:
 
 .. code-block:: pycon
+
     >>> earliest_poll = poll.history.earliest()
     >>> earliest_poll.instance.save()
 
