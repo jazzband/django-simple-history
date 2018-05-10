@@ -61,6 +61,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
+        # Set attribute from admin methods, if present
+        for x in history_list_display:
+            if getattr(self, x, None) and type(getattr(self, x)) == MethodType:
+                history_method = getattr(self, x)
+                setattr(obj, x, history_method(obj))
+
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,
