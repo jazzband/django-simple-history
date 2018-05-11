@@ -8,7 +8,8 @@ from simple_history.tests.view import (
     PollDelete,
     PollDetail,
     PollList,
-    PollUpdate
+    PollUpdate,
+    raise_exception
 )
 from . import other_admin
 
@@ -22,5 +23,6 @@ urlpatterns = [
     url(r'^poll/(?P<pk>[0-9]+)/delete/$', PollDelete.as_view(),
         name='poll-delete'),
     url(r'^polls/(?P<pk>[0-9]+)/$', PollDetail.as_view(), name='poll-detail'),
-    url(r'^polls/$', PollList.as_view(), name='poll-list')
+    url(r'^polls/$', PollList.as_view(), name='poll-list'),
+    url(r'^raise-exception/$', raise_exception, name='raise-exception'),
 ]
