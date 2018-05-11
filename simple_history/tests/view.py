@@ -33,3 +33,7 @@ class PollList(ListView):
 class PollDetail(DetailView):
     model = Poll
     fields = ['question', 'pub_date']
+
+
+def raise_exception(request):
+    raise ValueError('test')
