@@ -386,14 +386,18 @@ class HistoricalRecordsTest(TestCase):
         self.assertTrue(isinstance(history.history_id, uuid.UUID))
 
     def test_default_history_change_reason(self):
-        entry = CharFieldChangeReasonModel.objects.create(greeting="what's up?")
+        entry = CharFieldChangeReasonModel.objects.create(
+            greeting="what's up?"
+        )
         history = entry.history.get()
 
         self.assertEqual(history.history_change_reason, None)
 
     def test_charfield_history_change_reason(self):
         # Default CharField and length
-        entry = CharFieldChangeReasonModel.objects.create(greeting="what's up?")
+        entry = CharFieldChangeReasonModel.objects.create(
+            greeting="what's up?"
+        )
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
@@ -406,7 +410,9 @@ class HistoricalRecordsTest(TestCase):
 
     def test_textfield_history_change_reason1(self):
         # TextField usage is determined by settings
-        entry = TextFieldChangeReasonModel1.objects.create(greeting="what's up?")
+        entry = TextFieldChangeReasonModel1.objects.create(
+            greeting="what's up?"
+        )
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
@@ -418,7 +424,9 @@ class HistoricalRecordsTest(TestCase):
 
     def test_textfield_history_change_reason2(self):
         # TextField instance is passed in init
-        entry = TextFieldChangeReasonModel2.objects.create(greeting="what's up?")
+        entry = TextFieldChangeReasonModel2.objects.create(
+            greeting="what's up?"
+        )
         entry.greeting = "what is happening?"
         entry.save()
         update_change_reason(entry, 'Change greeting.')
@@ -426,9 +434,7 @@ class HistoricalRecordsTest(TestCase):
         history = entry.history.all()[0]
         field = history._meta.get_field('history_change_reason')
 
-        self.assertTrue(
-           isinstance(field, models.TextField)
-        )
+        self.assertTrue(isinstance(field, models.TextField))
 
     def test_get_prev_record(self):
         poll = Poll(question="what's up?", pub_date=today)

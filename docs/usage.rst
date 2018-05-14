@@ -166,6 +166,24 @@ admin class
 
 .. image:: screens/5_history_list_display.png
 
+Customizations
+----------------
+
+`id`
+
+Ex: UUID as ID
+
+
+`history_change_reason`
+
+The ``HistoricalRecords`` object can be customized to accept either ``CharField``
+or ``TextField`` Django model fields for `change_reason`, either through settings or
+via the constructor. The use case for this is for supporting larger model change
+histories to support changelog-like features.
+
+Ex: TextField as Change Reason
+
+
 
 Querying history
 ----------------

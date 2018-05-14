@@ -255,8 +255,10 @@ class HistoricalRecords(object):
         if self.history_change_reason_field:
             # User specific field from init
             history_change_reason_field = self.history_change_reason_field
-            history_change_reason_field.null = True
-        elif getattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD', False):
+        elif getattr(
+            settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD',
+            False
+        ):
             # Use text field with no max length, not enforced by DB anyways
             history_change_reason_field = models.TextField(null=True)
         else:
