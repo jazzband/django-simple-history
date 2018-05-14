@@ -35,7 +35,7 @@ class PollWithExcludeFields(models.Model):
 class PollWithExcludedFKField(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
-    place = models.ForeignKey('Place')
+    place = models.ForeignKey('Place', on_delete=models.CASCADE)
 
     history = HistoricalRecords(excluded_fields=['place'])
 
