@@ -114,7 +114,8 @@ class AdminSiteTest(WebTest):
         file_model.title = 'Title 2'
         file_model.save()
         response = self.app.get(get_history_url(file_model))
-        self.assertIn(get_history_url(file_model, 0), response.unicode_normal_body)
+        self.assertIn(get_history_url(file_model, 0),
+                      response.unicode_normal_body)
         self.assertIn("FileModel object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
         self.assertIn(self.user.username, response.unicode_normal_body)
