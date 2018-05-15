@@ -166,15 +166,15 @@ admin class
 
 .. image:: screens/5_history_list_display.png
 
+
 Customizations
 ----------------
-
 
 UUID as `history_id`
 ~~~~~~~~~~~~~~~~~~~~
 
-The ``HistoricalRecords`` object can be customized to use a `UUIDField` instead
-of the default `IntegerField` as the object `history_id` either through
+The ``HistoricalRecords`` object can be customized to use an ``UUIDField`` instead
+of the default ``IntegerField`` as the object `history_id` either through
 Django settings or via the constructor on the model.
 
 .. code-block:: python
@@ -195,8 +195,8 @@ or
 TextField as `history_change_reason`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``HistoricalRecords`` object can be customized to accept either a
-``CharField`` or ``TextField`` Django model field for saving the
+The ``HistoricalRecords`` object can be customized to accept a
+``TextField`` model field for saving the
 `history_change_reason` either through settings or via the constructor on the
 model. The common use case for this is for supporting larger model change
 histories to support changelog-like features.
