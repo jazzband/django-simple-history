@@ -5,6 +5,7 @@ Unreleased
 ----------
 - Add ability to specify custom history_id field (gh-368)
 - Add HistoricalRecord instance properties `prev_record` and `next_record` (gh-365)
+- Can set admin methods as attributes on object history change list template (gh-390)
 
 2.0 (2018-04-05)
 ----------------

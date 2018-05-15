@@ -61,6 +61,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
+        # Set attribute on each action_list entry from admin methods
+        for history_list_entry in history_list_display:
+            value_for_entry = getattr(self, history_list_entry, None)
+            if value_for_entry and callable(value_for_entry):
+                for list_entry in action_list:
+                    setattr(list_entry, history_list_entry,
+                            value_for_entry(list_entry))
+
         content_type = ContentType.objects.get_by_natural_key(
             *USER_NATURAL_KEY)
         admin_user_view = 'admin:%s_%s_change' % (content_type.app_label,

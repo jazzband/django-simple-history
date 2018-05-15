@@ -8,6 +8,7 @@ Authors
 =======
 
 - Aleksey Kladov
+- Ben Lawson
 - bradford281
 - Buddy Lindsey, Jr.
 - Brian Dixon
