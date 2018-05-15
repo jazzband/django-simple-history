@@ -22,7 +22,7 @@ from ..models import (
     FileModel,
     Person,
     Poll,
-    State,
+    State
 )
 
 User = get_user_model()

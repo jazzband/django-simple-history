@@ -12,7 +12,7 @@ from .models import (
     FileModel,
     Paper,
     Person,
-    Poll,
+    Poll
 )
 
 
