@@ -63,8 +63,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         # Set attribute on each action_list entry from admin methods
         for x in history_list_display:
-            if getattr(self, x, None) and callable(getattr(self, x)):
-                history_method = getattr(self, x)
+            history_method = getattr(self, x, None)
+            if history_method and callable(history_method):
                 for list_entry in action_list:
                     setattr(list_entry, x, history_method(list_entry))
 

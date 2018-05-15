@@ -19,9 +19,10 @@ from ..models import (
     Choice,
     ConcreteExternal,
     Employee,
+    FileModel,
     Person,
     Poll,
-    State
+    State,
 )
 
 User = get_user_model()
@@ -102,6 +103,24 @@ class AdminSiteTest(WebTest):
         self.assertIn("votes", response.unicode_normal_body)
         self.assertIn("12", response.unicode_normal_body)
         self.assertIn("15", response.unicode_normal_body)
+
+    def test_history_list_custom_admin_methods(self):
+        model_name = self.user._meta.model_name
+        self.assertEqual(model_name, 'customuser')
+        self.login()
+        file_model = FileModel(title='Title 1')
+        file_model._history_user = self.user
+        file_model.save()
+        file_model.title = 'Title 2'
+        file_model.save()
+        response = self.app.get(get_history_url(file_model))
+        self.assertIn(get_history_url(file_model, 0), response.unicode_normal_body)
+        self.assertIn("FileModel object", response.unicode_normal_body)
+        self.assertIn("Created", response.unicode_normal_body)
+        self.assertIn(self.user.username, response.unicode_normal_body)
+        self.assertIn("test_method_value", response.unicode_normal_body)
+        self.assertIn("Title 1", response.unicode_normal_body)
+        self.assertIn("Title 2", response.unicode_normal_body)
 
     def test_history_view_permission(self):
         self.login()
