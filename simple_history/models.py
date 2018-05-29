@@ -29,13 +29,15 @@ class HistoricalRecords(object):
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
+                 excluded_fields=None,
                  history_id_field=None,
-                 excluded_fields=None):
+                 history_change_reason_field=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
+        self.history_change_reason_field = history_change_reason_field
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -250,11 +252,25 @@ class HistoricalRecords(object):
         else:
             history_id_field = models.AutoField(primary_key=True)
 
+        if self.history_change_reason_field:
+            # User specific field from init
+            history_change_reason_field = self.history_change_reason_field
+        elif getattr(
+            settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD',
+            False
+        ):
+            # Use text field with no max length, not enforced by DB anyways
+            history_change_reason_field = models.TextField(null=True)
+        else:
+            # Current default, with max length
+            history_change_reason_field = models.CharField(
+                max_length=100, null=True
+            )
+
         return {
             'history_id': history_id_field,
             'history_date': models.DateTimeField(),
-            'history_change_reason': models.CharField(max_length=100,
-                                                      null=True),
+            'history_change_reason': history_change_reason_field,
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
@@ -306,6 +322,7 @@ class HistoricalRecords(object):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
+
         manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in self.fields_included(instance):

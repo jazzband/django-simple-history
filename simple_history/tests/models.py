@@ -433,3 +433,28 @@ class UUIDDefaultModel(models.Model):
 
 # Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
 delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')
+
+
+# Set the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
+setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD', True)
+
+
+class TextFieldChangeReasonModel1(models.Model):
+    greeting = models.CharField(max_length=100)
+    history = HistoricalRecords()
+
+
+# Clear the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
+delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD')
+
+
+class TextFieldChangeReasonModel2(models.Model):
+    greeting = models.CharField(max_length=100)
+    history = HistoricalRecords(
+        history_change_reason_field=models.TextField(null=True)
+    )
+
+
+class CharFieldChangeReasonModel(models.Model):
+    greeting = models.CharField(max_length=100)
+    history = HistoricalRecords()

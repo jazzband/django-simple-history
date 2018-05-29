@@ -167,6 +167,55 @@ admin class
 .. image:: screens/5_history_list_display.png
 
 
+Customizations
+----------------
+
+UUID as `history_id`
+~~~~~~~~~~~~~~~~~~~~
+
+The ``HistoricalRecords`` object can be customized to use an ``UUIDField`` instead
+of the default ``IntegerField`` as the object `history_id` either through
+Django settings or via the constructor on the model.
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
+
+or
+
+.. code-block:: python
+
+    class UUIDExample(models.Model):
+        id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+        history = HistoricalRecords(
+            history_id_field=models.UUIDField(default=uuid.uuid4)
+        )
+
+
+TextField as `history_change_reason`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``HistoricalRecords`` object can be customized to accept a
+``TextField`` model field for saving the
+`history_change_reason` either through settings or via the constructor on the
+model. The common use case for this is for supporting larger model change
+histories to support changelog-like features.
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD=True
+
+or
+
+.. code-block:: python
+
+    class TextFieldExample(models.Model):
+        greeting = models.CharField(max_length=100)
+        history = HistoricalRecords(
+            history_change_reason_field=models.TextField(null=True)
+        )
+
+
 Querying history
 ----------------
 
