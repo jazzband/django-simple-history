@@ -86,3 +86,18 @@ class AsOfAdditionalTestCase(TestCase):
         historical = models.Document.history.as_of(
             datetime.now() + timedelta(days=1))
         self.assertEqual(list(historical), [document1, document2])
+
+    def test_edit_history(self):
+        document = models.Document.objects.create()
+        hist_doc = document.history.as_of(datetime.now(), edit_history=True)
+        self.assertNotEqual(type(document), type(hist_doc))
+        self.assertLess(hist_doc.history_date, datetime.now())
+
+    def test_edit_history_multiple(self):
+        doc1 = models.Document.objects.create()
+        doc2 = models.Document.objects.create()
+        historical = models.Document.history.as_of(datetime.now()
+                                                   + timedelta(days=1),
+                                                   edit_history=True)
+        first_histories = [doc1.history.first(), doc2.history.first()]
+        self.assertEqual(list(historical), first_histories)

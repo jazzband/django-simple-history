@@ -54,15 +54,19 @@ class HistoryManager(models.Manager):
                                              self.instance._meta.object_name)
         return self.instance.__class__(*values)
 
-    def as_of(self, date):
+    def as_of(self, date, edit_history=False):
         """Get a snapshot as of a specific date.
 
         Returns an instance, or an iterable of the instances, of the
         original model with all the attributes set according to what
         was present on the object on the date provided.
+
+        When edit_history is enabled, historical objects (which can be updated
+        to modify history) are returned, rather than instances of the original
+        object type. Otherwise, saving will create new history objects.
         """
         if not self.instance:
-            return self._as_of_set(date)
+            return self._as_of_set(date, edit_history)
         queryset = self.get_queryset().filter(history_date__lte=date)
         try:
             history_obj = queryset[0]
@@ -74,9 +78,12 @@ class HistoryManager(models.Manager):
             raise self.instance.DoesNotExist(
                 "%s had already been deleted." %
                 self.instance._meta.object_name)
-        return history_obj.instance
+        if edit_history:
+            return history_obj
+        else:
+            return history_obj.instance
 
-    def _as_of_set(self, date):
+    def _as_of_set(self, date, edit_history=False):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
         queryset = self.get_queryset().filter(history_date__lte=date)
@@ -87,4 +94,7 @@ class HistoryManager(models.Manager):
             if changes.filter(history_date=last_change.history_date,
                               history_type='-').exists():
                 continue
-            yield last_change.instance
+            if edit_history:
+                yield last_change
+            else:
+                yield last_change.instance
