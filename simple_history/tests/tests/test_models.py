@@ -661,6 +661,22 @@ class HistoryManagerTest(TestCase):
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
 
+    def test_as_of_filter(self):
+        poll1 = Poll.objects.create(question="what's up?", pub_date=today)
+        poll2 = Poll.objects.create(question="how's it going?", pub_date=today)
+        time = datetime.now()
+
+        poll1.question = "why?"
+        poll1.save()
+
+        polls_as_of = list(Poll.history.as_of(time, question="what's up?"))
+        self.assertEqual(len(polls_as_of), 1)
+
+        self.assertEqual(polls_as_of[0].question, "what's up?")
+
+        poll1.delete()
+        poll2.delete()
+
     def test_foreignkey_field(self):
         why_poll = Poll.objects.create(question="why?", pub_date=today)
         how_poll = Poll.objects.create(question="how?", pub_date=today)
