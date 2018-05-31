@@ -22,9 +22,9 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Ubuntu 18.04]
- - Browser (if applicable) [e.g. chrome, safari]
- - Django Simple History Version [e.g. 1.9.1]
- - Django Version [e.g. 1.11.11]
+ - Browser (if applicable): [e.g. chrome, safari]
+ - Django Simple History Version: [e.g. 1.9.1]
+ - Django Version: [e.g. 1.11.11]
 
 **Additional context**
 Add any other context about the problem here.
