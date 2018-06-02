@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from django.conf import settings
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
@@ -14,6 +13,7 @@ from mock import ANY, patch
 
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
+from simple_history.tests.tests.utils import middleware_override_settings
 from ..models import (
     Book,
     Choice,
@@ -43,13 +43,6 @@ def get_history_url(obj, history_index=None, site="admin"):
     else:
         return reverse("{site}:{app}_{model}_history".format(
             site=site, app=app, model=model), args=[quote(obj.pk)])
-
-
-overridden_settings = {
-    'MIDDLEWARE_CLASSES': (
-        settings.MIDDLEWARE_CLASSES +
-        ['simple_history.middleware.HistoryRequestMiddleware']),
-}
 
 
 class AdminSiteTest(WebTest):
@@ -232,7 +225,7 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
-    @override_settings(**overridden_settings)
+    @override_settings(**middleware_override_settings)
     def test_middleware_saves_user(self):
         self.login()
         form = self.app.get(reverse('admin:tests_book_add')).form
@@ -245,13 +238,13 @@ class AdminSiteTest(WebTest):
                          "Middleware should make the request available to "
                          "retrieve history_user.")
 
-    @override_settings(**overridden_settings)
+    @override_settings(**middleware_override_settings)
     def test_middleware_unsets_request(self):
         self.login()
         self.app.get(reverse('admin:tests_book_add'))
         self.assertFalse(hasattr(HistoricalRecords.thread, 'request'))
 
-    @override_settings(**overridden_settings)
+    @override_settings(**middleware_override_settings)
     def test_rolled_back_user_does_not_lead_to_foreign_key_error(self):
         # This test simulates the rollback of a user after a request (which
         # happens, e.g. in test cases), and verifies that subsequently
@@ -271,7 +264,7 @@ class AdminSiteTest(WebTest):
             "No way to know of request, history_user should be unset.",
         )
 
-    @override_settings(**overridden_settings)
+    @override_settings(**middleware_override_settings)
     def test_middleware_anonymous_user(self):
         self.app.get(reverse('admin:index'))
         poll = Poll.objects.create(question="why?", pub_date=today)

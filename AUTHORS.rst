@@ -59,6 +59,7 @@ Authors
 - Ray Logel
 - Nathan Villagaray-Carski
 - Mike Spainhower
+- Alexander Anikeev
 
 Background
 ==========
