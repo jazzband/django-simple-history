@@ -39,8 +39,9 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
-    # Use old-style middleware by default, because otherwise
-    # Its unclear how to override settings
+    # By default django uses new-style middleware, and falls back to old,
+    # if `MIDDLEWARE` is not set. So we use old style by default in order to
+    # be able to test both. New-style middleware tests just set `MIDDLEWARE`
     MIDDLEWARE_CLASSES=[
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
