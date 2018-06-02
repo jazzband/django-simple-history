@@ -39,14 +39,6 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
-    # By default django uses new-style middleware, and falls back to old,
-    # if `MIDDLEWARE` is not set. So we use old style by default in order to
-    # be able to test both. New-style middleware tests just set `MIDDLEWARE`
-    MIDDLEWARE_CLASSES=[
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-    ],
     TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
@@ -57,6 +49,16 @@ DEFAULT_SETTINGS = dict(
         },
     }],
 )
+MIDDLEWARE = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+]
+
+if django.__version__ >= '2.0':
+    DEFAULT_SETTINGS['MIDDLEWARE'] = MIDDLEWARE
+else:
+    DEFAULT_SETTINGS['MIDDLEWARE_CLASSES'] = MIDDLEWARE
 
 
 def main():

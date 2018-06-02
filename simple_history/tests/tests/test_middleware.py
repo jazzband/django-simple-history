@@ -1,25 +1,15 @@
 from datetime import date
 
-from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import Poll
-
-new_style_middleware_settings = {
-    'MIDDLEWARE': (settings.MIDDLEWARE_CLASSES +
-                   ['simple_history.middleware.HistoryRequestMiddleware']),
-}
-old_style_middleware_settings = {
-    'MIDDLEWARE_CLASSES': (
-        settings.MIDDLEWARE_CLASSES +
-        ['simple_history.middleware.HistoryRequestMiddleware']),
-}
+from simple_history.tests.tests.utils import middleware_override_settings
 
 
-@override_settings(**new_style_middleware_settings)
-class NewMiddlewareTest(TestCase):
+@override_settings(**middleware_override_settings)
+class MiddlewareTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_superuser(
             'user_login',
@@ -170,8 +160,3 @@ class NewMiddlewareTest(TestCase):
 
         self.assertListEqual([ph.history_user_id for ph in poll_history],
                              [None, None])
-
-
-@override_settings(**old_style_middleware_settings)
-class OldMiddlewareTest(NewMiddlewareTest):
-    pass
