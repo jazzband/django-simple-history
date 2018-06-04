@@ -30,7 +30,7 @@ following::
 
 This error occurs because ``django-webtest`` sets
 ``DEBUG_PROPOGATE_EXCEPTIONS`` to true preventing the middleware from cleaning
- up the request. To solve this issue, add the following code to any
+up the request. To solve this issue, add the following code to any
 ``clean_environment`` or ``tearDown`` method that
 you use:
 
