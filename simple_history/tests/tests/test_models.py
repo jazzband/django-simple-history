@@ -54,8 +54,8 @@ from ..models import (
     UUIDModel,
     UUIDDefaultModel,
     WaterLevel,
-    TextFieldChangeReasonModel1,
-    TextFieldChangeReasonModel2,
+    DefaultTextFieldChangeReasonModel,
+    UserTextFieldChangeReasonModel,
     CharFieldChangeReasonModel,
 )
 
@@ -408,33 +408,39 @@ class HistoricalRecordsTest(TestCase):
         self.assertTrue(isinstance(field, models.CharField))
         self.assertTrue(field.max_length, 100)
 
-    def test_textfield_history_change_reason1(self):
+    def test_default_textfield_history_change_reason(self):
         # TextField usage is determined by settings
-        entry = TextFieldChangeReasonModel1.objects.create(
+        entry = DefaultTextFieldChangeReasonModel.objects.create(
             greeting="what's up?"
         )
         entry.greeting = "what is happening?"
         entry.save()
-        update_change_reason(entry, 'Change greeting.')
+
+        reason = 'Change greeting'
+        update_change_reason(entry, reason)
 
         history = entry.history.all()[0]
         field = history._meta.get_field('history_change_reason')
 
         self.assertTrue(isinstance(field, models.TextField))
+        self.assertEquals(history.history_change_reason, reason)
 
-    def test_textfield_history_change_reason2(self):
+    def test_user_textfield_history_change_reason(self):
         # TextField instance is passed in init
-        entry = TextFieldChangeReasonModel2.objects.create(
+        entry = UserTextFieldChangeReasonModel.objects.create(
             greeting="what's up?"
         )
         entry.greeting = "what is happening?"
         entry.save()
-        update_change_reason(entry, 'Change greeting.')
+
+        reason = 'Change greeting'
+        update_change_reason(entry, reason)
 
         history = entry.history.all()[0]
         field = history._meta.get_field('history_change_reason')
 
         self.assertTrue(isinstance(field, models.TextField))
+        self.assertEqual(history.history_change_reason, reason)
 
     def test_get_prev_record(self):
         poll = Poll(question="what's up?", pub_date=today)

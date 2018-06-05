@@ -60,6 +60,7 @@ Authors
 - Nathan Villagaray-Carski
 - Mike Spainhower
 - Alexander Anikeev
+- Kyle Seever
 
 Background
 ==========
