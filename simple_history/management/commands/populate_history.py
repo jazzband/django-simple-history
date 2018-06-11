@@ -39,7 +39,7 @@ class Command(BaseCommand):
             default=200,
             type=int,
             help='Set a custom batch size when bulk inserting historical '
-                 'records.',
+                 'records.'
         )
 
     def handle(self, *args, **options):
@@ -108,5 +108,7 @@ class Command(BaseCommand):
                 ))
                 continue
             self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
-            utils.bulk_history_create(model, history_model, batch_size)
+            utils.bulk_history_create(
+                self.stdout, model, history_model, batch_size
+            )
             self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))
