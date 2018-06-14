@@ -115,7 +115,7 @@ class HistoricalRecords(object):
         """
         attrs = {
             '__module__': self.module,
-            'excluded_fields': self.excluded_fields
+            '_history_excluded_fields': self.excluded_fields
         }
 
         app_module = '%s.models' % model._meta.app_label
@@ -227,10 +227,10 @@ class HistoricalRecords(object):
                 field.attname: getattr(self, field.attname)
                 for field in fields.values()
             }
-            if self.excluded_fields:
+            if self._history_excluded_fields:
                 excluded_attnames = [
                     model._meta.get_field(field).attname
-                    for field in self.excluded_fields
+                    for field in self._history_excluded_fields
                 ]
                 values = model.objects.filter(
                     pk=getattr(self, model._meta.pk.attname)

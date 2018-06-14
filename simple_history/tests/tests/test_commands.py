@@ -118,5 +118,5 @@ class TestPopulateHistory(TestCase):
         models.PollWithExcludeFields.history.all().delete()
         management.call_command(self.command_name,
                                 'tests.pollwithexcludefields', auto=True)
-        update_record = models.PollWithExcludeFields.history.all()[0]
-        self.assertEqual(update_record.question, poll.question)
+        initial_history_record = models.PollWithExcludeFields.history.all()[0]
+        self.assertEqual(initial_history_record.question, poll.question)
