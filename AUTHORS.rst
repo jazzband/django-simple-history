@@ -34,6 +34,7 @@ Authors
 - Klaas van Schelven
 - Kris Neuharth
 - Maciej "RooTer" Urbański
+- Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
@@ -61,6 +62,7 @@ Authors
 - Mike Spainhower
 - Alexander Anikeev
 - Kyle Seever
+
 
 Background
 ==========
