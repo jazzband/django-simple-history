@@ -104,6 +104,6 @@ class HistoryManager(models.Manager):
                     for field in instance._meta.fields
                 }
             ) for instance in objs]
-        self.model.objects.bulk_create(historical_instances,
-                                       batch_size=batch_size)
-        return objs
+
+        return self.model.objects.bulk_create(historical_instances,
+                                              batch_size=batch_size)
