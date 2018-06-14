@@ -1,8 +1,9 @@
+import django
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 
-from . import _populate_utils as utils
-from ... import models
+from ... import models, utils
+from ...exceptions import NotHistoricalModelError
 
 get_model = apps.get_model
 
@@ -39,10 +40,12 @@ class Command(BaseCommand):
             default=200,
             type=int,
             help='Set a custom batch size when bulk inserting historical '
-                 'records.',
+                 'records.'
         )
 
     def handle(self, *args, **options):
+        self.verbosity = options['verbosity']
+
         to_process = set()
         model_strings = options.get('models', []) or args
 
@@ -54,14 +57,16 @@ class Command(BaseCommand):
             for model in models.registered_models.values():
                 try:    # avoid issues with mutli-table inheritance
                     history_model = utils.get_history_model_for_model(model)
-                except utils.NotHistorical:
+                except NotHistoricalModelError:
                     continue
                 to_process.add((model, history_model))
             if not to_process:
-                self.stdout.write(self.NO_REGISTERED_MODELS)
+                if self.verbosity >= 1:
+                    self.stdout.write(self.NO_REGISTERED_MODELS)
 
         else:
-            self.stdout.write(self.COMMAND_HINT)
+            if self.verbosity >= 1:
+                self.stdout.write(self.COMMAND_HINT)
 
         self._process(to_process, batch_size=options['batchsize'])
 
@@ -94,10 +99,54 @@ class Command(BaseCommand):
                              " < {model} >\n".format(model=natural_key))
         try:
             history_model = utils.get_history_model_for_model(model)
-        except utils.NotHistorical:
+        except NotHistoricalModelError:
             raise ValueError(self.MODEL_NOT_HISTORICAL +
                              " < {model} >\n".format(model=natural_key))
         return model, history_model
+
+    def _bulk_history_create(self, model, batch_size):
+        """Save a copy of all instances to the historical model.
+
+        :param model: Model you want to bulk create
+        :param batch_size: number of models to create at once.
+        :return:
+        """
+
+        instances = []
+        history = utils.get_history_manager_for_model(model)
+        if self.verbosity >= 1:
+            self.stdout.write(
+                "Starting bulk creating history models for {} instances {}-{}"
+                .format(model, 0, batch_size)
+            )
+
+        iterator_kwargs = {'chunk_size': batch_size} \
+            if django.VERSION >= (2, 0, 0) else {}
+        for index, instance in enumerate(model._default_manager.iterator(
+            **iterator_kwargs
+        )):
+            # Can't Just pass batch_size to bulk_create as this can lead to
+            # Out of Memory Errors as we load too many models into memory after
+            # creating them. So we only keep batch_size worth of models in
+            # historical_instances and clear them after we hit batch_size
+            if index % batch_size == 0:
+
+                history.bulk_history_create(instances, batch_size=batch_size)
+
+                instances = []
+
+                if self.verbosity >= 1:
+                    self.stdout.write(
+                        "Finished bulk creating history models for {} "
+                        "instances {}-{}, starting next {}"
+                        .format(model, index - batch_size, index, batch_size)
+                    )
+
+            instances.append(instance)
+
+        # create any we didn't get in the last loop
+        if instances:
+            history.bulk_history_create(instances, batch_size=batch_size)
 
     def _process(self, to_process, batch_size):
         for model, history_model in to_process:
@@ -107,6 +156,12 @@ class Command(BaseCommand):
                     model=model,
                 ))
                 continue
-            self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
-            utils.bulk_history_create(model, history_model, batch_size)
-            self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))
+            if self.verbosity >= 1:
+                self.stdout.write(self.START_SAVING_FOR_MODEL.format(
+                    model=model
+                ))
+            self._bulk_history_create(model, batch_size)
+            if self.verbosity >= 1:
+                self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(
+                    model=model
+                ))
