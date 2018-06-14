@@ -1,14 +1,13 @@
 from contextlib import contextmanager
 from datetime import datetime
 
-from six.moves import cStringIO as StringIO
-from django.test import TestCase
 from django.core import management
+from django.test import TestCase
+from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
-
-from .. import models
+from ..models import Book, Poll, Restaurant
 
 
 @contextmanager
@@ -47,60 +46,60 @@ class TestPopulateHistory(TestCase):
             self.assertIn(msg, out.getvalue())
 
     def test_auto_populate(self):
-        models.Poll.objects.create(question="Will this populate?",
-                                   pub_date=datetime.now())
-        models.Poll.history.all().delete()
+        Poll.objects.create(question="Will this populate?",
+                            pub_date=datetime.now())
+        Poll.history.all().delete()
         management.call_command(self.command_name, auto=True,
                                 stdout=StringIO(), stderr=StringIO())
-        self.assertEqual(models.Poll.history.all().count(), 1)
+        self.assertEqual(Poll.history.all().count(), 1)
 
     def test_populate_with_custom_batch_size(self):
-        models.Poll.objects.create(question="Will this populate?",
-                                   pub_date=datetime.now())
-        models.Poll.history.all().delete()
+        Poll.objects.create(question="Will this populate?",
+                            pub_date=datetime.now())
+        Poll.history.all().delete()
         management.call_command(self.command_name, auto=True, batchsize=500,
                                 stdout=StringIO(), stderr=StringIO())
-        self.assertEqual(models.Poll.history.all().count(), 1)
+        self.assertEqual(Poll.history.all().count(), 1)
 
     def test_specific_populate(self):
-        models.Poll.objects.create(question="Will this populate?",
-                                   pub_date=datetime.now())
-        models.Poll.history.all().delete()
-        models.Book.objects.create(isbn="9780007117116")
-        models.Book.history.all().delete()
+        Poll.objects.create(question="Will this populate?",
+                            pub_date=datetime.now())
+        Poll.history.all().delete()
+        Book.objects.create(isbn="9780007117116")
+        Book.history.all().delete()
         management.call_command(self.command_name, "tests.book",
                                 stdout=StringIO(), stderr=StringIO())
-        self.assertEqual(models.Book.history.all().count(), 1)
-        self.assertEqual(models.Poll.history.all().count(), 0)
+        self.assertEqual(Book.history.all().count(), 1)
+        self.assertEqual(Poll.history.all().count(), 0)
 
     def test_failing_wont_save(self):
-        models.Poll.objects.create(question="Will this populate?",
-                                   pub_date=datetime.now())
-        models.Poll.history.all().delete()
+        Poll.objects.create(question="Will this populate?",
+                            pub_date=datetime.now())
+        Poll.history.all().delete()
         self.assertRaises(self.command_error,
                           management.call_command, self.command_name,
                           "tests.poll", "tests.invalid_model",
                           stdout=StringIO(), stderr=StringIO())
-        self.assertEqual(models.Poll.history.all().count(), 0)
+        self.assertEqual(Poll.history.all().count(), 0)
 
     def test_multi_table(self):
         data = {'rating': 5, 'name': "Tea 'N More"}
-        models.Restaurant.objects.create(**data)
-        models.Restaurant.updates.all().delete()
+        Restaurant.objects.create(**data)
+        Restaurant.updates.all().delete()
         management.call_command(self.command_name, 'tests.restaurant',
                                 stdout=StringIO(), stderr=StringIO())
-        update_record = models.Restaurant.updates.all()[0]
+        update_record = Restaurant.updates.all()[0]
         for attr, value in data.items():
             self.assertEqual(getattr(update_record, attr), value)
 
     def test_existing_objects(self):
         data = {'rating': 5, 'name': "Tea 'N More"}
         out = StringIO()
-        models.Restaurant.objects.create(**data)
-        pre_call_count = models.Restaurant.updates.count()
+        Restaurant.objects.create(**data)
+        pre_call_count = Restaurant.updates.count()
         management.call_command(self.command_name, 'tests.restaurant',
                                 stdout=StringIO(), stderr=out)
-        self.assertEqual(models.Restaurant.updates.count(), pre_call_count)
+        self.assertEqual(Restaurant.updates.count(), pre_call_count)
         self.assertIn(populate_history.Command.EXISTING_HISTORY_FOUND,
                       out.getvalue())
 
@@ -111,3 +110,35 @@ class TestPopulateHistory(TestCase):
                                     stdout=out)
         self.assertIn(populate_history.Command.NO_REGISTERED_MODELS,
                       out.getvalue())
+
+    def test_batch_processing_with_batch_size_less_than_total(self):
+        data = [
+            Poll(id=1, question='Question 1', pub_date=datetime.now()),
+            Poll(id=2, question='Question 2', pub_date=datetime.now()),
+            Poll(id=3, question='Question 3', pub_date=datetime.now()),
+            Poll(id=4, question='Question 4', pub_date=datetime.now()),
+        ]
+        Poll.objects.bulk_create(data)
+
+        management.call_command(self.command_name, auto=True, batchsize=3,
+                                stdout=StringIO(), stderr=StringIO())
+
+        self.assertEqual(Poll.history.count(), 4)
+
+    def test_stdout_not_printed_when_verbosity_is_0(self):
+        out = StringIO()
+        Poll.objects.create(question='Question 1', pub_date=datetime.now())
+
+        management.call_command(self.command_name, auto=True, batchsize=3,
+                                stdout=out, stderr=StringIO(), verbosity=0)
+
+        self.assertEqual(out.getvalue(), '')
+
+    def test_stdout_printed_when_verbosity_is_not_specified(self):
+        out = StringIO()
+        Poll.objects.create(question='Question 1', pub_date=datetime.now())
+
+        management.call_command(self.command_name, auto=True, batchsize=3,
+                                stdout=out, stderr=StringIO())
+
+        self.assertNotEqual(out.getvalue(), '')
