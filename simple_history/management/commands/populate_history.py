@@ -122,7 +122,7 @@ class Command(BaseCommand):
 
         iterator_kwargs = {'chunk_size': batch_size} \
             if django.VERSION >= (2, 0, 0) else {}
-        for index, instance in enumerate(model.objects.iterator(
+        for index, instance in enumerate(model._default_manager.iterator(
             **iterator_kwargs
         )):
             # Can't Just pass batch_size to bulk_create as this can lead to
