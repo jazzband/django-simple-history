@@ -3,7 +3,7 @@ Changes
 
 Unreleased
 ----------
-- Fixed out-of-memory exception when running populate_history management command (gh-407)
+- Fixed out-of-memory exception when running populate_history management command (gh-408)
 
 2.1.0 (2018-06-04)
 ------------------

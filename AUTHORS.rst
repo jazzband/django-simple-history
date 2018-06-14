@@ -63,7 +63,6 @@ Authors
 - Alexander Anikeev
 - Kyle Seever
 
-
 Background
 ==========
 
