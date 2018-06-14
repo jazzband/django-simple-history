@@ -22,8 +22,9 @@ def get_history_manager_for_model(model):
     try:
         manager_name = model._meta.simple_history_manager_attribute
     except AttributeError:
-        raise NotHistoricalModelError("Cannot find a historical model for "
-                            "{model}.".format(model=model))
+        raise NotHistoricalModelError(
+            "Cannot find a historical model for {model}.".format(model=model)
+        )
     return getattr(model, manager_name)
 
 

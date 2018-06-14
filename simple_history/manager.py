@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.timezone import now
 
-from simple_history.utils import get_history_model_for_model
-
 
 class HistoryDescriptor(object):
     def __init__(self, model):

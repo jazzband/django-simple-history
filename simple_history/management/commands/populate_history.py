@@ -1,3 +1,4 @@
+import django
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 
@@ -116,10 +117,13 @@ class Command(BaseCommand):
         if self.verbosity >= 1:
             self.stdout.write(
                 "Starting bulk creating history models for {} instances {}-{}"
-                    .format(model, 0, batch_size)
+                .format(model, 0, batch_size)
             )
+
+        iterator_kwargs = {'chunk_size': batch_size} \
+            if django.VERSION >= (2, 0, 0) else {}
         for index, instance in enumerate(model.objects.iterator(
-            chunk_size=batch_size
+            **iterator_kwargs
         )):
             # Can't Just pass batch_size to bulk_create as this can lead to
             # Out of Memory Errors as we load too many models into memory after
@@ -133,9 +137,9 @@ class Command(BaseCommand):
 
                 if self.verbosity >= 1:
                     self.stdout.write(
-                        "Finished bulk creating history models for {} instances "
-                        "{}-{}, starting next {}"
-                            .format(model, index - batch_size, index, batch_size)
+                        "Finished bulk creating history models for {} "
+                        "instances {}-{}, starting next {}"
+                        .format(model, index - batch_size, index, batch_size)
                     )
 
             instances.append(instance)
@@ -153,7 +157,11 @@ class Command(BaseCommand):
                 ))
                 continue
             if self.verbosity >= 1:
-                self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
+                self.stdout.write(self.START_SAVING_FOR_MODEL.format(
+                    model=model
+                ))
             self._bulk_history_create(model, batch_size)
             if self.verbosity >= 1:
-                self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))
+                self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(
+                    model=model
+                ))
