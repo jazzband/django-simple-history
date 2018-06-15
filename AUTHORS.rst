@@ -61,6 +61,7 @@ Authors
 - Nathan Villagaray-Carski
 - Mike Spainhower
 - Alexander Anikeev
+- Kyle Seever
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
 

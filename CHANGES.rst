@@ -4,7 +4,7 @@ Changes
 Unreleased
 ----------
 - Fixed out-of-memory exception when running populate_history management command (gh-408)
-- Fix TypeError on populate_history if excluded_fields are specified
+- Fix TypeError on populate_history if excluded_fields are specified (gh-410)
 
 2.1.0 (2018-06-04)
 ------------------
@@ -12,6 +12,7 @@ Unreleased
 - Add ability to specify custom history_id field (gh-368)
 - Add HistoricalRecord instance properties `prev_record` and `next_record` (gh-365)
 - Can set admin methods as attributes on object history change list template (gh-390)
+- Fixed compatibility of >= 2.0 versions with old-style middleware (gh-369)
 
 2.0 (2018-04-05)
 ----------------
