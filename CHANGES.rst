@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 - Fixed out-of-memory exception when running populate_history management command (gh-408)
+- Fix TypeError on populate_history if excluded_fields are specified (gh-410)
 
 2.1.0 (2018-06-04)
 ------------------
