@@ -100,6 +100,7 @@ class HistoryManager(models.Manager):
                 **{
                     field.attname: getattr(instance, field.attname)
                     for field in instance._meta.fields
+                    if field.name not in self.model._history_excluded_fields
                 }
             ) for instance in objs]
 

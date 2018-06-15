@@ -7,7 +7,7 @@ from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history
-from ..models import Book, Poll, Restaurant
+from ..models import Book, Poll, PollWithExcludeFields, Restaurant
 
 
 @contextmanager
@@ -142,3 +142,13 @@ class TestPopulateHistory(TestCase):
                                 stdout=out, stderr=StringIO())
 
         self.assertNotEqual(out.getvalue(), '')
+
+    def test_excluded_fields(self):
+        poll = PollWithExcludeFields.objects.create(
+            question="Will this work?", pub_date=datetime.now())
+        PollWithExcludeFields.history.all().delete()
+        management.call_command(self.command_name,
+                                'tests.pollwithexcludefields', auto=True,
+                                stdout=StringIO(), stderr=StringIO())
+        initial_history_record = PollWithExcludeFields.history.all()[0]
+        self.assertEqual(initial_history_record.question, poll.question)
