@@ -37,16 +37,16 @@ class HistoricalRecords(object):
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
                  excluded_fields=None, history_id_field=None,
-                 user_model=None, get_user=default_get_user,
-                 history_change_reason_field=None):
+                 history_change_reason_field=None,
+                 user_model=None, get_user=default_get_user):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
+        self.history_change_reason_field = history_change_reason_field
         self.user_model = user_model
         self.get_user = get_user
-        self.history_change_reason_field = history_change_reason_field
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
