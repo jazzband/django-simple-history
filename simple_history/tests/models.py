@@ -415,6 +415,71 @@ class InheritTracking4(TrackedAbstractBaseA):
     pass
 
 
+class BucketMember(models.Model):
+    name = models.CharField(max_length=30)
+    user = models.OneToOneField(
+        User,
+        related_name="bucket_member",
+        on_delete=models.CASCADE
+    )
+
+
+class BucketData(models.Model):
+    changed_by = models.ForeignKey(
+        BucketMember,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+    history = HistoricalRecords(user_model=BucketMember)
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+
+def get_bucket_member_changed_by(instance, **kwargs):
+    try:
+        return instance.changed_by
+    except AttributeError:
+        return None
+
+
+class BucketDataRegisterChangedBy(models.Model):
+    changed_by = models.ForeignKey(
+        BucketMember,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+
+
+register(
+    BucketDataRegisterChangedBy,
+    user_model=BucketMember,
+    get_user=get_bucket_member_changed_by
+)
+
+
+def get_bucket_member_request_user(request, **kwargs):
+    try:
+        return request.user.bucket_member
+    except AttributeError:
+        return None
+
+
+class BucketDataRegisterRequestUser(models.Model):
+    data = models.CharField(max_length=30)
+
+    def get_absolute_url(self):
+        return reverse('bucket_data-detail', kwargs={'pk': self.pk})
+
+
+register(
+    BucketDataRegisterRequestUser,
+    user_model=BucketMember,
+    get_user=get_bucket_member_request_user
+)
+
+
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     history = HistoricalRecords(

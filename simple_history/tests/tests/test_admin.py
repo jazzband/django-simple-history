@@ -16,6 +16,8 @@ from simple_history.models import HistoricalRecords
 from simple_history.tests.tests.utils import middleware_override_settings
 from ..models import (
     Book,
+    BucketData,
+    BucketMember,
     Choice,
     ConcreteExternal,
     Employee,
@@ -286,7 +288,7 @@ class AdminSiteTest(WebTest):
         change_url = get_history_url(state, 0, site="other_admin")
         self.app.get(change_url)
 
-    def test_deleteting_user(self):
+    def test_deleting_user(self):
         """Test deletes of a user does not cascade delete the history"""
         self.login()
         poll = Poll(question="why?", pub_date=today)
@@ -299,6 +301,21 @@ class AdminSiteTest(WebTest):
         self.user.delete()
 
         historical_poll = poll.history.all()[0]
+        self.assertEqual(historical_poll.history_user, None)
+
+    def test_deleteting_member(self):
+        """Test deletes of a BucketMember doesn't cascade delete the history"""
+        self.login()
+        member = BucketMember.objects.create(name="member1", user=self.user)
+        bucket_data = BucketData(changed_by=member)
+        bucket_data.save()
+
+        historical_poll = bucket_data.history.all()[0]
+        self.assertEqual(historical_poll.history_user, member)
+
+        member.delete()
+
+        historical_poll = bucket_data.history.all()[0]
         self.assertEqual(historical_poll.history_user, None)
 
     def test_missing_one_to_one(self):

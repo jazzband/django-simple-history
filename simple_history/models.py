@@ -24,20 +24,29 @@ from .manager import HistoryDescriptor
 registered_models = {}
 
 
+def default_get_user(request, **kwargs):
+    try:
+        return request.user
+    except AttributeError:
+        return None
+
+
 class HistoricalRecords(object):
     thread = threading.local()
 
     def __init__(self, verbose_name=None, bases=(models.Model,),
                  user_related_name='+', table_name=None, inherit=False,
-                 excluded_fields=None,
-                 history_id_field=None,
-                 history_change_reason_field=None):
+                 excluded_fields=None, history_id_field=None,
+                 history_change_reason_field=None,
+                 user_model=None, get_user=default_get_user):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
         self.history_change_reason_field = history_change_reason_field
+        self.user_model = user_model
+        self.get_user = get_user
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -74,15 +83,11 @@ class HistoricalRecords(object):
 
     def finalize(self, sender, **kwargs):
         inherited = False
-        try:
-            hint_class = self.cls
-        except AttributeError:  # called via `register`
-            pass
-        else:
-            if hint_class is not sender:  # set in concrete
-                inherited = (self.inherit and issubclass(sender, hint_class))
-                if not inherited:
-                    return  # set in abstract
+        if self.cls is not sender:  # set in concrete
+            inherited = (self.inherit and issubclass(sender, self.cls))
+            if not inherited:
+                return  # set in abstract
+
         if hasattr(sender._meta, 'simple_history_manager_attribute'):
             raise exceptions.MultipleRegistrationsError(
                 '{}.{} registered multiple times for history tracking.'.format(
@@ -207,7 +212,9 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+        user_model = self.user_model or getattr(
+            settings, 'AUTH_USER_MODEL', 'auth.User'
+        )
 
         def revert_url(self):
             """URL for this change in the default admin site."""
@@ -349,12 +356,14 @@ class HistoricalRecords(object):
         try:
             return instance._history_user
         except AttributeError:
+            request = None
             try:
                 if self.thread.request.user.is_authenticated:
-                    return self.thread.request.user
-                return None
+                    request = self.thread.request
             except AttributeError:
-                return None
+                pass
+
+        return self.get_user(instance=instance, request=request)
 
 
 def transform_field(field):
