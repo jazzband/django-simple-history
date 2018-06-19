@@ -7,7 +7,7 @@ from django.views.generic import (
     UpdateView
 )
 
-from simple_history.tests.models import BucketDataRegister2, Poll
+from simple_history.tests.models import BucketDataRegisterRequestUser, Poll
 
 
 class PollCreate(CreateView):
@@ -35,11 +35,11 @@ class PollDetail(DetailView):
     fields = ['question', 'pub_date']
 
 
-class BucketDataRegister2Create(CreateView):
-    model = BucketDataRegister2
+class BucketDataRegisterRequestUserCreate(CreateView):
+    model = BucketDataRegisterRequestUser
     fields = ['data']
 
 
-class BucketDataRegister2Detail(DetailView):
-    model = BucketDataRegister2
+class BucketDataRegisterRequestUserDetail(DetailView):
+    model = BucketDataRegisterRequestUser
     fields = ['data']

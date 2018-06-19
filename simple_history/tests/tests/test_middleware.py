@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import (
-    BucketDataRegister2,
+    BucketDataRegisterRequestUser,
     BucketMember,
     Poll
 )
@@ -172,7 +172,7 @@ class MiddlewareTest(TestCase):
             'data': 'Test Data',
         }
         self.client.post(reverse('bucket_data-add'), data=data)
-        bucket_datas = BucketDataRegister2.objects.all()
+        bucket_datas = BucketDataRegisterRequestUser.objects.all()
         self.assertEqual(bucket_datas.count(), 1)
 
         history = bucket_datas.first().history.all()

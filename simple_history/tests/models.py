@@ -437,14 +437,14 @@ class BucketData(models.Model):
         return self.changed_by
 
 
-def get_bucket_member1(instance, **kwargs):
+def get_bucket_member_changed_by(instance, **kwargs):
     try:
         return instance.changed_by
     except AttributeError:
         return None
 
 
-class BucketDataRegister1(models.Model):
+class BucketDataRegisterChangedBy(models.Model):
     changed_by = models.ForeignKey(
         BucketMember,
         on_delete=models.SET_NULL,
@@ -453,20 +453,20 @@ class BucketDataRegister1(models.Model):
 
 
 register(
-    BucketDataRegister1,
+    BucketDataRegisterChangedBy,
     user_model=BucketMember,
-    get_user=get_bucket_member1
+    get_user=get_bucket_member_changed_by
 )
 
 
-def get_bucket_member2(request, **kwargs):
+def get_bucket_member_request_user(request, **kwargs):
     try:
         return request.user.bucket_member
     except AttributeError:
         return None
 
 
-class BucketDataRegister2(models.Model):
+class BucketDataRegisterRequestUser(models.Model):
     data = models.CharField(max_length=30)
 
     def get_absolute_url(self):
@@ -474,9 +474,9 @@ class BucketDataRegister2(models.Model):
 
 
 register(
-    BucketDataRegister2,
+    BucketDataRegisterRequestUser,
     user_model=BucketMember,
-    get_user=get_bucket_member2
+    get_user=get_bucket_member_request_user
 )
 
 

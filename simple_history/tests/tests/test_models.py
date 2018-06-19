@@ -21,7 +21,7 @@ from ..models import (
     Book,
     Bookcase,
     BucketData,
-    BucketDataRegister1,
+    BucketDataRegisterChangedBy,
     BucketMember,
     Choice,
     City,
@@ -396,7 +396,9 @@ class HistoricalRecordsTest(TestCase):
         user2 = User.objects.create_user('user2', '1@example.com')
         member1 = BucketMember.objects.create(name="member1", user=user1)
         member2 = BucketMember.objects.create(name="member2", user=user2)
-        bucket_data = BucketDataRegister1.objects.create(changed_by=member1)
+        bucket_data = BucketDataRegisterChangedBy.objects.create(
+            changed_by=member1
+        )
         bucket_data.changed_by = member2
         bucket_data.save()
         bucket_data.changed_by = None
