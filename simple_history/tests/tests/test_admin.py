@@ -288,7 +288,7 @@ class AdminSiteTest(WebTest):
         change_url = get_history_url(state, 0, site="other_admin")
         self.app.get(change_url)
 
-    def test_deleteting_user(self):
+    def test_deleting_user(self):
         """Test deletes of a user does not cascade delete the history"""
         self.login()
         poll = Poll(question="why?", pub_date=today)

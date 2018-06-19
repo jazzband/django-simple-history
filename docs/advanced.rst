@@ -147,7 +147,6 @@ Another option for identifying the change user is by providing a function via ``
 If provided it will be called everytime that the ``history_user`` needs to be
 identified with the following key word arguments:
 
-* ``history``: The current ``HistoricalRecords`` instance
 * ``instance``:  The current instance being modified
 * ``request``:  If using the middleware the current request object will be provided if they are authenticated.
 

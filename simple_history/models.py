@@ -363,7 +363,7 @@ class HistoricalRecords(object):
             except AttributeError:
                 pass
 
-        return self.get_user(history=self, instance=instance, request=request)
+        return self.get_user(instance=instance, request=request)
 
 
 def transform_field(field):
