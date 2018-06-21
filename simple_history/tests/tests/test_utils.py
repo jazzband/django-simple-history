@@ -4,7 +4,12 @@ from django.utils.timezone import now
 from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
-from simple_history.tests.models import Place, Poll, Document, PollWithExcludeFields
+from simple_history.tests.models import (
+    Document,
+    Place,
+    Poll,
+    PollWithExcludeFields
+)
 from simple_history.utils import bulk_create_with_history
 
 
@@ -85,7 +90,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 0)
 
-    def test_bulk_create_history_rolls_back_when_last_batch_already_exists(self):
+    def test_bulk_create_history_rolls_back_when_last_exists(self):
         Poll.objects.create(id=5, question='Question 5', pub_date=now())
 
         self.assertEqual(Poll.objects.count(), 1)
@@ -103,4 +108,3 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
 
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Poll.history.count(), 0)
-
