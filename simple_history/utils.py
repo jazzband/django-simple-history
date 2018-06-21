@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from simple_history.exceptions import NotHistoricalModelError
 
 
@@ -31,3 +33,19 @@ def get_history_manager_for_model(model):
 def get_history_model_for_model(model):
     """Return the history model for a given app model."""
     return get_history_manager_for_model(model).model
+
+
+def bulk_create_with_history(objs, model, batch_size=None):
+    """
+    Bulk create the objects specified by objs while also bulk creating
+    their history (all in one transaction).
+    """
+
+    history_manager = get_history_manager_for_model(model)
+
+    with transaction.atomic(savepoint=False):
+        objs_with_id = model.objects.bulk_create(objs, batch_size=batch_size)
+        history_manager.bulk_history_create(objs_with_id,
+                                            batch_size=batch_size)
+
+    return objs_with_id
