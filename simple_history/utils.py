@@ -39,6 +39,10 @@ def bulk_create_with_history(objs, model, batch_size=None):
     """
     Bulk create the objects specified by objs while also bulk creating
     their history (all in one transaction).
+    :param objs: List of objs (not yet saved to the db) of type model
+    :param model: Model class that should be created
+    :param batch_size: Number of objects that should be created in each batch
+    :return: List of objs with IDs
     """
 
     history_manager = get_history_manager_for_model(model)
