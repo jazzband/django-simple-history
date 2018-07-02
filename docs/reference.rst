@@ -39,3 +39,14 @@ you use:
     from simple_history.middleware import HistoricalRecords
     if hasattr(HistoricalRecords.thread, 'request'):
         del HistoricalRecords.thread.request
+
+Using F() expressions
+---------------------
+``F()`` expressions, as described here_, do not work on models that have
+history. Simple history inserts a new record in the historical table for any
+model being updated. However, ``F()`` expressions are only functional on updates.
+Thus, when an ``F()`` expression is used on a model with a history table, the
+historical model tries to insert using the ``F()`` expression, and raises a
+``ValueError``.
+
+.. _here: https://docs.djangoproject.com/en/2.0/ref/models/expressions/#f-expressions
