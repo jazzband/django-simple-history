@@ -456,7 +456,7 @@ class HistoricalRecordsTest(TestCase):
         field = history._meta.get_field('history_change_reason')
 
         self.assertTrue(isinstance(field, models.TextField))
-        self.assertEquals(history.history_change_reason, reason)
+        self.assertEqual(history.history_change_reason, reason)
 
     def test_user_textfield_history_change_reason(self):
         # TextField instance is passed in init
