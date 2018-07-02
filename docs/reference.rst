@@ -1,6 +1,57 @@
 Common Issues
 =============
 
+Bulk Creating and Queryset Updating
+-----------------------------------
+Django Simple History functions by saving history using a ``post_save`` signal
+every time that an object with history is saved. However, for certain bulk
+operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
+signals are not sent, and the history is not saved automatically. However,
+Django Simple History provides utility functions to work around this.
+
+Bulk Creating a Model with History
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ As of Django Simple History 2.2.0, we can use the utility function
+``bulk_create_with_history`` in order to bulk create objects while saving their
+history:
+
+.. _bulk_create: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#bulk-create
+
+
+.. code-block:: pycon
+
+    >>> from simple_history.utils import bulk_create_with_history
+    >>> from simple_history.tests.models import Poll
+    >>> from django.utils.timezone import now
+    >>>
+    >>> data = [Poll(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
+    >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
+    >>> Poll.objects.count()
+    1000
+    >>> Poll.history.count()
+    1000
+
+QuerySet Updates with History
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unlike with ``bulk_create``, `queryset updates`_ perform an SQL update query on
+the queryset, and never return the actual updated objects (which would be
+necessary for the inserts into the historical table). Thus, we tell you that
+queryset updates will not save history (since no ``post_save`` signal is sent).
+As the Django documentation says::
+
+    If you want to update a bunch of records for a model that has a custom
+    ``save()`` method, loop over them and call ``save()``, like this:
+
+.. code-block::python
+
+    for e in Entry.objects.filter(pub_date__year=2010):
+        e.comments_on = False
+        e.save()
+
+.. _queryset updates: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update
+
+
+
 Tracking Custom Users
 ---------------------
 

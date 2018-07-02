@@ -311,33 +311,3 @@ And to revert to that ``HistoricalPoll`` instance, we can do:
 This will change the ``poll`` instance to have the data from the
 ``HistoricalPoll`` object and it will create a new row in the
 ``HistoricalPoll`` table indicating that a new change has been made.
-
-Bulk Creating and Queryset Updating
------------------------------------
-Django Simple History functions by saving history using a ``post_save`` signal
-every time that an object with history is saved. However, for certain bulk
-operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
-signals are not sent, and the history is not saved automatically. However,
-Django Simple History provides utility functions to work around this.
-
-Bulk Creating a Model with History
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- As of Django Simple History 2.2.0, we can use the utility function
-``bulk_create_with_history`` in order to bulk create objects while saving their
-history:
-
-.. _bulk_create: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#bulk-create
-
-
-.. code-block:: pycon
-
-    >>> from simple_history.utils import bulk_create_with_history
-    >>> from simple_history.tests.models import Poll
-    >>> from django.utils.timezone import now
-    >>>
-    >>> data = [Poll(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
-    >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
-    >>> Poll.objects.count()
-    1000
-    >>> Poll.history.count()
-    1000
