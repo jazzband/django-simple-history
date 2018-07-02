@@ -1,10 +1,10 @@
 Changes
 =======
 
-Unreleased
-----------
+2.2.0 (2018-07-02)
+------------------
 - Add ability to specify alternative user_model for tracking (gh-371)
-- Add util function ``bulk_create_with_history`` to allow bulk_create with history saved
+- Add util function ``bulk_create_with_history`` to allow bulk_create with history saved (gh-412)
 
 2.1.1 (2018-06-15)
 ------------------
