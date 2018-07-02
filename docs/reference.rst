@@ -42,7 +42,7 @@ As the Django documentation says::
     If you want to update a bunch of records for a model that has a custom
     ``save()`` method, loop over them and call ``save()``, like this:
 
-.. code-block::python
+.. code-block:: python
 
     for e in Entry.objects.filter(pub_date__year=2010):
         e.comments_on = False
@@ -85,7 +85,7 @@ up the request. To solve this issue, add the following code to any
 ``clean_environment`` or ``tearDown`` method that
 you use:
 
-.. code-block::python
+.. code-block:: python
 
     from simple_history.middleware import HistoricalRecords
     if hasattr(HistoricalRecords.thread, 'request'):
