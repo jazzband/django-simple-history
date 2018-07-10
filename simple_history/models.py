@@ -417,7 +417,7 @@ class HistoricalObjectDescriptor(object):
 class HistoricalChanges(object):
     def diff_against(self, old_history):
         if not isinstance(old_history, type(self)):
-            raise TypeError(("unsupported operand type(s) for diffing: "
+            raise TypeError(("unsupported type(s) for diffing: "
                              "'{}' and '{}'").format(
                             type(self),
                             type(old_history)))
