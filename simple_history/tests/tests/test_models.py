@@ -12,7 +12,11 @@ from django.db import models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase
 
-from simple_history.models import HistoricalRecords, convert_auto_field
+from simple_history.models import (
+    HistoricalRecords,
+    convert_auto_field,
+    ModelChange
+)
 from simple_history.utils import update_change_reason
 from ..external.models import ExternalModel2, ExternalModel4
 from ..models import (
@@ -549,6 +553,27 @@ class HistoricalRecordsTest(TestCase):
         recent_record = poll.history.filter(question="ask questions?").get()
         self.assertIsNone(recent_record.next_record)
 
+    def test_history_diff(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        delta = new_record.diff_against(old_record)
+        expected_change = ModelChange("question",
+                                       "what's up?",
+                                       "what's up, man")
+        self.assertEqual(delta.changed_fields, ['question'])
+        self.assertEqual(delta.old_record, old_record)
+        self.assertEqual(delta.new_record, new_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
+
+    def test_history_diff_with_incorrect_type(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertRaises(TypeError):
+            delta = new_record.diff_against('something')
 
 class CreateHistoryModelTests(unittest.TestCase):
 

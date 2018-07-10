@@ -35,6 +35,7 @@ Authors
 - Kris Neuharth
 - Maciej "RooTer" Urbański
 - Mark Davidoff
+- Leticia Portella
 - Martin Bachwerk
 - Marty Alchin
 - Mauricio de Abreu Antunes
