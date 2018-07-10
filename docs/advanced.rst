@@ -410,11 +410,11 @@ If you want to save a model without a historical record, you can use the followi
 History Diffing
 -------------------
 
-When you have two instances of the same HistoricalRecord, such as HistoricalPoll example above,
-you can perform diffs to see what changed. This will result in a ModelDelta containing some properties such as a
-list with each field changed between this historical records, a list with the names of all
-fields that incurred changes from one record to another, and the old and new records.
-This may be useful when you want timelines, and need to get only the model modifications.
+When you have two instances of the same HistoricalRecord (such as the HistoricalPoll example above),
+you can perform diffs to see what changed. This will result in a ModelDelta containing properties including
+a list with each field changed between the two historical records, a list with the names of all
+fields that incurred changes from one record to the other, and the old and new records.
+This may be useful when you want to construct timelines and need to get only the model modifications.
 
 .. code-block:: python
 
