@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+-----------------
+- Add ability to diff HistoricalRecords (gh-244)
+
 2.2.0 (2018-07-02)
 ------------------
 - Add ability to specify alternative user_model for tracking (gh-371)
