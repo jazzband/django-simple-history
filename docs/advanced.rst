@@ -412,9 +412,11 @@ History Diffing
 
 When you have two instances of the same ``HistoricalRecord`` (such as the ``HistoricalPoll`` example above),
 you can perform diffs to see what changed. This will result in a ``ModelDelta`` containing the following properties:
- 1. A list with each field changed between the two historical records
- 2. A list with the names of all fields that incurred changes from one record to the other
- 3. the old and new records.
+
+1. A list with each field changed between the two historical records
+2. A list with the names of all fields that incurred changes from one record to the other
+3. the old and new records.
+
 This may be useful when you want to construct timelines and need to get only the model modifications.
 
 .. code-block:: python

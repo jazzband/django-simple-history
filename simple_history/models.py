@@ -430,7 +430,8 @@ class HistoricalChanges(object):
                 old_value = getattr(old_history, field.name, '')
                 new_value = getattr(self, field.name)
                 if old_value != new_value:
-                    changes.append(ModelChange(field.name, old_value, new_value))
+                    change = ModelChange(field.name, old_value, new_value)
+                    changes.append(change)
                     changed_fields.append(field.name)
 
         return ModelDelta(changes,

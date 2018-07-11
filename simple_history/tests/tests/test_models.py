@@ -560,8 +560,8 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         delta = new_record.diff_against(old_record)
         expected_change = ModelChange("question",
-                                       "what's up?",
-                                       "what's up, man")
+                                      "what's up?",
+                                      "what's up, man")
         self.assertEqual(delta.changed_fields, ['question'])
         self.assertEqual(delta.old_record, old_record)
         self.assertEqual(delta.new_record, new_record)
@@ -581,7 +581,7 @@ class HistoricalRecordsTest(TestCase):
         p.save()
         new_record, old_record = p.history.all()
         with self.assertRaises(TypeError):
-            delta = new_record.diff_against('something')
+            new_record.diff_against('something')
 
 
 class CreateHistoryModelTests(unittest.TestCase):
