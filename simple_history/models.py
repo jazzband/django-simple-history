@@ -422,7 +422,6 @@ class HistoricalChanges(object):
                             type(self),
                             type(old_history)))
 
-        model_delta_class = getattr(self, 'model_delta_class', ModelDelta)
         changes = []
         changed_fields = []
         for field in self._meta.fields:
@@ -434,10 +433,10 @@ class HistoricalChanges(object):
                     changes.append(ModelChange(field.name, old_value, new_value))
                     changed_fields.append(field.name)
 
-        return model_delta_class(changes,
-                                 changed_fields=changed_fields,
-                                 old_record=old_history,
-                                 new_record=self)
+        return ModelDelta(changes,
+                          changed_fields,
+                          old_history,
+                          self)
 
 
 class ModelChange(object):
