@@ -553,7 +553,7 @@ class HistoricalRecordsTest(TestCase):
         recent_record = poll.history.filter(question="ask questions?").get()
         self.assertIsNone(recent_record.next_record)
 
-    def test_history_diff(self):
+    def test_history_diff_includes_changed_fields(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         p.question = "what's up, man?"
         p.save()
@@ -567,6 +567,14 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.new_record, new_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
 
+    def test_history_diff_does_not_include_unchanged_fields(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        delta = new_record.diff_against(old_record)
+        self.assertNotIn('pub_date', delta.changed_fields)
+
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         p.question = "what's up, man?"
@@ -574,6 +582,7 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         with self.assertRaises(TypeError):
             delta = new_record.diff_against('something')
+
 
 class CreateHistoryModelTests(unittest.TestCase):
 
