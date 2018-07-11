@@ -53,7 +53,7 @@ class HistoricalRecords(object):
         try:
             if isinstance(bases, six.string_types):
                 raise TypeError
-            self.bases = tuple(bases)
+            self.bases = (HistoricalChanges,) + tuple(bases)
         except TypeError:
             raise TypeError("The `bases` option must be a list or a tuple.")
 
@@ -412,3 +412,44 @@ class HistoricalObjectDescriptor(object):
         values = (getattr(instance, f.attname)
                   for f in self.fields_included)
         return self.model(*values)
+
+
+class HistoricalChanges(object):
+    def diff_against(self, old_history):
+        if not isinstance(old_history, type(self)):
+            raise TypeError(("unsupported type(s) for diffing: "
+                             "'{}' and '{}'").format(
+                            type(self),
+                            type(old_history)))
+
+        changes = []
+        changed_fields = []
+        for field in self._meta.fields:
+            if hasattr(self.instance, field.name) and \
+               hasattr(old_history.instance, field.name):
+                old_value = getattr(old_history, field.name, '')
+                new_value = getattr(self, field.name)
+                if old_value != new_value:
+                    change = ModelChange(field.name, old_value, new_value)
+                    changes.append(change)
+                    changed_fields.append(field.name)
+
+        return ModelDelta(changes,
+                          changed_fields,
+                          old_history,
+                          self)
+
+
+class ModelChange(object):
+    def __init__(self, field_name, old_value, new_value):
+        self.field = field_name
+        self.old = old_value
+        self.new = new_value
+
+
+class ModelDelta(object):
+    def __init__(self, changes, changed_fields, old_record, new_record):
+        self.changes = changes
+        self.changed_fields = changed_fields
+        self.old_record = old_record
+        self.new_record = new_record
