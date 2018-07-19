@@ -1,8 +1,8 @@
 Changes
 =======
 
-Unreleased
------------------
+2.3.0 (2018-07-19)
+------------------
 - Add ability to diff HistoricalRecords (gh-244)
 
 2.2.0 (2018-07-02)
