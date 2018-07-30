@@ -64,6 +64,23 @@ third-party apps you don't have control over.  Here's an example of using
 
     register(User)
 
+If you want to separate the migrations of the historical model from those of
+the third-party model itself you can pass a module as ``app`` attribute to
+``register``. For instance, if the migrations shall live in the migrations
+folder of the package you register the model in, you could do:
+
+.. code-block:: python
+
+    register(User, app=__package__)
+
+You can pass attributes of the ``HistoricalRecords`` model directly to ``register``:
+
+.. code-block:: python
+    
+    register(User, excluded_fields=['last_login']))
+
+For a complete list of the attributes you can pass to ``register`` we refer
+to the source code.
 
 Allow tracking to be inherited
 ---------------------------------
