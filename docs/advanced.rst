@@ -73,7 +73,7 @@ folder of the package you register the model in, you could do:
 
     register(User, app=__package__)
 
-You can pass attributes of the ``HistoricalRecords`` model directly to ``register``:
+You can pass attributes of ``HistoricalRecords`` directly to ``register``:
 
 .. code-block:: python
     
