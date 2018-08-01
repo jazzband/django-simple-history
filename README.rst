@@ -20,7 +20,15 @@ django-simple-history
 
 django-simple-history stores Django model state on every create/update/delete.
 
-This app supports Django 1.11 and 2.0 and Python 2.7, or 3.4 or greater.
+This app supports the following combinations of Django and Python:
+
+==========  ==================
+  Django      Python
+==========  ==================
+1.11        2.7, 3.4, 3.5, 3.6
+2.0         3.4, 3.5, 3.6
+2.1         3.5, 3.6
+==========  ==================
 
 Getting Help
 ------------
