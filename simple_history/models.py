@@ -4,6 +4,7 @@ import copy
 import importlib
 import threading
 import uuid
+import contextlib
 
 from django.apps import apps
 from django.conf import settings
@@ -29,6 +30,13 @@ def default_get_user(request, **kwargs):
         return request.user
     except AttributeError:
         return None
+
+
+def get_remote_addr(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
 
 
 class HistoricalRecords(object):
@@ -294,6 +302,7 @@ class HistoricalRecords(object):
             'history_user': models.ForeignKey(
                 user_model, null=True, related_name=self.user_related_name,
                 on_delete=models.SET_NULL),
+            'history_remote_addr': models.GenericIPAddressField(null=True),
             'history_type': models.CharField(max_length=1, choices=(
                 ('+', _('Created')),
                 ('~', _('Changed')),
@@ -341,6 +350,7 @@ class HistoricalRecords(object):
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
+        history_remote_addr = self.get_history_remote_addr(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
 
         manager = getattr(instance, self.manager_name)
@@ -349,6 +359,7 @@ class HistoricalRecords(object):
             attrs[field.attname] = getattr(instance, field.attname)
         manager.create(history_date=history_date, history_type=history_type,
                        history_user=history_user,
+                       history_remote_addr=history_remote_addr,
                        history_change_reason=history_change_reason, **attrs)
 
     def get_history_user(self, instance):
@@ -364,6 +375,16 @@ class HistoricalRecords(object):
                 pass
 
         return self.get_user(instance=instance, request=request)
+
+    def get_history_remote_addr(self, instance):
+        """Get the modifying remote_addr from instance or middleware."""
+        with contextlib.suppress(AttributeError):
+            return instance._history_remote_addr
+
+        try:
+            return get_remote_addr(request=self.thread.request)
+        except AttributeError:
+            return None
 
 
 def transform_field(field):

@@ -103,7 +103,7 @@ class TestTrackingInheritance(TestCase):
             [
                 'id', 'history_id',
                 'history_change_reason', 'history_date', 'history_user_id',
-                'history_type',
+                'history_remote_addr', 'history_type',
             ],
         )
 
@@ -116,7 +116,7 @@ class TestTrackingInheritance(TestCase):
             [
                 'id', 'trackedconcretebase_ptr_id', 'history_id',
                 'history_change_reason', 'history_date', 'history_user_id',
-                'history_type',
+                'history_remote_addr', 'history_type',
             ],
         )
 
@@ -132,7 +132,7 @@ class TestTrackingInheritance(TestCase):
             [
                 'id', 'untrackedconcretebase_ptr_id', 'history_id',
                 'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
+                'history_user_id', 'history_remote_addr', 'history_type',
             ],
         )
 
@@ -142,7 +142,7 @@ class TestTrackingInheritance(TestCase):
             [
                 'id', 'baseinherittracking2_ptr_id', 'history_id',
                 'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
+                'history_user_id', 'history_remote_addr', 'history_type',
             ],
         )
 
@@ -152,7 +152,7 @@ class TestTrackingInheritance(TestCase):
             [
                 'id', 'baseinherittracking3_ptr_id', 'history_id',
                 'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
+                'history_user_id', 'history_remote_addr', 'history_type',
             ],
         )
 

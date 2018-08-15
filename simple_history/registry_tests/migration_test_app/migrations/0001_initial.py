@@ -31,6 +31,7 @@ class Migration(migrations.Migration):
                 ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
                 ('history_change_reason', models.CharField(max_length=100, null=True)),
                 ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
+                ('history_remote_addr', models.GenericIPAddressField(null=True)),
             ],
             options={
                 'verbose_name': 'historical yar',
