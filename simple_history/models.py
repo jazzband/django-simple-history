@@ -4,7 +4,6 @@ import copy
 import importlib
 import threading
 import uuid
-import contextlib
 
 from django.apps import apps
 from django.conf import settings
@@ -378,13 +377,13 @@ class HistoricalRecords(object):
 
     def get_history_remote_addr(self, instance):
         """Get the modifying remote_addr from instance or middleware."""
-        with contextlib.suppress(AttributeError):
-            return instance._history_remote_addr
-
         try:
-            return get_remote_addr(request=self.thread.request)
+            return instance._history_remote_addr
         except AttributeError:
-            return None
+            try:
+                return get_remote_addr(request=self.thread.request)
+            except AttributeError:
+                return None
 
 
 def transform_field(field):
