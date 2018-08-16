@@ -179,3 +179,40 @@ class MiddlewareTest(TestCase):
 
         self.assertListEqual([h.history_user_id for h in history],
                              [member1.id])
+
+    def test_remote_addr_is_set_when_x_forwarded_for_is_available(self):
+        data = {
+            'question': 'Test question',
+            'pub_date': '2010-01-01'
+        }
+        headers = {'HTTP_X_FORWARDED_FOR': '1.2.3.4'}
+        self.client.post(reverse('poll-add'), data=data, **headers)
+        polls = Poll.objects.all()
+        self.assertEqual(polls.count(), 1)
+
+        poll_history = polls.first().history.all()
+
+        self.assertListEqual([ph.history_remote_addr for ph in poll_history],
+                             ['1.2.3.4'])
+
+    def test_remote_addr_fallback_when_not_using_reverse_proxy(self):
+        """
+        Test fallback to REMOTE_ADDR header when HTTP_X_FORWARDED_FOR
+        is not available.
+        """
+        data = {
+            'question': 'Test question',
+            'pub_date': '2010-01-01'
+        }
+        headers = {
+            'HTTP_X_FORWARDED_FOR': '',
+            'REMOTE_ADDR': '4.3.2.1'
+        }
+        self.client.post(reverse('poll-add'), data=data, **headers)
+        polls = Poll.objects.all()
+        self.assertEqual(polls.count(), 1)
+
+        poll_history = polls.first().history.all()
+
+        self.assertListEqual([ph.history_remote_addr for ph in poll_history],
+                             ['4.3.2.1'])
