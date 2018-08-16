@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-01 15:47-0300\n"
-"PO-Revision-Date: 2017-06-01 15:47-0300\n"
+"POT-Creation-Date: 2018-08-16 10:29-0300\n"
+"PO-Revision-Date: 2018-08-16 10:29-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt_BR\n"
@@ -72,6 +72,10 @@ msgstr "Comentário"
 #: simple_history/templates/simple_history/object_history.html:20
 msgid "Changed by"
 msgstr "Modificado por"
+
+#: templates/simple_history/_object_history_list.html:16
+msgid "IP Address"
+msgstr "Endereço de IP"
 
 #: simple_history/templates/simple_history/object_history.html:38
 msgid "None"
