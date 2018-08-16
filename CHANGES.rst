@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+------------------
+- Add ``history_remote_addr`` to log the IP Address that made the changes
+
 2.3.0 (2018-07-19)
 ------------------
 - Add ability to diff HistoricalRecords (gh-244)
