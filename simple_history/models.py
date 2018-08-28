@@ -349,7 +349,7 @@ class HistoricalRecords(object):
         manager = getattr(instance, self.manager_name)
 
         pre_create_historical_record.send(
-            sender=manager.model.__class__, instance=instance,
+            sender=manager.model, instance=instance,
             history_date=history_date, history_user=history_user,
             history_change_reason=history_change_reason,
         )
@@ -364,7 +364,7 @@ class HistoricalRecords(object):
         )
 
         post_create_historical_record.send(
-            sender=manager.model.__class__, instance=instance,
+            sender=manager.model, instance=instance,
             history_instance=history_instance,
             history_date=history_date, history_user=history_user,
             history_change_reason=history_change_reason,
