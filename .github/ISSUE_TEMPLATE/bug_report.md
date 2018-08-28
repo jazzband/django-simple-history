@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
  - Browser (if applicable): [e.g. chrome, safari]
  - Django Simple History Version: [e.g. 1.9.1]
  - Django Version: [e.g. 1.11.11]
+ - Database Version: [e.g. PostgreSQL 10.5.0]
 
 **Additional context**
 Add any other context about the problem here.
