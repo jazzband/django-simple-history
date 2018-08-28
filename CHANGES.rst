@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+------------------
+- Add pre and post create_historical_record signals (gh-426)
+
 2.3.0 (2018-07-19)
 ------------------
 - Add ability to diff HistoricalRecords (gh-244)
