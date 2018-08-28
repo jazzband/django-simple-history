@@ -346,14 +346,14 @@ class HistoricalRecords(object):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
+        manager = getattr(instance, self.manager_name)
 
         pre_create_historical_record.send(
-            sender=self.__class__, instance=instance,
+            sender=manager.model.__class__, instance=instance,
             history_date=history_date, history_user=history_user,
             history_change_reason=history_change_reason,
         )
 
-        manager = getattr(instance, self.manager_name)
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
@@ -364,7 +364,7 @@ class HistoricalRecords(object):
         )
 
         post_create_historical_record.send(
-            sender=self.__class__, instance=instance,
+            sender=manager.model.__class__, instance=instance,
             history_instance=history_instance,
             history_date=history_date, history_user=history_user,
             history_change_reason=history_change_reason,
