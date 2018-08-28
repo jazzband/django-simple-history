@@ -20,6 +20,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor
+from .signals import (
+    pre_create_historical_record,
+    post_create_historical_record,
+)
 
 registered_models = {}
 
@@ -342,14 +346,29 @@ class HistoricalRecords(object):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
-
         manager = getattr(instance, self.manager_name)
+
+        pre_create_historical_record.send(
+            sender=manager.model, instance=instance,
+            history_date=history_date, history_user=history_user,
+            history_change_reason=history_change_reason,
+        )
+
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user,
-                       history_change_reason=history_change_reason, **attrs)
+        history_instance = manager.create(
+            history_date=history_date, history_type=history_type,
+            history_user=history_user,
+            history_change_reason=history_change_reason, **attrs
+        )
+
+        post_create_historical_record.send(
+            sender=manager.model, instance=instance,
+            history_instance=history_instance,
+            history_date=history_date, history_user=history_user,
+            history_change_reason=history_change_reason,
+        )
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""

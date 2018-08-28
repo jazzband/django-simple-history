@@ -65,6 +65,7 @@ Authors
 - Kyle Seever
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
+- Matheus Cansian (@mscansian)
 
 Background
 ==========
