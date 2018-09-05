@@ -389,7 +389,7 @@ def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
     if isinstance(field, models.AutoField):
-        field.__class__ = convert_auto_field(field)
+        field.__class__ = models.IntegerField
 
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
@@ -406,20 +406,6 @@ def transform_field(field):
         field._unique = False
         field.db_index = True
         field.serialize = True
-
-
-def convert_auto_field(field):
-    """Convert AutoField to a non-incrementing type
-
-    The historical model gets its own AutoField, so any existing one
-    must be replaced with an IntegerField.
-    """
-    connection = router.db_for_write(field.model)
-    if settings.DATABASES[connection].get('ENGINE') in \
-       ('django_mongodb_engine',):
-        # Check if AutoField is string for django-non-rel support
-        return models.TextField
-    return models.IntegerField
 
 
 class HistoricalObjectDescriptor(object):

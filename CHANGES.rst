@@ -4,6 +4,7 @@ Changes
 Unreleased
 ------------------
 - Add pre and post create_historical_record signals (gh-426)
+- Remove support for `django_mongodb_engine` when converting AutoFields
 
 2.3.0 (2018-07-19)
 ------------------

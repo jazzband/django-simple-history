@@ -14,7 +14,6 @@ from django.test import TestCase
 
 from simple_history.models import (
     HistoricalRecords,
-    convert_auto_field,
     ModelChange
 )
 from simple_history.utils import update_change_reason
@@ -776,44 +775,6 @@ class HistoryManagerTest(TestCase):
     def test_state_serialization_of_customfk(self):
         from django.db.migrations import state
         state.ModelState.from_model(HistoricalCustomFKError)
-
-
-class TestConvertAutoField(TestCase):
-    """Check what AutoFields get converted to."""
-
-    def setUp(self):
-        for field in Poll._meta.fields:
-            if isinstance(field, models.AutoField):
-                self.field = field
-                break
-
-    def test_relational(self):
-        """Relational test
-
-        Default Django ORM uses an integer-based auto field.
-        """
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=UserWarning,
-                                    message='Overriding setting DATABASES ' +
-                                            'can lead to unexpected behavior.')
-            with self.settings(DATABASES={'default': {
-                    'ENGINE': 'django.db.backends.postgresql_psycopg2'}}):
-                assert convert_auto_field(self.field) == models.IntegerField
-
-    def test_non_relational(self):
-        """Non-relational test
-
-        MongoDB uses a string-based auto field. We need to make sure
-        the converted field type is string.
-        """
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=UserWarning,
-                                    message='Overriding setting DATABASES ' +
-                                            'can lead to unexpected behavior.')
-            with self.settings(DATABASES={'default': {
-                    'ENGINE': 'django_mongodb_engine'}}):
-                assert convert_auto_field(self.field) == models.TextField
 
 
 class TestOrderWrtField(TestCase):
