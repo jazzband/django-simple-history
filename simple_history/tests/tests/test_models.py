@@ -170,6 +170,20 @@ class HistoricalRecordsTest(TestCase):
             'history_type': "-"
         })
 
+    def test_cascade_delete_history(self):
+        thames = WaterLevel.objects.create(waters="Thames", level=2.5,
+                                           date=today)
+        nile = WaterLevel.objects.create(waters="Nile", level=2.5,
+                                         date=today)
+
+        self.assertEqual(len(thames.history.all()), 1)
+        self.assertEqual(len(nile.history.all()), 1)
+
+        nile.delete()
+
+        self.assertEqual(len(thames.history.all()), 1)
+        self.assertEqual(len(nile.history.all()), 0)
+
     def test_save_without_historical_record(self):
         pizza_place = Restaurant.objects.create(name='Pizza Place', rating=3)
         pizza_place.rating = 4
