@@ -61,7 +61,7 @@ class WaterLevel(models.Model):
     level = models.IntegerField()
     date = models.DateTimeField()
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     @property
     def _history_date(self):

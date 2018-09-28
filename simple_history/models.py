@@ -44,7 +44,8 @@ class HistoricalRecords(object):
                  user_related_name='+', table_name=None, inherit=False,
                  excluded_fields=None, history_id_field=None,
                  history_change_reason_field=None,
-                 user_model=None, get_user=default_get_user):
+                 user_model=None, get_user=default_get_user,
+                 cascade_delete_history=False):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
@@ -53,6 +54,7 @@ class HistoricalRecords(object):
         self.history_change_reason_field = history_change_reason_field
         self.user_model = user_model
         self.get_user = get_user
+        self.cascade_delete_history = cascade_delete_history
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -340,7 +342,11 @@ class HistoricalRecords(object):
             self.create_historical_record(instance, created and '+' or '~')
 
     def post_delete(self, instance, **kwargs):
-        self.create_historical_record(instance, '-')
+        if self.cascade_delete_history:
+            manager = getattr(instance, self.manager_name)
+            manager.all().delete()
+        else:
+            self.create_historical_record(instance, '-')
 
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())

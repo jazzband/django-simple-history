@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add ability to cascade delete historical records when master record is deleted 
+
 2.4.0 (2018-09-20)
 ------------------
 - Add pre and post create_historical_record signals (gh-426)

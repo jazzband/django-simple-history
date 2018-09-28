@@ -424,6 +424,19 @@ If you want to save a model without a historical record, you can use the followi
     poll = Poll(question='something')
     poll.save_without_historical_record()
 
+Deleting historical record
+--------------------------
+
+In some circumstances you may want to delete all the historical records when the master record is deleted.  This can
+be accomplished by setting ``cascade_delete_history=True``.
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(cascade_delete_history=True)
+
+
 History Diffing
 -------------------
 
