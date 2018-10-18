@@ -1,11 +1,16 @@
 from __future__ import unicode_literals
 
-__version__ = '2.4.0'
+__version__ = "2.4.0"
 
 
 def register(
-        model, app=None, manager_name='history', records_class=None,
-        table_name=None, **records_config):
+    model,
+    app=None,
+    manager_name="history",
+    records_class=None,
+    table_name=None,
+    **records_config
+):
     """
     Create historical model for `model` and attach history manager to `model`.
 

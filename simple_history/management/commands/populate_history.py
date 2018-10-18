@@ -10,8 +10,10 @@ get_model = apps.get_model
 
 class Command(BaseCommand):
     args = "<app.model app.model ...>"
-    help = ("Populates the corresponding HistoricalRecords field with "
-            "the current state of all instances in a model")
+    help = (
+        "Populates the corresponding HistoricalRecords field with "
+        "the current state of all instances in a model"
+    )
 
     COMMAND_HINT = "Please specify a model or use the --auto option"
     MODEL_NOT_FOUND = "Unable to find model"
@@ -24,38 +26,37 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
-        parser.add_argument('models', nargs='*', type=str)
+        parser.add_argument("models", nargs="*", type=str)
         parser.add_argument(
-            '--auto',
-            action='store_true',
-            dest='auto',
+            "--auto",
+            action="store_true",
+            dest="auto",
             default=False,
-            help='Automatically search for models with the '
-                 'HistoricalRecords field type',
+            help="Automatically search for models with the "
+            "HistoricalRecords field type",
         )
         parser.add_argument(
-            '--batchsize',
-            action='store',
-            dest='batchsize',
+            "--batchsize",
+            action="store",
+            dest="batchsize",
             default=200,
             type=int,
-            help='Set a custom batch size when bulk inserting historical '
-                 'records.'
+            help="Set a custom batch size when bulk inserting historical " "records.",
         )
 
     def handle(self, *args, **options):
-        self.verbosity = options['verbosity']
+        self.verbosity = options["verbosity"]
 
         to_process = set()
-        model_strings = options.get('models', []) or args
+        model_strings = options.get("models", []) or args
 
         if model_strings:
             for model_pair in self._handle_model_list(*model_strings):
                 to_process.add(model_pair)
 
-        elif options['auto']:
+        elif options["auto"]:
             for model in models.registered_models.values():
-                try:    # avoid issues with mutli-table inheritance
+                try:  # avoid issues with mutli-table inheritance
                     history_model = utils.get_history_model_for_model(model)
                 except NotHistoricalModelError:
                     continue
@@ -68,7 +69,7 @@ class Command(BaseCommand):
             if self.verbosity >= 1:
                 self.stdout.write(self.COMMAND_HINT)
 
-        self._process(to_process, batch_size=options['batchsize'])
+        self._process(to_process, batch_size=options["batchsize"])
 
     def _handle_model_list(self, *args):
         failing = False
@@ -95,13 +96,15 @@ class Command(BaseCommand):
             except LookupError:
                 model = None
         if not model:
-            raise ValueError(self.MODEL_NOT_FOUND +
-                             " < {model} >\n".format(model=natural_key))
+            raise ValueError(
+                self.MODEL_NOT_FOUND + " < {model} >\n".format(model=natural_key)
+            )
         try:
             history_model = utils.get_history_model_for_model(model)
         except NotHistoricalModelError:
-            raise ValueError(self.MODEL_NOT_HISTORICAL +
-                             " < {model} >\n".format(model=natural_key))
+            raise ValueError(
+                self.MODEL_NOT_HISTORICAL + " < {model} >\n".format(model=natural_key)
+            )
         return model, history_model
 
     def _bulk_history_create(self, model, batch_size):
@@ -116,15 +119,17 @@ class Command(BaseCommand):
         history = utils.get_history_manager_for_model(model)
         if self.verbosity >= 1:
             self.stdout.write(
-                "Starting bulk creating history models for {} instances {}-{}"
-                .format(model, 0, batch_size)
+                "Starting bulk creating history models for {} instances {}-{}".format(
+                    model, 0, batch_size
+                )
             )
 
-        iterator_kwargs = {'chunk_size': batch_size} \
-            if django.VERSION >= (2, 0, 0) else {}
-        for index, instance in enumerate(model._default_manager.iterator(
-            **iterator_kwargs
-        )):
+        iterator_kwargs = (
+            {"chunk_size": batch_size} if django.VERSION >= (2, 0, 0) else {}
+        )
+        for index, instance in enumerate(
+            model._default_manager.iterator(**iterator_kwargs)
+        ):
             # Can't Just pass batch_size to bulk_create as this can lead to
             # Out of Memory Errors as we load too many models into memory after
             # creating them. So we only keep batch_size worth of models in
@@ -138,8 +143,9 @@ class Command(BaseCommand):
                 if self.verbosity >= 1:
                     self.stdout.write(
                         "Finished bulk creating history models for {} "
-                        "instances {}-{}, starting next {}"
-                        .format(model, index - batch_size, index, batch_size)
+                        "instances {}-{}, starting next {}".format(
+                            model, index - batch_size, index, batch_size
+                        )
                     )
 
             instances.append(instance)
@@ -151,17 +157,14 @@ class Command(BaseCommand):
     def _process(self, to_process, batch_size):
         for model, history_model in to_process:
             if history_model.objects.count():
-                self.stderr.write("{msg} {model}\n".format(
-                    msg=self.EXISTING_HISTORY_FOUND,
-                    model=model,
-                ))
+                self.stderr.write(
+                    "{msg} {model}\n".format(
+                        msg=self.EXISTING_HISTORY_FOUND, model=model
+                    )
+                )
                 continue
             if self.verbosity >= 1:
-                self.stdout.write(self.START_SAVING_FOR_MODEL.format(
-                    model=model
-                ))
+                self.stdout.write(self.START_SAVING_FOR_MODEL.format(model=model))
             self._bulk_history_create(model, batch_size)
             if self.verbosity >= 1:
-                self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(
-                    model=model
-                ))
+                self.stdout.write(self.DONE_SAVING_FOR_MODEL.format(model=model))

@@ -26,6 +26,7 @@ class PrePostCreateHistoricalRecordSignalTest(TestCase):
             self.signal_was_called = True
             self.signal_instance = instance
             self.signal_sender = sender
+
         pre_create_historical_record.connect(handler)
 
         p = Poll(question="what's up?", pub_date=today)
@@ -41,6 +42,7 @@ class PrePostCreateHistoricalRecordSignalTest(TestCase):
             self.signal_instance = instance
             self.signal_history_instance = history_instance
             self.signal_sender = sender
+
         post_create_historical_record.connect(handler)
 
         p = Poll(question="what's up?", pub_date=today)

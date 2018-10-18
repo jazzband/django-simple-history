@@ -39,8 +39,10 @@ class HistoryManager(models.Manager):
         Returns the most recent copy of the instance available in the history.
         """
         if not self.instance:
-            raise TypeError("Can't use most_recent() without a %s instance." %
-                            self.model._meta.object_name)
+            raise TypeError(
+                "Can't use most_recent() without a %s instance."
+                % self.model._meta.object_name
+            )
         tmp = []
         for field in self.instance._meta.fields:
             if isinstance(field, models.ForeignKey):
@@ -51,8 +53,9 @@ class HistoryManager(models.Manager):
         try:
             values = self.get_queryset().values_list(*fields)[0]
         except IndexError:
-            raise self.instance.DoesNotExist("%s has no historical record." %
-                                             self.instance._meta.object_name)
+            raise self.instance.DoesNotExist(
+                "%s has no historical record." % self.instance._meta.object_name
+            )
         return self.instance.__class__(*values)
 
     def as_of(self, date):
@@ -69,24 +72,24 @@ class HistoryManager(models.Manager):
             history_obj = queryset[0]
         except IndexError:
             raise self.instance.DoesNotExist(
-                "%s had not yet been created." %
-                self.instance._meta.object_name)
-        if history_obj.history_type == '-':
+                "%s had not yet been created." % self.instance._meta.object_name
+            )
+        if history_obj.history_type == "-":
             raise self.instance.DoesNotExist(
-                "%s had already been deleted." %
-                self.instance._meta.object_name)
+                "%s had already been deleted." % self.instance._meta.object_name
+            )
         return history_obj.instance
 
     def _as_of_set(self, date):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
         queryset = self.get_queryset().filter(history_date__lte=date)
-        for original_pk in set(
-                queryset.order_by().values_list(pk_attr, flat=True)):
+        for original_pk in set(queryset.order_by().values_list(pk_attr, flat=True)):
             changes = queryset.filter(**{pk_attr: original_pk})
-            last_change = changes.latest('history_date')
-            if changes.filter(history_date=last_change.history_date,
-                              history_type='-').exists():
+            last_change = changes.latest("history_date")
+            if changes.filter(
+                history_date=last_change.history_date, history_type="-"
+            ).exists():
                 continue
             yield last_change.instance
 
@@ -95,14 +98,17 @@ class HistoryManager(models.Manager):
 
         historical_instances = [
             self.model(
-                history_date=getattr(instance, '_history_date', now()),
-                history_user=getattr(instance, '_history_user', None),
+                history_date=getattr(instance, "_history_date", now()),
+                history_user=getattr(instance, "_history_user", None),
                 **{
                     field.attname: getattr(instance, field.attname)
                     for field in instance._meta.fields
                     if field.name not in self.model._history_excluded_fields
                 }
-            ) for instance in objs]
+            )
+            for instance in objs
+        ]
 
-        return self.model.objects.bulk_create(historical_instances,
-                                              batch_size=batch_size)
+        return self.model.objects.bulk_create(
+            historical_instances, batch_size=batch_size
+        )
