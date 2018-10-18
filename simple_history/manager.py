@@ -100,6 +100,8 @@ class HistoryManager(models.Manager):
             self.model(
                 history_date=getattr(instance, "_history_date", now()),
                 history_user=getattr(instance, "_history_user", None),
+                history_change_reason=getattr(instance, "changeReason", ""),
+                history_type="+",
                 **{
                     field.attname: getattr(instance, field.attname)
                     for field in instance._meta.fields

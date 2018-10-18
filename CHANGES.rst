@@ -2,8 +2,14 @@ Changes
 =======
 
 Unreleased
-----------
-- Add ability to cascade delete historical records when master record is deleted 
+-----------
+- Add `'+'` as the `history_type` for each instance in `bulk_history_create` (gh-449)
+- Add support for  `history_change_reason` for each instance in `bulk_history_create` (gh-449)
+
+2.5.0 (2018-10-18)
+------------------
+- Add ability to cascade delete historical records when master record is deleted (gh-440)
+- Added Russian localization (gh-441)
 
 2.4.0 (2018-09-20)
 ------------------

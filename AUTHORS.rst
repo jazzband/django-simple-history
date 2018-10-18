@@ -40,6 +40,8 @@ Authors
 - Marty Alchin
 - Mauricio de Abreu Antunes
 - Micah Denbraver
+- Miguel Vargas
+- Nianpeng Li
 - Phillip Marshall
 - Rajesh Pappula
 - Roberto Aguilar
