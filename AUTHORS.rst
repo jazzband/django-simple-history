@@ -66,6 +66,7 @@ Authors
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
 - Matheus Cansian (@mscansian)
+- James Muranga (@jamesmura)
 
 Background
 ==========
