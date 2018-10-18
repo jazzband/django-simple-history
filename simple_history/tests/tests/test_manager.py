@@ -104,10 +104,25 @@ class BulkHistoryCreateTestCase(TestCase):
         self.assertQuerysetEqual(Poll.history.order_by('question'), [
             'Question 1', 'Question 2', 'Question 3', 'Question 4'
         ], attrgetter('question'))
+        self.assertTrue(
+            all([history.history_type == '+' for history in Poll.history.all()])
+        )
 
         created = Poll.history.bulk_create([])
         self.assertEqual(created, [])
         self.assertEqual(Poll.history.count(), 4)
+
+    def test_bulk_history_create_with_change_reason(self):
+        for poll in self.data:
+            poll.changeReason = 'reason'
+
+        Poll.history.bulk_history_create(self.data)
+
+        self.assertTrue(
+            all([history.history_change_reason == 'reason'
+                 for history in Poll.history.all()])
+        )
+
 
     def test_bulk_history_create_on_objs_without_ids(self):
         self.data = [
