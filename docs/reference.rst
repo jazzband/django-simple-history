@@ -31,6 +31,18 @@ history:
     >>> Poll.history.count()
     1000
 
+If you want to specify a change reason for each record in the bulk create, you
+can add `changeReason` on each instance:
+
+.. code-block:: pycon
+
+    >>> for poll in data:
+            poll.changeReason = 'reason'
+    >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
+    >>> Poll.history.get(id=data[0].id).history_change_reason
+    'reason'
+
+
 QuerySet Updates with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Unlike with ``bulk_create``, `queryset updates`_ perform an SQL update query on
