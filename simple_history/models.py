@@ -8,6 +8,7 @@ import uuid
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.db import models, router
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
@@ -20,7 +21,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor
+from .signals import (
+    pre_create_historical_record,
+    post_create_historical_record,
+)
 
+User = get_user_model()
 registered_models = {}
 
 
@@ -45,7 +51,8 @@ class HistoricalRecords(object):
                  user_related_name='+', table_name=None, inherit=False,
                  excluded_fields=None, history_id_field=None,
                  history_change_reason_field=None,
-                 user_model=None, get_user=default_get_user):
+                 user_model=None, get_user=default_get_user,
+                 cascade_delete_history=False):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
@@ -54,6 +61,7 @@ class HistoricalRecords(object):
         self.history_change_reason_field = history_change_reason_field
         self.user_model = user_model
         self.get_user = get_user
+        self.cascade_delete_history = cascade_delete_history
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -219,9 +227,7 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = self.user_model or getattr(
-            settings, 'AUTH_USER_MODEL', 'auth.User'
-        )
+        user_model = self.user_model or User
 
         def revert_url(self):
             """URL for this change in the default admin site."""
@@ -344,22 +350,41 @@ class HistoricalRecords(object):
             self.create_historical_record(instance, created and '+' or '~')
 
     def post_delete(self, instance, **kwargs):
-        self.create_historical_record(instance, '-')
+        if self.cascade_delete_history:
+            manager = getattr(instance, self.manager_name)
+            manager.all().delete()
+        else:
+            self.create_historical_record(instance, '-')
 
     def create_historical_record(self, instance, history_type):
         history_date = getattr(instance, '_history_date', now())
         history_user = self.get_history_user(instance)
         history_remote_addr = self.get_history_remote_addr(instance)
         history_change_reason = getattr(instance, 'changeReason', None)
-
         manager = getattr(instance, self.manager_name)
+
+        pre_create_historical_record.send(
+            sender=manager.model, instance=instance,
+            history_date=history_date, history_user=history_user,
+            history_change_reason=history_change_reason,
+        )
+
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
-        manager.create(history_date=history_date, history_type=history_type,
-                       history_user=history_user,
-                       history_remote_addr=history_remote_addr,
-                       history_change_reason=history_change_reason, **attrs)
+        history_instance = manager.create(
+            history_date=history_date, history_type=history_type,
+            history_user=history_user,
+            history_remote_addr=history_remote_addr,
+            history_change_reason=history_change_reason, **attrs
+        )
+
+        post_create_historical_record.send(
+            sender=manager.model, instance=instance,
+            history_instance=history_instance,
+            history_date=history_date, history_user=history_user,
+            history_change_reason=history_change_reason,
+        )
 
     def get_history_user(self, instance):
         """Get the modifying user from instance or middleware."""
@@ -390,7 +415,7 @@ def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
     if isinstance(field, models.AutoField):
-        field.__class__ = convert_auto_field(field)
+        field.__class__ = models.IntegerField
 
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
@@ -407,20 +432,6 @@ def transform_field(field):
         field._unique = False
         field.db_index = True
         field.serialize = True
-
-
-def convert_auto_field(field):
-    """Convert AutoField to a non-incrementing type
-
-    The historical model gets its own AutoField, so any existing one
-    must be replaced with an IntegerField.
-    """
-    connection = router.db_for_write(field.model)
-    if settings.DATABASES[connection].get('ENGINE') in \
-       ('django_mongodb_engine',):
-        # Check if AutoField is string for django-non-rel support
-        return models.TextField
-    return models.IntegerField
 
 
 class HistoricalObjectDescriptor(object):

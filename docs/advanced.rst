@@ -424,6 +424,19 @@ If you want to save a model without a historical record, you can use the followi
     poll = Poll(question='something')
     poll.save_without_historical_record()
 
+Deleting historical record
+--------------------------
+
+In some circumstances you may want to delete all the historical records when the master record is deleted.  This can
+be accomplished by setting ``cascade_delete_history=True``.
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(cascade_delete_history=True)
+
+
 History Diffing
 -------------------
 
@@ -446,3 +459,23 @@ This may be useful when you want to construct timelines and need to get only the
     delta = new_record.diff_against(old_record)
     for change in delta.changes:
         print("{} changed from {} to {}".format(change.field, change.old, change.new))
+
+Using signals
+------------------------------------
+django-simple-history includes signals that helps you provide custom behaviour when saving a historical record. If you want to connect the signals you can do so using the following code:
+
+.. code-block:: python
+
+    from django.dispatch import receiver
+    from simple_history.signals import (
+        pre_create_historical_record,
+        post_create_historical_record
+    )
+
+    @receiver(pre_create_historical_record)
+    def pre_create_historical_record(sender, instance, **kwargs):
+        print("Sent before saving historical record")
+
+    @receiver(pre_create_historical_record)
+        def post_create_historical_record(sender, instance, history_instance, **kwargs):
+            print("Sent after saving historical record")

@@ -2,8 +2,14 @@ Changes
 =======
 
 Unreleased
-------------------
+- Add ability to cascade delete historical records when master record is deleted 
 - Add ``history_remote_addr`` to log the IP Address that made the changes
+
+2.4.0 (2018-09-20)
+------------------
+- Add pre and post create_historical_record signals (gh-426)
+- Remove support for `django_mongodb_engine` when converting AutoFields (gh-432)
+- Add support for Django 2.1 (gh-418)
 
 2.3.0 (2018-07-19)
 ------------------
