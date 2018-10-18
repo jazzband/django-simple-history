@@ -11,7 +11,7 @@ Django Simple History provides utility functions to work around this.
 
 Bulk Creating a Model with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- As of Django Simple History 2.2.0, we can use the utility function
+As of Django Simple History 2.2.0, we can use the utility function
 ``bulk_create_with_history`` in order to bulk create objects while saving their
 history:
 
