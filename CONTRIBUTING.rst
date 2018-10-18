@@ -63,3 +63,12 @@ To run tox and generate an HTML code coverage report (available in the
 To quickly run the tests against a single version of Python and Django (note: you must ``pip install django`` beforehand)::
 
     python setup.py test
+
+Code Formatting
+---------------
+We make use of black for code formatting.
+.._installation: https://black.readthedocs.io/en/stable/installation_and_usage.html
+
+Once it is installed you can make sure the code is properly formatted by running
+
+    make format
