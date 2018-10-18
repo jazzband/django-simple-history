@@ -2,7 +2,7 @@ Changes
 =======
 
 2.5.0 (2018-10-18)
-----------
+------------------
 - Add ability to cascade delete historical records when master record is deleted (gh-440)
 - Added Russian localization (gh-441)
 
