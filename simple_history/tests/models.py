@@ -535,5 +535,6 @@ class CharFieldChangeReasonModel(models.Model):
 
 class CustomNameModel(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    history = HistoricalRecords(custom_model_name=
-                                'MyHistoricalCustomNameModel')
+    history = HistoricalRecords(
+        custom_model_name='MyHistoricalCustomNameModel'
+    )
