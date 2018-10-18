@@ -628,14 +628,18 @@ class CreateHistoryModelTests(unittest.TestCase):
                       "exception.")
 
     def test_create_history_model_with_custom_model_name(self):
-        records = HistoricalRecords(custom_model_name='MyHistoricalBookcase')
-        records.module = Bookcase.__module__
-        try:
-            book_case_history = records.create_history_model(Bookcase, False)
-        except Exception:
-            self.fail("SimpleHistory should handle foreign keys to one to one"
-                      "fields to char fields without throwing an exception.")
-        self.assertEqual(book_case_history.__name__, 'MyHistoricalBookcase')
+        records = HistoricalRecords(custom_model_name='MyHistoricalCountry')
+        records.module = Country.__module__
+        country_history = records.create_history_model(Country, False)
+        self.assertEqual(country_history.__name__, 'MyHistoricalCountry')
+
+    def test_instantiate_history_model_with_custom_model_name(self):
+        records = HistoricalRecords(custom_model_name='MyHistoricalCountry')
+        records.module = Country.__module__
+        country_history = records.create_history_model(Country, False)
+        historical_country = country_history()
+        self.assertEqual(historical_country.__class__.__name__,
+                         'MyHistoricalCountry')
 
 
 class AppLabelTest(TestCase):

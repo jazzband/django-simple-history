@@ -153,10 +153,8 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs['Meta'].db_table = self.table_name
-        if self.custom_model_name:
-            name = self.custom_model_name
-        else:
-            name = 'Historical%s' % model._meta.object_name
+        name = self.custom_model_name if self.custom_model_name is not None \
+            else 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
