@@ -51,6 +51,7 @@ Authors
 - Ross Rogers
 - Steven Klass
 - Steeve Chailloux
+- Tommy Beadle (@tbeadle)
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
