@@ -627,6 +627,16 @@ class CreateHistoryModelTests(unittest.TestCase):
                       "fields to one to one fields without throwing an "
                       "exception.")
 
+    def test_create_history_model_with_custom_model_name(self):
+        records = HistoricalRecords(custom_model_name='MyHistoricalBookcase')
+        records.module = Bookcase.__module__
+        try:
+            book_case_history = records.create_history_model(Bookcase, False)
+        except Exception:
+            self.fail("SimpleHistory should handle foreign keys to one to one"
+                      "fields to char fields without throwing an exception.")
+        self.assertEqual(book_case_history.__name__, 'MyHistoricalBookcase')
+
 
 class AppLabelTest(TestCase):
     def get_table_name(self, manager):
