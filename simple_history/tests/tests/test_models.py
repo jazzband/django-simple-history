@@ -34,6 +34,7 @@ from ..models import (
     Contact,
     ContactRegister,
     Country,
+    CustomNameModel,
     Document,
     Employee,
     ExternalModel1,
@@ -627,19 +628,16 @@ class CreateHistoryModelTests(unittest.TestCase):
                       "fields to one to one fields without throwing an "
                       "exception.")
 
-    def test_create_history_model_with_custom_model_name(self):
-        records = HistoricalRecords(custom_model_name='MyHistoricalCountry')
-        records.module = Country.__module__
-        country_history = records.create_history_model(Country, False)
-        self.assertEqual(country_history.__name__, 'MyHistoricalCountry')
-
     def test_instantiate_history_model_with_custom_model_name(self):
-        records = HistoricalRecords(custom_model_name='MyHistoricalCountry')
-        records.module = Country.__module__
-        country_history = records.create_history_model(Country, False)
-        historical_country = country_history()
-        self.assertEqual(historical_country.__class__.__name__,
-                         'MyHistoricalCountry')
+        try:
+            from ..models import MyHistoricalCustomNameModel
+        except ImportError:
+            self.fail("MyHistoricalCustomNameModel is in wrong module")
+        historical_model = MyHistoricalCustomNameModel()
+        self.assertEqual(historical_model.__class__.__name__,
+                         'MyHistoricalCustomNameModel')
+        self.assertEqual(historical_model._meta.db_table,
+                         'tests_myhistoricalcustomnamemodel')
 
 
 class AppLabelTest(TestCase):
