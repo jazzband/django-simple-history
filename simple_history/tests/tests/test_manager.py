@@ -105,7 +105,8 @@ class BulkHistoryCreateTestCase(TestCase):
             'Question 1', 'Question 2', 'Question 3', 'Question 4'
         ], attrgetter('question'))
         self.assertTrue(
-            all([history.history_type == '+' for history in Poll.history.all()])
+            all([history.history_type == '+'
+                 for history in Poll.history.all()])
         )
 
         created = Poll.history.bulk_create([])
@@ -122,7 +123,6 @@ class BulkHistoryCreateTestCase(TestCase):
             all([history.history_change_reason == 'reason'
                  for history in Poll.history.all()])
         )
-
 
     def test_bulk_history_create_on_objs_without_ids(self):
         self.data = [

@@ -39,7 +39,7 @@ can add `changeReason` on each instance:
     >>> for poll in data:
             poll.changeReason = 'reason'
     >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
-    >>> Poll.objects.get(id=data[0].id).history_change_reason
+    >>> Poll.history.get(id=data[0].id).history_change_reason
     'reason'
 
 
