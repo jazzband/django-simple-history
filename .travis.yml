@@ -18,7 +18,6 @@ install:
   - pip install -U flake8
   - pip install -U $DJANGO
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install black; fi
-  - pip install black
   - pip freeze
 
 script:
