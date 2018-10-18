@@ -17,10 +17,12 @@ install:
   - pip install -U coverage codecov
   - pip install -U flake8
   - pip install -U $DJANGO
+  - pip install black
   - pip freeze
 
 script:
   - flake8 simple_history
+  - black --check simple_history
   - coverage run setup.py test
 
 matrix:
