@@ -5,6 +5,7 @@ Unreleased
 -----------
 - Add `'+'` as the `history_type` for each instance in `bulk_history_create` (gh-449)
 - Add support for  `history_change_reason` for each instance in `bulk_history_create` (gh-449)
+- Add `history_change_reason` in the history list view under the  `Change reason` display name
 
 2.5.0 (2018-10-18)
 ------------------

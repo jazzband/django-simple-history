@@ -71,12 +71,17 @@ class AdminSiteTest(WebTest):
         self.assertEqual(model_name, 'customuser')
         self.login()
         poll = Poll(question="why?", pub_date=today)
+        poll.changeReason = 'A random test reason'
         poll._history_user = self.user
         poll.save()
+
         response = self.app.get(get_history_url(poll))
         self.assertIn(get_history_url(poll, 0), response.unicode_normal_body)
         self.assertIn("Poll object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
+        self.assertIn("Changed by", response.unicode_normal_body)
+        self.assertIn("Change reason", response.unicode_normal_body)
+        self.assertIn("A random test reason", response.unicode_normal_body)
         self.assertIn(self.user.username, response.unicode_normal_body)
 
     def test_history_list_custom_fields(self):
