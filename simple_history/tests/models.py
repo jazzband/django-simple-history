@@ -59,6 +59,34 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse('poll-detail', kwargs={'pk': self.pk})
 
 
+class CustomAttrNameForeignKey(models.ForeignKey):
+    def __init__(self, *args, **kwargs):
+        self.attr_name = kwargs.pop("attr_name", None)
+        super(CustomAttrNameForeignKey, self).__init__(*args, **kwargs)
+
+    def get_attname(self):
+        return self.attr_name or super(
+            CustomAttrNameForeignKey, self
+        ).get_attname()
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(
+            CustomAttrNameForeignKey, self
+        ).deconstruct()
+        if self.attr_name:
+            kwargs["attr_name"] = self.attr_name
+        return name, path, args, kwargs
+
+
+class ModelWithCustomAttrForeignKey(models.Model):
+    poll = CustomAttrNameForeignKey(
+        Poll,
+        models.CASCADE,
+        attr_name='custom_poll',
+    )
+    history = HistoricalRecords()
+
+
 class Temperature(models.Model):
     location = models.CharField(max_length=200)
     temperature = models.IntegerField()
