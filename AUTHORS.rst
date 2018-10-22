@@ -3,6 +3,9 @@ Maintainers
 - Trey Hunner
 - Micah Denbraver
 - Ross Mechanic
+- Brian Armstrong
+- Kyle Seever
+- David Grochowksi
 
 Authors
 =======
