@@ -68,6 +68,7 @@ Authors
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
 - Matheus Cansian (@mscansian)
+- Jim Gomez
 
 Background
 ==========
