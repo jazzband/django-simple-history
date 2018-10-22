@@ -4,12 +4,10 @@ import copy
 import importlib
 import threading
 import uuid
-
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.db import models, router
+from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
 from django.urls import reverse
@@ -21,12 +19,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor
-from .signals import (
-    pre_create_historical_record,
-    post_create_historical_record,
-)
+from .signals import (post_create_historical_record, pre_create_historical_record)
 
-User = get_user_model()
 registered_models = {}
 
 
@@ -220,7 +214,9 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = self.user_model or User
+        user_model = self.user_model or getattr(
+            settings, 'AUTH_USER_MODEL', 'auth.User'
+        )
 
         def revert_url(self):
             """URL for this change in the default admin site."""
