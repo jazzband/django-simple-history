@@ -531,3 +531,10 @@ class UserTextFieldChangeReasonModel(models.Model):
 class CharFieldChangeReasonModel(models.Model):
     greeting = models.CharField(max_length=100)
     history = HistoricalRecords()
+
+
+class CustomNameModel(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    history = HistoricalRecords(
+        custom_model_name='MyHistoricalCustomNameModel'
+    )

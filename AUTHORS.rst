@@ -69,6 +69,7 @@ Authors
 - Jonathan Zvesper (@zvesp)
 - Matheus Cansian (@mscansian)
 - Jim Gomez
+- Hanyin Zhang
 
 Background
 ==========

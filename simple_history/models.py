@@ -43,7 +43,7 @@ class HistoricalRecords(object):
                  excluded_fields=None, history_id_field=None,
                  history_change_reason_field=None,
                  user_model=None, get_user=default_get_user,
-                 cascade_delete_history=False):
+                 cascade_delete_history=False, custom_model_name=None):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
         self.table_name = table_name
@@ -53,6 +53,7 @@ class HistoricalRecords(object):
         self.user_model = user_model
         self.get_user = get_user
         self.cascade_delete_history = cascade_delete_history
+        self.custom_model_name = custom_model_name
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -150,7 +151,8 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str('Meta'), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs['Meta'].db_table = self.table_name
-        name = 'Historical%s' % model._meta.object_name
+        name = self.custom_model_name if self.custom_model_name is not None \
+            else 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(
             type(str(name), self.bases, attrs))
