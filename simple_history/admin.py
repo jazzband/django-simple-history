@@ -107,7 +107,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             return super(SimpleHistoryAdmin, self).response_change(
                 request, obj)
 
-    def history_form_view(self, request, object_id, version_id, extra_context=None):
+    def history_form_view(self, request, object_id, version_id,
+                          extra_context=None):
         request.current_app = self.admin_site.name
         original_opts = self.model._meta
         model = getattr(
