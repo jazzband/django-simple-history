@@ -433,7 +433,8 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         with patch('simple_history.admin.render') as mock_render:
-            admin.history_form_view(request, poll.id, history.pk, extra_context=None)
+            admin.history_form_view(request, poll.id, history.pk,
+                                    extra_context=None)
 
         context = {
             # Verify this is set for original object
@@ -490,7 +491,8 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
-                admin.history_form_view(request, poll.id, history.pk, extra_context=None)
+                admin.history_form_view(request, poll.id, history.pk,
+                                        extra_context=None)
 
         context = {
             # Verify this is set for history object not poll object
@@ -548,7 +550,8 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', False):
-                admin.history_form_view(request, poll.id, history.pk, extra_context=None)
+                admin.history_form_view(request, poll.id, history.pk,
+                                        extra_context=None)
 
         context = {
             # Verify this is set for history object not poll object
@@ -605,7 +608,8 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
-                admin.history_form_view(request, obj.id, history.pk, extra_context=None)
+                admin.history_form_view(request, obj.id, history.pk,
+                                        extra_context=None)
 
         context = {
             # Verify this is set for history object
