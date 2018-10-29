@@ -1,0 +1,1 @@
+default_app_config = 'simple_history.tests.apps.TestsConfig'

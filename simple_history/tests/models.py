@@ -4,11 +4,13 @@ import uuid
 
 from django.apps import apps
 from django.conf import settings
+from django.dispatch import receiver
 from django.db import models
 from django.urls import reverse
 
 from simple_history import register
 from simple_history.models import HistoricalRecords
+from simple_history.signals import pre_create_historical_record
 from .custom_user.models import CustomUser as User
 from .external.models.model1 import AbstractExternal
 
@@ -38,6 +40,21 @@ class PollWithExcludedFKField(models.Model):
     place = models.ForeignKey('Place', on_delete=models.CASCADE)
 
     history = HistoricalRecords(excluded_fields=['place'])
+
+
+class IPAddressHistoricalModel(models.Model):
+    ip_address = models.GenericIPAddressField()
+
+    class Meta:
+        abstract = True
+
+
+class PollWithHistoricalIPAddress(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+    place = models.ForeignKey('Place', on_delete=models.CASCADE)
+
+    history = HistoricalRecords(bases=[IPAddressHistoricalModel])
 
 
 class Temperature(models.Model):

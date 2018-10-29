@@ -356,20 +356,25 @@ class HistoricalRecords(object):
         history_change_reason = getattr(instance, 'changeReason', None)
         manager = getattr(instance, self.manager_name)
 
+        attrs = {}
+        for field in self.fields_included(instance):
+            attrs[field.attname] = getattr(instance, field.attname)
+
+        history_instance = manager.model(
+            history_date=history_date, history_type=history_type,
+            history_user=history_user,
+            history_change_reason=history_change_reason,
+            **attrs
+        )
+
         pre_create_historical_record.send(
             sender=manager.model, instance=instance,
             history_date=history_date, history_user=history_user,
             history_change_reason=history_change_reason,
+            history_instance=history_instance,
         )
 
-        attrs = {}
-        for field in self.fields_included(instance):
-            attrs[field.attname] = getattr(instance, field.attname)
-        history_instance = manager.create(
-            history_date=history_date, history_type=history_type,
-            history_user=history_user,
-            history_change_reason=history_change_reason, **attrs
-        )
+        history_instance.save()
 
         post_create_historical_record.send(
             sender=manager.model, instance=instance,

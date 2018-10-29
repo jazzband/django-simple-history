@@ -76,7 +76,7 @@ folder of the package you register the model in, you could do:
 You can pass attributes of ``HistoricalRecords`` directly to ``register``:
 
 .. code-block:: python
-    
+
     register(User, excluded_fields=['last_login']))
 
 For a complete list of the attributes you can pass to ``register`` we refer
@@ -361,6 +361,55 @@ And you don't want to store the changes for the field ``pub_date``, it is necess
 
 By default, django-simple-history stores the changes for all fields in the model.
 
+Adding additional fields to historical models
+---------------------------------------------
+
+Sometimes it is useful to be able to add additional fields to historical models that do not exist on the
+source model. This is possible by combining the ``bases`` functionality with the ``pre_create_historical_record`` signal.
+
+.. code-block:: python
+
+    # in models.py
+    class IPAddressHistoricalModel(models.Model):
+        """
+        Abstract model for history models tracking the IP address.
+        """
+        ip_address = models.GenericIPAddressField(_('IP address'))
+
+        class Meta:
+            abstract = True
+
+
+    class PollWithExtraFields(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+        history = HistoricalRecords(bases=[IPAddressHistoricalModel,]
+
+
+.. code-block:: python
+
+    # define your signal handler/callback anywhere outside of models.py
+    def add_history_ip_address(sender, **kwargs):
+        instance = kwargs['instance']
+        history_instance = kwargs['history_instance']
+        history_instance.ip_address = instance.request.META['REMOTE_ADDR']
+
+
+.. code-block:: python
+
+    # in apps.py
+    class TestsConfig(AppConfig):
+        def ready(self):
+            from simple_history.tests.models \
+                import HistoricalPollWithExtraFields
+
+            pre_create_historical_record.connect(
+                add_history_ip_address,
+                sender=HistoricalPollWithExtraFields
+            )
+
+
 Change Reason
 -------------
 
@@ -462,7 +511,20 @@ This may be useful when you want to construct timelines and need to get only the
 
 Using signals
 ------------------------------------
-django-simple-history includes signals that helps you provide custom behaviour when saving a historical record. If you want to connect the signals you can do so using the following code:
+django-simple-history includes signals that helps you provide custom behaviour when saving a historical record. Arguments passed to the signals include the following:
+
+instance
+    The source model instance being saved
+history_instance
+    The corresponding history record
+history_date
+    Datetime of the history record's creation
+history_change_reason
+    Freetext description of the reason for the change
+history_user
+    The user that instigated the change
+
+To connect the signals to your callbacks, you can use the @receiver decorator:
 
 .. code-block:: python
 
@@ -473,9 +535,9 @@ django-simple-history includes signals that helps you provide custom behaviour w
     )
 
     @receiver(pre_create_historical_record)
-    def pre_create_historical_record(sender, instance, **kwargs):
+    def pre_create_historical_record_callback(sender, **kwargs):
         print("Sent before saving historical record")
 
-    @receiver(pre_create_historical_record)
-        def post_create_historical_record(sender, instance, history_instance, **kwargs):
-            print("Sent after saving historical record")
+    @receiver(post_create_historical_record)
+    def post_create_historical_record_callback(sender, **kwargs):
+        print("Sent after saving historical record")

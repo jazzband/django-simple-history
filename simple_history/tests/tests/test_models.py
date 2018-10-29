@@ -50,6 +50,7 @@ from ..models import (
     Place,
     Poll,
     PollInfo,
+    PollWithHistoricalIPAddress,
     PollWithExcludeFields,
     PollWithExcludedFKField,
     Province,
@@ -1048,3 +1049,24 @@ class ExcludeForeignKeyTest(TestCase):
         historical = self.get_first_historical()
         instance = historical.instance
         self.assertEqual(instance.place, new_place)
+
+
+class ExtraFieldsTestCase(TestCase):
+    def test_extra_ip_address_field_populated_on_save(self):
+        poll = PollWithHistoricalIPAddress.objects.create(
+            question="Will it blend?", pub_date=today,
+            place=Place.objects.create(name="Here")
+        )
+
+        poll_history = poll.history.order_by('history_date')[0]
+
+        self.assertEquals('127.0.0.1', poll_history.ip_address)
+
+    def test_extra_ip_address_field_not_present_on_poll(self):
+        poll = PollWithHistoricalIPAddress.objects.create(
+            question="Will it blend?", pub_date=today,
+            place=Place.objects.create(name="Here")
+        )
+
+        with self.assertRaises(AttributeError):
+            poll.ip_address
