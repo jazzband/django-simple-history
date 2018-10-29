@@ -433,7 +433,7 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         with patch('simple_history.admin.render') as mock_render:
-            admin.history_form_view(request, poll.id, history.pk)
+            admin.history_form_view(request, poll.id, history.pk, extra_context=None)
 
         context = {
             # Verify this is set for original object
@@ -468,6 +468,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
+        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -488,7 +489,7 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
-                admin.history_form_view(request, poll.id, history.pk)
+                admin.history_form_view(request, poll.id, history.pk, extra_context=None)
 
         context = {
             # Verify this is set for history object not poll object
@@ -524,6 +525,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
+        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -544,7 +546,7 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', False):
-                admin.history_form_view(request, poll.id, history.pk)
+                admin.history_form_view(request, poll.id, history.pk, extra_context=None)
 
         context = {
             # Verify this is set for history object not poll object
@@ -579,6 +581,7 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
+        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -599,7 +602,7 @@ class AdminSiteTest(WebTest):
 
         with patch('simple_history.admin.render') as mock_render:
             with patch('simple_history.admin.SIMPLE_HISTORY_EDIT', True):
-                admin.history_form_view(request, obj.id, history.pk)
+                admin.history_form_view(request, obj.id, history.pk, extra_context=None)
 
         context = {
             # Verify this is set for history object
@@ -636,5 +639,6 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
+        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
