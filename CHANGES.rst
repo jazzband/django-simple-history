@@ -5,6 +5,7 @@ Unreleased
 ----------
 - Add `custom_model_name` parameter to the constructor of `HistoricalRecords` (gh-451)
 - Fix header on history pages when custom site_header is used (gh-448)
+- Add `extra_context` parameter to history_form_view (gh-467)
 
 2.5.1 (2018-10-19)
 ------------------
