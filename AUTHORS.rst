@@ -7,7 +7,7 @@ Maintainers
 Authors
 =======
 
-- Adnan Umer (@uadnan)
+- Adnan Umer (`uadnan <https://github.com/uadnan>`_)
 - Aleksey Kladov
 - Alexander Anikeev
 - Ben Lawson
@@ -29,12 +29,12 @@ Authors
 - James Pulec
 - Jesse Shapiro
 - Jim Gomez
-- Joao Junior(@joaojunior)
+- Joao Junior (`joaojunior <https://github.com/joaojunior>`_)
 - Joao Pedro Francese
 - John Whitlock
 - Jonathan Leroy
 - Jonathan Sanchez
-- Jonathan Zvesper (@zvesp)
+- Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Josh Fyne
 - Kevin Foster
 - Klaas van Schelven
@@ -46,7 +46,7 @@ Authors
 - Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
-- Matheus Cansian (@mscansian)
+- Matheus Cansian (`mscansian <https://github.com/mscansian>`_)
 - Mauricio de Abreu Antunes
 - Micah Denbraver
 - Michael England
@@ -62,11 +62,11 @@ Authors
 - Ross Lote
 - Ross Mechanic
 - Ross Rogers
-- Sergey Ozeranskiy (@ozeranskiy)
+- Sergey Ozeranskiy (`ozeranskiy <https://github.com/ozeranskiy>`_)
 - Shane Engelman
 - Steeve Chailloux
 - Steven Klass
-- Tommy Beadle (@tbeadle)
+- Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
 - Trey Hunner
 - Ulysses Vilela
 - bradford281
