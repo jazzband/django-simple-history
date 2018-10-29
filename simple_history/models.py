@@ -437,9 +437,11 @@ class HistoricalChanges(object):
 
         changes = []
         changed_fields = []
+        instance = self.instance
+        old_instance = old_history.instance
         for field in self._meta.fields:
-            if hasattr(self.instance, field.name) and \
-               hasattr(old_history.instance, field.name):
+            if hasattr(instance, field.name) and \
+               hasattr(old_instance, field.name):
                 old_value = getattr(old_history, field.name, '')
                 new_value = getattr(self, field.name)
                 if old_value != new_value:
