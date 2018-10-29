@@ -10,6 +10,7 @@ Unreleased
 - Raise warning if HistoricalRecords(inherit=False) is in an abstract model (gh-341)
 - Ensure custom arguments for fields are included in historical models' fields (gh-431)
 - Add german translations
+- Add `extra_context` parameter to history_form_view (gh-467)
 
 2.5.1 (2018-10-19)
 ------------------
