@@ -7,11 +7,20 @@ from django.views.generic import (
     UpdateView
 )
 
-from simple_history.tests.models import BucketDataRegisterRequestUser, Poll
+from simple_history.tests.models import (
+    BucketDataRegisterRequestUser,
+    Poll,
+    PollWithHistoricalIPAddress
+)
 
 
 class PollCreate(CreateView):
     model = Poll
+    fields = ['question', 'pub_date']
+
+
+class PollWithHistoricalIPAddressCreate(CreateView):
+    model = PollWithHistoricalIPAddress
     fields = ['question', 'pub_date']
 
 
