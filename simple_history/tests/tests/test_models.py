@@ -1054,6 +1054,7 @@ class ExcludeForeignKeyTest(TestCase):
         instance = historical.instance
         self.assertEqual(instance.place, new_place)
 
+
 def add_static_history_ip_address(sender, **kwargs):
     history_instance = kwargs['history_instance']
     history_instance.ip_address = '192.168.0.1'
