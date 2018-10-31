@@ -194,7 +194,7 @@ class AdminSiteTest(WebTest):
         self.assertEqual(Poll.history.get().history_user, self.user)
 
         # Ensure polls saved on edit page in admin interface save correct user
-        change_page = changelist_page.click("Poll object")
+        change_page = changelist_page.click("Poll object", index=1)
         change_page.form.submit()
         self.assertEqual([p.history_user for p in Poll.history.all()],
                          [self.user, self.user])
@@ -467,6 +467,7 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -522,6 +523,7 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -576,6 +578,7 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -632,5 +635,6 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)

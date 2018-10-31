@@ -121,7 +121,7 @@ There are three documented ways to attach users to a tracked change:
 User instance that made the request as the ``history_user`` on the history
 table.
 
-2. Use ``simple_history.admin.SimpleHistoryAdmin`. Under the hood,
+2. Use ``simple_history.admin.SimpleHistoryAdmin``. Under the hood,
 ``SimpleHistoryAdmin`` actually sets the ``_history_user`` on the object to
 attach the user to the tracked change by overriding the `save_model` method.
 
