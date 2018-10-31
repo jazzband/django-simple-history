@@ -392,7 +392,7 @@ source model. This is possible by combining the ``bases`` functionality with the
     # define your signal handler/callback anywhere outside of models.py
     def add_history_ip_address(sender, **kwargs):
         history_instance = kwargs['history_instance']
-        # thread.request for use only when the simple_history middleware is enabled
+        # thread.request for use only when the simple_history middleware is on and enabled
         history_instance.ip_address = HistoricalRecords.thread.request.META['REMOTE_ADDR']
 
 
