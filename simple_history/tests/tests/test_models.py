@@ -10,12 +10,14 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from simple_history.models import (
     HistoricalRecords,
     ModelChange
 )
+from simple_history.tests.tests.utils import middleware_override_settings
 from simple_history.utils import update_change_reason
 from ..external.models import ExternalModel2, ExternalModel4
 from ..models import (
@@ -1054,19 +1056,36 @@ class ExcludeForeignKeyTest(TestCase):
 class ExtraFieldsTestCase(TestCase):
     def test_extra_ip_address_field_populated_on_save(self):
         poll = PollWithHistoricalIPAddress.objects.create(
-            question="Will it blend?", pub_date=today,
-            place=Place.objects.create(name="Here")
+            question="Will it blend?", pub_date=today
         )
 
         poll_history = poll.history.order_by('history_date')[0]
 
-        self.assertEquals('127.0.0.1', poll_history.ip_address)
+        self.assertEquals('192.168.0.1', poll_history.ip_address)
 
     def test_extra_ip_address_field_not_present_on_poll(self):
         poll = PollWithHistoricalIPAddress.objects.create(
-            question="Will it blend?", pub_date=today,
-            place=Place.objects.create(name="Here")
+            question="Will it blend?", pub_date=today
         )
 
         with self.assertRaises(AttributeError):
             poll.ip_address
+
+
+@override_settings(**middleware_override_settings)
+class ExtraFieldsIPAddressTestCase(TestCase):
+    def test_signal_is_able_to_retrieve_request_from_thread(self):
+        data = {
+            # workaround for bad interplay with signals and mocking; see
+            # simple_history.tests.tests.utils.add_history_ip_address
+            'question': 'read IP from request',
+            'pub_date': '2018-10-30'
+        }
+
+        self.client.post(reverse('pollip-add'), data=data)
+
+        polls = PollWithHistoricalIPAddress.objects.all()
+        self.assertEqual(1, polls.count())
+
+        poll_history = polls[0].history.first()
+        self.assertEqual('127.0.0.1', poll_history.ip_address)

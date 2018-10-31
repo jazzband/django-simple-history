@@ -1,10 +1,6 @@
 from django.apps import AppConfig
+from simple_history.models import HistoricalRecords
 from simple_history.signals import pre_create_historical_record
-
-
-def add_history_ip_address(sender, **kwargs):
-    history_instance = kwargs['history_instance']
-    history_instance.ip_address = '127.0.0.1'
 
 
 class TestsConfig(AppConfig):
@@ -14,8 +10,10 @@ class TestsConfig(AppConfig):
     def ready(self):
         from simple_history.tests.models \
             import HistoricalPollWithHistoricalIPAddress
+        from simple_history.tests.tests.utils import add_history_ip_address
 
         pre_create_historical_record.connect(
             add_history_ip_address,
-            sender=HistoricalPollWithHistoricalIPAddress
+            sender=HistoricalPollWithHistoricalIPAddress,
+            dispatch_uid='add_history_ip_address'
         )

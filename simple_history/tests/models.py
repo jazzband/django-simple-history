@@ -52,9 +52,11 @@ class IPAddressHistoricalModel(models.Model):
 class PollWithHistoricalIPAddress(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
-    place = models.ForeignKey('Place', on_delete=models.CASCADE)
 
     history = HistoricalRecords(bases=[IPAddressHistoricalModel])
+
+    def get_absolute_url(self):
+        return reverse('poll-detail', kwargs={'pk': self.pk})
 
 
 class Temperature(models.Model):

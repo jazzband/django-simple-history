@@ -15,3 +15,13 @@ else:
             settings.MIDDLEWARE_CLASSES + [request_middleware]
         )
     }
+
+
+def add_history_ip_address(sender, **kwargs):
+    history_instance = kwargs['history_instance']
+    if history_instance.question == 'read IP from request':
+        from simple_history.models import HistoricalRecords
+        history_instance.ip_address = \
+            HistoricalRecords.thread.request.META['REMOTE_ADDR']
+    else:
+        history_instance.ip_address = '192.168.0.1'
