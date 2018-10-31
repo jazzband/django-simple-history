@@ -1129,7 +1129,7 @@ class ExtraFieldsDynamicIPAddressTestCase(TestCase):
         poll_history = polls[0].history.first()
         self.assertEqual('127.0.0.1', poll_history.ip_address)
 
-        
+
 class WarningOnAbstractModelWithInheritFalseTest(TestCase):
     def test_warning_on_abstract_model_with_inherit_false(self):
 
