@@ -10,13 +10,14 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.fields.proxy import OrderWrt
-from django.test import TestCase, override_settings
+from django.test import override_settings, TestCase
 from django.urls import reverse
 
 from simple_history.models import (
     HistoricalRecords,
     ModelChange
 )
+from simple_history.signals import pre_create_historical_record
 from simple_history.tests.tests.utils import middleware_override_settings
 from simple_history.utils import update_change_reason
 from ..external.models import ExternalModel2, ExternalModel4
@@ -45,6 +46,7 @@ from ..models import (
     HistoricalChoice,
     HistoricalCustomFKError,
     HistoricalPoll,
+    HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
     Library,
     MultiOneToOne,
@@ -52,9 +54,9 @@ from ..models import (
     Place,
     Poll,
     PollInfo,
-    PollWithHistoricalIPAddress,
     PollWithExcludeFields,
     PollWithExcludedFKField,
+    PollWithHistoricalIPAddress,
     Province,
     Restaurant,
     SelfFK,
@@ -1052,14 +1054,32 @@ class ExcludeForeignKeyTest(TestCase):
         instance = historical.instance
         self.assertEqual(instance.place, new_place)
 
+def add_static_history_ip_address(sender, **kwargs):
+    history_instance = kwargs['history_instance']
+    history_instance.ip_address = '192.168.0.1'
 
-class ExtraFieldsTestCase(TestCase):
+
+class ExtraFieldsStaticIPAddressTestCase(TestCase):
+    def setUp(self):
+        pre_create_historical_record.connect(
+            add_static_history_ip_address,
+            sender=HistoricalPollWithHistoricalIPAddress,
+            dispatch_uid='add_static_history_ip_address'
+        )
+
+    def tearDown(self):
+        pre_create_historical_record.disconnect(
+            add_static_history_ip_address,
+            sender=HistoricalPollWithHistoricalIPAddress,
+            dispatch_uid='add_static_history_ip_address'
+        )
+
     def test_extra_ip_address_field_populated_on_save(self):
         poll = PollWithHistoricalIPAddress.objects.create(
             question="Will it blend?", pub_date=today
         )
 
-        poll_history = poll.history.order_by('history_date')[0]
+        poll_history = poll.history.first()
 
         self.assertEquals('192.168.0.1', poll_history.ip_address)
 
@@ -1072,13 +1092,31 @@ class ExtraFieldsTestCase(TestCase):
             poll.ip_address
 
 
+def add_dynamic_history_ip_address(sender, **kwargs):
+    history_instance = kwargs['history_instance']
+    history_instance.ip_address = \
+        HistoricalRecords.thread.request.META['REMOTE_ADDR']
+
+
 @override_settings(**middleware_override_settings)
-class ExtraFieldsIPAddressTestCase(TestCase):
+class ExtraFieldsDynamicIPAddressTestCase(TestCase):
+    def setUp(self):
+        pre_create_historical_record.connect(
+            add_dynamic_history_ip_address,
+            sender=HistoricalPollWithHistoricalIPAddress,
+            dispatch_uid='add_dynamic_history_ip_address'
+        )
+
+    def tearDown(self):
+        pre_create_historical_record.disconnect(
+            add_dynamic_history_ip_address,
+            sender=HistoricalPollWithHistoricalIPAddress,
+            dispatch_uid='add_dynamic_history_ip_address'
+        )
+
     def test_signal_is_able_to_retrieve_request_from_thread(self):
         data = {
-            # workaround for bad interplay with signals and mocking; see
-            # simple_history.tests.tests.utils.add_history_ip_address
-            'question': 'read IP from request',
+            'question': 'Will it blend?',
             'pub_date': '2018-10-30'
         }
 

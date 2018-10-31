@@ -4,8 +4,8 @@ import uuid
 
 from django.apps import apps
 from django.conf import settings
-from django.dispatch import receiver
 from django.db import models
+from django.dispatch import receiver
 from django.urls import reverse
 
 from simple_history import register

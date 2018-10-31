@@ -391,10 +391,9 @@ source model. This is possible by combining the ``bases`` functionality with the
 
     # define your signal handler/callback anywhere outside of models.py
     def add_history_ip_address(sender, **kwargs):
-        thread = threading.local()
         history_instance = kwargs['history_instance']
-        # (thread.request for use only in conjunction with the simple_history middleware)
-        history_instance.ip_address = thread.request.META['REMOTE_ADDR']
+        # thread.request for use only when the simple_history middleware is enabled
+        history_instance.ip_address = HistoricalRecords.thread.request.META['REMOTE_ADDR']
 
 
 .. code-block:: python
@@ -512,7 +511,7 @@ This may be useful when you want to construct timelines and need to get only the
 
 Using signals
 ------------------------------------
-django-simple-history includes signals that helps you provide custom behaviour when saving a historical record. Arguments passed to the signals include the following:
+`django-simple-history` includes signals that help you provide custom behavior when saving a historical record. Arguments passed to the signals include the following:
 
 instance
     The source model instance being saved
