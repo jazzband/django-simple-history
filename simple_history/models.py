@@ -4,6 +4,7 @@ import copy
 import importlib
 import threading
 import uuid
+import warnings
 
 from django.apps import apps
 from django.conf import settings
@@ -21,8 +22,8 @@ from django.utils.translation import ugettext_lazy as _
 from . import exceptions
 from .manager import HistoryDescriptor
 from .signals import (
-    pre_create_historical_record,
     post_create_historical_record,
+    pre_create_historical_record
 )
 
 registered_models = {}
@@ -70,6 +71,11 @@ class HistoricalRecords(object):
         self.cls = cls
         models.signals.class_prepared.connect(self.finalize, weak=False)
         self.add_extra_methods(cls)
+
+        if cls._meta.abstract and not self.inherit:
+            msg = "HistoricalRecords added to abstract model ({}) without " \
+                  "inherit=True".format(self.cls.__name__)
+            warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
         def save_without_historical_record(self, *args, **kwargs):
