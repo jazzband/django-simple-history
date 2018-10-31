@@ -4,6 +4,7 @@ Changes
 Unreleased
 -----------
 - Add `custom_model_name` parameter to the constructor of `HistoricalRecords` (gh-451)
+- Modify `pre_create_historircal_record` to pass `history_instance` for ease of customization (gh-421)
 
 2.5.1 (2018-10-19)
 ------------------
