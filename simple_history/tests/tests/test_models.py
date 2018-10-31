@@ -1048,3 +1048,22 @@ class ExcludeForeignKeyTest(TestCase):
         historical = self.get_first_historical()
         instance = historical.instance
         self.assertEqual(instance.place, new_place)
+
+
+class WarningOnAbstractModelWithInheritFalseTest(TestCase):
+    def test_warning_on_abstract_model_with_inherit_false(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            class AbstractModelWithInheritFalse(models.Model):
+                string = models.CharField()
+                history = HistoricalRecords()
+
+                class Meta:
+                    abstract = True
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, UserWarning))
+            self.assertEqual(str(w[0].message),
+                             'HistoricalRecords added to abstract model '
+                             '(AbstractModelWithInheritFalse) without '
+                             'inherit=True')

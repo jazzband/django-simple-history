@@ -73,8 +73,8 @@ class HistoricalRecords(object):
         self.add_extra_methods(cls)
 
         if cls._meta.abstract and not self.inherit:
-            msg = "Historical records added to abstract model without " \
-                  "inherit=true"
+            msg = "HistoricalRecords added to abstract model ({}) without " \
+                  "inherit=True".format(self.cls.__name__)
             warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
