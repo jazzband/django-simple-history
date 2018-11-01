@@ -194,7 +194,7 @@ class AdminSiteTest(WebTest):
         self.assertEqual(Poll.history.get().history_user, self.user)
 
         # Ensure polls saved on edit page in admin interface save correct user
-        change_page = changelist_page.click("Poll object")
+        change_page = changelist_page.click("Poll object", index=1)
         change_page.form.submit()
         self.assertEqual([p.history_user for p in Poll.history.all()],
                          [self.user, self.user])
