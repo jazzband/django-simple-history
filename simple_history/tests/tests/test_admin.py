@@ -468,7 +468,6 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-        extra_context = {}
         context.update(admin_site.each_context(request))
         context.update(extra_context or {})
         mock_render.assert_called_once_with(
@@ -527,7 +526,6 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-        extra_context = {}
         context.update(admin_site.each_context(request))
         context.update(extra_context or {})
         mock_render.assert_called_once_with(
@@ -585,7 +583,6 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-        extra_context = {}
         context.update(admin_site.each_context(request))
         context.update(extra_context or {})
         mock_render.assert_called_once_with(
@@ -645,7 +642,6 @@ class AdminSiteTest(WebTest):
             'save_on_top': admin.save_on_top,
             'root_path': getattr(admin_site, 'root_path', None),
         }
-        extra_context = {}
         context.update(admin_site.each_context(request))
         context.update(extra_context or {})
         mock_render.assert_called_once_with(
