@@ -469,7 +469,6 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
-        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -527,7 +526,6 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
-        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -584,7 +582,6 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
-        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
 
@@ -643,6 +640,5 @@ class AdminSiteTest(WebTest):
             'root_path': getattr(admin_site, 'root_path', None),
         }
         context.update(admin_site.each_context(request))
-        context.update(extra_context or {})
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context)
