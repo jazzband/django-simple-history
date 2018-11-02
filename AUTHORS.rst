@@ -18,6 +18,7 @@ Authors
 - Daniel Levy
 - Daniel Roschka
 - David Hite
+- Dion Gerritsen
 - Eduardo Cuducos
 - Florian Eßer
 - George Vilches

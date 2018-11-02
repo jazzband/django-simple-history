@@ -7,6 +7,7 @@ Unreleased
 - Fix header on history pages when custom site_header is used (gh-448)
 - Modify `pre_create_historircal_record` to pass `history_instance` for ease of customization (gh-421)
 - Raise warning if HistoricalRecords(inherit=False) is in an abstract model (gh-341)
+- Let users with view permissions see the model's history (gh-475)
 
 2.5.1 (2018-10-19)
 ------------------
