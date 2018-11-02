@@ -85,6 +85,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
         }
+        context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
         return render(request, self.object_history_template, context, **extra_kwargs)
@@ -186,6 +187,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "save_on_top": self.save_on_top,
             "root_path": getattr(self.admin_site, "root_path", None),
         }
+        context.update(self.admin_site.each_context(request))
         extra_kwargs = {}
         return render(
             request, self.object_history_form_template, context, **extra_kwargs

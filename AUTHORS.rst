@@ -51,6 +51,7 @@ Authors
 - Ross Rogers
 - Steven Klass
 - Steeve Chailloux
+- Tommy Beadle (@tbeadle)
 - Trey Hunner
 - Ulysses Vilela
 - vnagendra
@@ -68,6 +69,8 @@ Authors
 - Adnan Umer (@uadnan)
 - Jonathan Zvesper (@zvesp)
 - Matheus Cansian (@mscansian)
+- Jim Gomez
+- Hanyin Zhang
 - James Muranga (@jamesmura)
 
 Background

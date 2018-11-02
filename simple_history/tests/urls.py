@@ -11,6 +11,7 @@ from simple_history.tests.view import (
     PollDetail,
     PollList,
     PollUpdate,
+    PollWithHistoricalIPAddressCreate,
 )
 from . import other_admin
 
@@ -30,6 +31,11 @@ urlpatterns = [
         name="bucket_data-detail",
     ),
     url(r"^poll/add/$", PollCreate.as_view(), name="poll-add"),
+    url(
+        r"^pollwithhistoricalipaddress/add$",
+        PollWithHistoricalIPAddressCreate.as_view(),
+        name="pollip-add",
+    ),
     url(r"^poll/(?P<pk>[0-9]+)/$", PollUpdate.as_view(), name="poll-update"),
     url(r"^poll/(?P<pk>[0-9]+)/delete/$", PollDelete.as_view(), name="poll-delete"),
     url(r"^polls/(?P<pk>[0-9]+)/$", PollDetail.as_view(), name="poll-detail"),

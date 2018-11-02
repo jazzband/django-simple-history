@@ -4,12 +4,12 @@ import copy
 import importlib
 import threading
 import uuid
+import warnings
 
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.db import models, router
+from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
 from django.urls import reverse
@@ -21,9 +21,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import exceptions
 from .manager import HistoryDescriptor
-from .signals import pre_create_historical_record, post_create_historical_record
+from .signals import post_create_historical_record, pre_create_historical_record
 
-User = get_user_model()
 registered_models = {}
 
 
@@ -50,6 +49,7 @@ class HistoricalRecords(object):
         user_model=None,
         get_user=default_get_user,
         cascade_delete_history=False,
+        custom_model_name=None,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -60,6 +60,7 @@ class HistoricalRecords(object):
         self.user_model = user_model
         self.get_user = get_user
         self.cascade_delete_history = cascade_delete_history
+        self.custom_model_name = custom_model_name
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -76,6 +77,13 @@ class HistoricalRecords(object):
         self.cls = cls
         models.signals.class_prepared.connect(self.finalize, weak=False)
         self.add_extra_methods(cls)
+
+        if cls._meta.abstract and not self.inherit:
+            msg = (
+                "HistoricalRecords added to abstract model ({}) without "
+                "inherit=True".format(self.cls.__name__)
+            )
+            warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
         def save_without_historical_record(self, *args, **kwargs):
@@ -153,7 +161,11 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
-        name = "Historical%s" % model._meta.object_name
+        name = (
+            self.custom_model_name
+            if self.custom_model_name is not None
+            else "Historical%s" % model._meta.object_name
+        )
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(type(str(name), self.bases, attrs))
 
@@ -223,7 +235,9 @@ class HistoricalRecords(object):
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
-        user_model = self.user_model or User
+        user_model = self.user_model or getattr(
+            settings, "AUTH_USER_MODEL", "auth.User"
+        )
 
         def revert_url(self):
             """URL for this change in the default admin site."""
@@ -355,24 +369,28 @@ class HistoricalRecords(object):
         history_change_reason = getattr(instance, "changeReason", None)
         manager = getattr(instance, self.manager_name)
 
-        pre_create_historical_record.send(
-            sender=manager.model,
-            instance=instance,
-            history_date=history_date,
-            history_user=history_user,
-            history_change_reason=history_change_reason,
-        )
-
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
-        history_instance = manager.create(
+
+        history_instance = manager.model(
             history_date=history_date,
             history_type=history_type,
             history_user=history_user,
             history_change_reason=history_change_reason,
             **attrs
         )
+
+        pre_create_historical_record.send(
+            sender=manager.model,
+            instance=instance,
+            history_date=history_date,
+            history_user=history_user,
+            history_change_reason=history_change_reason,
+            history_instance=history_instance,
+        )
+
+        history_instance.save()
 
         post_create_historical_record.send(
             sender=manager.model,
@@ -442,10 +460,12 @@ class HistoricalChanges(object):
 
         changes = []
         changed_fields = []
+        instance_fields = [field.name for field in self.instance._meta.fields]
+        old_instance_fields = [
+            field.name for field in old_history.instance._meta.fields
+        ]
         for field in self._meta.fields:
-            if hasattr(self.instance, field.name) and hasattr(
-                old_history.instance, field.name
-            ):
+            if field.name in instance_fields and field.name in old_instance_fields:
                 old_value = getattr(old_history, field.name, "")
                 new_value = getattr(self, field.name)
                 if old_value != new_value:

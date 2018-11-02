@@ -72,12 +72,17 @@ class AdminSiteTest(WebTest):
         self.assertEqual(model_name, "customuser")
         self.login()
         poll = Poll(question="why?", pub_date=today)
+        poll.changeReason = "A random test reason"
         poll._history_user = self.user
         poll.save()
+
         response = self.app.get(get_history_url(poll))
         self.assertIn(get_history_url(poll, 0), response.unicode_normal_body)
         self.assertIn("Poll object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
+        self.assertIn("Changed by", response.unicode_normal_body)
+        self.assertIn("Change reason", response.unicode_normal_body)
+        self.assertIn("A random test reason", response.unicode_normal_body)
         self.assertIn(self.user.username, response.unicode_normal_body)
 
     def test_history_list_custom_fields(self):
@@ -193,7 +198,7 @@ class AdminSiteTest(WebTest):
         self.assertEqual(Poll.history.get().history_user, self.user)
 
         # Ensure polls saved on edit page in admin interface save correct user
-        change_page = changelist_page.click("Poll object")
+        change_page = changelist_page.click("Poll object", index=1)
         change_page.form.submit()
         self.assertEqual(
             [p.history_user for p in Poll.history.all()], [self.user, self.user]
@@ -460,6 +465,7 @@ class AdminSiteTest(WebTest):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )
@@ -512,6 +518,7 @@ class AdminSiteTest(WebTest):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )
@@ -564,6 +571,7 @@ class AdminSiteTest(WebTest):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )
@@ -618,6 +626,7 @@ class AdminSiteTest(WebTest):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
+        context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )

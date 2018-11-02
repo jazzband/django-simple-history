@@ -96,15 +96,13 @@ class Command(BaseCommand):
             except LookupError:
                 model = None
         if not model:
-            raise ValueError(
-                self.MODEL_NOT_FOUND + " < {model} >\n".format(model=natural_key)
-            )
+            msg = self.MODEL_NOT_FOUND + " < {model} >\n".format(model=natural_key)
+            raise ValueError(msg)
         try:
             history_model = utils.get_history_model_for_model(model)
         except NotHistoricalModelError:
-            raise ValueError(
-                self.MODEL_NOT_HISTORICAL + " < {model} >\n".format(model=natural_key)
-            )
+            msg = self.MODEL_NOT_HISTORICAL + " < {model} >\n".format(model=natural_key)
+            raise ValueError(msg)
         return model, history_model
 
     def _bulk_history_create(self, model, batch_size):
