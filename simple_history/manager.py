@@ -93,6 +93,9 @@ class HistoryManager(models.Manager):
     def bulk_history_create(self, objs, batch_size=None):
         """Bulk create the history for the objects specified by objs"""
 
+        if not hasattr(self.model, '_history_excluded_fields'):
+            self.model._history_excluded_fields = []
+
         historical_instances = [
             self.model(
                 history_date=getattr(instance, '_history_date', now()),
