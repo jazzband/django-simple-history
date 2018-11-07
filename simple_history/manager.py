@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
-
 
 class HistoryDescriptor(object):
     def __init__(self, model):
@@ -45,10 +45,17 @@ class HistoryManager(models.Manager):
                 )
             )
         tmp = []
+        excluded_fields = []
+
+        if isinstance(self.instance._meta.model.history, self.__class__):
+            excluded_fields = python_2_unicode_compatible(
+                self.instance._meta.model.history.model._history_excluded_fields
+            )
+
         for field in self.instance._meta.fields:
             if isinstance(field, models.ForeignKey):
                 tmp.append(field.name + "_id")
-            else:
+            elif field.name not in excluded_fields:
                 tmp.append(field.name)
         fields = tuple(tmp)
         try:

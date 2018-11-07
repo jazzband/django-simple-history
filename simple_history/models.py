@@ -74,6 +74,9 @@ class HistoricalRecords(object):
         except TypeError:
             raise TypeError("The `bases` option must be a list or a tuple.")
 
+    def _get_excluded_fields(self):
+        return self.excluded_fields
+
     def contribute_to_class(self, cls, name):
         self.manager_name = name
         self.module = cls.__module__
