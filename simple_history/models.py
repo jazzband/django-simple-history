@@ -184,29 +184,22 @@ class HistoricalRecords(object):
                 field.__class__ = models.IntegerField
             if isinstance(field, models.ForeignKey):
                 old_field = field
-                field_arguments = {'db_constraint': False}
+                old_swappable = old_field.swappable
+                old_field.swappable = False
+                try:
+                    _name, _path, args, field_args = old_field.deconstruct()
+                finally:
+                    old_field.swappable = old_swappable
                 if getattr(old_field, 'one_to_one', False) \
                    or isinstance(old_field, models.OneToOneField):
                     FieldType = models.ForeignKey
                 else:
                     FieldType = type(old_field)
-                if getattr(old_field, 'to_fields', []):
-                    field_arguments['to_field'] = old_field.to_fields[0]
-                if getattr(old_field, 'db_column', None):
-                    field_arguments['db_column'] = old_field.db_column
 
-                # If old_field.remote_field.model is 'self' then we have a
-                # case where object has a foreign key to itself. In this case
-                # we need to set the `model` value of the field to a model. We
-                # can use the old_field.model value.
-                if isinstance(old_field.remote_field.model, str) and \
-                   old_field.remote_field.model == 'self':
-                    object_to = old_field.model
-                else:
-                    object_to = old_field.remote_field.model
-
-                field = FieldType(
-                    object_to,
+                # Override certain arguments passed when creating the field
+                # so that they work for the historical field.
+                field_args.update(
+                    db_constraint=False,
                     related_name='+',
                     null=True,
                     blank=True,
@@ -215,7 +208,10 @@ class HistoricalRecords(object):
                     serialize=True,
                     unique=False,
                     on_delete=models.DO_NOTHING,
-                    **field_arguments
+                )
+                field = FieldType(
+                    *args,
+                    **field_args
                 )
                 field.name = old_field.name
             else:
