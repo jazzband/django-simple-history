@@ -9,6 +9,7 @@ import warnings
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
+from django.core.serializers import serialize
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
@@ -26,7 +27,13 @@ from .signals import (
     pre_create_historical_record
 )
 
+import json
+
 registered_models = {}
+
+
+def model_to_dict(model):
+    return json.loads(serialize('json', [model]))[0]['fields']
 
 
 def default_get_user(request, **kwargs):
@@ -452,15 +459,17 @@ class HistoricalChanges(object):
         old_instance_fields = [
             field.name for field in old_history.instance._meta.fields
         ]
-        for field in self._meta.fields:
-            if field.name in instance_fields and \
-               field.name in old_instance_fields:
-                old_value = getattr(old_history, field.name, '')
-                new_value = getattr(self, field.name)
+        old_values = model_to_dict(old_history)
+        current_values = model_to_dict(self)
+        for field in current_values.keys():
+            if field in instance_fields and \
+               field in old_instance_fields:
+                old_value = old_values[field]
+                new_value = current_values[field]
                 if old_value != new_value:
-                    change = ModelChange(field.name, old_value, new_value)
+                    change = ModelChange(field, old_value, new_value)
                     changes.append(change)
-                    changed_fields.append(field.name)
+                    changed_fields.append(field)
 
         return ModelDelta(changes,
                           changed_fields,
