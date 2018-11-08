@@ -455,15 +455,11 @@ class HistoricalChanges(object):
 
         changes = []
         changed_fields = []
-        instance_fields = [field.name for field in self.instance._meta.fields]
-        old_instance_fields = [
-            field.name for field in old_history.instance._meta.fields
-        ]
-        old_values = model_to_dict(old_history)
-        current_values = model_to_dict(self)
+        old_values = model_to_dict(old_history.instance)
+        current_values = model_to_dict(self.instance)
         for field in current_values.keys():
-            if field in instance_fields and \
-               field in old_instance_fields:
+            if field in current_values and \
+               field in old_values:
                 old_value = old_values[field]
                 new_value = current_values[field]
                 if old_value != new_value:
