@@ -11,13 +11,24 @@ from django.test import TestCase
 from six.moves import cStringIO as StringIO
 
 from simple_history import exceptions, register
-from ..tests.models import (Choice, InheritTracking1, InheritTracking2,
-                            InheritTracking3, InheritTracking4, Poll,
-                            Restaurant, TrackedAbstractBaseA,
-                            TrackedAbstractBaseB, TrackedWithAbstractBase,
-                            TrackedWithConcreteBase, UserAccessorDefault,
-                            UserAccessorOverride, UUIDRegisterModel, Voter,
-                            ModelWithCustomAttrForeignKey)
+from ..tests.models import (
+    Choice,
+    InheritTracking1,
+    InheritTracking2,
+    InheritTracking3,
+    InheritTracking4,
+    Poll,
+    Restaurant,
+    TrackedAbstractBaseA,
+    TrackedAbstractBaseB,
+    TrackedWithAbstractBase,
+    TrackedWithConcreteBase,
+    UserAccessorDefault,
+    UserAccessorOverride,
+    UUIDRegisterModel,
+    Voter,
+    ModelWithCustomAttrForeignKey,
+)
 
 get_model = apps.get_model
 User = get_user_model()
@@ -39,24 +50,23 @@ class RegisterTest(TestCase):
 
         self.assertRaises(AttributeError, get_history, User)
         self.assertEqual(len(User.histories.all()), 0)
-        user = User.objects.create(username='bob', password='pass')
+        user = User.objects.create(username="bob", password="pass")
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
 
     def test_reregister(self):
         with self.assertRaises(exceptions.MultipleRegistrationsError):
-            register(Restaurant, manager_name='again')
+            register(Restaurant, manager_name="again")
 
     def test_register_custome_records(self):
         self.assertEqual(len(Voter.history.all()), 0)
         poll = Poll.objects.create(pub_date=today)
         choice = Choice.objects.create(poll=poll, votes=0)
-        user = User.objects.create(username='voter')
+        user = User.objects.create(username="voter")
         voter = Voter.objects.create(choice=choice, user=user)
         self.assertEqual(len(voter.history.all()), 1)
-        expected = 'Voter object changed by None as of '
-        self.assertEqual(expected,
-                         str(voter.history.all()[0])[:len(expected)])
+        expected = "Voter object changed by None as of "
+        self.assertEqual(expected, str(voter.history.all()[0])[: len(expected)])
 
     def test_register_history_id_field(self):
         self.assertEqual(len(UUIDRegisterModel.history.all()), 0)
@@ -67,19 +77,16 @@ class RegisterTest(TestCase):
 
 
 class TestUserAccessor(unittest.TestCase):
-
     def test_accessor_default(self):
         register(UserAccessorDefault)
-        assert not hasattr(User, 'historicaluseraccessordefault_set')
+        assert not hasattr(User, "historicaluseraccessordefault_set")
 
     def test_accessor_override(self):
-        register(UserAccessorOverride,
-                 user_related_name='my_history_model_accessor')
-        assert hasattr(User, 'my_history_model_accessor')
+        register(UserAccessorOverride, user_related_name="my_history_model_accessor")
+        assert hasattr(User, "my_history_model_accessor")
 
 
 class TestInheritedModule(TestCase):
-
     def test_using_app_label(self):
         try:
             from ..tests.models import HistoricalConcreteExternal
@@ -94,73 +101,91 @@ class TestInheritedModule(TestCase):
 
 
 class TestTrackingInheritance(TestCase):
-
     def test_tracked_abstract_base(self):
         self.assertEqual(
+            [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields],
             [
-                f.attname
-                for f in TrackedWithAbstractBase.history.model._meta.fields
-            ],
-            [
-                'id', 'history_id',
-                'history_change_reason', 'history_date', 'history_user_id',
-                'history_type',
+                "id",
+                "history_id",
+                "history_change_reason",
+                "history_date",
+                "history_user_id",
+                "history_type",
             ],
         )
 
     def test_tracked_concrete_base(self):
         self.assertEqual(
             sorted(
-                f.attname
-                for f in TrackedWithConcreteBase.history.model._meta.fields
+                f.attname for f in TrackedWithConcreteBase.history.model._meta.fields
             ),
-            sorted([
-                'id', 'trackedconcretebase_ptr_id', 'history_id',
-                'history_change_reason', 'history_date', 'history_user_id',
-                'history_type',
-            ]),
+            sorted(
+                [
+                    "id",
+                    "trackedconcretebase_ptr_id",
+                    "history_id",
+                    "history_change_reason",
+                    "history_date",
+                    "history_user_id",
+                    "history_type",
+                ]
+            ),
         )
 
     def test_multiple_tracked_bases(self):
         with self.assertRaises(exceptions.MultipleRegistrationsError):
+
             class TrackedWithMultipleAbstractBases(
-                    TrackedAbstractBaseA, TrackedAbstractBaseB):
+                TrackedAbstractBaseA, TrackedAbstractBaseB
+            ):
                 pass
 
     def test_tracked_abstract_and_untracked_concrete_base(self):
         self.assertEqual(
+            sorted(f.attname for f in InheritTracking1.history.model._meta.fields),
             sorted(
-                f.attname for f in InheritTracking1.history.model._meta.fields
+                [
+                    "id",
+                    "untrackedconcretebase_ptr_id",
+                    "history_id",
+                    "history_change_reason",
+                    "history_date",
+                    "history_user_id",
+                    "history_type",
+                ]
             ),
-            sorted([
-                'id', 'untrackedconcretebase_ptr_id', 'history_id',
-                'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
-            ]),
         )
 
     def test_indirect_tracked_abstract_base(self):
         self.assertEqual(
+            sorted(f.attname for f in InheritTracking2.history.model._meta.fields),
             sorted(
-                f.attname for f in InheritTracking2.history.model._meta.fields
+                [
+                    "id",
+                    "baseinherittracking2_ptr_id",
+                    "history_id",
+                    "history_change_reason",
+                    "history_date",
+                    "history_user_id",
+                    "history_type",
+                ]
             ),
-            sorted([
-                'id', 'baseinherittracking2_ptr_id', 'history_id',
-                'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
-            ]),
         )
 
     def test_indirect_tracked_concrete_base(self):
         self.assertEqual(
+            sorted(f.attname for f in InheritTracking3.history.model._meta.fields),
             sorted(
-                f.attname for f in InheritTracking3.history.model._meta.fields
+                [
+                    "id",
+                    "baseinherittracking3_ptr_id",
+                    "history_id",
+                    "history_change_reason",
+                    "history_date",
+                    "history_user_id",
+                    "history_type",
+                ]
             ),
-            sorted([
-                'id', 'baseinherittracking3_ptr_id', 'history_id',
-                'history_change_reason', 'history_date',
-                'history_user_id', 'history_type',
-            ]),
         )
 
     def test_registering_with_tracked_abstract_base(self):
@@ -172,18 +197,17 @@ class TestCustomAttrForeignKey(TestCase):
     """ https://github.com/treyhunner/django-simple-history/issues/431 """
 
     def test_custom_attr(self):
-        field = ModelWithCustomAttrForeignKey.history.model._meta.get_field(
-            'poll',
-        )
-        self.assertEqual(field.attr_name, 'custom_poll')
+        field = ModelWithCustomAttrForeignKey.history.model._meta.get_field("poll")
+        self.assertEqual(field.attr_name, "custom_poll")
 
 
 class TestMigrate(TestCase):
-
     def test_makemigration_command(self):
         management.call_command(
-            'makemigrations', 'migration_test_app', stdout=StringIO())
+            "makemigrations", "migration_test_app", stdout=StringIO()
+        )
 
     def test_migrate_command(self):
         management.call_command(
-            'migrate', 'migration_test_app', fake=True, stdout=StringIO())
+            "migrate", "migration_test_app", fake=True, stdout=StringIO()
+        )

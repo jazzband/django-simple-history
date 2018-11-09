@@ -9,4 +9,4 @@ class AbstractExternal(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'external'
+        app_label = "external"

@@ -71,6 +71,7 @@ Authors
 - Matheus Cansian (@mscansian)
 - Jim Gomez
 - Hanyin Zhang
+- James Muranga (@jamesmura)
 
 Background
 ==========
