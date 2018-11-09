@@ -249,9 +249,9 @@ class HistoricalRecords(object):
                     for field in self._history_excluded_fields
                 ]
                 values = (
-                    model.objects.filter(
-                        pk=getattr(self, model._meta.pk.attname)
-                    ).values(*excluded_attnames).get()
+                    model.objects.filter(pk=getattr(self, model._meta.pk.attname))
+                    .values(*excluded_attnames)
+                    .get()
                 )
                 attrs.update(values)
             return model(**attrs)
@@ -261,9 +261,9 @@ class HistoricalRecords(object):
             Get the next history record for the instance. `None` if last.
             """
             return (
-                self.instance.history.filter(
-                    Q(history_date__gt=self.history_date)
-                ).order_by("history_date").first()
+                self.instance.history.filter(Q(history_date__gt=self.history_date))
+                .order_by("history_date")
+                .first()
             )
 
         def get_prev_record(self):
@@ -271,9 +271,9 @@ class HistoricalRecords(object):
             Get the previous history record for the instance. `None` if first.
             """
             return (
-                self.instance.history.filter(
-                    Q(history_date__lt=self.history_date)
-                ).order_by("history_date").last()
+                self.instance.history.filter(Q(history_date__lt=self.history_date))
+                .order_by("history_date")
+                .last()
             )
 
         if self.history_id_field:
@@ -322,8 +322,7 @@ class HistoricalRecords(object):
             "prev_record": property(get_prev_record),
             "revert_url": revert_url,
             "__str__": lambda self: "{} as of {}".format(
-                self.history_object,
-                self.history_date
+                self.history_object, self.history_date
             ),
         }
 
