@@ -32,7 +32,8 @@ class Command(BaseCommand):
             action="store_true",
             dest="auto",
             default=False,
-            help="Automatically search for models with the HistoricalRecords field type",
+            help="Automatically search for models with the HistoricalRecords field "
+            "type",
         )
         parser.add_argument(
             "--batchsize",
