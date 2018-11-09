@@ -9,4 +9,4 @@ class ExternalModel2(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        app_label = 'external'
+        app_label = "external"

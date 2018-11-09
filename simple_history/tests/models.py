@@ -19,27 +19,27 @@ get_model = apps.get_model
 
 class Poll(models.Model):
     question = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField("date published")
 
     history = HistoricalRecords()
 
     def get_absolute_url(self):
-        return reverse('poll-detail', kwargs={'pk': self.pk})
+        return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
 class PollWithExcludeFields(models.Model):
     question = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField("date published")
 
-    history = HistoricalRecords(excluded_fields=['pub_date'])
+    history = HistoricalRecords(excluded_fields=["pub_date"])
 
 
 class PollWithExcludedFKField(models.Model):
     question = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
-    place = models.ForeignKey('Place', on_delete=models.CASCADE)
+    pub_date = models.DateTimeField("date published")
+    place = models.ForeignKey("Place", on_delete=models.CASCADE)
 
-    history = HistoricalRecords(excluded_fields=['place'])
+    history = HistoricalRecords(excluded_fields=["place"])
 
 
 class IPAddressHistoricalModel(models.Model):
@@ -51,12 +51,12 @@ class IPAddressHistoricalModel(models.Model):
 
 class PollWithHistoricalIPAddress(models.Model):
     question = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField("date published")
 
     history = HistoricalRecords(bases=[IPAddressHistoricalModel])
 
     def get_absolute_url(self):
-        return reverse('poll-detail', kwargs={'pk': self.pk})
+        return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
 class CustomAttrNameForeignKey(models.ForeignKey):
@@ -65,25 +65,17 @@ class CustomAttrNameForeignKey(models.ForeignKey):
         super(CustomAttrNameForeignKey, self).__init__(*args, **kwargs)
 
     def get_attname(self):
-        return self.attr_name or super(
-            CustomAttrNameForeignKey, self
-        ).get_attname()
+        return self.attr_name or super(CustomAttrNameForeignKey, self).get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            CustomAttrNameForeignKey, self
-        ).deconstruct()
+        name, path, args, kwargs = super(CustomAttrNameForeignKey, self).deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
 
 
 class ModelWithCustomAttrForeignKey(models.Model):
-    poll = CustomAttrNameForeignKey(
-        Poll,
-        models.CASCADE,
-        attr_name='custom_poll',
-    )
+    poll = CustomAttrNameForeignKey(Poll, models.CASCADE, attr_name="custom_poll")
     history = HistoricalRecords()
 
 
@@ -126,25 +118,25 @@ register(Choice)
 
 class Voter(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    choice = models.ForeignKey(
-        Choice,
-        on_delete=models.CASCADE,
-        related_name='voters',
-    )
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name="voters")
 
     def __str__(self):
-        return 'Voter object'
+        return "Voter object"
 
 
 class HistoricalRecordsVerbose(HistoricalRecords):
     def get_extra_fields(self, model, fields):
         def verbose_str(self):
-            return '%s changed by %s as of %s' % (
-                self.history_object, self.history_user, self.history_date)
+            return "%s changed by %s as of %s" % (
+                self.history_object,
+                self.history_user,
+                self.history_date,
+            )
 
-        extra_fields = super(
-            HistoricalRecordsVerbose, self).get_extra_fields(model, fields)
-        extra_fields['__str__'] = verbose_str
+        extra_fields = super(HistoricalRecordsVerbose, self).get_extra_fields(
+            model, fields
+        )
+        extra_fields["__str__"] = verbose_str
         return extra_fields
 
 
@@ -167,23 +159,21 @@ class Person(models.Model):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        if hasattr(self, 'skip_history_when_saving'):
-            raise RuntimeError('error while saving')
+        if hasattr(self, "skip_history_when_saving"):
+            raise RuntimeError("error while saving")
         else:
             super(Person, self).save(*args, **kwargs)
 
 
 class FileModel(models.Model):
     title = models.CharField(max_length=100)
-    file = models.FileField(upload_to='files')
+    file = models.FileField(upload_to="files")
     history = HistoricalRecords()
 
 
 class Document(models.Model):
     changed_by = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=True, blank=True,
+        User, on_delete=models.CASCADE, null=True, blank=True
     )
     history = HistoricalRecords()
 
@@ -209,13 +199,13 @@ class AdminProfile(models.Model):
 
 
 class State(models.Model):
-    library = models.ForeignKey('Library', on_delete=models.CASCADE, null=True)
+    library = models.ForeignKey("Library", on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
 class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
-    history = HistoricalRecords(verbose_name='dead trees')
+    history = HistoricalRecords(verbose_name="dead trees")
 
 
 class HardbackBook(Book):
@@ -231,7 +221,7 @@ class Library(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'quiet please'
+        verbose_name = "quiet please"
 
 
 class BaseModel(models.Model):
@@ -247,7 +237,6 @@ class SecondLevelInheritedModel(FirstLevelInheritedModel):
 
 
 class AbstractBase(models.Model):
-
     class Meta:
         abstract = True
 
@@ -268,11 +257,11 @@ class MultiOneToOne(models.Model):
 
 
 class SelfFK(models.Model):
-    fk = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    fk = models.ForeignKey("self", on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
 
-register(User, app='simple_history.tests', manager_name='histories')
+register(User, app="simple_history.tests", manager_name="histories")
 
 
 class ExternalModel1(models.Model):
@@ -280,15 +269,14 @@ class ExternalModel1(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        app_label = 'external'
+        app_label = "external"
 
 
 class ExternalModel3(models.Model):
     name = models.CharField(max_length=100)
 
 
-register(ExternalModel3, app='simple_history.tests.external',
-         manager_name='histories')
+register(ExternalModel3, app="simple_history.tests.external", manager_name="histories")
 
 
 class UnicodeVerboseName(models.Model):
@@ -296,7 +284,7 @@ class UnicodeVerboseName(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = '\u570b'
+        verbose_name = "\u570b"
 
 
 class CustomFKError(models.Model):
@@ -306,29 +294,22 @@ class CustomFKError(models.Model):
 
 class Series(models.Model):
     """A series of works, like a trilogy of books."""
+
     name = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
 
 
 class SeriesWork(models.Model):
-    series = models.ForeignKey(
-        'Series',
-        on_delete=models.CASCADE,
-        related_name='works',
-    )
+    series = models.ForeignKey("Series", on_delete=models.CASCADE, related_name="works")
     title = models.CharField(max_length=100)
     history = HistoricalRecords()
 
     class Meta:
-        order_with_respect_to = 'series'
+        order_with_respect_to = "series"
 
 
 class PollInfo(models.Model):
-    poll = models.OneToOneField(
-        Poll,
-        on_delete=models.CASCADE,
-        primary_key=True,
-    )
+    poll = models.OneToOneField(Poll, on_delete=models.CASCADE, primary_key=True)
     history = HistoricalRecords()
 
 
@@ -341,8 +322,7 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField('Employee', null=True,
-                                   on_delete=models.CASCADE)
+    manager = models.OneToOneField("Employee", null=True, on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 
@@ -351,19 +331,13 @@ class Country(models.Model):
 
 
 class Province(models.Model):
-    country = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
-        to_field='code',
-    )
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, to_field="code")
     history = HistoricalRecords()
 
 
 class City(models.Model):
     country = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
-        db_column='countryCode',
+        Country, on_delete=models.CASCADE, db_column="countryCode"
     )
     history = HistoricalRecords()
 
@@ -371,7 +345,7 @@ class City(models.Model):
 class Contact(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)
-    history = HistoricalRecords(table_name='contacts_history')
+    history = HistoricalRecords(table_name="contacts_history")
 
 
 class ContactRegister(models.Model):
@@ -379,7 +353,7 @@ class ContactRegister(models.Model):
     email = models.EmailField(max_length=255, unique=True)
 
 
-register(ContactRegister, table_name='contacts_register_history')
+register(ContactRegister, table_name="contacts_register_history")
 
 
 ###############################################################################
@@ -387,6 +361,7 @@ register(ContactRegister, table_name='contacts_register_history')
 # Inheritance examples
 #
 ###############################################################################
+
 
 class TrackedAbstractBaseA(models.Model):
     history = HistoricalRecords(inherit=True)
@@ -403,7 +378,6 @@ class TrackedAbstractBaseB(models.Model):
 
 
 class UntrackedAbstractBase(models.Model):
-
     class Meta:
         abstract = True
 
@@ -420,14 +394,14 @@ class ConcreteExternal(AbstractExternal):
     name = models.CharField(max_length=50)
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
 
 class ConcreteExternal2(AbstractExternal):
     name = models.CharField(max_length=50)
 
     class Meta:
-        pass    # Don't set app_label to test inherited module path
+        pass  # Don't set app_label to test inherited module path
 
 
 class TrackedWithAbstractBase(TrackedAbstractBaseA):
@@ -465,17 +439,13 @@ class InheritTracking4(TrackedAbstractBaseA):
 class BucketMember(models.Model):
     name = models.CharField(max_length=30)
     user = models.OneToOneField(
-        User,
-        related_name="bucket_member",
-        on_delete=models.CASCADE
+        User, related_name="bucket_member", on_delete=models.CASCADE
     )
 
 
 class BucketData(models.Model):
     changed_by = models.ForeignKey(
-        BucketMember,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
+        BucketMember, on_delete=models.SET_NULL, null=True, blank=True
     )
     history = HistoricalRecords(user_model=BucketMember)
 
@@ -493,16 +463,14 @@ def get_bucket_member_changed_by(instance, **kwargs):
 
 class BucketDataRegisterChangedBy(models.Model):
     changed_by = models.ForeignKey(
-        BucketMember,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
+        BucketMember, on_delete=models.SET_NULL, null=True, blank=True
     )
 
 
 register(
     BucketDataRegisterChangedBy,
     user_model=BucketMember,
-    get_user=get_bucket_member_changed_by
+    get_user=get_bucket_member_changed_by,
 )
 
 
@@ -517,33 +485,30 @@ class BucketDataRegisterRequestUser(models.Model):
     data = models.CharField(max_length=30)
 
     def get_absolute_url(self):
-        return reverse('bucket_data-detail', kwargs={'pk': self.pk})
+        return reverse("bucket_data-detail", kwargs={"pk": self.pk})
 
 
 register(
     BucketDataRegisterRequestUser,
     user_model=BucketMember,
-    get_user=get_bucket_member_request_user
+    get_user=get_bucket_member_request_user,
 )
 
 
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    history = HistoricalRecords(
-        history_id_field=models.UUIDField(default=uuid.uuid4)
-    )
+    history = HistoricalRecords(history_id_field=models.UUIDField(default=uuid.uuid4))
 
 
 class UUIDRegisterModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 
-register(UUIDRegisterModel,
-         history_id_field=models.UUIDField(default=uuid.uuid4))
+register(UUIDRegisterModel, history_id_field=models.UUIDField(default=uuid.uuid4))
 
 
 # Set the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
-setattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID', True)
+setattr(settings, "SIMPLE_HISTORY_HISTORY_ID_USE_UUID", True)
 
 
 class UUIDDefaultModel(models.Model):
@@ -552,11 +517,11 @@ class UUIDDefaultModel(models.Model):
 
 
 # Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
-delattr(settings, 'SIMPLE_HISTORY_HISTORY_ID_USE_UUID')
+delattr(settings, "SIMPLE_HISTORY_HISTORY_ID_USE_UUID")
 
 
 # Set the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
-setattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD', True)
+setattr(settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD", True)
 
 
 class DefaultTextFieldChangeReasonModel(models.Model):
@@ -565,14 +530,12 @@ class DefaultTextFieldChangeReasonModel(models.Model):
 
 
 # Clear the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
-delattr(settings, 'SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD')
+delattr(settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD")
 
 
 class UserTextFieldChangeReasonModel(models.Model):
     greeting = models.CharField(max_length=100)
-    history = HistoricalRecords(
-        history_change_reason_field=models.TextField(null=True)
-    )
+    history = HistoricalRecords(history_change_reason_field=models.TextField(null=True))
 
 
 class CharFieldChangeReasonModel(models.Model):
@@ -582,6 +545,4 @@ class CharFieldChangeReasonModel(models.Model):
 
 class CustomNameModel(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    history = HistoricalRecords(
-        custom_model_name='MyHistoricalCustomNameModel'
-    )
+    history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")

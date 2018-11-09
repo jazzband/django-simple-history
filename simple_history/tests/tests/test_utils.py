@@ -4,23 +4,18 @@ from django.utils.timezone import now
 from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
-from simple_history.tests.models import (
-    Document,
-    Place,
-    Poll,
-    PollWithExcludeFields
-)
+from simple_history.tests.models import Document, Place, Poll, PollWithExcludeFields
 from simple_history.utils import bulk_create_with_history
 
 
 class BulkCreateWithHistoryTestCase(TestCase):
     def setUp(self):
         self.data = [
-            Poll(id=1, question='Question 1', pub_date=now()),
-            Poll(id=2, question='Question 2', pub_date=now()),
-            Poll(id=3, question='Question 3', pub_date=now()),
-            Poll(id=4, question='Question 4', pub_date=now()),
-            Poll(id=5, question='Question 5', pub_date=now()),
+            Poll(id=1, question="Question 1", pub_date=now()),
+            Poll(id=2, question="Question 2", pub_date=now()),
+            Poll(id=3, question="Question 3", pub_date=now()),
+            Poll(id=4, question="Question 4", pub_date=now()),
+            Poll(id=5, question="Question 5", pub_date=now()),
         ]
 
     def test_bulk_create_history(self):
@@ -35,9 +30,9 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     def test_bulk_create_history_on_model_without_history_raises_error(self):
         self.data = [
-            Place(id=1, name='Place 1'),
-            Place(id=2, name='Place 2'),
-            Place(id=3, name='Place 3'),
+            Place(id=1, name="Place 1"),
+            Place(id=2, name="Place 2"),
+            Place(id=3, name="Place 3"),
         ]
         with self.assertRaises(NotHistoricalModelError):
             bulk_create_with_history(self.data, Place)
@@ -65,15 +60,17 @@ class BulkCreateWithHistoryTestCase(TestCase):
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     def setUp(self):
         self.data = [
-            Poll(id=1, question='Question 1', pub_date=now()),
-            Poll(id=2, question='Question 2', pub_date=now()),
-            Poll(id=3, question='Question 3', pub_date=now()),
-            Poll(id=4, question='Question 4', pub_date=now()),
-            Poll(id=5, question='Question 5', pub_date=now()),
+            Poll(id=1, question="Question 1", pub_date=now()),
+            Poll(id=2, question="Question 2", pub_date=now()),
+            Poll(id=3, question="Question 3", pub_date=now()),
+            Poll(id=4, question="Question 4", pub_date=now()),
+            Poll(id=5, question="Question 5", pub_date=now()),
         ]
 
-    @patch('simple_history.manager.HistoryManager.bulk_history_create',
-           Mock(side_effect=Exception))
+    @patch(
+        "simple_history.manager.HistoryManager.bulk_history_create",
+        Mock(side_effect=Exception),
+    )
     def test_transaction_rolls_back_if_bulk_history_create_fails(self):
         with self.assertRaises(Exception):
             bulk_create_with_history(self.data, Poll)
@@ -91,7 +88,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         self.assertEqual(Poll.history.count(), 0)
 
     def test_bulk_create_history_rolls_back_when_last_exists(self):
-        Poll.objects.create(id=5, question='Question 5', pub_date=now())
+        Poll.objects.create(id=5, question="Question 5", pub_date=now())
 
         self.assertEqual(Poll.objects.count(), 1)
         self.assertEqual(Poll.history.count(), 1)

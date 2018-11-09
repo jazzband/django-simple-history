@@ -15,6 +15,6 @@ class HistoryRequestMiddleware(MiddlewareMixin):
         HistoricalRecords.thread.request = request
 
     def process_response(self, request, response):
-        if hasattr(HistoricalRecords.thread, 'request'):
+        if hasattr(HistoricalRecords.thread, "request"):
             del HistoricalRecords.thread.request
         return response
