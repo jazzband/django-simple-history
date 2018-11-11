@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 
 
@@ -49,7 +48,7 @@ class HistoryManager(models.Manager):
         excluded_fields = []
 
         if isinstance(self.instance._meta.model.history, self.__class__):
-            excluded_fields = python_2_unicode_compatible(
+            excluded_fields = (
                 self.instance._meta.model.history.model._history_excluded_fields
             )
 
