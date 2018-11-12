@@ -17,6 +17,12 @@ django-simple-history
    :target: https://landscape.io/github/treyhunner/django-simple-history/master
    :alt: Code Health
 
+.. image:: https://pepy.tech/badge/django-simple-history
+   :target: https://pepy.tech/project/django-simple-history
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
+
 
 django-simple-history stores Django model state on every create/update/delete.
 
