@@ -1,7 +1,7 @@
 django-simple-history
 =====================
 
-.. image:: https://secure.travis-ci.org/treyhunner/django-simple-history.png?branch=master
+.. image:: https://secure.travis-ci.org/treyhunner/django-simple-history.svg?branch=master
    :target: http://travis-ci.org/treyhunner/django-simple-history
    :alt: Build Status
 
