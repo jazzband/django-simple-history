@@ -6,7 +6,7 @@ from django.test import TestCase
 from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
-from simple_history.management.commands import populate_history
+from simple_history.management.commands import populate_history, clean_duplicate_history
 from ..models import Book, Poll, PollWithExcludeFields, Restaurant
 
 
@@ -180,3 +180,133 @@ class TestPopulateHistory(TestCase):
         )
         initial_history_record = PollWithExcludeFields.history.all()[0]
         self.assertEqual(initial_history_record.question, poll.question)
+
+
+class TestCleanDuplicateHistory(TestCase):
+    command_name = "clean_duplicate_history"
+    command_error = (management.CommandError, SystemExit)
+
+    def test_no_args(self):
+        out = StringIO()
+        management.call_command(self.command_name, stdout=out, stderr=StringIO())
+        self.assertIn(clean_duplicate_history.Command.COMMAND_HINT, out.getvalue())
+
+    def test_bad_args(self):
+        test_data = (
+            (clean_duplicate_history.Command.MODEL_NOT_HISTORICAL, ("tests.place",)),
+            (clean_duplicate_history.Command.MODEL_NOT_FOUND, ("invalid.model",)),
+            (clean_duplicate_history.Command.MODEL_NOT_FOUND, ("bad_key",)),
+        )
+        for msg, args in test_data:
+            out = StringIO()
+            self.assertRaises(
+                self.command_error,
+                management.call_command,
+                self.command_name,
+                *args,
+                stdout=StringIO(),
+                stderr=out
+            )
+            self.assertIn(msg, out.getvalue())
+
+    def test_auto_cleanup(self):
+        p = Poll.objects.create(
+            question="Will this be deleted?",
+            pub_date=datetime.now()
+        )
+        self.assertEqual(Poll.history.all().count(), 1)
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 2)
+        p.question = "Maybe this one won't...?"
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 3)
+        out = StringIO()
+        management.call_command(
+            self.command_name, auto=True,
+            stdout=out, stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.Poll'>\n"
+        )
+        self.assertEqual(Poll.history.all().count(), 2)
+
+    def test_auto_cleanup_verbose(self):
+        p = Poll.objects.create(
+            question="Will this be deleted?",
+            pub_date=datetime.now()
+        )
+        self.assertEqual(Poll.history.all().count(), 1)
+        p.save()
+        p.question = "Maybe this one won't...?"
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 3)
+        out = StringIO()
+        management.call_command(
+            self.command_name, "tests.poll",
+            auto=True, verbosity=2,
+            stdout=out, stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "<class 'simple_history.tests.models.Poll'> has 3 historical entries\n"
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.Poll'>\n"
+        )
+        self.assertEqual(Poll.history.all().count(), 2)
+
+    def test_auto_cleanup_dated(self):
+        the_time_is_now = datetime.now()
+        p = Poll.objects.create(
+            question="Will this be deleted?", pub_date=the_time_is_now
+        )
+        self.assertEqual(Poll.history.all().count(), 1)
+        p.save()
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 3)
+        p.question = "Or this one...?"
+        p.save()
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 5)
+
+        older_datetime = the_time_is_now.replace(hour=the_time_is_now.hour - 1)
+        for h in Poll.history.all()[2:]:
+            h.history_date = older_datetime
+            h.save()
+
+        management.call_command(
+            self.command_name, auto=True, minutes=50,
+            stdout=StringIO(), stderr=StringIO()
+        )
+        self.assertEqual(Poll.history.all().count(), 4)
+
+    def test_auto_cleanup_dated_extra_one(self):
+        the_time_is_now = datetime.now()
+        p = Poll.objects.create(
+            question="Will this be deleted?", pub_date=the_time_is_now
+        )
+        self.assertEqual(Poll.history.all().count(), 1)
+        p.save()
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 3)
+        p.question = "Or this one...?"
+        p.save()
+        p.save()
+        p.save()
+        p.save()
+        self.assertEqual(Poll.history.all().count(), 7)
+
+        older_datetime = the_time_is_now.replace(hour=the_time_is_now.hour - 1)
+        for h in Poll.history.all()[2:]:
+            h.history_date = older_datetime
+            h.save()
+
+        management.call_command(
+            self.command_name, auto=True, minutes=50,
+            stdout=StringIO(), stderr=StringIO()
+        )
+        # even though only the last 2 entries match the date range
+        # the "extra_one" (the record before the oldest match)
+        # is identical to the oldest match, so oldest match is deleted
+        self.assertEqual(Poll.history.all().count(), 5)
