@@ -211,8 +211,7 @@ class TestCleanDuplicateHistory(TestCase):
 
     def test_auto_cleanup(self):
         p = Poll.objects.create(
-            question="Will this be deleted?",
-            pub_date=datetime.now()
+            question="Will this be deleted?", pub_date=datetime.now()
         )
         self.assertEqual(Poll.history.all().count(), 1)
         p.save()
@@ -222,20 +221,18 @@ class TestCleanDuplicateHistory(TestCase):
         self.assertEqual(Poll.history.all().count(), 3)
         out = StringIO()
         management.call_command(
-            self.command_name, auto=True,
-            stdout=out, stderr=StringIO()
+            self.command_name, auto=True, stdout=out, stderr=StringIO()
         )
         self.assertEqual(
             out.getvalue(),
             "Removed 1 historical records for "
-            "<class 'simple_history.tests.models.Poll'>\n"
+            "<class 'simple_history.tests.models.Poll'>\n",
         )
         self.assertEqual(Poll.history.all().count(), 2)
 
     def test_auto_cleanup_verbose(self):
         p = Poll.objects.create(
-            question="Will this be deleted?",
-            pub_date=datetime.now()
+            question="Will this be deleted?", pub_date=datetime.now()
         )
         self.assertEqual(Poll.history.all().count(), 1)
         p.save()
@@ -244,15 +241,18 @@ class TestCleanDuplicateHistory(TestCase):
         self.assertEqual(Poll.history.all().count(), 3)
         out = StringIO()
         management.call_command(
-            self.command_name, "tests.poll",
-            auto=True, verbosity=2,
-            stdout=out, stderr=StringIO()
+            self.command_name,
+            "tests.poll",
+            auto=True,
+            verbosity=2,
+            stdout=out,
+            stderr=StringIO(),
         )
         self.assertEqual(
             out.getvalue(),
             "<class 'simple_history.tests.models.Poll'> has 3 historical entries\n"
             "Removed 1 historical records for "
-            "<class 'simple_history.tests.models.Poll'>\n"
+            "<class 'simple_history.tests.models.Poll'>\n",
         )
         self.assertEqual(Poll.history.all().count(), 2)
 
@@ -276,8 +276,11 @@ class TestCleanDuplicateHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name, auto=True, minutes=50,
-            stdout=StringIO(), stderr=StringIO()
+            self.command_name,
+            auto=True,
+            minutes=50,
+            stdout=StringIO(),
+            stderr=StringIO(),
         )
         self.assertEqual(Poll.history.all().count(), 4)
 
@@ -303,8 +306,11 @@ class TestCleanDuplicateHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name, auto=True, minutes=50,
-            stdout=StringIO(), stderr=StringIO()
+            self.command_name,
+            auto=True,
+            minutes=50,
+            stdout=StringIO(),
+            stderr=StringIO(),
         )
         # even though only the last 2 entries match the date range
         # the "extra_one" (the record before the oldest match)

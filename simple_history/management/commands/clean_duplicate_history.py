@@ -28,14 +28,10 @@ class Command(populate_history.Command):
             "type",
         )
         parser.add_argument(
-            '-d', '--dry',
-            action='store_true',
-            help='Dry (test) run only, no changes'
+            "-d", "--dry", action="store_true", help="Dry (test) run only, no changes"
         )
         parser.add_argument(
-            '-m', '--minutes',
-            type=int,
-            help='Only search the last MINUTES of history'
+            "-m", "--minutes", type=int, help="Only search the last MINUTES of history"
         )
 
     def handle(self, *args, **options):
@@ -63,7 +59,7 @@ class Command(populate_history.Command):
             if self.verbosity >= 1:
                 self.stdout.write(self.COMMAND_HINT)
 
-        self._process(to_process, date_back=options['minutes'], dry_run=options['dry'])
+        self._process(to_process, date_back=options["minutes"], dry_run=options["dry"])
 
     def _process(self, to_process, date_back=None, dry_run=True):
         if date_back:
@@ -109,9 +105,9 @@ class Command(populate_history.Command):
             if extra_one:
                 entries_deleted += self._check_and_delete(f1, extra_one, dry_run)
         if self.verbosity >= 1:
-            self.stdout.write(self.DONE_CLEANING_FOR_MODEL.format(
-                model=model, count=entries_deleted
-            ))
+            self.stdout.write(
+                self.DONE_CLEANING_FOR_MODEL.format(model=model, count=entries_deleted)
+            )
 
     def _check_and_delete(self, entry1, entry2, dry_run=True):
         delta = entry1.diff_against(entry2)
