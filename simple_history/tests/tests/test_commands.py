@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.core import management
 from django.test import TestCase
@@ -7,7 +7,7 @@ from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history, clean_duplicate_history
-from ..models import Book, Poll, PollWithExcludeFields, Restaurant
+from ..models import Book, Poll, PollWithExcludeFields, Restaurant, Place
 
 
 @contextmanager
@@ -118,7 +118,7 @@ class TestPopulateHistory(TestCase):
 
     def test_no_historical(self):
         out = StringIO()
-        with replace_registry():
+        with replace_registry({"test_place": Place}):
             management.call_command(self.command_name, auto=True, stdout=out)
         self.assertIn(populate_history.Command.NO_REGISTERED_MODELS, out.getvalue())
 
@@ -209,6 +209,47 @@ class TestCleanDuplicateHistory(TestCase):
             )
             self.assertIn(msg, out.getvalue())
 
+    def test_no_historical(self):
+        out = StringIO()
+        with replace_registry({"test_place": Place}):
+            management.call_command(self.command_name, auto=True, stdout=out)
+        self.assertIn(
+            clean_duplicate_history.Command.NO_REGISTERED_MODELS, out.getvalue()
+        )
+
+    def test_auto_dry_run(self):
+        p = Poll.objects.create(
+            question="Will this be deleted?", pub_date=datetime.now()
+        )
+        p.save()
+
+        # not related to dry_run test, just for increasing coverage :)
+        # create instance with single-entry history older than "minutes"
+        # so it is skipped
+        p = Poll.objects.create(
+            question="Will this be deleted?", pub_date=datetime.now()
+        )
+        h = p.history.first()
+        h.history_date -= timedelta(hours=1)
+        h.save()
+
+        self.assertEqual(Poll.history.all().count(), 3)
+        out = StringIO()
+        management.call_command(
+            self.command_name,
+            auto=True,
+            minutes=50,
+            dry=True,
+            stdout=out,
+            stderr=StringIO(),
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.Poll'>\n",
+        )
+        self.assertEqual(Poll.history.all().count(), 3)
+
     def test_auto_cleanup(self):
         p = Poll.objects.create(
             question="Will this be deleted?", pub_date=datetime.now()
@@ -270,9 +311,8 @@ class TestCleanDuplicateHistory(TestCase):
         p.save()
         self.assertEqual(Poll.history.all().count(), 5)
 
-        older_datetime = the_time_is_now.replace(hour=the_time_is_now.hour - 1)
         for h in Poll.history.all()[2:]:
-            h.history_date = older_datetime
+            h.history_date -= timedelta(hours=1)
             h.save()
 
         management.call_command(
@@ -300,9 +340,8 @@ class TestCleanDuplicateHistory(TestCase):
         p.save()
         self.assertEqual(Poll.history.all().count(), 7)
 
-        older_datetime = the_time_is_now.replace(hour=the_time_is_now.hour - 1)
         for h in Poll.history.all()[2:]:
-            h.history_date = older_datetime
+            h.history_date -= timedelta(hours=1)
             h.save()
 
         management.call_command(
