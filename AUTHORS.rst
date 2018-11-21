@@ -20,6 +20,7 @@ Authors
 - David Hite
 - Eduardo Cuducos
 - Florian Eßer
+- Frank Sachsenheim
 - George Vilches
 - Grzegorz Bialy
 - Hamish Downer
