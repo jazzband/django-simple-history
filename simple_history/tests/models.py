@@ -356,6 +356,11 @@ class ContactRegister(models.Model):
 register(ContactRegister, table_name="contacts_register_history")
 
 
+class ModelWithHistoryInDifferentApp(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords(app="external")
+
+
 ###############################################################################
 #
 # Inheritance examples
