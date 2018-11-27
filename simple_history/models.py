@@ -50,6 +50,7 @@ class HistoricalRecords(object):
         get_user=default_get_user,
         cascade_delete_history=False,
         custom_model_name=None,
+        app=None,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -61,6 +62,7 @@ class HistoricalRecords(object):
         self.get_user = get_user
         self.cascade_delete_history = cascade_delete_history
         self.custom_model_name = custom_model_name
+        self.app = app
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
@@ -340,6 +342,8 @@ class HistoricalRecords(object):
         else:
             name = format_lazy("historical {}", smart_text(model._meta.verbose_name))
         meta_fields["verbose_name"] = name
+        if self.app:
+            meta_fields["app_label"] = self.app
         return meta_fields
 
     def post_save(self, instance, created, **kwargs):
