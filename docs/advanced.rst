@@ -541,3 +541,24 @@ To connect the signals to your callbacks, you can use the @receiver decorator:
     @receiver(post_create_historical_record)
     def post_create_historical_record_callback(sender, **kwargs):
         print("Sent after saving historical record")
+
+History Model In Different App
+------------------------------
+
+By default the app_label for the history model is the same as the base model.
+In some circumstances you may want to have the history models belong in a different app.
+This will support creating history models in a different database to the base model using
+database routing functionality based on app_label.
+To configure history models in a different app, add this to the HistoricalRecords instantiation
+or the record invocation: ``app="SomeAppName"``.
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(app="SomeAppName")
+
+    class Opinion(models.Model):
+        opinion = models.CharField(max_length=2000)
+
+    register(Opinion, app="SomeAppName")

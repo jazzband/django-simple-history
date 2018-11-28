@@ -28,6 +28,7 @@ from ..tests.models import (
     UUIDRegisterModel,
     Voter,
     ModelWithCustomAttrForeignKey,
+    ModelWithHistoryInDifferentApp,
 )
 
 get_model = apps.get_model
@@ -211,3 +212,11 @@ class TestMigrate(TestCase):
         management.call_command(
             "migrate", "migration_test_app", fake=True, stdout=StringIO()
         )
+
+
+class TestModelWithHistoryInDifferentApp(TestCase):
+    """ https://github.com/treyhunner/django-simple-history/issues/485 """
+
+    def test__different_app(self):
+        appLabel = ModelWithHistoryInDifferentApp.history.model._meta.app_label
+        self.assertEqual(appLabel, "external")

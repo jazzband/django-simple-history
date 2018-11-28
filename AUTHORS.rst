@@ -73,6 +73,7 @@ Authors
 - Jim Gomez
 - Hanyin Zhang
 - James Muranga (@jamesmura)
+- Christopher Broderick (@uhurusurfa)
 
 Background
 ==========
