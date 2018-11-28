@@ -33,4 +33,6 @@
 - [ ] I have updated the documentation accordingly.
 - [ ] I have read the **CONTRIBUTING** document.
 - [ ] I have added tests to cover my changes.
+- [ ] I have added my name and/or github handle to `AUTHORS.rst`
+- [ ] I have added my change to `CHANGES.rst`
 - [ ] All new and existing tests passed.
