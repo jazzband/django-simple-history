@@ -216,23 +216,6 @@ or
         )
 
 
-Custom model name
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, historical model is named as 'Historical' + model name. For
-example, historical records for ``Choice`` is called ``HistoricalChoice``.
-Users can specify a custom model name via the constructor on
-``HistoricalRecords``. The common use case for this is avoiding naming conflict
-if the user already defined a model named as 'Historical' + model name.
-
-.. code-block:: python
-
-    class ModelNameExample(models.Model):
-        history = HistoricalRecords(
-            custom_model_name='SimpleHistoricalModelNameExample'
-        )
-
-
 Querying history
 ----------------
 
