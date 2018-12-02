@@ -34,7 +34,6 @@ from ..models import (
     Contact,
     ContactRegister,
     Country,
-    CustomNameModel,
     Document,
     Employee,
     ExternalModel1,
@@ -45,6 +44,9 @@ from ..models import (
     HistoricalPoll,
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
+    OverrideModelNameAsCallable,
+    OverrideModelNameUsingBaseModel1,
+    MyOverrideModelNameRegisterMethod1,
     Library,
     MultiOneToOne,
     Person,
@@ -677,18 +679,51 @@ class CreateHistoryModelTests(unittest.TestCase):
                 "exception."
             )
 
+    def verify_custom_model_name_feature(
+        self, model, expected_class_name, expected_table_name
+    ):
+        history_model = model.history.model
+        self.assertEqual(history_model.__name__, expected_class_name)
+        self.assertEqual(history_model._meta.db_table, expected_table_name)
+
     def test_instantiate_history_model_with_custom_model_name(self):
         try:
-            from ..models import MyHistoricalCustomNameModel
+            from ..models import OverrideModelNameAsString
         except ImportError:
-            self.fail("MyHistoricalCustomNameModel is in wrong module")
-        historical_model = MyHistoricalCustomNameModel()
-        self.assertEqual(
-            historical_model.__class__.__name__, "MyHistoricalCustomNameModel"
+            self.fail("{}OverrideModelNameAsString is in wrong module")
+        expected_clazz_name = "MyHistoricalCustomNameModel"
+        self.verify_custom_model_name_feature(
+            OverrideModelNameAsString(),
+            expected_clazz_name,
+            "tests_{}".format(expected_clazz_name.lower()),
         )
-        self.assertEqual(
-            historical_model._meta.db_table, "tests_myhistoricalcustomnamemodel"
+
+        try:
+            from ..models import OverrideModelNameRegisterMethod1
+        except ImportError:
+            self.fail("OverrideModelNameRegisterMethod1 is in wrong module")
+
+        clazz = OverrideModelNameRegisterMethod1()
+        expected_clazz_name = "MyOverrideModelNameRegisterMethod1"
+        self.verify_custom_model_name_feature(
+            clazz, expected_clazz_name, "tests_{}".format(expected_clazz_name.lower())
         )
+        clazz = OverrideModelNameUsingBaseModel1
+        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        self.verify_custom_model_name_feature(
+            clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
+        )
+
+        from simple_history import register
+        from ..models import OverrideModelNameRegisterMethod2
+
+        try:
+            register(
+                OverrideModelNameRegisterMethod2,
+                custom_model_name=lambda x: "{}".format(x),
+            )
+        except ValueError:
+            self.assertRaises(ValueError)
 
 
 class AppLabelTest(TestCase):

@@ -548,6 +548,43 @@ class CharFieldChangeReasonModel(models.Model):
     history = HistoricalRecords()
 
 
-class CustomNameModel(models.Model):
+"""
+Following classes test the "custom_model_name" option
+"""
+
+
+class OverrideModelNameAsString(models.Model):
     name = models.CharField(max_length=15, unique=True)
     history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")
+
+
+class OverrideModelNameAsCallable(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    history = HistoricalRecords(custom_model_name=lambda x: "Audit{}".format(x))
+
+
+class AbstractModelCallable1(models.Model):
+    history = HistoricalRecords(
+        inherit=True, custom_model_name=lambda x: "Audit{}".format(x)
+    )
+
+    class Meta:
+        abstract = True
+
+
+class OverrideModelNameUsingBaseModel1(AbstractModelCallable1):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameRegisterMethod1(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+
+
+register(
+    OverrideModelNameRegisterMethod1,
+    custom_model_name="MyOverrideModelNameRegisterMethod1",
+)
+
+
+class OverrideModelNameRegisterMethod2(models.Model):
+    name = models.CharField(max_length=15, unique=True)
