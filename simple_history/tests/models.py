@@ -13,6 +13,8 @@ from simple_history.models import HistoricalRecords
 from simple_history.signals import pre_create_historical_record
 from .custom_user.models import CustomUser as User
 from .external.models.model1 import AbstractExternal
+from .external.models.model1 import AbstractExternal2
+from .external.models.model1 import AbstractExternal3
 
 get_model = apps.get_model
 
@@ -573,6 +575,14 @@ class AbstractModelCallable1(models.Model):
 
 
 class OverrideModelNameUsingBaseModel1(AbstractModelCallable1):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameUsingExternalModel1(AbstractExternal2):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameUsingExternalModel2(AbstractExternal3):
     name = models.CharField(max_length=15, unique=True)
 
 

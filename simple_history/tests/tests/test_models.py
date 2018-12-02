@@ -714,6 +714,20 @@ class CreateHistoryModelTests(unittest.TestCase):
             clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
         )
 
+        from ..models import OverrideModelNameUsingExternalModel1
+        clazz = OverrideModelNameUsingExternalModel1
+        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        self.verify_custom_model_name_feature(
+            clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
+        )
+
+        from ..models import OverrideModelNameUsingExternalModel2
+        clazz = OverrideModelNameUsingExternalModel2
+        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        self.verify_custom_model_name_feature(
+            clazz, expected_clazz_name, "external_" + expected_clazz_name.lower()
+        )
+
         from simple_history import register
         from ..models import OverrideModelNameRegisterMethod2
 
