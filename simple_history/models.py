@@ -143,7 +143,8 @@ class HistoricalRecords(object):
             raise ValueError(
                 "The 'custom_model_name' option evaluates to a name that \
                 is the same as the model it is tracking. The history model \
-                must be in a different 'app' to use this.")
+                must be in a different 'app' to use this."
+            )
 
     def create_history_model(self, model, inherited):
         """
