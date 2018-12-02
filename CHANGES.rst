@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Allow `custom_model_name` parameter to be a callable (gh-489)
 - Add `app` parameter to the constructor of `HistoricalRecords` (gh-486)
 - Add `custom_model_name` parameter to the constructor of `HistoricalRecords` (gh-451)
 - Fix header on history pages when custom site_header is used (gh-448)
