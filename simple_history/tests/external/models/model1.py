@@ -13,7 +13,9 @@ class AbstractExternal(models.Model):
 
 
 class AbstractExternal2(models.Model):
-    history = HistoricalRecords(inherit=True, custom_model_name=lambda x: "Audit{}".format(x))
+    history = HistoricalRecords(
+        inherit=True, custom_model_name=lambda x: "Audit{}".format(x)
+    )
 
     class Meta:
         abstract = True
@@ -21,7 +23,9 @@ class AbstractExternal2(models.Model):
 
 
 class AbstractExternal3(models.Model):
-    history = HistoricalRecords(inherit=True, app="external", custom_model_name=lambda x: "Audit{}".format(x))
+    history = HistoricalRecords(
+        inherit=True, app="external", custom_model_name=lambda x: "Audit{}".format(x)
+    )
 
     class Meta:
         abstract = True
