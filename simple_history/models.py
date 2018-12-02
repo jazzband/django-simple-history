@@ -149,20 +149,13 @@ class HistoricalRecords(object):
     def get_history_model_name(self, model, attrs):
         if self.custom_model_name:
             if callable(self.custom_model_name):
-                if (
-                    self.custom_model_name(model._meta.object_name).lower()
-                    == model._meta.object_name.lower()
-                ):
-                    self.check_custom_model_name_unique(model)
-                    # Override table_name and make class name use the standard option
-                    # because otherwise it creates the same class as the concrete class
-                    attrs["Meta"].db_table = (
-                        self.app
-                        + "_"
-                        + self.custom_model_name(model._meta.object_name).lower()
-                    )
-                else:
-                    return self.custom_model_name(model._meta.object_name)
+                name = self.custom_model_name(model._meta.object_name)
+                if not name.lower() == model._meta.object_name.lower():
+                    return name
+                self.check_custom_model_name_unique(model)
+                # Override table_name and make class name use the standard option
+                # because otherwise it creates the same class as the concrete class
+                attrs["Meta"].db_table = self.app + "_" + name.lower()
             else:
                 # Treat as a simple string
                 return self.custom_model_name
