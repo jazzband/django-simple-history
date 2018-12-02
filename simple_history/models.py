@@ -146,6 +146,28 @@ class HistoricalRecords(object):
                 must be in a different 'app' to use this."
             )
 
+    def get_history_model_name(self, model, attrs):
+        if self.custom_model_name:
+            if callable(self.custom_model_name):
+                if (
+                    self.custom_model_name(model._meta.object_name).lower()
+                    == model._meta.object_name.lower()
+                ):
+                    self.check_custom_model_name_unique(model)
+                    # Override table_name and make class name use the standard option
+                    # because otherwise it creates the same class as the concrete class
+                    attrs["Meta"].db_table = (
+                        self.app
+                        + "_"
+                        + self.custom_model_name(model._meta.object_name).lower()
+                    )
+                else:
+                    return self.custom_model_name(model._meta.object_name)
+            else:
+                # Treat as a simple string
+                return self.custom_model_name
+        return "Historical{}".format(model._meta.object_name)
+
     def create_history_model(self, model, inherited):
         """
         Creates a historical model to associate with the model provided.
@@ -178,26 +200,7 @@ class HistoricalRecords(object):
             attrs["Meta"].db_table = self.table_name
 
         # Set as the default then check for overrides
-        name = "Historical{}".format(model._meta.object_name)
-        if self.custom_model_name:
-            if callable(self.custom_model_name):
-                if (
-                    self.custom_model_name(model._meta.object_name).lower()
-                    == model._meta.object_name.lower()
-                ):
-                    self.check_custom_model_name_unique(model)
-                    # Override table_name and make class name use the standard option
-                    # because otherwise it creates the same class as the concrete class
-                    attrs["Meta"].db_table = (
-                        self.app
-                        + "_"
-                        + self.custom_model_name(model._meta.object_name).lower()
-                    )
-                else:
-                    name = self.custom_model_name(model._meta.object_name)
-            else:
-                # Treat as a simple string
-                name = self.custom_model_name
+        name = self.get_history_model_name(model, attrs)
 
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(type(str(name), self.bases, attrs))
