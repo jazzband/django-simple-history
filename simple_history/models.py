@@ -136,10 +136,7 @@ class HistoricalRecords(object):
     def check_custom_model_name_unique(self, model):
         # if the custom model name is the same as the original model name,
         # make sure that the app names are different
-        try:
-            if not self.app or self.app == model._meta.app_label:
-                raise ValueError
-        except ValueError:
+        if not self.app or self.app == model._meta.app_label:
             raise ValueError(
                 "The 'custom_model_name' option evaluates to a name that \
                 is the same as the model it is tracking. The history model \
