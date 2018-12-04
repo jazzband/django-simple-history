@@ -39,4 +39,6 @@ plugins:
     enabled: true
   sonar-python:
     enabled: true
+    config:
+      minimum_severity: critical
 
