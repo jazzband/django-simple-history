@@ -33,6 +33,9 @@ checks:
 plugins:
   bandit:
     enabled: true
+    exclude_patterns:
+      - "tests/"
+      - "registry_tests/"
   pep8:
     enabled: false
   radon:
