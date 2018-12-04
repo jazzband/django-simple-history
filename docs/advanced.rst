@@ -570,7 +570,7 @@ By default the history model names are the base model name prefixed with "Histor
 So given a model named ``Poll``, the resultant history class will be named ``HistoricalPoll``.
 If the app name of the ``Poll`` model is `election` then the history table name would be ``election_historicalpoll``.
 
-This feature allows a different and/or shorter model name and would even allow model names to be in the standard Django form
+This feature allows a different and/or shorter model name and can result in history models table names to be in the form
 
     [appName]_[modelName]
 
@@ -601,7 +601,7 @@ As an example using the callable mechanism, the below changes the default prefix
     class Opinion(models.Model):
         opinion = models.CharField(max_length=2000)
 
-    register(Opinion, custom_model_name_prefix=lambda x:f'Audit{x}')
+    register(Opinion, custom_model_name=lambda x:f'Audit{x}')
     
 The resulting history class names would be `AuditPoll` and `AuditOpinion`.
 If the app the models are defined in is `yoda` then the corresponding history table names would be `yoda_auditpoll` and `yoda_auditopinion`
@@ -613,7 +613,7 @@ Using this mechanism requires using the `inherit` option.
 .. code-block:: python
 
     class BaseModel(models.Model):
-        history = HistoricalRecords(inherit=True, app="yoda", custom_model_name_prefix=lambda x:f'Audit{x}')
+        history = HistoricalRecords(inherit=True, app="yoda", custom_model_name=lambda x:f'Audit{x}')
         class Meta:
             abstract = True
 
