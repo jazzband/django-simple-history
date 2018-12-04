@@ -34,8 +34,8 @@ plugins:
   bandit:
     enabled: true
     exclude_patterns:
-      - "tests/"
-      - "registry_tests/"
+      - "simple_history/tests/"
+      - "simple_history/registry_tests/"
   pep8:
     enabled: false
   radon:
