@@ -13,15 +13,17 @@ django-simple-history
    :target: https://pypi.python.org/pypi/django-simple-history
    :alt: PyPI Version
 
-.. image:: https://landscape.io/github/treyhunner/django-simple-history/master/landscape.png
-   :target: https://landscape.io/github/treyhunner/django-simple-history/master
-   :alt: Code Health
+.. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
+   :target: https://codeclimate.com/github/treyhunner/django-simple-history/maintainability
+   :alt: Maintainability
 
 .. image:: https://pepy.tech/badge/django-simple-history
    :target: https://pepy.tech/project/django-simple-history
+   :alt: Downloads
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
+   :target: https://github.com/ambv/black
+   :alt: Code Style
 
 
 django-simple-history stores Django model state on every create/update/delete.
