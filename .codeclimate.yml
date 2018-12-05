@@ -27,21 +27,12 @@ checks:
   similar-code:
     config:
       threshold: # language-specific defaults. an override will affect all languages.
-    exclude_patterns:
-      - "simple_history/tests/"
-      - "simple_history/registry_tests/"
   identical-code:
     config:
       threshold: # language-specific defaults. an override will affect all languages.
-    exclude_patterns:
-      - "simple_history/tests/"
-      - "simple_history/registry_tests/"
 plugins:
   bandit:
     enabled: true
-    exclude_patterns:
-      - "simple_history/tests/"
-      - "simple_history/registry_tests/"
   pep8:
     enabled: false
   radon:
@@ -49,4 +40,6 @@ plugins:
     threshold: "C"
   sonar-python:
     enabled: true
-
+exclude_patterns:
+  - "simple_history/tests/"
+  - "simple_history/registry_tests/"
