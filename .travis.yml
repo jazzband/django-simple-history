@@ -7,6 +7,7 @@ python:
   - 3.4
   - 3.5
   - 3.6
+  - 3.7
 
 env:
   - DJANGO="Django>=1.11,<1.12"
@@ -17,12 +18,12 @@ install:
   - pip install -U coverage codecov
   - pip install -U flake8==3.6.0
   - pip install -U $DJANGO
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install black; fi
+  - if [[ $TRAVIS_PYTHON_VERSION >= '3.6' ]]; then pip install black; fi
   - pip freeze
 
 script:
   - flake8 simple_history
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --check simple_history; fi
+  - if [[ $TRAVIS_PYTHON_VERSION >= '3.6' ]]; then black --check simple_history; fi
   - coverage run setup.py test
 
 matrix:

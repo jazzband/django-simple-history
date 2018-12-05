@@ -30,13 +30,13 @@ django-simple-history stores Django model state on every create/update/delete.
 
 This app supports the following combinations of Django and Python:
 
-==========  ==================
+==========  =======================
   Django      Python
-==========  ==================
-1.11        2.7, 3.4, 3.5, 3.6
-2.0         3.4, 3.5, 3.6
-2.1         3.5, 3.6
-==========  ==================
+==========  =======================
+1.11        2.7, 3.4, 3.5, 3.6, 3.7
+2.0         3.4, 3.5, 3.6, 3.7
+2.1         3.5, 3.6, 3.7
+==========  =======================
 
 Getting Help
 ------------
