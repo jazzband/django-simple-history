@@ -5,8 +5,6 @@ from . import populate_history
 from ... import models, utils
 from ...exceptions import NotHistoricalModelError
 
-get_model = populate_history.get_model
-
 
 class Command(populate_history.Command):
     args = "<app.model app.model ...>"
@@ -37,6 +35,11 @@ class Command(populate_history.Command):
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
 
+        if options["minutes"]:
+            stop_date = timezone.now() - timezone.timedelta(minutes=options["minutes"])
+        else:
+            stop_date = None
+
         to_process = set()
         model_strings = options.get("models", []) or args
 
@@ -46,7 +49,7 @@ class Command(populate_history.Command):
 
         elif options["auto"]:
             for model in models.registered_models.values():
-                try:  # avoid issues with mutli-table inheritance
+                try:  # avoid issues with multi-table inheritance
                     history_model = utils.get_history_model_for_model(model)
                 except NotHistoricalModelError:
                     continue
@@ -59,14 +62,9 @@ class Command(populate_history.Command):
             if self.verbosity >= 1:
                 self.stdout.write(self.COMMAND_HINT)
 
-        self._process(to_process, date_back=options["minutes"], dry_run=options["dry"])
+        self._process(to_process, stop_date=stop_date, dry_run=options["dry"])
 
-    def _process(self, to_process, date_back=None, dry_run=True):
-        if date_back:
-            stop_date = timezone.now() - timezone.timedelta(minutes=date_back)
-        else:
-            stop_date = None
-
+    def _process(self, to_process, stop_date=None, dry_run=True):
         for model, history_model in to_process:
             m_qs = history_model.objects
             if stop_date:
