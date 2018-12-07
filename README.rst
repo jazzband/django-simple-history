@@ -5,6 +5,10 @@ django-simple-history
    :target: http://travis-ci.org/treyhunner/django-simple-history
    :alt: Build Status
 
+.. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
+   :target: https://django-simple-history.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 .. image:: https://img.shields.io/codecov/c/github/treyhunner/django-simple-history/master.svg
    :target: http://codecov.io/github/treyhunner/django-simple-history?branch=master
    :alt: Test Coverage
