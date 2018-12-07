@@ -50,12 +50,10 @@ class Command(populate_history.Command):
                     continue
                 to_process.add((model, history_model))
             if not to_process:
-                if self.verbosity >= 1:
-                    self.stdout.write(self.NO_REGISTERED_MODELS)
+                self.log(self.NO_REGISTERED_MODELS)
 
         else:
-            if self.verbosity >= 1:
-                self.stdout.write(self.COMMAND_HINT)
+            self.log(self.COMMAND_HINT)
 
         self._process(to_process, date_back=options["minutes"], dry_run=options["dry"])
 
@@ -70,8 +68,7 @@ class Command(populate_history.Command):
             if stop_date:
                 m_qs = m_qs.filter(history_date__gte=stop_date)
             found = m_qs.count()
-            if self.verbosity >= 2:
-                self.stdout.write("{0} has {1} historical entries".format(model, found))
+            self.log("{0} has {1} historical entries".format(model, found), 2)
             if not found:
                 continue
 
@@ -102,10 +99,14 @@ class Command(populate_history.Command):
                 f1 = f2
             if extra_one:
                 entries_deleted += self._check_and_delete(f1, extra_one, dry_run)
-        if self.verbosity >= 1:
-            self.stdout.write(
-                self.DONE_CLEANING_FOR_MODEL.format(model=model, count=entries_deleted)
-            )
+
+        self.log(
+            self.DONE_CLEANING_FOR_MODEL.format(model=model, count=entries_deleted)
+        )
+
+    def log(self, message, verbosity_level=1):
+        if self.verbosity >= verbosity_level:
+            self.stdout.write(message)
 
     def _check_and_delete(self, entry1, entry2, dry_run=True):
         delta = entry1.diff_against(entry2)
