@@ -28,6 +28,7 @@ Authors
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - Eduardo Cuducos
+- Filipe Pina (@fopina)
 - Florian Eßer
 - Frank Sachsenheim
 - George Vilches
