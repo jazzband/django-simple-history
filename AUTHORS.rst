@@ -1,8 +1,12 @@
 Maintainers
 ===========
-- Trey Hunner
-- Micah Denbraver
+
+- Brian Armstrong (`barm <https://github.com/barm>`_)
+- David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
+- Kyle Seever (`kseever <https://github.com/kseever>`_)
+- Micah Denbraver (`macro1 <https://github.com/macro1>`_)
 - Ross Mechanic (`rossmechanic <https://github.com/rossmechanic>`_)
+- Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 
 Authors
 =======
@@ -10,8 +14,9 @@ Authors
 - Adnan Umer (`uadnan <https://github.com/uadnan>`_)
 - Aleksey Kladov
 - Alexander Anikeev
-- Ben Lawson
+- Ben Lawson (`blawson <https://github.com/blawson>`_)
 - `bradford281 <https://github.com/bradford281>`_
+- Brian Armstrong (`barm <https://github.com/barm>`_)
 - Buddy Lindsey, Jr.
 - Brian Dixon
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
@@ -20,6 +25,7 @@ Authors
 - Daniel Gilge
 - Daniel Levy
 - Daniel Roschka
+- David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - Eduardo Cuducos
 - Florian Eßer
@@ -44,7 +50,7 @@ Authors
 - Kevin Foster
 - Klaas van Schelven
 - Kris Neuharth
-- Kyle Seever
+- Kyle Seever (`kseever <https://github.com/kseever>`_)
 - Leticia Portella
 - Lucas Wiman
 - Maciej "RooTer" Urbański
@@ -57,7 +63,7 @@ Authors
 - Michael England
 - Miguel Vargas
 - Mike Spainhower
-- Nathan Villagaray-Carski
+- Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Phillip Marshall
 - Rajesh Pappula
@@ -71,7 +77,7 @@ Authors
 - Steven Klass
 - Steeve Chailloux
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
-- Trey Hunner
+- Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
 - `vnagendra <https://github.com/vnagendra>`_
 
