@@ -133,30 +133,27 @@ class HistoricalRecords(object):
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
-    def check_custom_model_name_unique(self, model):
-        # if the custom model name is the same as the original model name,
-        # make sure that the app names are different
-        if not self.app or self.app == model._meta.app_label:
-            raise ValueError(
-                "The 'custom_model_name' option evaluates to a name that \
-                is the same as the model it is tracking. The history model \
-                must be in a different 'app' to use this."
+    def get_history_model_name(self, model):
+        if not self.custom_model_name:
+            return "Historical{}".format(model._meta.object_name)
+        # Must be trying to use a custom history model name
+        if callable(self.custom_model_name):
+            name = self.custom_model_name(model._meta.object_name)
+        else:
+            #  simple string
+            name = self.custom_model_name
+        # Desired class name cannot be same as the model it is tracking
+        if (
+            name.lower() != model._meta.object_name.lower()
+            or model.__module__ != self.module
+        ):
+            return name
+        raise ValueError(
+            "The 'custom_model_name' option '{}' evaluates to a name that is the same "
+            "as the model it is tracking. This is not permitted.".format(
+                self.custom_model_name
             )
-
-    def get_history_model_name(self, model, attrs):
-        if self.custom_model_name:
-            if callable(self.custom_model_name):
-                name = self.custom_model_name(model._meta.object_name)
-                if not name.lower() == model._meta.object_name.lower():
-                    return name
-                self.check_custom_model_name_unique(model)
-                # Override table_name and make class name use the standard option
-                # because otherwise it creates the same class as the concrete class
-                attrs["Meta"].db_table = self.app + "_" + name.lower()
-            else:
-                # Treat as a simple string
-                return self.custom_model_name
-        return "Historical{}".format(model._meta.object_name)
+        )
 
     def create_history_model(self, model, inherited):
         """
@@ -190,7 +187,7 @@ class HistoricalRecords(object):
             attrs["Meta"].db_table = self.table_name
 
         # Set as the default then check for overrides
-        name = self.get_history_model_name(model, attrs)
+        name = self.get_history_model_name(model)
 
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(type(str(name), self.bases, attrs))
