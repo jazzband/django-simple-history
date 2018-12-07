@@ -35,11 +35,6 @@ class Command(populate_history.Command):
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
 
-        if options["minutes"]:
-            stop_date = timezone.now() - timezone.timedelta(minutes=options["minutes"])
-        else:
-            stop_date = None
-
         to_process = set()
         model_strings = options.get("models", []) or args
 
@@ -62,9 +57,14 @@ class Command(populate_history.Command):
             if self.verbosity >= 1:
                 self.stdout.write(self.COMMAND_HINT)
 
-        self._process(to_process, stop_date=stop_date, dry_run=options["dry"])
+        self._process(to_process, date_back=options["minutes"], dry_run=options["dry"])
 
-    def _process(self, to_process, stop_date=None, dry_run=True):
+    def _process(self, to_process, date_back=None, dry_run=True):
+        if date_back:
+            stop_date = timezone.now() - timezone.timedelta(minutes=date_back)
+        else:
+            stop_date = None
+
         for model, history_model in to_process:
             m_qs = history_model.objects
             if stop_date:
