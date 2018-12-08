@@ -570,12 +570,7 @@ By default the history model names are the base model name prefixed with "Histor
 So given a model named ``Poll``, the resultant history class will be named ``HistoricalPoll``.
 If the app name of the ``Poll`` model is `election` then the history table name would be ``election_historicalpoll``.
 
-This feature allows a different and/or shorter model name and can result in history models table names to be in the form
-
-    [appName]_[modelName]
-
-where the history models are created in a dedicated app using the "app" option thus making the resultant history table
-name much more aligned with the base table it is tracking
+This feature provides the ability to override the default model name used for the generated history model.
 
 To configure history models to use a different name for the history model class, use an option named ``custom_model_name``
 
@@ -606,35 +601,5 @@ As an example using the callable mechanism, the below changes the default prefix
 The resulting history class names would be `AuditPoll` and `AuditOpinion`.
 If the app the models are defined in is `yoda` then the corresponding history table names would be `yoda_auditpoll` and `yoda_auditopinion`
  
-You could also use a base class for your models and declare the history instantiation in the base class.
-All models that inherit the base model would automatically get this custom name.
-Using this mechanism requires using the `inherit` option.
-
-.. code-block:: python
-
-    class BaseModel(models.Model):
-        history = HistoricalRecords(inherit=True, app="yoda", custom_model_name=lambda x:f'Audit{x}')
-        class Meta:
-            abstract = True
-
-    class Poll(BaseModel):
-        question = models.CharField(max_length=200)
-
-    class Opinion(BaseModel):
-        opinion = models.CharField(max_length=2000)
-
-The resulting history class names would be `AuditPoll` and `AuditOpinion`.
-The history model tables will be named `yoda_auditpoll` and `yoda_auditopinion`.
-
-If the instantiation in the above example used `lambda x:f'{x}'` for the `custom_model_name` option
-  then the resulting history class names would be `HistoricalPoll` and `HistoricalOpinion`.
-  and the corresponding history table names would be `yoda_poll` and `yoda_opinion`
- 
- NOTE: the class name of the historical class in this situation would be `HistoricalPoll` and NOT just `Poll`
-       to ensure it is different to the tracked class since using the `inherit` option that is necessary when using
-       an abstract class forces the historical model to be created in the same module as the model class the history model
-       is created from and would otherwise have the identical name.
- 
-IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` requires that the history tables
-           are assigned to a different app using the `app` option.
-           An error will be generated and no history model created if you do not ensure this.
+IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
+           An error will be generated and no history model created if they are the same.
