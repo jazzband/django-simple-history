@@ -446,10 +446,10 @@ class HistoricalRecordsTest(TestCase):
         self.assertNotIn("pub_date", all_fields_names)
 
         most_recent = p.history.most_recent()
-        self.assertIn('question', all_fields_names)
-        self.assertNotIn('pub_date', all_fields_names)
+        self.assertIn("question", all_fields_names)
+        self.assertNotIn("pub_date", all_fields_names)
         self.assertEqual(most_recent.__class__, PollWithExcludeFields)
-        self.assertIn('pub_date', history._history_excluded_fields)
+        self.assertIn("pub_date", history._history_excluded_fields)
 
     def test_user_model_override(self):
         user1 = User.objects.create_user("user1", "1@example.com")
