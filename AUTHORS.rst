@@ -73,9 +73,10 @@ Authors
 - Ross Lote
 - Ross Mechanic (`rossmechanic <https://github.com/rossmechanic>`_)
 - Ross Rogers
+- Sergey Ozeranskiy (`ozeranskiy <https://github.com/ozeranskiy>`_)
 - Shane Engelman
-- Steven Klass
 - Steeve Chailloux
+- Steven Klass
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
