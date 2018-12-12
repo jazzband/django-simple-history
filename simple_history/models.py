@@ -19,6 +19,7 @@ from django.utils.text import format_lazy
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from simple_history import utils
 from . import exceptions
 from .manager import HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
@@ -262,8 +263,9 @@ class HistoricalRecords(object):
             """
             Get the next history record for the instance. `None` if last.
             """
+            history = utils.get_history_manager_for_model(self.instance)
             return (
-                self.instance.history.filter(Q(history_date__gt=self.history_date))
+                history.filter(Q(history_date__gt=self.history_date))
                 .order_by("history_date")
                 .first()
             )
@@ -272,8 +274,9 @@ class HistoricalRecords(object):
             """
             Get the previous history record for the instance. `None` if first.
             """
+            history = utils.get_history_manager_for_model(self.instance)
             return (
-                self.instance.history.filter(Q(history_date__lt=self.history_date))
+                history.filter(Q(history_date__lt=self.history_date))
                 .order_by("history_date")
                 .last()
             )
