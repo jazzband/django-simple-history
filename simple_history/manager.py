@@ -34,6 +34,11 @@ class HistoryManager(models.Manager):
             key_name = self.instance._meta.pk.name
         return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
+    def get_excluded_fields(self):
+        if isinstance(self.instance._meta.model.history, self.__class__):
+            return self.instance._meta.model.history.model._history_excluded_fields
+        return []
+
     def most_recent(self):
         """
         Returns the most recent copy of the instance available in the history.
@@ -45,12 +50,7 @@ class HistoryManager(models.Manager):
                 )
             )
         tmp = []
-        excluded_fields = []
-
-        if isinstance(self.instance._meta.model.history, self.__class__):
-            excluded_fields = (
-                self.instance._meta.model.history.model._history_excluded_fields
-            )
+        excluded_fields = self.get_excluded_fields()
 
         for field in self.instance._meta.fields:
             if isinstance(field, models.ForeignKey):
