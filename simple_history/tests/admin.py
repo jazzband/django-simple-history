@@ -12,7 +12,7 @@ from .models import (
     FileModel,
     Paper,
     Person,
-    Poll
+    Poll,
 )
 
 
@@ -22,15 +22,14 @@ class PersonAdmin(SimpleHistoryAdmin):
 
 
 class ChoiceAdmin(SimpleHistoryAdmin):
-    history_list_display = ['votes']
+    history_list_display = ["votes"]
 
 
 class FileModelAdmin(SimpleHistoryAdmin):
-
     def test_method(self, obj):
-        return 'test_method_value'
+        return "test_method_value"
 
-    history_list_display = ['title', 'test_method']
+    history_list_display = ["title", "test_method"]
 
 
 admin.site.register(Poll, SimpleHistoryAdmin)

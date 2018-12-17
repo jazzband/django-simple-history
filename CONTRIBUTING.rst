@@ -60,6 +60,33 @@ To run tox and generate an HTML code coverage report (available in the
 
     make test
 
-To quickly run the tests against a single version of Python and Django (note: you must ``pip install django`` beforehand)::
+To quickly run the tests against a single version of Python and Django (note: you must
+``pip install django`` beforehand)::
 
     python setup.py test
+
+Code Formatting
+---------------
+We make use of `black`_ for code formatting.
+
+.. _black: https://black.readthedocs.io/en/stable/installation_and_usage.html
+
+Once it is installed you can make sure the code is properly formatted by running::
+
+    make format
+
+Translations
+------------
+
+In order to add translations, refer to Django's `translation docs`_ and follow these
+steps:
+
+1. Ensure that Django is installed
+2. Invoke ``django-admin makemessages -l <LOCALE NAME> in the repository's root
+   directory.
+3. Add translations to the created
+   ``simple_history/locale/<LOCALE NAME>/LC_MESSAGES/django.po`` file.
+4. Compile these with ``django-admin compilemessages``.
+5. Commit and publish your translations as described above.
+
+.. _translation docs: https://docs.djangoproject.com/en/dev/topics/i18n/translation/#localization-how-to-create-language-files

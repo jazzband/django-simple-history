@@ -1,12 +1,17 @@
 Changes
 =======
 
-Unreleased
-----------
+2.6.0 (2018-12-12)
+------------------
+- Add `app` parameter to the constructor of `HistoricalRecords` (gh-486)
 - Add `custom_model_name` parameter to the constructor of `HistoricalRecords` (gh-451)
 - Fix header on history pages when custom site_header is used (gh-448)
 - Modify `pre_create_historircal_record` to pass `history_instance` for ease of customization (gh-421)
 - Raise warning if HistoricalRecords(inherit=False) is in an abstract model (gh-341)
+- Ensure custom arguments for fields are included in historical models' fields (gh-431)
+- Add german translations (gh-484)
+- Add `extra_context` parameter to history_form_view (gh-467)
+- Fixed bug that prevented `next_record` and `prev_record` to work with custom manager names (gh-501)
 
 2.5.1 (2018-10-19)
 ------------------

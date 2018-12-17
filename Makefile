@@ -43,3 +43,5 @@ release: dist
 	gpg --detach-sign -a dist/*
 	twine upload dist/*
 
+format:
+	black simple_history

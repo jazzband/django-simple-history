@@ -14,7 +14,7 @@ def update_change_reason(instance, reason):
                 attrs[field.attname] = value
         else:
             attrs[field.attname] = value
-    record = manager.history.filter(**attrs).order_by('-history_date').first()
+    record = manager.history.filter(**attrs).order_by("-history_date").first()
     record.history_change_reason = reason
     record.save()
 
@@ -49,7 +49,6 @@ def bulk_create_with_history(objs, model, batch_size=None):
 
     with transaction.atomic(savepoint=False):
         objs_with_id = model.objects.bulk_create(objs, batch_size=batch_size)
-        history_manager.bulk_history_create(objs_with_id,
-                                            batch_size=batch_size)
+        history_manager.bulk_history_create(objs_with_id, batch_size=batch_size)
 
     return objs_with_id

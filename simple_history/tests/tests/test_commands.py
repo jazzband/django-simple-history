@@ -23,13 +23,12 @@ def replace_registry(new_value=None):
 
 
 class TestPopulateHistory(TestCase):
-    command_name = 'populate_history'
+    command_name = "populate_history"
     command_error = (management.CommandError, SystemExit)
 
     def test_no_args(self):
         out = StringIO()
-        management.call_command(self.command_name,
-                                stdout=out, stderr=StringIO())
+        management.call_command(self.command_name, stdout=out, stderr=StringIO())
         self.assertIn(populate_history.Command.COMMAND_HINT, out.getvalue())
 
     def test_bad_args(self):
@@ -40,115 +39,144 @@ class TestPopulateHistory(TestCase):
         )
         for msg, args in test_data:
             out = StringIO()
-            self.assertRaises(self.command_error, management.call_command,
-                              self.command_name, *args,
-                              stdout=StringIO(), stderr=out)
+            self.assertRaises(
+                self.command_error,
+                management.call_command,
+                self.command_name,
+                *args,
+                stdout=StringIO(),
+                stderr=out
+            )
             self.assertIn(msg, out.getvalue())
 
     def test_auto_populate(self):
-        Poll.objects.create(question="Will this populate?",
-                            pub_date=datetime.now())
+        Poll.objects.create(question="Will this populate?", pub_date=datetime.now())
         Poll.history.all().delete()
-        management.call_command(self.command_name, auto=True,
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name, auto=True, stdout=StringIO(), stderr=StringIO()
+        )
         self.assertEqual(Poll.history.all().count(), 1)
 
     def test_populate_with_custom_batch_size(self):
-        Poll.objects.create(question="Will this populate?",
-                            pub_date=datetime.now())
+        Poll.objects.create(question="Will this populate?", pub_date=datetime.now())
         Poll.history.all().delete()
-        management.call_command(self.command_name, auto=True, batchsize=500,
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name,
+            auto=True,
+            batchsize=500,
+            stdout=StringIO(),
+            stderr=StringIO(),
+        )
         self.assertEqual(Poll.history.all().count(), 1)
 
     def test_specific_populate(self):
-        Poll.objects.create(question="Will this populate?",
-                            pub_date=datetime.now())
+        Poll.objects.create(question="Will this populate?", pub_date=datetime.now())
         Poll.history.all().delete()
         Book.objects.create(isbn="9780007117116")
         Book.history.all().delete()
-        management.call_command(self.command_name, "tests.book",
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name, "tests.book", stdout=StringIO(), stderr=StringIO()
+        )
         self.assertEqual(Book.history.all().count(), 1)
         self.assertEqual(Poll.history.all().count(), 0)
 
     def test_failing_wont_save(self):
-        Poll.objects.create(question="Will this populate?",
-                            pub_date=datetime.now())
+        Poll.objects.create(question="Will this populate?", pub_date=datetime.now())
         Poll.history.all().delete()
-        self.assertRaises(self.command_error,
-                          management.call_command, self.command_name,
-                          "tests.poll", "tests.invalid_model",
-                          stdout=StringIO(), stderr=StringIO())
+        self.assertRaises(
+            self.command_error,
+            management.call_command,
+            self.command_name,
+            "tests.poll",
+            "tests.invalid_model",
+            stdout=StringIO(),
+            stderr=StringIO(),
+        )
         self.assertEqual(Poll.history.all().count(), 0)
 
     def test_multi_table(self):
-        data = {'rating': 5, 'name': "Tea 'N More"}
+        data = {"rating": 5, "name": "Tea 'N More"}
         Restaurant.objects.create(**data)
         Restaurant.updates.all().delete()
-        management.call_command(self.command_name, 'tests.restaurant',
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name, "tests.restaurant", stdout=StringIO(), stderr=StringIO()
+        )
         update_record = Restaurant.updates.all()[0]
         for attr, value in data.items():
             self.assertEqual(getattr(update_record, attr), value)
 
     def test_existing_objects(self):
-        data = {'rating': 5, 'name': "Tea 'N More"}
+        data = {"rating": 5, "name": "Tea 'N More"}
         out = StringIO()
         Restaurant.objects.create(**data)
         pre_call_count = Restaurant.updates.count()
-        management.call_command(self.command_name, 'tests.restaurant',
-                                stdout=StringIO(), stderr=out)
+        management.call_command(
+            self.command_name, "tests.restaurant", stdout=StringIO(), stderr=out
+        )
         self.assertEqual(Restaurant.updates.count(), pre_call_count)
-        self.assertIn(populate_history.Command.EXISTING_HISTORY_FOUND,
-                      out.getvalue())
+        self.assertIn(populate_history.Command.EXISTING_HISTORY_FOUND, out.getvalue())
 
     def test_no_historical(self):
         out = StringIO()
         with replace_registry():
-            management.call_command(self.command_name, auto=True,
-                                    stdout=out)
-        self.assertIn(populate_history.Command.NO_REGISTERED_MODELS,
-                      out.getvalue())
+            management.call_command(self.command_name, auto=True, stdout=out)
+        self.assertIn(populate_history.Command.NO_REGISTERED_MODELS, out.getvalue())
 
     def test_batch_processing_with_batch_size_less_than_total(self):
         data = [
-            Poll(id=1, question='Question 1', pub_date=datetime.now()),
-            Poll(id=2, question='Question 2', pub_date=datetime.now()),
-            Poll(id=3, question='Question 3', pub_date=datetime.now()),
-            Poll(id=4, question='Question 4', pub_date=datetime.now()),
+            Poll(id=1, question="Question 1", pub_date=datetime.now()),
+            Poll(id=2, question="Question 2", pub_date=datetime.now()),
+            Poll(id=3, question="Question 3", pub_date=datetime.now()),
+            Poll(id=4, question="Question 4", pub_date=datetime.now()),
         ]
         Poll.objects.bulk_create(data)
 
-        management.call_command(self.command_name, auto=True, batchsize=3,
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name,
+            auto=True,
+            batchsize=3,
+            stdout=StringIO(),
+            stderr=StringIO(),
+        )
 
         self.assertEqual(Poll.history.count(), 4)
 
     def test_stdout_not_printed_when_verbosity_is_0(self):
         out = StringIO()
-        Poll.objects.create(question='Question 1', pub_date=datetime.now())
+        Poll.objects.create(question="Question 1", pub_date=datetime.now())
 
-        management.call_command(self.command_name, auto=True, batchsize=3,
-                                stdout=out, stderr=StringIO(), verbosity=0)
+        management.call_command(
+            self.command_name,
+            auto=True,
+            batchsize=3,
+            stdout=out,
+            stderr=StringIO(),
+            verbosity=0,
+        )
 
-        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(out.getvalue(), "")
 
     def test_stdout_printed_when_verbosity_is_not_specified(self):
         out = StringIO()
-        Poll.objects.create(question='Question 1', pub_date=datetime.now())
+        Poll.objects.create(question="Question 1", pub_date=datetime.now())
 
-        management.call_command(self.command_name, auto=True, batchsize=3,
-                                stdout=out, stderr=StringIO())
+        management.call_command(
+            self.command_name, auto=True, batchsize=3, stdout=out, stderr=StringIO()
+        )
 
-        self.assertNotEqual(out.getvalue(), '')
+        self.assertNotEqual(out.getvalue(), "")
 
     def test_excluded_fields(self):
         poll = PollWithExcludeFields.objects.create(
-            question="Will this work?", pub_date=datetime.now())
+            question="Will this work?", pub_date=datetime.now()
+        )
         PollWithExcludeFields.history.all().delete()
-        management.call_command(self.command_name,
-                                'tests.pollwithexcludefields', auto=True,
-                                stdout=StringIO(), stderr=StringIO())
+        management.call_command(
+            self.command_name,
+            "tests.pollwithexcludefields",
+            auto=True,
+            stdout=StringIO(),
+            stderr=StringIO(),
+        )
         initial_history_record = PollWithExcludeFields.history.all()[0]
         self.assertEqual(initial_history_record.question, poll.question)

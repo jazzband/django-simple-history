@@ -12,7 +12,8 @@ class Poll(models.Model):
 
     This model intentionally conflicts with the 'Polls' model in 'tests.models'.
     """
-    history = HistoricalRecords(user_related_name='+')
+
+    history = HistoricalRecords(user_related_name="+")
 
     class Meta:
-        app_label = 'external'
+        app_label = "external"
