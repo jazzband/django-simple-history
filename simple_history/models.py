@@ -468,10 +468,9 @@ class HistoricalChanges(object):
         changed_fields = []
         old_values = model_to_dict(old_history.instance)
         current_values = model_to_dict(self.instance)
-        for field in current_values.keys():
+        for field, new_value in current_values.items():
             if field in old_values:
                 old_value = old_values[field]
-                new_value = current_values[field]
                 if old_value != new_value:
                     change = ModelChange(field, old_value, new_value)
                     changes.append(change)
