@@ -43,14 +43,7 @@ class Command(populate_history.Command):
                 to_process.add(model_pair)
 
         elif options["auto"]:
-            for model in models.registered_models.values():
-                try:  # avoid issues with multi-table inheritance
-                    history_model = utils.get_history_model_for_model(model)
-                except NotHistoricalModelError:
-                    continue
-                to_process.add((model, history_model))
-            if not to_process:
-                self.log(self.NO_REGISTERED_MODELS)
+            to_process = self._auto_models()
 
         else:
             self.log(self.COMMAND_HINT)
