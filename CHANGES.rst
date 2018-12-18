@@ -12,6 +12,7 @@ Changes
 - Add german translations (gh-484)
 - Add `extra_context` parameter to history_form_view (gh-467)
 - Fixed bug that prevented `next_record` and `prev_record` to work with custom manager names (gh-501)
+- Added management command `clean_duplicate_history` to remove duplicate history entries (gh-483)
 
 2.5.1 (2018-10-19)
 ------------------
