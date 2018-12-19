@@ -35,9 +35,7 @@ class HistoryManager(models.Manager):
         return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
     def get_excluded_fields(self):
-        if isinstance(self.instance._meta.model.history, self.__class__):
-            return self.instance._meta.model.history.model._history_excluded_fields
-        return []
+        return self.model._history_excluded_fields
 
     def most_recent(self):
         """
