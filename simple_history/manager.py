@@ -35,7 +35,7 @@ class HistoryManager(models.Manager):
         return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
     def get_excluded_fields(self):
-        return self.model._history_excluded_fields
+        return getattr(self.model, "_history_excluded_fields", [])
 
     def most_recent(self):
         """
@@ -51,10 +51,11 @@ class HistoryManager(models.Manager):
         excluded_fields = self.get_excluded_fields()
 
         for field in self.instance._meta.fields:
-            if isinstance(field, models.ForeignKey):
-                tmp.append(field.name + "_id")
-            elif field.name not in excluded_fields:
-                tmp.append(field.name)
+            if field.name not in excluded_fields:
+                if isinstance(field, models.ForeignKey):
+                    tmp.append(field.name + "_id")
+                else:
+                    tmp.append(field.name)
         fields = tuple(tmp)
         try:
             values = self.get_queryset().values_list(*fields)[0]
