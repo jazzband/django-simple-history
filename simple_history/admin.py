@@ -48,7 +48,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
-        action_list = history.filter(**{pk_name: object_id})
+        action_list = history.filter(**{pk_name: object_id}).select_related(
+            "history_user"
+        )
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
@@ -107,7 +109,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         else:
             return super(SimpleHistoryAdmin, self).response_change(request, obj)
 
-    def history_form_view(self, request, object_id, version_id):
+    def history_form_view(self, request, object_id, version_id, extra_context=None):
         request.current_app = self.admin_site.name
         original_opts = self.model._meta
         model = getattr(
@@ -188,6 +190,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "root_path": getattr(self.admin_site, "root_path", None),
         }
         context.update(self.admin_site.each_context(request))
+        context.update(extra_context or {})
         extra_kwargs = {}
         return render(
             request, self.object_history_form_template, context, **extra_kwargs

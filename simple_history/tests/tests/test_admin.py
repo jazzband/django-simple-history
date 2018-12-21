@@ -630,3 +630,60 @@ class AdminSiteTest(WebTest):
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )
+
+    def test_history_form_view_accepts_additional_context(self):
+        request = RequestFactory().post("/")
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        history = poll.history.all()[0]
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_form_view(
+                request,
+                poll.id,
+                history.pk,
+                extra_context={"anything_else": "will be merged into context"},
+            )
+
+        context = {
+            # Verify this is set for original object
+            "anything_else": "will be merged into context",
+            "original": poll,
+            "change_history": False,
+            "title": "Revert %s" % force_text(poll),
+            "adminform": ANY,
+            "object_id": poll.id,
+            "is_popup": False,
+            "media": ANY,
+            "errors": ANY,
+            "app_label": "tests",
+            "original_opts": ANY,
+            "changelist_url": "/admin/tests/poll/",
+            "change_url": ANY,
+            "history_url": "/admin/tests/poll/1/history/",
+            "add": False,
+            "change": True,
+            "has_add_permission": admin.has_add_permission(request),
+            "has_change_permission": admin.has_change_permission(request, poll),
+            "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_file_field": True,
+            "has_absolute_url": False,
+            "form_url": "",
+            "opts": ANY,
+            "content_type_id": ANY,
+            "save_as": admin.save_as,
+            "save_on_top": admin.save_on_top,
+            "root_path": getattr(admin_site, "root_path", None),
+        }
+        context.update(admin_site.each_context(request))
+        mock_render.assert_called_once_with(
+            request, admin.object_history_form_template, context
+        )

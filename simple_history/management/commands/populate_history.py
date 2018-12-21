@@ -55,21 +55,26 @@ class Command(BaseCommand):
                 to_process.add(model_pair)
 
         elif options["auto"]:
-            for model in models.registered_models.values():
-                try:  # avoid issues with mutli-table inheritance
-                    history_model = utils.get_history_model_for_model(model)
-                except NotHistoricalModelError:
-                    continue
-                to_process.add((model, history_model))
-            if not to_process:
-                if self.verbosity >= 1:
-                    self.stdout.write(self.NO_REGISTERED_MODELS)
+            to_process = self._auto_models()
 
         else:
             if self.verbosity >= 1:
                 self.stdout.write(self.COMMAND_HINT)
 
         self._process(to_process, batch_size=options["batchsize"])
+
+    def _auto_models(self):
+        to_process = set()
+        for model in models.registered_models.values():
+            try:  # avoid issues with multi-table inheritance
+                history_model = utils.get_history_model_for_model(model)
+            except NotHistoricalModelError:
+                continue
+            to_process.add((model, history_model))
+        if not to_process:
+            if self.verbosity >= 1:
+                self.stdout.write(self.NO_REGISTERED_MODELS)
+        return to_process
 
     def _handle_model_list(self, *args):
         failing = False
