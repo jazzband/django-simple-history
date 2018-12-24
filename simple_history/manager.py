@@ -51,11 +51,12 @@ class HistoryManager(models.Manager):
         excluded_fields = self.get_excluded_fields()
 
         for field in self.instance._meta.fields:
-            if field.name not in excluded_fields:
-                if isinstance(field, models.ForeignKey):
-                    tmp.append(field.name + "_id")
-                else:
-                    tmp.append(field.name)
+            if field.name in excluded_fields:
+                continue
+            if isinstance(field, models.ForeignKey):
+                tmp.append(field.name + "_id")
+            else:
+                tmp.append(field.name)
         fields = tuple(tmp)
         try:
             values = self.get_queryset().values_list(*fields)[0]
