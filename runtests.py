@@ -38,6 +38,9 @@ DEFAULT_SETTINGS = dict(
     DATABASES={
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
+        },
+        'other_db': {
+            'ENGINE': 'django.db.backends.sqlite3',
         }
     },
     TEMPLATES=[{

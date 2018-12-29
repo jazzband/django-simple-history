@@ -8,6 +8,7 @@ pre_create_historical_record = django.dispatch.Signal(
         "history_date",
         "history_user",
         "history_change_reason",
+        "using",
     ]
 )
 post_create_historical_record = django.dispatch.Signal(
@@ -17,5 +18,6 @@ post_create_historical_record = django.dispatch.Signal(
         "history_date",
         "history_user",
         "history_change_reason",
+        "using",
     ]
 )
