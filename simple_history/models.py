@@ -349,16 +349,20 @@ class HistoricalRecords(object):
             meta_fields["app_label"] = self.app
         return meta_fields
 
-    def post_save(self, instance, created, **kwargs):
+    def post_save(self, instance, created, using=None, **kwargs):
         if not created and hasattr(instance, "skip_history_when_saving"):
             return
         if not kwargs.get("raw", False):
-            self.create_historical_record(instance, created and "+" or "~", **kwargs)
+            self.create_historical_record(instance, created and "+" or "~", using=using)
 
-    def post_delete(self, instance, **kwargs):
-        self.create_historical_record(instance, "-", **kwargs)
+    def post_delete(self, instance, using=None, **kwargs):
+        if self.cascade_delete_history:
+            manager = getattr(instance, self.manager_name)
+            manager.using(using).all().delete()
+        else:
+            self.create_historical_record(instance, "-", using=using)
 
-    def create_historical_record(self, instance, history_type, using=None, **kwargs):
+    def create_historical_record(self, instance, history_type, using=None):
         history_date = getattr(instance, "_history_date", now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, "changeReason", None)
