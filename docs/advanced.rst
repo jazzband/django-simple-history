@@ -510,10 +510,10 @@ When interacting with manager methods, use ``db_manager()``:
 
 .. code-block:: python
 
-    >>> # This will call the manager method on the 'other' database.
+    >>> # This will call a manager method on the 'other' database.
     >>> poll.history.db_manager('other').as_of(datetime(2010, 10, 25, 18, 4, 0))
 
-See the Django documentation for more information on interacting with Multiple databases.
+See the Django documentation for more information on how to interact with multiple databases.
 
 
 History Diffing
