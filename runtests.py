@@ -39,7 +39,7 @@ DEFAULT_SETTINGS = dict(
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
         },
-        'other_db': {
+        'other': {
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },

@@ -1230,7 +1230,7 @@ class MultiDBWithUsingTest(TestCase):
     """
 
     multi_db = True
-    db_name = "other_db"
+    db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
         book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
