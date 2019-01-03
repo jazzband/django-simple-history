@@ -488,7 +488,7 @@ be accomplished by setting ``cascade_delete_history=True``.
 
 Multiple databases
 ------------------
-`django-simple-history` follows the Django convention for interacting with multiple databases.
+`django-simple-history` follows the Django conventions for interacting with multiple databases.
 
 .. code-block:: python
 
@@ -512,9 +512,6 @@ When interacting with manager methods, use ``db_manager()``:
 
     >>> # This will call the manager method on the 'other' database.
     >>> poll.history.db_manager('other').as_of(datetime(2010, 10, 25, 18, 4, 0))
-    <Poll: Poll object as of 2010-10-25 18:03:29.855689>
-    >>> poll.history.db_manager('other').as_of(datetime(2010, 10, 25, 18, 5, 0))
-    <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 See the Django documentation for more information on interacting with Multiple databases.
 
