@@ -7,11 +7,19 @@ Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   usage
-   reference
-   advanced
+   quick_start
+   querying_history
+   admin
+   historical_model
+   user_tracking
+   signals
+   history_diffing
+   multiple_dbs
+   utils
+   common_issues
+
 
 Code
 ----
