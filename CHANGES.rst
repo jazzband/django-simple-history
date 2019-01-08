@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add support for `using` chained manager method and save/delete keyword argument (gh-507)
+
 2.6.0 (2018-12-12)
 ------------------
 - Add `app` parameter to the constructor of `HistoricalRecords` (gh-486)
