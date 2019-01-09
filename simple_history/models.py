@@ -31,7 +31,7 @@ registered_models = {}
 
 
 def model_to_dict(model):
-    return json.loads(serialize('json', [model]))[0]['fields']
+    return json.loads(serialize("json", [model]))[0]["fields"]
 
 
 def default_get_user(request, **kwargs):
