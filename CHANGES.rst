@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 - Add support for `using` chained manager method and save/delete keyword argument (gh-507)
+- Added management command `clean_duplicate_history` to remove duplicate history entries (gh-483)
+- Updated most_recent to work with excluded_fields (gh-477)
 
 2.6.0 (2018-12-12)
 ------------------
@@ -16,7 +18,6 @@ Unreleased
 - Add german translations (gh-484)
 - Add `extra_context` parameter to history_form_view (gh-467)
 - Fixed bug that prevented `next_record` and `prev_record` to work with custom manager names (gh-501)
-- Added management command `clean_duplicate_history` to remove duplicate history entries (gh-483)
 
 2.5.1 (2018-10-19)
 ------------------
