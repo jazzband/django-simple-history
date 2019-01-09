@@ -47,9 +47,14 @@ Getting Help
 
 Documentation is available at https://django-simple-history.readthedocs.io/
 
-Issue tracker is at https://github.com/treyhunner/django-simple-history/issues
-
-Pull requests are welcome.  Read the CONTRIBUTING file for tips on
+Pull requests are welcome.  Read the `CONTRIBUTING`_ file for tips on
 submitting a pull request.
 
-.. _PyPI: https://pypi.python.org/pypi/django-email-log/
+.. _CONTRIBUTING: https://github.com/treyhunner/django-simple-history/blob/master/CONTRIBUTING.rst
+
+License
+-------
+
+This project is licensed under the
+`BSD 3-Clause license <https://choosealicense.com/licenses/bsd-3-clause/>`_.
+

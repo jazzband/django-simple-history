@@ -1,47 +1,6 @@
 Historical Model Customizations
 ===============================
 
-TextField as `history_change_reason`
-------------------------------------
-
-The ``HistoricalRecords`` object can be customized to accept a
-``TextField`` model field for saving the
-`history_change_reason` either through settings or via the constructor on the
-model. The common use case for this is for supporting larger model change
-histories to support changelog-like features.
-
-.. code-block:: python
-
-    SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD=True
-
-or
-
-.. code-block:: python
-
-    class TextFieldExample(models.Model):
-        greeting = models.CharField(max_length=100)
-        history = HistoricalRecords(
-            history_change_reason_field=models.TextField(null=True)
-        )
-
-
-Custom model name
------------------
-
-By default, historical model is named as 'Historical' + model name. For
-example, historical records for ``Choice`` is called ``HistoricalChoice``.
-Users can specify a custom model name via the constructor on
-``HistoricalRecords``. The common use case for this is avoiding naming conflict
-if the user already defined a model named as 'Historical' + model name.
-
-.. code-block:: python
-
-    class ModelNameExample(models.Model):
-        history = HistoricalRecords(
-            custom_model_name='SimpleHistoricalModelNameExample'
-        )
-
-
 Custom ``history_id``
 ---------------------
 By default, the historical table of a model will use an ``AutoField`` for the table's
@@ -127,25 +86,6 @@ model, will work too.
     my_poll.save()
 
 
-Change Base Class of HistoricalRecord Models
---------------------------------------------
-
-To change the auto-generated HistoricalRecord models base class from
-``models.Model``, pass in the abstract class in a list to ``bases``.
-
-.. code-block:: python
-
-    class RoutableModel(models.Model):
-        class Meta:
-            abstract = True
-
-
-    class Poll(models.Model):
-        question = models.CharField(max_length=200)
-        pub_date = models.DateTimeField('date published')
-        changed_by = models.ForeignKey('auth.User')
-        history = HistoricalRecords(bases=[RoutableModel])
-
 Custom history table name
 -------------------------
 
@@ -171,6 +111,69 @@ You can use the ``table_name`` parameter with both ``HistoricalRecords()`` or
         pub_date = models.DateTimeField('date published')
 
     register(Question, table_name='polls_question_history')
+
+
+Custom model name
+-----------------
+
+By default, historical model is named as 'Historical' + model name. For
+example, historical records for ``Choice`` is called ``HistoricalChoice``.
+Users can specify a custom model name via the constructor on
+``HistoricalRecords``. The common use case for this is avoiding naming conflict
+if the user already defined a model named as 'Historical' + model name.
+
+.. code-block:: python
+
+    class ModelNameExample(models.Model):
+        history = HistoricalRecords(
+            custom_model_name='SimpleHistoricalModelNameExample'
+        )
+
+
+TextField as `history_change_reason`
+------------------------------------
+
+The ``HistoricalRecords`` object can be customized to accept a
+``TextField`` model field for saving the
+`history_change_reason` either through settings or via the constructor on the
+model. The common use case for this is for supporting larger model change
+histories to support changelog-like features.
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD=True
+
+or
+
+.. code-block:: python
+
+    class TextFieldExample(models.Model):
+        greeting = models.CharField(max_length=100)
+        history = HistoricalRecords(
+            history_change_reason_field=models.TextField(null=True)
+        )
+
+
+
+Change Base Class of HistoricalRecord Models
+--------------------------------------------
+
+To change the auto-generated HistoricalRecord models base class from
+``models.Model``, pass in the abstract class in a list to ``bases``.
+
+.. code-block:: python
+
+    class RoutableModel(models.Model):
+        class Meta:
+            abstract = True
+
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+        changed_by = models.ForeignKey('auth.User')
+        history = HistoricalRecords(bases=[RoutableModel])
+
 
 Excluded Fields
 --------------------------------
@@ -247,6 +250,7 @@ source model. This is possible by combining the ``bases`` functionality with the
             )
 
 
+More information on signals in ``django-simple-history`` is available in :doc:`/signals`.
 
 Change Reason
 -------------
@@ -270,7 +274,7 @@ For instance, for the model:
         question = models.CharField(max_length=200)
         history = HistoricalRecords()
 
-You can create a instance with a implicity change reason.
+You can create an instance with an implicit change reason.
 
 .. code-block:: python
 

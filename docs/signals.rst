@@ -1,21 +1,28 @@
 Signals
 ------------------------------------
-`django-simple-history` includes signals that help you provide custom behavior when saving a historical record. Arguments passed to the signals include the following:
+`django-simple-history` includes signals that help you provide custom behavior when
+saving a historical record. Arguments passed to the signals include the following:
 
-instance
-    The source model instance being saved
-history_instance
-    The corresponding history record
-history_date
-    Datetime of the history record's creation
-history_change_reason
-    Freetext description of the reason for the change
-history_user
-    The user that instigated the change
-using
-    The database alias being used
+.. glossary::
+    instance
+        The source model instance being saved
 
-To connect the signals to your callbacks, you can use the @receiver decorator:
+    history_instance
+        The corresponding history record
+
+    history_date
+        Datetime of the history record's creation
+
+    history_change_reason
+        Freetext description of the reason for the change
+
+    history_user
+        The user that instigated the change
+
+    using
+        The database alias being used
+
+To connect the signals to your callbacks, you can use the ``@receiver`` decorator:
 
 .. code-block:: python
 

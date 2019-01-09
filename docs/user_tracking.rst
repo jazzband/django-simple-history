@@ -6,7 +6,7 @@ Recording Which User Changed a Model
 ------------------------------------
 There are three documented ways to attach users to a tracked change:
 
-1. Use the middleware as described in :doc:`/usage`. The middleware sets the
+1. Use the ``HistoryRequestMiddleware``. The middleware sets the
 User instance that made the request as the ``history_user`` on the history
 table.
 
@@ -47,7 +47,7 @@ referencing the ``changed_by`` field:
             self.changed_by = value
 
 Admin integration requires that you use a ``_history_user.setter`` attribute with
-your custom ``_history_user`` property (see :ref:`admin_integration`).
+your custom ``_history_user`` property (see :doc:`/admin`).
 
 Another option for identifying the change user is by providing a function via ``get_user``.
 If provided it will be called everytime that the ``history_user`` needs to be

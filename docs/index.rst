@@ -7,7 +7,7 @@ Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    quick_start
    querying_history
@@ -21,10 +21,11 @@ Documentation
    common_issues
 
 
-Code
-----
+Contribute
+----------
 
-Code and issue tracker: https://github.com/treyhunner/django-simple-history
+- Issue Tracker: https://github.com/treyhunner/django-simple-history/issues
+- Source Code: https://github.com/treyhunner/django-simple-history
 
 Pull requests are welcome.
 

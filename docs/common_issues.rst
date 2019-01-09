@@ -3,15 +3,15 @@ Common Issues
 
 Bulk Creating and Queryset Updating
 -----------------------------------
-Django Simple History functions by saving history using a ``post_save`` signal
+``django-simple-history`` functions by saving history using a ``post_save`` signal
 every time that an object with history is saved. However, for certain bulk
 operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
 signals are not sent, and the history is not saved automatically. However,
-Django Simple History provides utility functions to work around this.
+``django-simple-history`` provides utility functions to work around this.
 
 Bulk Creating a Model with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-As of Django Simple History 2.2.0, we can use the utility function
+As of ``django-simple-history`` 2.2.0, we can use the utility function
 ``bulk_create_with_history`` in order to bulk create objects while saving their
 history:
 
@@ -61,41 +61,6 @@ As the Django documentation says::
         e.save()
 
 .. _queryset updates: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update
-
-
-History for a Third-Party Model
--------------------------------
-
-To track history for a model you didn't create, use the
-``simple_history.register`` utility.  You can use this to track models from
-third-party apps you don't have control over.  Here's an example of using
-``simple_history.register`` to history-track the ``User`` model from the
-``django.contrib.auth`` app:
-
-.. code-block:: python
-
-    from simple_history import register
-    from django.contrib.auth.models import User
-
-    register(User)
-
-If you want to separate the migrations of the historical model from those of
-the third-party model itself you can pass a module as ``app`` attribute to
-``register``. For instance, if the migrations shall live in the migrations
-folder of the package you register the model in, you could do:
-
-.. code-block:: python
-
-    register(User, app=__package__)
-
-You can pass attributes of ``HistoricalRecords`` directly to ``register``:
-
-.. code-block:: python
-
-    register(User, excluded_fields=['last_login']))
-
-For a complete list of the attributes you can pass to ``register`` we refer
-to the source code.
 
 
 Tracking Custom Users

@@ -29,7 +29,7 @@ Add ``simple_history`` to your ``INSTALLED_APPS``
     ]
 
 The historical models can track who made each change. To populate the
-history user automatically you can add middleware to your Django
+history user automatically you can add ``HistoryRequestMiddleware`` to your Django
 settings:
 
 .. code-block:: python
@@ -41,6 +41,7 @@ settings:
 
 If you do not want to use the middleware, you can explicitly indicate
 the user making the change as documented in :doc:`/user_tracking`.
+
 
 Track History
 ~~~~~~~~~~~~~
@@ -70,8 +71,34 @@ Django tutorial:
 Now all changes to ``Poll`` and ``Choice`` model instances will be tracked in
 the database.
 
+Track History for a Third-Party Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To track history for a model you didn't create, use the
+``simple_history.register`` function.  You can use this to track models from
+third-party apps you don't have control over.  Here's an example of using
+``simple_history.register`` to history-track the ``User`` model from the
+``django.contrib.auth`` app:
+
+.. code-block:: python
+
+    from simple_history import register
+    from django.contrib.auth.models import User
+
+    register(User)
+
+If you want to separate the migrations of the historical model into an app other than
+the third-party model's app, you can set the ``app`` parameter in
+``register``. For instance, if you want the migrations to live in the migrations
+folder of the package you register the model in, you could do:
+
+.. code-block:: python
+
+    register(User, app=__package__)
+
+
 Run Migrations
-~~~~~~~~~~~~~~
+--------------
 
 With your model changes in place, create and apply the database migrations:
 
@@ -92,3 +119,42 @@ initial change for preexisting model instances:
 
 By default, history rows are inserted in batches of 200. This can be changed if needed for large tables
 by using the ``--batchsize`` option, for example ``--batchsize 500``.
+
+What Now?
+---------
+
+By adding ``HistoricalRecords`` to a model or registering a model using ``register``,
+you automatically start tracking any create, update, or delete that occurs on that model.
+Now you can :doc:`query the history programmatically </querying_history>`
+and :doc:`view the history in Django admin </admin>`.
+
+What is ``django-simple-history`` Doing Behind the Scenes?
+----------------------------------------------------------
+
+If you tried the code `above`_ and ran the migrations on it, you'll see the following
+tables in your database:
+
+- ``app_choice``
+- ``app_historicalchoice``
+- ``app_historicalpoll``
+- ``app_poll``
+
+.. _above: `Track History`_
+
+The two extra tables with ``historical`` prepended to their names are tables created
+by ``django-simple-history``. These tables store every change that you make to their
+respective base tables. Every time a create, update, or delete occurs on ``Choice`` or
+``Poll`` a new row is created in the historical table for that model including all of
+the fields in the instance of the base model, as well as other metadata:
+
+- ``history_user``: the user that made the create/update/delete
+- ``history_date``: the datetime at which the create/update/delete occurred
+- ``history_change_reason``: the reason the create/update/delete occurred (null by default)
+- ``history_id``: the primary key for the historical table (note the the base table's
+  primary key is not unique on the historical table since there are multiple versions of it
+  on the historical table)
+- ``history_type``: ``+`` for create, ``~`` for update, and ``-`` for delete
+
+
+Now try saving an instance of ``Choice`` or ``Poll``. Check the historical table
+to see that the history is being tracked.
