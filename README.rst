@@ -57,4 +57,3 @@ License
 
 This project is licensed under the
 `BSD 3-Clause license <https://choosealicense.com/licenses/bsd-3-clause/>`_.
-
