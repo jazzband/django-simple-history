@@ -89,4 +89,4 @@ steps:
 4. Compile these with ``django-admin compilemessages``.
 5. Commit and publish your translations as described above.
 
-.. _translation docs: https://docs.djangoproject.com/en/dev/topics/i18n/translatsion/#localization-how-to-create-language-files
+.. _translation docs: https://docs.djangoproject.com/en/dev/topics/i18n/translation/#localization-how-to-create-language-files
