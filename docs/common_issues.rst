@@ -3,15 +3,15 @@ Common Issues
 
 Bulk Creating and Queryset Updating
 -----------------------------------
-Django Simple History functions by saving history using a ``post_save`` signal
+``django-simple-history`` functions by saving history using a ``post_save`` signal
 every time that an object with history is saved. However, for certain bulk
 operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
 signals are not sent, and the history is not saved automatically. However,
-Django Simple History provides utility functions to work around this.
+``django-simple-history`` provides utility functions to work around this.
 
 Bulk Creating a Model with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-As of Django Simple History 2.2.0, we can use the utility function
+As of ``django-simple-history`` 2.2.0, we can use the utility function
 ``bulk_create_with_history`` in order to bulk create objects while saving their
 history:
 
@@ -61,7 +61,6 @@ As the Django documentation says::
         e.save()
 
 .. _queryset updates: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update
-
 
 
 Tracking Custom Users
