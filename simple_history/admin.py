@@ -8,6 +8,7 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -48,9 +49,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
-        action_list = history.filter(**{pk_name: object_id}).select_related(
-            "history_user"
-        )
+        action_list = history.filter(**{pk_name: object_id})
+        if not isinstance(history.model.history_user, property):
+            # Only select_related when history_user is a ForeignKey (not a property)
+            action_list = action_list.select_related("history_user")
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
