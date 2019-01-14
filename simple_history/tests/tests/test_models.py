@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import unittest
+
 import uuid
 import warnings
 from datetime import datetime, timedelta
@@ -43,6 +44,7 @@ from ..models import (
     ExternalModel1,
     ExternalModel3,
     FileModel,
+    ForeignKeyToSelfModel,
     HistoricalChoice,
     HistoricalCustomFKError,
     HistoricalPoll,
@@ -583,7 +585,6 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         self.poll.save()
 
     def test_get_prev_record(self):
-
         self.poll.question = "ask questions?"
         self.poll.save()
         self.poll.question = "eh?"
@@ -1203,7 +1204,6 @@ class ExtraFieldsDynamicIPAddressTestCase(TestCase):
 
 class WarningOnAbstractModelWithInheritFalseTest(TestCase):
     def test_warning_on_abstract_model_with_inherit_false(self):
-
         with warnings.catch_warnings(record=True) as w:
 
             class AbstractModelWithInheritFalse(models.Model):
@@ -1224,7 +1224,6 @@ class WarningOnAbstractModelWithInheritFalseTest(TestCase):
 
 
 class MultiDBWithUsingTest(TestCase):
-
     """Asserts historical manager respects `using()` and the `using`
     keyword argument in `save()`.
     """
@@ -1308,4 +1307,21 @@ class MultiDBWithUsingTest(TestCase):
                 .all()
                 .order_by("history_date")
             ],
+        )
+
+
+class ForeignKeyToSelfTest(TestCase):
+    def setUp(self):
+        self.model = ForeignKeyToSelfModel
+        self.history_model = self.model.history.model
+
+    def test_foreign_key_to_self_using_model_str(self):
+        self.assertEqual(
+            self.model, self.history_model.fk_to_self.field.remote_field.model
+        )
+
+    def test_foreign_key_to_self_using_self_str(self):
+        self.assertEqual(
+            ForeignKeyToSelfModel,
+            self.history_model.fk_to_self_using_str.field.remote_field.model,
         )

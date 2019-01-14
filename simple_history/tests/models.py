@@ -553,3 +553,9 @@ class CustomNameModel(models.Model):
 class CustomManagerNameModel(models.Model):
     name = models.CharField(max_length=15)
     log = HistoricalRecords()
+
+
+class ForeignKeyToSelfModel(models.Model):
+    fk_to_self = models.ForeignKey("ForeignKeyToSelfModel", null=True, related_name="+")
+    fk_to_self_using_str = models.ForeignKey("self", null=True, related_name="+")
+    history = HistoricalRecords()
