@@ -217,8 +217,8 @@ class HistoricalRecords(object):
                 # has a foreign key to itself. If we pass the historical record's
                 # field to = 'self', the foreign key will point to an historical
                 # record rather than the base record. We can use old_field.model here.
-                if field_args.get('to', None) == 'self':
-                    field_args['to'] = old_field.model
+                if field_args.get("to", None) == "self":
+                    field_args["to"] = old_field.model
 
                 # Override certain arguments passed when creating the field
                 # so that they work for the historical field.
