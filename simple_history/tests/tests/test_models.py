@@ -1322,6 +1322,5 @@ class ForeignKeyToSelfTest(TestCase):
 
     def test_foreign_key_to_self_using_self_str(self):
         self.assertEqual(
-            ForeignKeyToSelfModel,
-            self.history_model.fk_to_self_using_str.field.remote_field.model,
+            self.model, self.history_model.fk_to_self_using_str.field.remote_field.model
         )
