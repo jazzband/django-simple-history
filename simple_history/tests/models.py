@@ -556,6 +556,10 @@ class CustomManagerNameModel(models.Model):
 
 
 class ForeignKeyToSelfModel(models.Model):
-    fk_to_self = models.ForeignKey("ForeignKeyToSelfModel", null=True, related_name="+")
-    fk_to_self_using_str = models.ForeignKey("self", null=True, related_name="+")
+    fk_to_self = models.ForeignKey(
+        "ForeignKeyToSelfModel", null=True, related_name="+", on_delete=models.CASCADE
+    )
+    fk_to_self_using_str = models.ForeignKey(
+        "self", null=True, related_name="+", on_delete=models.CASCADE
+    )
     history = HistoricalRecords()
