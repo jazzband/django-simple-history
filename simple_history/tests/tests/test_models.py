@@ -24,7 +24,7 @@ from simple_history.tests.tests.utils import (
 )
 from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
-from ..external.models import ExternalModel, ExternalModelRegistered
+from ..external.models import ExternalModel, ExternalModelRegistered, ExternalModelCustomUserIdField
 from ..models import (
     AbstractBase,
     AdminProfile,
@@ -1354,7 +1354,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
     @unittest.skipIf(
         django.VERSION < (2, 1), "Bug with allow_relation call before Django 2.1"
     )
-    def test_history_user_in_different_db_raises_value_error(self):
+    def test_history_user_with_fk_in_different_db_raises_value_error(self):
         instance = ExternalModel(name="random_name")
         instance._history_user = self.user
         with self.assertRaises(ValueError):
@@ -1364,7 +1364,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         django.VERSION < (2, 0) or django.VERSION >= (2, 1),
         "Django 2.0 is first version with sqlite db constraints",
     )
-    def test_history_user_in_different_db_raises_integrity_error_in_2_0(self):
+    def test_history_user_with_fk_in_different_db_raises_integrity_error_in_2_0(self):
         instance = ExternalModel(name="random_name")
         instance._history_user = self.user
         with self.assertRaises(IntegrityError):
@@ -1374,10 +1374,38 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         django.VERSION < (2, 0),
         "Django 1.11 doesn't have integrity constraints on sqlite",
     )
-    def test_history_user_in_different_db_raises_error(self):
+    def test_history_user_with_fk_in_different_db_raises_error(self):
         instance = ExternalModel(name="random_name")
         instance._history_user = self.user
         instance.save()
 
         with self.assertRaises(CustomUser.DoesNotExist):
             instance.history.first().history_user
+
+    def test_history_user_with_integer_field(self):
+        instance = ExternalModelCustomUserIdField(name='random_name')
+        instance._history_user = self.user
+        instance.save()
+
+        self.assertEqual(self.user.id, instance.history.first().history_user_id)
+        self.assertEqual(self.user, instance.history.first().history_user)
+
+    def test_history_user_is_none(self):
+        instance = ExternalModelCustomUserIdField.objects.create(name='random_name')
+
+        self.assertIsNone(instance.history.first().history_user_id)
+        self.assertIsNone(instance.history.first().history_user)
+
+    def test_history_user_does_not_exist(self):
+        instance = ExternalModelCustomUserIdField(name='random_name')
+        instance._history_user = self.user
+        instance.save()
+
+        self.assertEqual(self.user.id, instance.history.first().history_user_id)
+        self.assertEqual(self.user, instance.history.first().history_user)
+
+        user_id = self.user.id
+        self.user.delete()
+
+        self.assertEqual(user_id, instance.history.first().history_user_id)
+        self.assertIsNone(instance.history.first().history_user)

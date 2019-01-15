@@ -12,25 +12,23 @@ class AbstractExternal(models.Model):
 
     class Meta:
         abstract = True
-        app_label = "external"
 
 
 class ExternalModel(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords()
 
-    class Meta:
-        app_label = "external"
-
 
 class ExternalModelRegistered(models.Model):
     name = models.CharField(max_length=100)
 
-    class Meta:
-        app_label = "external"
-
 
 register(ExternalModelRegistered, app="simple_history.tests", manager_name="histories")
+
+
+class ExternalModelCustomUserIdField(models.Model):
+    name = models.CharField(max_length=100)
+    history = HistoricalRecords(history_user_id_field=models.IntegerField(null=True))
 
 
 class Poll(models.Model):
@@ -40,6 +38,3 @@ class Poll(models.Model):
     """
 
     history = HistoricalRecords(user_related_name="+")
-
-    class Meta:
-        app_label = "external"
