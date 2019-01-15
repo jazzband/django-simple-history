@@ -7,7 +7,7 @@ Unreleased
 - Added management command ``clean_duplicate_history`` to remove duplicate history entries (gh-483)
 - Updated most_recent to work with excluded_fields (gh-477)
 - Fixed bug that prevented self-referential foreign key from using ``'self'`` (gh-513)
-- Added ability to track custom user with explicit custom ``history_user_id_field`` (gh-5111)
+- Added ability to track custom user with explicit custom ``history_user_id_field`` (gh-511)
 
 2.6.0 (2018-12-12)
 ------------------
