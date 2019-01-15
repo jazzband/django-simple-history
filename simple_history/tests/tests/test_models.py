@@ -1395,9 +1395,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         self.assertEqual(self.user, instance.history.first().history_user)
 
     def test_history_user_is_none(self):
-        instance = ExternalModelWithCustomUserIdField.objects.create(
-            name="random_name"
-        )
+        instance = ExternalModelWithCustomUserIdField.objects.create(name="random_name")
 
         self.assertIsNone(instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
