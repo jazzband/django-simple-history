@@ -45,7 +45,11 @@ def _default_get_user(request, **kwargs):
 def _history_user_getter(historical_instance):
     if historical_instance.history_user_id is None:
         return None
-    return get_user_model().objects.get(pk=historical_instance.history_user_id)
+    User = get_user_model()
+    try:
+        return User.objects.get(pk=historical_instance.history_user_id)
+    except User.DoesNotExist:
+        return None
 
 
 def _history_user_setter(historical_instance, user):
@@ -259,8 +263,7 @@ class HistoricalRecords(object):
             fields[field.name] = field
         return fields
 
-    @property
-    def _history_change_reason_field(self):
+    def _get_history_change_reason_field(self):
         if self.history_change_reason_field:
             # User specific field from init
             history_change_reason_field = self.history_change_reason_field
@@ -275,8 +278,7 @@ class HistoricalRecords(object):
 
         return history_change_reason_field
 
-    @property
-    def _history_id_field(self):
+    def _get_history_id_field(self):
         if self.history_id_field:
             history_id_field = self.history_id_field
             history_id_field.primary_key = True
@@ -290,8 +292,7 @@ class HistoricalRecords(object):
 
         return history_id_field
 
-    @property
-    def _history_user_fields(self):
+    def _get_history_user_fields(self):
         if self.user_id_field is not None:
             # Tracking user using explicit id rather than Django ForeignKey
             history_user_fields = {
@@ -366,9 +367,9 @@ class HistoricalRecords(object):
             )
 
         extra_fields = {
-            "history_id": self._history_id_field,
+            "history_id": self._get_history_id_field(),
             "history_date": models.DateTimeField(),
-            "history_change_reason": self._history_change_reason_field,
+            "history_change_reason": self._get_history_change_reason_field(),
             "history_type": models.CharField(
                 max_length=1,
                 choices=(("+", _("Created")), ("~", _("Changed")), ("-", _("Deleted"))),
@@ -386,7 +387,7 @@ class HistoricalRecords(object):
             ),
         }
 
-        extra_fields.update(self._history_user_fields)
+        extra_fields.update(self._get_history_user_fields())
 
         return extra_fields
 
