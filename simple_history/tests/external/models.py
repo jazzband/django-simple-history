@@ -26,7 +26,7 @@ class ExternalModelRegistered(models.Model):
 register(ExternalModelRegistered, app="simple_history.tests", manager_name="histories")
 
 
-class ExternalModelCustomUserIdField(models.Model):
+class ExternalModelCustomUserIdFieldModel(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords(history_user_id_field=models.IntegerField(null=True))
 

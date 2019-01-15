@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from simple_history.admin import SimpleHistoryAdmin
+from simple_history.tests.external.models import ExternalModelCustomUserIdFieldModel
 from .models import (
     Book,
     Choice,
@@ -40,4 +41,5 @@ admin.site.register(Document, SimpleHistoryAdmin)
 admin.site.register(Paper, SimpleHistoryAdmin)
 admin.site.register(Employee, SimpleHistoryAdmin)
 admin.site.register(ConcreteExternal, SimpleHistoryAdmin)
+admin.site.register(ExternalModelCustomUserIdFieldModel, SimpleHistoryAdmin)
 admin.site.register(FileModel, FileModelAdmin)

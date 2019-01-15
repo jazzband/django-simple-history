@@ -10,7 +10,7 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db import models, IntegrityError
+from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -19,15 +19,15 @@ from simple_history.models import HistoricalRecords, ModelChange
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
-    middleware_override_settings,
     database_router_override_settings,
+    middleware_override_settings,
 )
 from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
 from ..external.models import (
     ExternalModel,
+    ExternalModelCustomUserIdFieldModel,
     ExternalModelRegistered,
-    ExternalModelCustomUserIdField,
 )
 from ..models import (
     AbstractBase,
@@ -50,8 +50,8 @@ from ..models import (
     DefaultTextFieldChangeReasonModel,
     Document,
     Employee,
-    ExternalModelWithAppLabel,
     ExternalModelSpecifiedWithAppParam,
+    ExternalModelWithAppLabel,
     FileModel,
     ForeignKeyToSelfModel,
     HistoricalChoice,
@@ -1387,7 +1387,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
             instance.history.first().history_user
 
     def test_history_user_with_integer_field(self):
-        instance = ExternalModelCustomUserIdField(name="random_name")
+        instance = ExternalModelCustomUserIdFieldModel(name="random_name")
         instance._history_user = self.user
         instance.save()
 
@@ -1395,13 +1395,15 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         self.assertEqual(self.user, instance.history.first().history_user)
 
     def test_history_user_is_none(self):
-        instance = ExternalModelCustomUserIdField.objects.create(name="random_name")
+        instance = ExternalModelCustomUserIdFieldModel.objects.create(
+            name="random_name"
+        )
 
         self.assertIsNone(instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
 
     def test_history_user_does_not_exist(self):
-        instance = ExternalModelCustomUserIdField(name="random_name")
+        instance = ExternalModelCustomUserIdFieldModel(name="random_name")
         instance._history_user = self.user
         instance.save()
 

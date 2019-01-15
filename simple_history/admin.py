@@ -8,7 +8,6 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
-from django.db import models
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.encoding import force_text
