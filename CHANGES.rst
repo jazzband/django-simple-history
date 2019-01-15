@@ -3,28 +3,29 @@ Changes
 
 Unreleased
 ----------
-- Add support for `using` chained manager method and save/delete keyword argument (gh-507)
-- Added management command `clean_duplicate_history` to remove duplicate history entries (gh-483)
+- Add support for ``using`` chained manager method and save/delete keyword argument (gh-507)
+- Added management command ``clean_duplicate_history`` to remove duplicate history entries (gh-483)
 - Updated most_recent to work with excluded_fields (gh-477)
-- Fixed bug that prevented self-referential foreign key from using `'self'` (gh-513)
+- Fixed bug that prevented self-referential foreign key from using ``'self'`` (gh-513)
+- Added ability to track custom user with explicit custom ``history_user_id_field`` (gh-5111)
 
 2.6.0 (2018-12-12)
 ------------------
-- Add `app` parameter to the constructor of `HistoricalRecords` (gh-486)
-- Add `custom_model_name` parameter to the constructor of `HistoricalRecords` (gh-451)
+- Add ``app`` parameter to the constructor of ``HistoricalRecords`` (gh-486)
+- Add ``custom_model_name`` parameter to the constructor of ``HistoricalRecords`` (gh-451)
 - Fix header on history pages when custom site_header is used (gh-448)
-- Modify `pre_create_historircal_record` to pass `history_instance` for ease of customization (gh-421)
-- Raise warning if HistoricalRecords(inherit=False) is in an abstract model (gh-341)
+- Modify ``pre_create_historical_record`` to pass ``history_instance`` for ease of customization (gh-421)
+- Raise warning if ``HistoricalRecords(inherit=False)`` is in an abstract model (gh-341)
 - Ensure custom arguments for fields are included in historical models' fields (gh-431)
 - Add german translations (gh-484)
-- Add `extra_context` parameter to history_form_view (gh-467)
-- Fixed bug that prevented `next_record` and `prev_record` to work with custom manager names (gh-501)
+- Add ``extra_context`` parameter to history_form_view (gh-467)
+- Fixed bug that prevented ``next_record`` and ``prev_record`` to work with custom manager names (gh-501)
 
 2.5.1 (2018-10-19)
 ------------------
-- Add `'+'` as the `history_type` for each instance in `bulk_history_create` (gh-449)
-- Add support for  `history_change_reason` for each instance in `bulk_history_create` (gh-449)
-- Add `history_change_reason` in the history list view under the  `Change reason` display name (gh-458)
+- Add ``'+'`` as the ``history_type`` for each instance in ``bulk_history_create`` (gh-449)
+- Add support for  ``history_change_reason`` for each instance in ``bulk_history_create`` (gh-449)
+- Add ``history_change_reason`` in the history list view under the  ``Change reason`` display name (gh-458)
 - Fix bug that caused failures when using a custom user model (gh-459)
 
 2.5.0 (2018-10-18)
@@ -35,12 +36,12 @@ Unreleased
 2.4.0 (2018-09-20)
 ------------------
 - Add pre and post create_historical_record signals (gh-426)
-- Remove support for `django_mongodb_engine` when converting AutoFields (gh-432)
+- Remove support for ``django_mongodb_engine`` when converting AutoFields (gh-432)
 - Add support for Django 2.1 (gh-418)
 
 2.3.0 (2018-07-19)
 ------------------
-- Add ability to diff HistoricalRecords (gh-244)
+- Add ability to diff ``HistoricalRecords`` (gh-244)
 
 2.2.0 (2018-07-02)
 ------------------
@@ -54,9 +55,9 @@ Unreleased
 
 2.1.0 (2018-06-04)
 ------------------
-- Add ability to specify custom history_reason field (gh-379)
-- Add ability to specify custom history_id field (gh-368)
-- Add HistoricalRecord instance properties `prev_record` and `next_record` (gh-365)
+- Add ability to specify custom ``history_reason`` field (gh-379)
+- Add ability to specify custom ``history_id`` field (gh-368)
+- Add HistoricalRecord instance properties ``prev_record`` and ``next_record`` (gh-365)
 - Can set admin methods as attributes on object history change list template (gh-390)
 - Fixed compatibility of >= 2.0 versions with old-style middleware (gh-369)
 
@@ -64,12 +65,12 @@ Unreleased
 ----------------
 - Added Django 2.0 support (gh-330)
 - Dropped support for Django<=1.10 (gh-356)
-- Fix bug where history_view ignored user permissions (gh-361)
-- Fixed HistoryRequestMiddleware which hadn't been working for Django>1.9 (gh-364)
+- Fix bug where ``history_view`` ignored user permissions (gh-361)
+- Fixed ``HistoryRequestMiddleware`` which hadn't been working for Django>1.9 (gh-364)
 
 1.9.1 (2018-03-30)
 ------------------
-- Use get_queryset rather than model.objects in history_view. (gh-303)
+- Use ``get_queryset`` rather ``than model.objects`` in ``history_view``. (gh-303)
 - Change ugettext calls in models.py to ugettext_lazy
 - Resolve issue where model references itself (gh-278)
 - Fix issue with tracking an inherited model (abstract class) (gh-269)
@@ -78,13 +79,13 @@ Unreleased
 
 1.9.0 (2017-06-11)
 ------------------
-- Add --batchsize option to the populate_history management command. (gh-231)
+- Add ``--batchsize`` option to the ``populate_history`` management command. (gh-231)
 - Add ability to show specific attributes in admin history list view. (gh-256)
 - Add Brazilian Portuguese translation file. (gh-279)
 - Fix locale file packaging issue. (gh-280)
 - Add ability to specify reason for history change. (gh-275)
 - Test against Django 1.11 and Python 3.6. (gh-276)
-- Add `excluded_fields` option to exclude fields from history. (gh-274)
+- Add ``excluded_fields`` option to exclude fields from history. (gh-274)
 
 1.8.2 (2017-01-19)
 ------------------
@@ -97,18 +98,18 @@ Unreleased
 
 1.8.0 (2016-02-02)
 ------------------
-- History tracking can be inherited by passing `inherit=True`. (gh-63)
+- History tracking can be inherited by passing ``inherit=True``. (gh-63)
 
 1.7.0 (2015-12-02)
 ------------------
 - Add ability to list history in admin when the object instance is deleted. (gh-72)
-- Add ability to change history through the admin. (Enabled with the `SIMPLE_HISTORY_EDIT` setting.)
+- Add ability to change history through the admin. (Enabled with the ``SIMPLE_HISTORY_EDIT`` setting.)
 - Add Django 1.9 support.
 - Support for custom tables names. (gh-196)
 
 1.6.3 (2015-07-30)
 ------------------
-- Respect `to_field` and `db_column` parameters (gh-182)
+- Respect ``to_field`` and ``db_column`` parameters (gh-182)
 
 1.6.2 (2015-07-04)
 ------------------
@@ -125,7 +126,7 @@ Unreleased
 ------------------
 - Add support for Django 1.8+
 - Deprecated use of ``CustomForeignKeyField`` (to be removed)
-- Remove default reverse accessor to `auth.User` for historical models (gh-121)
+- Remove default reverse accessor to ``auth.User`` for historical models (gh-121)
 
 1.5.4 (2015-01-03)
 ------------------
