@@ -2,10 +2,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-<<<<<<< HEAD
-=======
 import django
->>>>>>> Added initial tests to show failing functionality when user in different db
 import uuid
 import warnings
 from datetime import datetime, timedelta
