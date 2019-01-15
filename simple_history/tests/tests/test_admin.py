@@ -12,7 +12,7 @@ from mock import ANY, patch
 
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from simple_history.tests.external.models import ExternalModelCustomUserIdFieldModel
+from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
 from simple_history.tests.tests.utils import middleware_override_settings
 from ..models import (
     Book,
@@ -125,7 +125,7 @@ class AdminSiteTest(WebTest):
         self.assertIn("Title 2", response.unicode_normal_body)
 
     def test_history_list_custom_user_id_field(self):
-        instance = ExternalModelCustomUserIdFieldModel(name="random_name")
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
         instance._history_user = self.user
         instance.save()
 

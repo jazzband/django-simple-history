@@ -26,7 +26,7 @@ from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
 from ..external.models import (
     ExternalModel,
-    ExternalModelCustomUserIdFieldModel,
+    ExternalModelWithCustomUserIdField,
     ExternalModelRegistered,
 )
 from ..models import (
@@ -1387,7 +1387,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
             instance.history.first().history_user
 
     def test_history_user_with_integer_field(self):
-        instance = ExternalModelCustomUserIdFieldModel(name="random_name")
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
         instance._history_user = self.user
         instance.save()
 
@@ -1395,7 +1395,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         self.assertEqual(self.user, instance.history.first().history_user)
 
     def test_history_user_is_none(self):
-        instance = ExternalModelCustomUserIdFieldModel.objects.create(
+        instance = ExternalModelWithCustomUserIdField.objects.create(
             name="random_name"
         )
 
@@ -1403,7 +1403,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         self.assertIsNone(instance.history.first().history_user)
 
     def test_history_user_does_not_exist(self):
-        instance = ExternalModelCustomUserIdFieldModel(name="random_name")
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
         instance._history_user = self.user
         instance.save()
 
