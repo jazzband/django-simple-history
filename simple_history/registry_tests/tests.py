@@ -104,15 +104,19 @@ class TestInheritedModule(TestCase):
 class TestTrackingInheritance(TestCase):
     def test_tracked_abstract_base(self):
         self.assertEqual(
-            [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields],
-            [
-                "id",
-                "history_id",
-                "history_change_reason",
-                "history_date",
-                "history_user_id",
-                "history_type",
-            ],
+            sorted(
+                [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields]
+            ),
+            sorted(
+                [
+                    "id",
+                    "history_id",
+                    "history_change_reason",
+                    "history_date",
+                    "history_user_id",
+                    "history_type",
+                ]
+            ),
         )
 
     def test_tracked_concrete_base(self):
