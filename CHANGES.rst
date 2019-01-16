@@ -1,8 +1,8 @@
 Changes
 =======
 
-Unreleased
-----------
+2.7.0 (2019-01-16)
+------------------
 - Add support for ``using`` chained manager method and save/delete keyword argument (gh-507)
 - Added management command ``clean_duplicate_history`` to remove duplicate history entries (gh-483)
 - Updated most_recent to work with excluded_fields (gh-477)
