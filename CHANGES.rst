@@ -8,6 +8,8 @@ Changes
 - Updated most_recent to work with excluded_fields (gh-477)
 - Fixed bug that prevented self-referential foreign key from using ``'self'`` (gh-513)
 - Added ability to track custom user with explicit custom ``history_user_id_field`` (gh-511)
+- Don't resolve relationships for history objects (gh-479)
+- Reorganization of docs (gh-510)
 
 2.6.0 (2018-12-12)
 ------------------
