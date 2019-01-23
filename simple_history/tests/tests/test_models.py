@@ -47,10 +47,15 @@ from ..models import (
     ContactRegister,
     Country,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     CustomManagerNameModel,
     DefaultTextFieldChangeReasonModel,
 >>>>>>> branch 'master' of https://uhurusurfa@github.com/uhurusurfa/django-simple-history.git
+=======
+    CustomManagerNameModel,
+    DefaultTextFieldChangeReasonModel,
+>>>>>>> 7f0279bb46df389aee310e5034062e348224c62b
     Document,
     Employee,
     ExternalModelSpecifiedWithAppParam,

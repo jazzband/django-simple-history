@@ -552,6 +552,11 @@ class CharFieldChangeReasonModel(models.Model):
     history = HistoricalRecords()
 
 
+class CustomManagerNameModel(models.Model):
+    name = models.CharField(max_length=15)
+    log = HistoricalRecords()
+
+
 """
 Following classes test the "custom_model_name" option
 """
