@@ -366,6 +366,13 @@ class HistoricalRecords(object):
                 .last()
             )
 
+        def get_changed_fields(self):
+            fields = []
+            prev = self.prev_record
+            if prev:
+                fields = self.diff_against(prev).changed_fields
+            return fields
+
         extra_fields = {
             "history_id": self._get_history_id_field(),
             "history_date": models.DateTimeField(),
@@ -379,6 +386,7 @@ class HistoricalRecords(object):
             ),
             "instance": property(get_instance),
             "instance_type": model,
+            "changed_fields": property(get_changed_fields),
             "next_record": property(get_next_record),
             "prev_record": property(get_prev_record),
             "revert_url": revert_url,

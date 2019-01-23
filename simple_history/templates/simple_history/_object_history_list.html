@@ -13,6 +13,7 @@
       <th scope="col">{% trans 'Date/time' %}</th>
       <th scope="col">{% trans 'Comment' %}</th>
       <th scope="col">{% trans 'Changed by' %}</th>
+      <th scope="col">{% trans 'Fields' %}</th>
       <th scope="col">{% trans 'Change reason' %}</th>
     </tr>
   </thead>
@@ -36,6 +37,9 @@
           {% else %}
             {% trans "None" %}
           {% endif %}
+        </td>
+        <td>
+            {{ action.changed_fields|join:", " }}
         </td>
         <td>
             {{ action.history_change_reason }}
