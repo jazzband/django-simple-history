@@ -1,3 +1,0 @@
-max-line-length: 79
-uses:
-  - django

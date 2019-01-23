@@ -45,7 +45,11 @@ class HistoryManager(models.Manager):
                 )
             )
         tmp = []
+        excluded_fields = getattr(self.model, "_history_excluded_fields", [])
+
         for field in self.instance._meta.fields:
+            if field.name in excluded_fields:
+                continue
             if isinstance(field, models.ForeignKey):
                 tmp.append(field.name + "_id")
             else:

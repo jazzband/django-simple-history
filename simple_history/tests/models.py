@@ -1,17 +1,15 @@
 from __future__ import unicode_literals
 
 import uuid
-
 from django.apps import apps
 from django.conf import settings
 from django.db import models
-from django.dispatch import receiver
 from django.urls import reverse
 
 from simple_history import register
 from simple_history.models import HistoricalRecords
-from simple_history.signals import pre_create_historical_record
 from .custom_user.models import CustomUser as User
+
 from .external.models.model1 import AbstractExternal
 from .external.models.model1 import AbstractExternal2
 from .external.models.model1 import AbstractExternal3
@@ -266,7 +264,7 @@ class SelfFK(models.Model):
 register(User, app="simple_history.tests", manager_name="histories")
 
 
-class ExternalModel1(models.Model):
+class ExternalModelWithAppLabel(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords()
 
@@ -274,11 +272,15 @@ class ExternalModel1(models.Model):
         app_label = "external"
 
 
-class ExternalModel3(models.Model):
+class ExternalModelSpecifiedWithAppParam(models.Model):
     name = models.CharField(max_length=100)
 
 
-register(ExternalModel3, app="simple_history.tests.external", manager_name="histories")
+register(
+    ExternalModelSpecifiedWithAppParam,
+    app="simple_history.tests.external",
+    manager_name="histories",
+)
 
 
 class UnicodeVerboseName(models.Model):
@@ -560,6 +562,7 @@ class OverrideModelNameAsString(models.Model):
     history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")
 
 
+<<<<<<< HEAD
 class OverrideModelNameAsCallable(models.Model):
     name = models.CharField(max_length=15, unique=True)
     history = HistoricalRecords(custom_model_name=lambda x: "Audit{}".format(x))
@@ -598,3 +601,18 @@ register(
 
 class OverrideModelNameRegisterMethod2(models.Model):
     name = models.CharField(max_length=15, unique=True)
+=======
+class CustomManagerNameModel(models.Model):
+    name = models.CharField(max_length=15)
+    log = HistoricalRecords()
+
+
+class ForeignKeyToSelfModel(models.Model):
+    fk_to_self = models.ForeignKey(
+        "ForeignKeyToSelfModel", null=True, related_name="+", on_delete=models.CASCADE
+    )
+    fk_to_self_using_str = models.ForeignKey(
+        "self", null=True, related_name="+", on_delete=models.CASCADE
+    )
+    history = HistoricalRecords()
+>>>>>>> branch 'master' of https://uhurusurfa@github.com/uhurusurfa/django-simple-history.git
