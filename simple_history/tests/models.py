@@ -562,7 +562,6 @@ class OverrideModelNameAsString(models.Model):
     history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")
 
 
-<<<<<<< HEAD
 class OverrideModelNameAsCallable(models.Model):
     name = models.CharField(max_length=15, unique=True)
     history = HistoricalRecords(custom_model_name=lambda x: "Audit{}".format(x))
@@ -601,7 +600,8 @@ register(
 
 class OverrideModelNameRegisterMethod2(models.Model):
     name = models.CharField(max_length=15, unique=True)
-=======
+
+
 class CustomManagerNameModel(models.Model):
     name = models.CharField(max_length=15)
     log = HistoricalRecords()
@@ -615,4 +615,3 @@ class ForeignKeyToSelfModel(models.Model):
         "self", null=True, related_name="+", on_delete=models.CASCADE
     )
     history = HistoricalRecords()
->>>>>>> branch 'master' of https://uhurusurfa@github.com/uhurusurfa/django-simple-history.git
