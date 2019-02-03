@@ -607,11 +607,6 @@ class OverrideModelNameRegisterMethod2(models.Model):
     name = models.CharField(max_length=15, unique=True)
 
 
-class CustomManagerNameModel(models.Model):
-    name = models.CharField(max_length=15)
-    log = HistoricalRecords()
-
-
 class ForeignKeyToSelfModel(models.Model):
     fk_to_self = models.ForeignKey(
         "ForeignKeyToSelfModel", null=True, related_name="+", on_delete=models.CASCADE
