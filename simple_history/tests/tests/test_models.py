@@ -46,16 +46,8 @@ from ..models import (
     Contact,
     ContactRegister,
     Country,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     CustomManagerNameModel,
     DefaultTextFieldChangeReasonModel,
->>>>>>> branch 'master' of https://uhurusurfa@github.com/uhurusurfa/django-simple-history.git
-=======
-    CustomManagerNameModel,
-    DefaultTextFieldChangeReasonModel,
->>>>>>> 7f0279bb46df389aee310e5034062e348224c62b
     Document,
     Employee,
     ExternalModelSpecifiedWithAppParam,
@@ -715,6 +707,7 @@ class CreateHistoryModelTests(unittest.TestCase):
                 "exception."
             )
 
+class CustomModelNameTests(unittest.TestCase):
     def verify_custom_model_name_feature(
         self, model, expected_class_name, expected_table_name
     ):
@@ -722,7 +715,7 @@ class CreateHistoryModelTests(unittest.TestCase):
         self.assertEqual(history_model.__name__, expected_class_name)
         self.assertEqual(history_model._meta.db_table, expected_table_name)
 
-    def test_instantiate_history_model_with_custom_model_name(self):
+    def test_instantiate_history_model_with_custom_model_name_as_string(self):
         try:
             from ..models import OverrideModelNameAsString
         except ImportError:
@@ -734,6 +727,7 @@ class CreateHistoryModelTests(unittest.TestCase):
             "tests_{}".format(expected_clazz_name.lower()),
         )
 
+    def test_register_history_model_with_custom_model_name_override(self):
         try:
             from ..models import OverrideModelNameRegisterMethod1
         except ImportError:
@@ -744,12 +738,26 @@ class CreateHistoryModelTests(unittest.TestCase):
         self.verify_custom_model_name_feature(
             clazz, expected_clazz_name, "tests_{}".format(expected_clazz_name.lower())
         )
+
+        from simple_history import register
+        from ..models import OverrideModelNameRegisterMethod2
+
+        try:
+            register(
+                OverrideModelNameRegisterMethod2,
+                custom_model_name=lambda x: "{}".format(x),
+            )
+        except ValueError:
+            self.assertRaises(ValueError)
+
+    def test_register_history_model_with_custom_model_name_from_abstract_model(self):
         clazz = OverrideModelNameUsingBaseModel1
         expected_clazz_name = "Audit{}".format(clazz.__name__)
         self.verify_custom_model_name_feature(
             clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
         )
 
+    def test_register_history_model_with_custom_model_name_from_external_model(self):
         from ..models import OverrideModelNameUsingExternalModel1
 
         clazz = OverrideModelNameUsingExternalModel1
@@ -765,17 +773,6 @@ class CreateHistoryModelTests(unittest.TestCase):
         self.verify_custom_model_name_feature(
             clazz, expected_clazz_name, "external_" + expected_clazz_name.lower()
         )
-
-        from simple_history import register
-        from ..models import OverrideModelNameRegisterMethod2
-
-        try:
-            register(
-                OverrideModelNameRegisterMethod2,
-                custom_model_name=lambda x: "{}".format(x),
-            )
-        except ValueError:
-            self.assertRaises(ValueError)
 
 
 class AppLabelTest(TestCase):

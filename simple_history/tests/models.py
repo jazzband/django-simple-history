@@ -10,9 +10,9 @@ from simple_history import register
 from simple_history.models import HistoricalRecords
 from .custom_user.models import CustomUser as User
 
-from .external.models.model1 import AbstractExternal
-from .external.models.model1 import AbstractExternal2
-from .external.models.model1 import AbstractExternal3
+from .external.models import AbstractExternal
+from .external.models import AbstractExternal2
+from .external.models import AbstractExternal3
 
 get_model = apps.get_model
 
