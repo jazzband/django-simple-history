@@ -707,6 +707,7 @@ class CreateHistoryModelTests(unittest.TestCase):
                 "exception."
             )
 
+
 class CustomModelNameTests(unittest.TestCase):
     def verify_custom_model_name_feature(
         self, model, expected_class_name, expected_table_name
