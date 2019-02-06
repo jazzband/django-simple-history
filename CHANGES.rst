@@ -13,6 +13,7 @@ Changes
 - Add `extra_context` parameter to history_form_view (gh-467)
 - Fixed bug that prevented `next_record` and `prev_record` to work with custom manager names (gh-501)
 - Added management command `clean_duplicate_history` to remove duplicate history entries (gh-483)
+- remove reference to vendored library `django.utils.six` in favor of `six` (gh-526)
 
 2.5.1 (2018-10-19)
 ------------------
