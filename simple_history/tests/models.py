@@ -9,7 +9,7 @@ from django.urls import reverse
 from simple_history import register
 from simple_history.models import HistoricalRecords
 from .custom_user.models import CustomUser as User
-from .external.models.model1 import AbstractExternal
+from .external.models import AbstractExternal
 
 get_model = apps.get_model
 
@@ -261,7 +261,7 @@ class SelfFK(models.Model):
 register(User, app="simple_history.tests", manager_name="histories")
 
 
-class ExternalModel1(models.Model):
+class ExternalModelWithAppLabel(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords()
 
@@ -269,11 +269,15 @@ class ExternalModel1(models.Model):
         app_label = "external"
 
 
-class ExternalModel3(models.Model):
+class ExternalModelSpecifiedWithAppParam(models.Model):
     name = models.CharField(max_length=100)
 
 
-register(ExternalModel3, app="simple_history.tests.external", manager_name="histories")
+register(
+    ExternalModelSpecifiedWithAppParam,
+    app="simple_history.tests.external",
+    manager_name="histories",
+)
 
 
 class UnicodeVerboseName(models.Model):
@@ -553,3 +557,13 @@ class CustomNameModel(models.Model):
 class CustomManagerNameModel(models.Model):
     name = models.CharField(max_length=15)
     log = HistoricalRecords()
+
+
+class ForeignKeyToSelfModel(models.Model):
+    fk_to_self = models.ForeignKey(
+        "ForeignKeyToSelfModel", null=True, related_name="+", on_delete=models.CASCADE
+    )
+    fk_to_self_using_str = models.ForeignKey(
+        "self", null=True, related_name="+", on_delete=models.CASCADE
+    )
+    history = HistoricalRecords()

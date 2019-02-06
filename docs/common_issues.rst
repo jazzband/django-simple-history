@@ -3,15 +3,15 @@ Common Issues
 
 Bulk Creating and Queryset Updating
 -----------------------------------
-Django Simple History functions by saving history using a ``post_save`` signal
+``django-simple-history`` functions by saving history using a ``post_save`` signal
 every time that an object with history is saved. However, for certain bulk
 operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
 signals are not sent, and the history is not saved automatically. However,
-Django Simple History provides utility functions to work around this.
+``django-simple-history`` provides utility functions to work around this.
 
 Bulk Creating a Model with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-As of Django Simple History 2.2.0, we can use the utility function
+As of ``django-simple-history`` 2.2.0, we can use the utility function
 ``bulk_create_with_history`` in order to bulk create objects while saving their
 history:
 
@@ -63,7 +63,6 @@ As the Django documentation says::
 .. _queryset updates: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update
 
 
-
 Tracking Custom Users
 ---------------------
 
@@ -113,3 +112,47 @@ historical model tries to insert using the ``F()`` expression, and raises a
 ``ValueError``.
 
 .. _here: https://docs.djangoproject.com/en/2.0/ref/models/expressions/#f-expressions
+
+
+Reserved Field Names
+--------------------
+
+For each base model that has its history tracked using ``django-simple-history``,
+an associated historical model is created. Thus, if we have:
+
+.. code-block:: python
+
+    class BaseModel(models.Model):
+        history = HistoricalRecords()
+
+a Django model called ``HistoricalBaseModel`` is also created with all of the fields
+from ``BaseModel``, plus a few extra fields and methods that are on all historical models.
+
+Since these fields and methods are on all historical models, any field or method names
+on a base model that clash with those names will not be on the historical model (and,
+thus, won't be tracked). The reserved historical field and method names are below:
+
+- ``history_id``
+- ``history_date``
+- ``history_change_reason``
+- ``history_type``
+- ``history_object``
+- ``history_user``
+- ``history_user_id``
+- ``instance``
+- ``instance_type``
+- ``next_record``
+- ``prev_record``
+- ``revert_url``
+- ``__str__``
+
+So if we have:
+
+.. code-block:: python
+
+    class BaseModel(models.Model):
+        instance = models.CharField(max_length=255)
+        history = HistoricalRecords()
+
+the ``instance`` field will not actually be tracked on the history table because it's
+in the reserved set of terms.

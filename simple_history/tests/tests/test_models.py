@@ -1,22 +1,34 @@
 from __future__ import unicode_literals
 
 import unittest
+
+import django
 import uuid
 import warnings
 from datetime import datetime, timedelta
 from django.apps import apps
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from simple_history.models import HistoricalRecords, ModelChange
 from simple_history.signals import pre_create_historical_record
-from simple_history.tests.tests.utils import middleware_override_settings
+from simple_history.tests.custom_user.models import CustomUser
+from simple_history.tests.tests.utils import (
+    database_router_override_settings,
+    middleware_override_settings,
+)
+from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
-from ..external.models import ExternalModel2, ExternalModel4
+from ..external.models import (
+    ExternalModel,
+    ExternalModelWithCustomUserIdField,
+    ExternalModelRegistered,
+)
 from ..models import (
     AbstractBase,
     AdminProfile,
@@ -38,9 +50,10 @@ from ..models import (
     DefaultTextFieldChangeReasonModel,
     Document,
     Employee,
-    ExternalModel1,
-    ExternalModel3,
+    ExternalModelSpecifiedWithAppParam,
+    ExternalModelWithAppLabel,
     FileModel,
+    ForeignKeyToSelfModel,
     HistoricalChoice,
     HistoricalCustomFKError,
     HistoricalPoll,
@@ -240,7 +253,9 @@ class HistoricalRecordsTest(TestCase):
         )
 
     def test_save_without_historical_record_for_registered_model(self):
-        model = ExternalModel3.objects.create(name="registered model")
+        model = ExternalModelSpecifiedWithAppParam.objects.create(
+            name="registered model"
+        )
         self.assertTrue(hasattr(model, "save_without_historical_record"))
 
     def test_save_raises_exception(self):
@@ -581,7 +596,6 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         self.poll.save()
 
     def test_get_prev_record(self):
-
         self.poll.question = "ask questions?"
         self.poll.save()
         self.poll.question = "eh?"
@@ -710,37 +724,40 @@ class AppLabelTest(TestCase):
 
     def test_explicit_app_label(self):
         self.assertEqual(
-            self.get_table_name(ExternalModel1.objects), "external_externalmodel1"
+            self.get_table_name(ExternalModelWithAppLabel.objects),
+            "external_externalmodelwithapplabel",
         )
 
         self.assertEqual(
-            self.get_table_name(ExternalModel1.history),
-            "external_historicalexternalmodel1",
+            self.get_table_name(ExternalModelWithAppLabel.history),
+            "external_historicalexternalmodelwithapplabel",
         )
 
     def test_default_app_label(self):
         self.assertEqual(
-            self.get_table_name(ExternalModel2.objects), "external_externalmodel2"
+            self.get_table_name(ExternalModel.objects), "external_externalmodel"
         )
         self.assertEqual(
-            self.get_table_name(ExternalModel2.history),
-            "external_historicalexternalmodel2",
+            self.get_table_name(ExternalModel.history),
+            "external_historicalexternalmodel",
         )
 
     def test_register_app_label(self):
         self.assertEqual(
-            self.get_table_name(ExternalModel3.objects), "tests_externalmodel3"
+            self.get_table_name(ExternalModelSpecifiedWithAppParam.objects),
+            "tests_externalmodelspecifiedwithappparam",
         )
         self.assertEqual(
-            self.get_table_name(ExternalModel3.histories),
-            "external_historicalexternalmodel3",
+            self.get_table_name(ExternalModelSpecifiedWithAppParam.histories),
+            "external_historicalexternalmodelspecifiedwithappparam",
         )
         self.assertEqual(
-            self.get_table_name(ExternalModel4.objects), "external_externalmodel4"
+            self.get_table_name(ExternalModelRegistered.objects),
+            "external_externalmodelregistered",
         )
         self.assertEqual(
-            self.get_table_name(ExternalModel4.histories),
-            "tests_historicalexternalmodel4",
+            self.get_table_name(ExternalModelRegistered.histories),
+            "tests_historicalexternalmodelregistered",
         )
         self.assertEqual(
             self.get_table_name(ConcreteExternal.objects), "tests_concreteexternal"
@@ -751,28 +768,36 @@ class AppLabelTest(TestCase):
         )
 
     def test_get_model(self):
-        self.assertEqual(get_model("external", "ExternalModel1"), ExternalModel1)
         self.assertEqual(
-            get_model("external", "HistoricalExternalModel1"),
-            ExternalModel1.history.model,
+            get_model("external", "ExternalModelWithAppLabel"),
+            ExternalModelWithAppLabel,
+        )
+        self.assertEqual(
+            get_model("external", "HistoricalExternalModelWithAppLabel"),
+            ExternalModelWithAppLabel.history.model,
         )
 
-        self.assertEqual(get_model("external", "ExternalModel2"), ExternalModel2)
+        self.assertEqual(get_model("external", "ExternalModel"), ExternalModel)
         self.assertEqual(
-            get_model("external", "HistoricalExternalModel2"),
-            ExternalModel2.history.model,
+            get_model("external", "HistoricalExternalModel"),
+            ExternalModel.history.model,
         )
 
-        self.assertEqual(get_model("tests", "ExternalModel3"), ExternalModel3)
         self.assertEqual(
-            get_model("external", "HistoricalExternalModel3"),
-            ExternalModel3.histories.model,
+            get_model("tests", "ExternalModelSpecifiedWithAppParam"),
+            ExternalModelSpecifiedWithAppParam,
+        )
+        self.assertEqual(
+            get_model("external", "HistoricalExternalModelSpecifiedWithAppParam"),
+            ExternalModelSpecifiedWithAppParam.histories.model,
         )
 
-        self.assertEqual(get_model("external", "ExternalModel4"), ExternalModel4)
         self.assertEqual(
-            get_model("tests", "HistoricalExternalModel4"),
-            ExternalModel4.histories.model,
+            get_model("external", "ExternalModelRegistered"), ExternalModelRegistered
+        )
+        self.assertEqual(
+            get_model("tests", "HistoricalExternalModelRegistered"),
+            ExternalModelRegistered.histories.model,
         )
 
         # Test that historical model is defined within app of concrete
@@ -1201,7 +1226,6 @@ class ExtraFieldsDynamicIPAddressTestCase(TestCase):
 
 class WarningOnAbstractModelWithInheritFalseTest(TestCase):
     def test_warning_on_abstract_model_with_inherit_false(self):
-
         with warnings.catch_warnings(record=True) as w:
 
             class AbstractModelWithInheritFalse(models.Model):
@@ -1219,3 +1243,173 @@ class WarningOnAbstractModelWithInheritFalseTest(TestCase):
                 "(AbstractModelWithInheritFalse) without "
                 "inherit=True",
             )
+
+
+class MultiDBWithUsingTest(TestCase):
+    """Asserts historical manager respects `using()` and the `using`
+    keyword argument in `save()`.
+    """
+
+    multi_db = True
+    db_name = "other"
+
+    def test_multidb_with_using_not_on_default(self):
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        self.assertRaises(ObjectDoesNotExist, book.history.get, isbn="1-84356-028-1")
+
+    def test_multidb_with_using_is_on_dbtwo(self):
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        try:
+            book.history.using(self.db_name).get(isbn="1-84356-028-1")
+        except ObjectDoesNotExist:
+            self.fail("ObjectDoesNotExist unexpectedly raised.")
+
+    def test_multidb_with_using_and_fk_not_on_default(self):
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        library = Library.objects.using(self.db_name).create(book=book)
+        self.assertRaises(ObjectDoesNotExist, library.history.get, book=book)
+
+    def test_multidb_with_using_and_fk_on_dbtwo(self):
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        library = Library.objects.using(self.db_name).create(book=book)
+        try:
+            library.history.using(self.db_name).get(book=book)
+        except ObjectDoesNotExist:
+            self.fail("ObjectDoesNotExist unexpectedly raised.")
+
+    def test_multidb_with_using_keyword_in_save_not_on_default(self):
+        book = Book(isbn="1-84356-028-1")
+        book.save(using=self.db_name)
+        self.assertRaises(ObjectDoesNotExist, book.history.get, isbn="1-84356-028-1")
+
+    def test_multidb_with_using_keyword_in_save_on_dbtwo(self):
+        book = Book(isbn="1-84356-028-1")
+        book.save(using=self.db_name)
+        try:
+            book.history.using(self.db_name).get(isbn="1-84356-028-1")
+        except ObjectDoesNotExist:
+            self.fail("ObjectDoesNotExist unexpectedly raised.")
+
+    def test_multidb_with_using_keyword_in_save_with_fk(self):
+        book = Book(isbn="1-84356-028-1")
+        book.save(using=self.db_name)
+        library = Library(book=book)
+        library.save(using=self.db_name)
+        # assert not created on default
+        self.assertRaises(ObjectDoesNotExist, library.history.get, book=book)
+        # assert created on dbtwo
+        try:
+            library.history.using(self.db_name).get(book=book)
+        except ObjectDoesNotExist:
+            self.fail("ObjectDoesNotExist unexpectedly raised.")
+
+    def test_multidb_with_using_keyword_in_save_and_update(self):
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        book.save(using=self.db_name)
+        self.assertEqual(
+            ["+", "~"],
+            [
+                obj.history_type
+                for obj in book.history.using(self.db_name)
+                .all()
+                .order_by("history_date")
+            ],
+        )
+
+    def test_multidb_with_using_keyword_in_save_and_delete(self):
+        HistoricalBook = get_history_model_for_model(Book)
+        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        book.save(using=self.db_name)
+        book.delete(using=self.db_name)
+        self.assertEqual(
+            ["+", "~", "-"],
+            [
+                obj.history_type
+                for obj in HistoricalBook.objects.using(self.db_name)
+                .all()
+                .order_by("history_date")
+            ],
+        )
+
+
+class ForeignKeyToSelfTest(TestCase):
+    def setUp(self):
+        self.model = ForeignKeyToSelfModel
+        self.history_model = self.model.history.model
+
+    def test_foreign_key_to_self_using_model_str(self):
+        self.assertEqual(
+            self.model, self.history_model.fk_to_self.field.remote_field.model
+        )
+
+    def test_foreign_key_to_self_using_self_str(self):
+        self.assertEqual(
+            self.model, self.history_model.fk_to_self_using_str.field.remote_field.model
+        )
+
+
+@override_settings(**database_router_override_settings)
+class MultiDBExplicitHistoryUserIDTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            username="username", email="username@test.com", password="top_secret"
+        )
+
+    @unittest.skipIf(
+        django.VERSION < (2, 1), "Bug with allow_relation call before Django 2.1"
+    )
+    def test_history_user_with_fk_in_different_db_raises_value_error(self):
+        instance = ExternalModel(name="random_name")
+        instance._history_user = self.user
+        with self.assertRaises(ValueError):
+            instance.save()
+
+    @unittest.skipIf(
+        django.VERSION < (2, 0) or django.VERSION >= (2, 1),
+        "Django 2.0 is first version with sqlite db constraints",
+    )
+    def test_history_user_with_fk_in_different_db_raises_integrity_error_in_2_0(self):
+        instance = ExternalModel(name="random_name")
+        instance._history_user = self.user
+        with self.assertRaises(IntegrityError):
+            instance.save()
+
+    @unittest.skipUnless(
+        django.VERSION < (2, 0),
+        "Django 1.11 doesn't have integrity constraints on sqlite",
+    )
+    def test_history_user_with_fk_in_different_db_raises_error(self):
+        instance = ExternalModel(name="random_name")
+        instance._history_user = self.user
+        instance.save()
+
+        with self.assertRaises(CustomUser.DoesNotExist):
+            instance.history.first().history_user
+
+    def test_history_user_with_integer_field(self):
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
+        instance._history_user = self.user
+        instance.save()
+
+        self.assertEqual(self.user.id, instance.history.first().history_user_id)
+        self.assertEqual(self.user, instance.history.first().history_user)
+
+    def test_history_user_is_none(self):
+        instance = ExternalModelWithCustomUserIdField.objects.create(name="random_name")
+
+        self.assertIsNone(instance.history.first().history_user_id)
+        self.assertIsNone(instance.history.first().history_user)
+
+    def test_history_user_does_not_exist(self):
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
+        instance._history_user = self.user
+        instance.save()
+
+        self.assertEqual(self.user.id, instance.history.first().history_user_id)
+        self.assertEqual(self.user, instance.history.first().history_user)
+
+        user_id = self.user.id
+        self.user.delete()
+
+        self.assertEqual(user_id, instance.history.first().history_user_id)
+        self.assertIsNone(instance.history.first().history_user)
