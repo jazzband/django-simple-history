@@ -22,7 +22,43 @@ USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split("
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
-class SimpleHistoryAdmin(admin.ModelAdmin):
+class HistoricalModelPermissionsAdminMixin:
+    def get_historical_permission_codename(self, action, opts):
+        """
+        Return the codename of the permission for the specified action.
+        """
+        return "%s_historical%s" % (action, opts.model_name)
+
+    def has_add_permission(self, request):
+        opts = self.opts
+        codename = self.get_historical_permission_codename("add", opts)
+        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+
+    def has_change_permission(self, request, obj=None):
+        opts = self.opts
+        codename = self.get_historical_permission_codename("change", opts)
+        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+
+    def has_delete_permission(self, request, obj=None):
+        opts = self.opts
+        codename = self.get_historical_permission_codename("delete", opts)
+        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+
+    def has_view_permission(self, request, obj=None):
+        opts = self.opts
+        codename_view = self.get_historical_permission_codename("view", opts)
+        codename_change = self.get_historical_permission_codename("change", opts)
+        return request.user.has_perm(
+            "%s.%s" % (opts.app_label, codename_view)
+        ) or request.user.has_perm("%s.%s" % (opts.app_label, codename_change))
+
+    def has_view_or_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj) or self.has_change_permission(
+            request, obj
+        )
+
+
+class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
@@ -52,7 +88,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         object_id = unquote(object_id)
         action_list = history.filter(**{pk_name: object_id})
         if not isinstance(history.model.history_user, property):
-            # Only select_related when history_user is a ForeignKey (not a property)
+            # Only select_related when history_user is a ForeignKey (not a
+            # property)
             action_list = action_list.select_related("history_user")
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
@@ -64,7 +101,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except action_list.model.DoesNotExist:
                 raise http.Http404
 
-        if not self.has_change_permission(request, obj):
+        if not self.has_view_or_change_permission(request, obj):
             raise PermissionDenied
 
         # Set attribute on each action_list entry from admin methods
@@ -125,7 +162,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         ).instance
         obj._state.adding = False
 
-        if not self.has_change_permission(request, obj):
+        if not self.has_view_or_change_permission(request, obj):
             raise PermissionDenied
 
         if SIMPLE_HISTORY_EDIT:
@@ -166,8 +203,11 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
+        title = (
+            _("Revert %s") if self.has_change_permission(request, obj) else _("View %s")
+        ) % force_text(obj)
         context = {
-            "title": _("Revert %s") % force_text(obj),
+            "title": title,
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -183,6 +223,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             # Context variables copied from render_change_form
             "add": False,
             "change": True,
+            "has_view_permission": self.has_view_permission(request, obj),
             "has_add_permission": self.has_add_permission(request),
             "has_change_permission": self.has_change_permission(request, obj),
             "has_delete_permission": self.has_delete_permission(request, obj),

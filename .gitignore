@@ -7,6 +7,7 @@
 .tox/
 /.project
 /.pydevproject
+/.settings
 /.ve
 build/
 dist/
