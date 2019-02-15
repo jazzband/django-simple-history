@@ -1,8 +1,11 @@
+import django
+
 from datetime import datetime, timedelta
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.auth.models import Group, Permission
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -26,6 +29,9 @@ from ..models import (
     Poll,
     State,
 )
+from pprint import pprint
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.contenttypes.models import ContentType
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -49,6 +55,35 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
 
 
+def remove_user_permissions(
+    user=None, model=None, remove_view=None, remove_change=None
+):
+    model_name = model._meta.label_lower.split(".")[1]
+    user.user_permissions.all().delete()
+    for codename in Permission.objects.all():
+        user.user_permissions.add(codename)
+    if remove_view:
+        try:
+            user.user_permissions.remove(
+                Permission.objects.get(codename=f"view_{model_name}")
+            )
+        except ObjectDoesNotExist:
+            pass  # Django < 2.1
+        try:
+            user.user_permissions.remove(
+                Permission.objects.get(codename=f"view_historical{model_name}")
+            )
+        except ObjectDoesNotExist:
+            pass  # Django < 2.1
+    if remove_change:
+        user.user_permissions.remove(
+            Permission.objects.get(codename=f"change_{model_name}")
+        )
+        user.user_permissions.remove(
+            Permission.objects.get(codename=f"change_historical{model_name}")
+        )
+
+
 class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
@@ -59,9 +94,13 @@ class AdminSiteTest(WebTest):
         except AttributeError:
             pass
 
-    def login(self, user=None):
-        if user is None:
-            user = self.user
+    def login(self, user=None, superuser=None):
+        user = self.user if user is None else user
+        superuser = True if superuser is None else False
+        if not superuser:
+            user.is_superuser = False
+            user.is_active = True
+            user.save()
         form = self.app.get(reverse("admin:index")).maybe_follow().form
         form["username"] = user.username
         form["password"] = "pass"
@@ -133,16 +172,6 @@ class AdminSiteTest(WebTest):
         resp = self.app.get(get_history_url(instance))
 
         self.assertEqual(200, resp.status_code)
-
-    def test_history_view_permission(self):
-        self.login()
-        person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person), status=403)
-
-    def test_history_form_permission(self):
-        self.login(self.user)
-        person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person, 0), status=403)
 
     def test_invalid_history_form(self):
         self.login()
@@ -450,7 +479,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for original object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": admin.history_form_view_title(request, poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -463,6 +492,7 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": admin.has_view_permission(request, poll),
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
@@ -474,6 +504,7 @@ class AdminSiteTest(WebTest):
             "save_as": admin.save_as,
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
+            "show_close": admin.show_close(request, poll),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
@@ -503,7 +534,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": admin.history_form_view_title(request, poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -516,6 +547,7 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/{pk}/history/".format(pk=poll.pk),
             "add": False,
             "change": True,
+            "has_view_permission": admin.has_view_permission(request, poll),
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
@@ -527,6 +559,7 @@ class AdminSiteTest(WebTest):
             "save_as": admin.save_as,
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
+            "show_close": admin.show_close(request, poll),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
@@ -556,7 +589,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": admin.history_form_view_title(request, poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -569,6 +602,7 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": admin.has_view_permission(request, poll),
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
@@ -580,6 +614,7 @@ class AdminSiteTest(WebTest):
             "save_as": admin.save_as,
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
+            "show_close": admin.show_close(request, poll),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
@@ -609,7 +644,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": admin.history_form_view_title(request, obj),
             "adminform": ANY,
             "object_id": obj.id,
             "is_popup": False,
@@ -624,6 +659,7 @@ class AdminSiteTest(WebTest):
             ),
             "add": False,
             "change": True,
+            "has_view_permission": admin.has_view_permission(request, obj),
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, obj),
             "has_delete_permission": admin.has_delete_permission(request, obj),
@@ -635,6 +671,7 @@ class AdminSiteTest(WebTest):
             "save_as": admin.save_as,
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
+            "show_close": admin.show_close(request, obj),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
@@ -668,7 +705,7 @@ class AdminSiteTest(WebTest):
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": admin.history_form_view_title(request, poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -681,6 +718,7 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": admin.has_view_permission(request, poll),
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
@@ -692,8 +730,95 @@ class AdminSiteTest(WebTest):
             "save_as": admin.save_as,
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
+            "show_close": admin.show_close(request, poll),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
         )
+
+    def test_history_view_has_view_only_permissions(self):
+        """Assert user can reach the history_view with
+        view permissions but not change permissions.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        remove_user_permissions(
+            user=self.user, model=Person, remove_view=False, remove_change=True
+        )
+        if django.VERSION >= (2, 1):
+            self.app.get(get_history_url(person), status=200)
+        else:
+            self.app.get(get_history_url(person), status=403)
+
+    def test_history_view_has_no_permissions(self):
+        """Assert user cannot reach the history_view without permissions.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        remove_user_permissions(
+            user=self.user, model=Person, remove_view=True, remove_change=True
+        )
+        self.app.get(get_history_url(person), status=403)
+
+    def test_history_form_has_view_only_permissions(self):
+        """Assert user can reach the history_form_view with
+        view permissions but not change permissions.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        remove_user_permissions(
+            user=self.user, model=Person, remove_view=False, remove_change=True
+        )
+        if django.VERSION >= (2, 1):
+            self.app.get(get_history_url(person, 0), status=200)
+        else:
+            self.app.get(get_history_url(person, 0), status=403)
+
+    def test_history_form_has_no_permissions(self):
+        """Assert user cannot reach the history_form_view without
+        permissions.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        remove_user_permissions(
+            user=self.user, model=Person, remove_view=True, remove_change=True
+        )
+        self.app.get(get_history_url(person, 0), status=403)
+
+    def test_history_form_historical_perms_cannot_exceed_model_perms1(self):
+        """Assert user's cannot reach the historical model
+        permissions cannot exceed permissions granted for
+        the model.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        remove_user_permissions(
+            user=self.user, model=Person, remove_view=True, remove_change=True
+        )
+        self.app.get(get_history_url(person, 0), status=403)
+        change_perm = Permission.objects.get(codename="change_historicalperson")
+        self.user.user_permissions.add(change_perm)
+        self.app.get(get_history_url(person, 0), status=403)
+        change_perm = Permission.objects.get(codename="change_person")
+        self.user.user_permissions.add(change_perm)
+        self.app.get(get_history_url(person, 0), status=200)
+
+    def test_history_form_historical_perms_cannot_exceed_model_perms2(self):
+        """Assert user's cannot reach the historical model
+        permissions cannot exceed permissions granted for
+        the model. (django 2.1+)
+        """
+        if django.VERSION >= (2, 1):
+            self.login(superuser=False)
+            person = Person.objects.create(name="Sandra Hale")
+            remove_user_permissions(
+                user=self.user, model=Person, remove_view=True, remove_change=True
+            )
+            self.app.get(get_history_url(person, 0), status=403)
+            view_perm = Permission.objects.get(codename="view_historicalperson")
+            self.user.user_permissions.add(view_perm)
+            self.app.get(get_history_url(person, 0), status=403)
+            view_perm = Permission.objects.get(codename="view_person")
+            self.user.user_permissions.add(view_perm)
+            self.app.get(get_history_url(person, 0), status=200)
