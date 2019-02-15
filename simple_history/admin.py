@@ -31,28 +31,40 @@ class HistoricalModelPermissionsAdminMixin:
 
     def has_add_permission(self, request):
         opts = self.opts
-        codename = self.get_historical_permission_codename('add', opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        historical_codename = self.get_historical_permission_codename(
+            'add', opts)
+        return (super().has_add_permission(request)
+                and request.user.has_perm(
+                    "%s.%s" % (opts.app_label, historical_codename)))
 
     def has_change_permission(self, request, obj=None):
         opts = self.opts
-        codename = self.get_historical_permission_codename('change', opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        historical_codename = self.get_historical_permission_codename(
+            'change', opts)
+        return (super().has_change_permission(request, obj=obj)
+                and request.user.has_perm(
+                    "%s.%s" % (opts.app_label, historical_codename)))
 
     def has_delete_permission(self, request, obj=None):
         opts = self.opts
-        codename = self.get_historical_permission_codename('delete', opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        historical_codename = self.get_historical_permission_codename(
+            'delete', opts)
+        return (super().has_delete_permission(request, obj=obj)
+                and request.user.has_perm(
+                    "%s.%s" % (opts.app_label, historical_codename)))
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
-        codename_view = self.get_historical_permission_codename('view', opts)
-        codename_change = self.get_historical_permission_codename(
+        historical_codename_view = self.get_historical_permission_codename(
+            'view', opts)
+        historical_codename_change = self.get_historical_permission_codename(
             'change', opts)
-        return (
-            request.user.has_perm('%s.%s' % (opts.app_label, codename_view)) or
-            request.user.has_perm('%s.%s' % (opts.app_label, codename_change))
-        )
+        historical_perms = (
+            request.user.has_perm(
+                '%s.%s' % (opts.app_label, historical_codename_view))
+            or request.user.has_perm(
+                '%s.%s' % (opts.app_label, historical_codename_change)))
+        return super().has_view_permission(request, obj=obj) and historical_perms
 
     def has_view_or_change_permission(self, request, obj=None):
         return (self.has_view_permission(request, obj)
@@ -119,8 +131,13 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
             content_type.app_label,
             content_type.model,
         )
+        if (self.has_view_permission(request, obj)
+                and not self.has_change_permission(request, obj)):
+            title = _("View history: %s") % force_text(obj)
+        else:
+            title = _("Change history: %s") % force_text(obj)
         context = {
-            "title": _("Change history: %s") % force_text(obj),
+            "title": title,
             "action_list": action_list,
             "module_name": capfirst(force_text(opts.verbose_name_plural)),
             "object": obj,
@@ -129,6 +146,7 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
+            "has_change_permission": self.has_change_permission(request, obj),
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
@@ -165,6 +183,9 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
 
         if not self.has_view_or_change_permission(request, obj):
             raise PermissionDenied
+
+        show_revert = self.has_change_permission(request, obj)
+        show_close = not show_revert and self.has_view_permission(request, obj)
 
         if SIMPLE_HISTORY_EDIT:
             change_history = True
@@ -234,6 +255,8 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
             "save_as": self.save_as,
             "save_on_top": self.save_on_top,
             "root_path": getattr(self.admin_site, "root_path", None),
+            "show_close": show_close,
+            "show_revert": show_revert,
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
