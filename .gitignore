@@ -1,3 +1,4 @@
+*.settings
 *.egg
 *.egg-info/
 *.eggs
