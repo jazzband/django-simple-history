@@ -828,19 +828,21 @@ class AdminSiteTest(WebTest):
             self.user.user_permissions.add(view_perm)
             self.app.get(get_history_url(person, 0), status=200)
 
-    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_form_settings_override(self):
         """Assert user's can view the historical model
         permissions with settings attr. (django 2.1+)
         """
-        self.assertFalse(settings.SIMPLE_HISTORY_REVERT_ENABLED)
+        self.assertTrue(settings.SIMPLE_HISTORY_REVERT_DISABLED)
+        self.login(superuser=False)
+        model_name = Person._meta.label_lower.split(".")[1]
+        reset_permissions(self.user, model_name)
+        person = Person.objects.create(name="Sandra Hale")
         if django.VERSION >= (2, 1):
-            self.login(superuser=False)
-            model_name = Person._meta.label_lower.split(".")[1]
-            reset_permissions(self.user, model_name)
-            person = Person.objects.create(name="Sandra Hale")
             response = self.app.get(get_history_url(person, 0), status=200)
             self.assertIn("View Person object", response.unicode_normal_body)
+        else:
+            self.app.get(get_history_url(person, 0), status=403)
 
     def test_history_form_historical_no_perms_set(self):
         """Assert user's cannot reach the historical model
@@ -848,10 +850,10 @@ class AdminSiteTest(WebTest):
         """
         self.login(superuser=False)
         person = Person.objects.create(name="Sandra Hale")
-        response = self.app.get(get_history_url(person), status=403)
-        response = self.app.get(get_history_url(person, 0), status=403)
+        self.app.get(get_history_url(person), status=403)
+        self.app.get(get_history_url(person, 0), status=403)
 
-    def test_history_form_historical_superuser(self):
+    def test_history_form_historical_superuser1(self):
         """Assert user's cannot reach the historical model
         permissions without any permissions.
         """
@@ -861,8 +863,8 @@ class AdminSiteTest(WebTest):
         response = self.app.get(get_history_url(person, 0), status=200)
         self.assertIn("Revert Person object", response.unicode_normal_body)
 
-    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
-    def test_history_form_historical_superuser(self):
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    def test_history_form_historical_superuser2(self):
         """Assert user's cannot reach the historical model
         permissions without any permissions.
         """
