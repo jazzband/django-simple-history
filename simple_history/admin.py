@@ -15,55 +15,50 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-USER_NATURAL_KEY = tuple(key.lower()
-                         for key in settings.AUTH_USER_MODEL.split(".", 1))
+USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class HistoricalModelPermissionsAdminMixin:
-
     def get_historical_permission_codename(self, action, opts):
         """
         Return the codename of the permission for the specified action.
         """
-        return '%s_historical%s' % (action, opts.model_name)
+        return "%s_historical%s" % (action, opts.model_name)
 
     def has_add_permission(self, request):
         opts = self.opts
-        historical_codename = self.get_historical_permission_codename(
-            'add', opts)
-        return (super().has_add_permission(request)
-                and request.user.has_perm(
-                    "%s.%s" % (opts.app_label, historical_codename)))
+        historical_codename = self.get_historical_permission_codename("add", opts)
+        return super().has_add_permission(request) and request.user.has_perm(
+            "%s.%s" % (opts.app_label, historical_codename)
+        )
 
     def has_change_permission(self, request, obj=None):
         opts = self.opts
-        historical_codename = self.get_historical_permission_codename(
-            'change', opts)
-        return (super().has_change_permission(request, obj)
-                and request.user.has_perm(
-                    "%s.%s" % (opts.app_label, historical_codename)))
+        historical_codename = self.get_historical_permission_codename("change", opts)
+        return super().has_change_permission(request, obj) and request.user.has_perm(
+            "%s.%s" % (opts.app_label, historical_codename)
+        )
 
     def has_delete_permission(self, request, obj=None):
         opts = self.opts
-        historical_codename = self.get_historical_permission_codename(
-            'delete', opts)
-        return (super().has_delete_permission(request, obj)
-                and request.user.has_perm(
-                    "%s.%s" % (opts.app_label, historical_codename)))
+        historical_codename = self.get_historical_permission_codename("delete", opts)
+        return super().has_delete_permission(request, obj) and request.user.has_perm(
+            "%s.%s" % (opts.app_label, historical_codename)
+        )
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
-        historical_codename_view = self.get_historical_permission_codename(
-            'view', opts)
+        historical_codename_view = self.get_historical_permission_codename("view", opts)
         historical_codename_change = self.get_historical_permission_codename(
-            'change', opts)
-        historical_perms = (
-            request.user.has_perm(
-                '%s.%s' % (opts.app_label, historical_codename_view))
-            or request.user.has_perm(
-                '%s.%s' % (opts.app_label, historical_codename_change)))
+            "change", opts
+        )
+        historical_perms = request.user.has_perm(
+            "%s.%s" % (opts.app_label, historical_codename_view)
+        ) or request.user.has_perm(
+            "%s.%s" % (opts.app_label, historical_codename_change)
+        )
         try:
             has_view_permission = super().has_view_permission(request, obj)
         except AttributeError:  # < Django 2.1
@@ -72,8 +67,9 @@ class HistoricalModelPermissionsAdminMixin:
         return has_view_permission and historical_perms
 
     def has_view_or_change_permission(self, request, obj=None):
-        return (self.has_view_permission(request, obj)
-                or self.has_change_permission(request, obj))
+        return self.has_view_permission(request, obj) or self.has_change_permission(
+            request, obj
+        )
 
 
 class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin):
@@ -127,17 +123,16 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
                 for list_entry in action_list:
-                    setattr(list_entry, history_list_entry,
-                            value_for_entry(list_entry))
+                    setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = ContentType.objects.get_by_natural_key(
-            *USER_NATURAL_KEY)
+        content_type = ContentType.objects.get_by_natural_key(*USER_NATURAL_KEY)
         admin_user_view = "admin:%s_%s_change" % (
             content_type.app_label,
             content_type.model,
         )
-        if (self.has_view_permission(request, obj)
-                and not self.has_change_permission(request, obj)):
+        if self.has_view_permission(request, obj) and not self.has_change_permission(
+            request, obj
+        ):
             title = _("View history: %s") % force_text(obj)
         else:
             title = _("Change history: %s") % force_text(obj)
@@ -265,16 +260,21 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         )
 
     def history_view_title(self, request, obj):
-        return (_("Change history: %s") if self.has_change_permission(
-            request, obj) else _("View history: %s")) % force_text(obj)
+        return (
+            _("Change history: %s")
+            if self.has_change_permission(request, obj)
+            else _("View history: %s")
+        ) % force_text(obj)
 
     def history_form_view_title(self, request, obj):
-        return (_("Revert %s") if self.has_change_permission(
-            request, obj) else _('View %s')) % force_text(obj)
+        return (
+            _("Revert %s") if self.has_change_permission(request, obj) else _("View %s")
+        ) % force_text(obj)
 
     def show_close(self, request, obj):
-        return (not self.has_change_permission(request, obj)
-                and self.has_view_permission(request, obj))
+        return not self.has_change_permission(
+            request, obj
+        ) and self.has_view_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
