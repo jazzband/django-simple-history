@@ -18,8 +18,7 @@ from .models import (
 
 
 class PersonAdmin(SimpleHistoryAdmin):
-    def has_change_permission(self, request, obj=None):
-        return False
+    pass
 
 
 class ChoiceAdmin(SimpleHistoryAdmin):
