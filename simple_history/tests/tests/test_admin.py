@@ -32,6 +32,7 @@ from ..models import (
 from pprint import pprint
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -55,13 +56,17 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
 
 
+def reset_permissions(user=None, model_name=None):
+    user.user_permissions.all().delete()
+    for codename in Permission.objects.all():
+        user.user_permissions.add(codename)
+
+
 def remove_user_permissions(
     user=None, model=None, remove_view=None, remove_change=None
 ):
     model_name = model._meta.label_lower.split(".")[1]
-    user.user_permissions.all().delete()
-    for codename in Permission.objects.all():
-        user.user_permissions.add(codename)
+    reset_permissions(user, model_name)
     if remove_view:
         try:
             user.user_permissions.remove(
@@ -822,3 +827,47 @@ class AdminSiteTest(WebTest):
             view_perm = Permission.objects.get(codename="view_person")
             self.user.user_permissions.add(view_perm)
             self.app.get(get_history_url(person, 0), status=200)
+
+    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
+    def test_history_form_settings_override(self):
+        """Assert user's can view the historical model
+        permissions with settings attr. (django 2.1+)
+        """
+        self.assertFalse(settings.SIMPLE_HISTORY_REVERT_ENABLED)
+        if django.VERSION >= (2, 1):
+            self.login(superuser=False)
+            model_name = Person._meta.label_lower.split(".")[1]
+            reset_permissions(self.user, model_name)
+            person = Person.objects.create(name="Sandra Hale")
+            response = self.app.get(get_history_url(person, 0), status=200)
+            self.assertIn("View Person object", response.unicode_normal_body)
+
+    def test_history_form_historical_no_perms_set(self):
+        """Assert user's cannot reach the historical model
+        permissions without any permissions.
+        """
+        self.login(superuser=False)
+        person = Person.objects.create(name="Sandra Hale")
+        response = self.app.get(get_history_url(person), status=403)
+        response = self.app.get(get_history_url(person, 0), status=403)
+
+    def test_history_form_historical_superuser(self):
+        """Assert user's cannot reach the historical model
+        permissions without any permissions.
+        """
+        self.login(superuser=True)
+        person = Person.objects.create(name="Sandra Hale")
+        response = self.app.get(get_history_url(person), status=200)
+        response = self.app.get(get_history_url(person, 0), status=200)
+        self.assertIn("Revert Person object", response.unicode_normal_body)
+
+    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
+    def test_history_form_historical_superuser(self):
+        """Assert user's cannot reach the historical model
+        permissions without any permissions.
+        """
+        self.login(superuser=True)
+        person = Person.objects.create(name="Sandra Hale")
+        response = self.app.get(get_history_url(person), status=200)
+        response = self.app.get(get_history_url(person, 0), status=200)
+        self.assertIn("View Person object", response.unicode_normal_body)

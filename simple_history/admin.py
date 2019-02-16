@@ -19,6 +19,8 @@ USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split("
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
+SIMPLE_HISTORY_REVERT_ENABLED = getattr(settings, "SIMPLE_HISTORY_REVERT_ENABLED", True)
+
 
 class HistoricalModelPermissionsAdminMixin:
     def get_historical_permission_codename(self, action, opts):
@@ -28,25 +30,41 @@ class HistoricalModelPermissionsAdminMixin:
         return "%s_historical%s" % (action, opts.model_name)
 
     def has_add_permission(self, request):
-        opts = self.opts
-        historical_codename = self.get_historical_permission_codename("add", opts)
-        return super().has_add_permission(request) and request.user.has_perm(
-            "%s.%s" % (opts.app_label, historical_codename)
-        )
+        if not SIMPLE_HISTORY_REVERT_ENABLED:
+            permission = False
+        else:
+            opts = self.opts
+            historical_codename = self.get_historical_permission_codename("add", opts)
+            permission = super().has_add_permission(request) and request.user.has_perm(
+                "%s.%s" % (opts.app_label, historical_codename)
+            )
+        return permission
 
     def has_change_permission(self, request, obj=None):
-        opts = self.opts
-        historical_codename = self.get_historical_permission_codename("change", opts)
-        return super().has_change_permission(request, obj) and request.user.has_perm(
-            "%s.%s" % (opts.app_label, historical_codename)
-        )
+        if not SIMPLE_HISTORY_REVERT_ENABLED:
+            permission = False
+        else:
+            opts = self.opts
+            historical_codename = self.get_historical_permission_codename(
+                "change", opts
+            )
+            permission = super().has_change_permission(
+                request, obj
+            ) and request.user.has_perm("%s.%s" % (opts.app_label, historical_codename))
+        return permission
 
     def has_delete_permission(self, request, obj=None):
-        opts = self.opts
-        historical_codename = self.get_historical_permission_codename("delete", opts)
-        return super().has_delete_permission(request, obj) and request.user.has_perm(
-            "%s.%s" % (opts.app_label, historical_codename)
-        )
+        if not SIMPLE_HISTORY_REVERT_ENABLED:
+            permission = False
+        else:
+            opts = self.opts
+            historical_codename = self.get_historical_permission_codename(
+                "delete", opts
+            )
+            permission = super().has_delete_permission(
+                request, obj
+            ) and request.user.has_perm("%s.%s" % (opts.app_label, historical_codename))
+        return permission
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
@@ -63,7 +81,6 @@ class HistoricalModelPermissionsAdminMixin:
             has_view_permission = super().has_view_permission(request, obj)
         except AttributeError:  # < Django 2.1
             has_view_permission = super().has_change_permission(request, obj)
-
         return has_view_permission and historical_perms
 
     def has_view_or_change_permission(self, request, obj=None):
