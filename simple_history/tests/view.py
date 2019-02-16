@@ -7,11 +7,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from simple_history.tests.models import (
-    BucketDataRegisterRequestUser,
-    Poll,
-    PollWithHistoricalIPAddress,
-)
+from .models import BucketDataRegisterRequestUser, Poll, PollWithHistoricalIPAddress
 
 
 class PollCreate(CreateView):

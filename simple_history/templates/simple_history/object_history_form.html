@@ -5,14 +5,14 @@
 {% block breadcrumbs %}
   <div class="breadcrumbs">
     <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
-    <a href="{% url "admin:app_list" app_label %}">{{app_label|capfirst|escape}}</a> &rsaquo;
-    <a href="{{changelist_url}}">{{opts.verbose_name_plural|capfirst}}</a> &rsaquo;
-    <a href="{{change_url}}">{{original|truncatewords:"18"}}</a> &rsaquo;
+    <a href="{% url "admin:app_list" app_label %}">{{ app_label|capfirst|escape }}</a> &rsaquo;
+    <a href="{{changelist_url}}">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+    <a href="{{change_url}}">{{ original|truncatewords:"18" }}</a> &rsaquo;
     <a href="../">{% trans "History" %}</a> &rsaquo;
-	{% if has_change_permission %}
-    	{% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{verbose_name}}{% endblocktrans %}
+	{% if has_revert_permission %}
+    	{% blocktrans with original_opts.verbose_name as verbose_name %}Revert {{ verbose_name }}{% endblocktrans %}
     {% else %}
-		{% blocktrans with original_opts.verbose_name as verbose_name %}{{verbose_name}}{% endblocktrans %}    
+		{% blocktrans with original_opts.verbose_name as verbose_name %}{{ verbose_name }}{% endblocktrans %}    
    	{% endif %}
   </div>
 {% endblock %}
@@ -22,7 +22,7 @@
 {% endblock %}
 
 {% block form_top %}
-{% if has_change_permission %}
+{% if has_revert_permission %}
 <p>{% blocktrans %}Press the 'Revert' button below to revert to this version of the object.{% endblocktrans %} {% if change_history %}{% blocktrans %}Or press the 'Change History' button to edit the history.{% endblocktrans %}{% endif %}</p>
 {% endif %}
 {% endblock %}
