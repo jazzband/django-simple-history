@@ -143,6 +143,10 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         except AttributeError:
             return []
 
+    @property
+    def history_manager(self):
+        return getattr(self.model, self.model._meta.simple_history_manager_attribute)
+
     def get_history(self, object_id):
         """Returns a Queryset of historical instances.
 
@@ -151,12 +155,10 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         on each instance in the queryset.
         """
         field = self.model._meta.pk.attname
-        history_manager = getattr(
-            self.model, self.model._meta.simple_history_manager_attribute
-        )
-        queryset = history_manager.filter(**{field: unquote(object_id)})
 
-        if not isinstance(history_manager.model.history_user, property):
+        queryset = self.history_manager.filter(**{field: unquote(object_id)})
+
+        if not isinstance(self.history_manager.model.history_user, property):
             queryset = queryset.select_related("history_user")
 
         for attrname in self.get_history_list_display():
