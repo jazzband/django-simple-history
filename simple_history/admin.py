@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, FieldError
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -15,7 +15,8 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
+USER_NATURAL_KEY = tuple(key.lower()
+                         for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
@@ -102,7 +103,8 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         if not self.has_view_or_change_permission(request, obj):
             raise PermissionDenied
 
-        content_type = ContentType.objects.get_by_natural_key(*USER_NATURAL_KEY)
+        content_type = ContentType.objects.get_by_natural_key(
+            *USER_NATURAL_KEY)
         admin_user_view = "admin:%s_%s_change" % (
             content_type.app_label,
             content_type.model,
@@ -149,23 +151,28 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
 
     def get_history(self, object_id):
         """Returns a Queryset of historical instances.
-
-        If any callable attributes are defined in
-        `history_list_display`, set the value of the callable
-        on each instance in the queryset.
         """
-        field = self.model._meta.pk.attname
-
-        queryset = self.history_manager.filter(**{field: unquote(object_id)})
+        queryset = self.history_manager.filter(**{
+            self.model._meta.pk.attname: unquote(object_id)})
 
         if not isinstance(self.history_manager.model.history_user, property):
             queryset = queryset.select_related("history_user")
+        return self.fetch_history_list_display_callables(self, quesryset)
 
+    def fetch_history_list_display_callables(self, quesryset):
+        """Returns the queryset after setting the value
+        of any callables from history_list_display on
+        each instance.
+        """
+        attrs = []
         for attrname in self.get_history_list_display():
-            value = getattr(self, attrname, None)
-            if value and callable(value):
-                for obj in queryset:
-                    setattr(obj, attrname, value(attrname))
+            attr = getattr(self, attrname, None)
+            if callable(attr):
+                attrs.append(attr)
+        if attrs:
+            for obj in queryset:
+                for attr in attrs:
+                    setattr(obj, attrname, attr(obj))
         return queryset
 
     def response_change(self, request, obj):
@@ -281,7 +288,8 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
 
     def history_form_view_title(self, request, obj):
         return (
-            _("Revert %s") if self.has_change_permission(request, obj) else _("View %s")
+            _("Revert %s") if self.has_change_permission(
+                request, obj) else _("View %s")
         ) % force_text(obj)
 
     def show_close(self, request, obj):
