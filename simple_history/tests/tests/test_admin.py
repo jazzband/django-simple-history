@@ -1,18 +1,20 @@
 import django
 
 from datetime import datetime, timedelta
+from django.conf import settings
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ObjectDoesNotExist
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
-from django.utils.encoding import force_text
 from django_webtest import WebTest
 from mock import ANY, patch
 
+from simple_history.tests.admin import PlantAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
 from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
@@ -28,11 +30,9 @@ from ..models import (
     Person,
     Poll,
     State,
+    Planet,
 )
 from pprint import pprint
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -101,7 +101,7 @@ class AdminSiteTest(WebTest):
 
     def login(self, user=None, superuser=None):
         user = self.user if user is None else user
-        superuser = True if superuser is None else False
+        superuser = True if superuser is None else superuser
         if not superuser:
             user.is_superuser = False
             user.is_active = True
@@ -436,7 +436,7 @@ class AdminSiteTest(WebTest):
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
-        response = admin.response_change(request, poll)
+        admin.response_change(request, poll)
 
         with patch("simple_history.admin.admin.ModelAdmin.response_change") as m_admin:
             m_admin.return_value = "it was called"
@@ -830,9 +830,6 @@ class AdminSiteTest(WebTest):
 
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_form_settings_override(self):
-        """Assert user's can view the historical model
-        permissions with settings attr. (django 2.1+)
-        """
         self.assertTrue(settings.SIMPLE_HISTORY_REVERT_DISABLED)
         self.login(superuser=False)
         model_name = Person._meta.label_lower.split(".")[1]
@@ -859,17 +856,171 @@ class AdminSiteTest(WebTest):
         """
         self.login(superuser=True)
         person = Person.objects.create(name="Sandra Hale")
-        response = self.app.get(get_history_url(person), status=200)
+        self.app.get(get_history_url(person), status=200)
         response = self.app.get(get_history_url(person, 0), status=200)
         self.assertIn("Revert Person object", response.unicode_normal_body)
 
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_form_historical_superuser2(self):
-        """Assert user's cannot reach the historical model
-        permissions without any permissions.
-        """
         self.login(superuser=True)
         person = Person.objects.create(name="Sandra Hale")
-        response = self.app.get(get_history_url(person), status=200)
+        self.app.get(get_history_url(person), status=200)
         response = self.app.get(get_history_url(person, 0), status=200)
-        self.assertIn("View Person object", response.unicode_normal_body)
+        self.assertIn("Revert Person object", response.unicode_normal_body)
+
+    def test_history_view(self):
+        request = RequestFactory().post("/")
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        planet = Planet.objects.create(star="Sun")
+
+        admin_site = AdminSite()
+        admin = PlantAdmin(Planet, admin_site)
+
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(planet.id))
+
+        context = {
+            # Verify this is set for original object
+            "title": admin.history_view_title(request, planet),
+            "action_list": admin.get_object_history(str(planet.id)),
+            "module_name": "Planets",
+            "object": planet,
+            "root_path": ANY,
+            "app_label": "tests",
+            "opts": planet._meta,
+            "admin_user_view": admin.admin_user_view,
+            "history_list_display": admin.get_history_list_display(),
+            "has_change_permission": admin.has_change_permission(request, planet),
+        }
+        context.update(admin_site.each_context(request))
+        mock_render.assert_called_once_with(
+            request, admin.object_history_template, context
+        )
+
+    def test_history_view__all_perms(self):
+        # active user with all perms
+        self.login(superuser=False)
+        planet = Planet.objects.create(star="Sun")
+        for permission in Permission.objects.all():
+            self.user.user_permissions.add(permission)
+
+        response = self.app.get(get_history_url(planet))
+        self.assertIn("Change history", response.unicode_normal_body)
+
+        response = self.app.get(get_history_url(planet, 0))
+        self.assertIn("Revert Planet object", response.unicode_normal_body)
+
+    def test_history_view__change_perms(self):
+        # active user with change perms
+        self.login(superuser=False)
+        planet = Planet.objects.create(star="Sun")
+        self.user.user_permissions.all().delete()
+        for permission in Permission.objects.filter(codename__contains="change"):
+            self.user.user_permissions.add(permission)
+
+        response = self.app.get(get_history_url(planet))
+        self.assertIn("Change history", response.unicode_normal_body)
+
+        response = self.app.get(get_history_url(planet, 0))
+        self.assertIn("Revert Planet object", response.unicode_normal_body)
+
+    def test_history_view__view_perms(self):
+        # active user with view perms
+        self.login(superuser=False)
+        self.user.user_permissions.all().delete()
+        for permission in Permission.objects.filter(codename__contains="view"):
+            self.user.user_permissions.add(permission)
+        planet = Planet.objects.create(star="Sun")
+        if django.VERSION >= (2, 1):
+            response = self.app.get(get_history_url(planet))
+            self.assertIn("View history", response.unicode_normal_body)
+
+            response = self.app.get(get_history_url(planet, 0), status=200)
+            self.assertIn("View Planet object", response.unicode_normal_body)
+
+        else:
+            response = self.app.get(get_history_url(planet), status=403)
+            response = self.app.get(get_history_url(planet, 0), status=403)
+
+    def test_history_view__superuser(self):
+        self.login(superuser=True)
+
+        request = RequestFactory().post("/")
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        planet = Planet.objects.create(star="Sun")
+
+        admin_site = AdminSite()
+        admin = PlantAdmin(Planet, admin_site)
+
+        self.assertTrue(request.user.is_superuser)
+        self.assertTrue(admin.has_change_permission(request, planet))
+        self.assertTrue(admin.has_view_permission(request, planet))
+
+        response = self.app.get(get_history_url(planet), status=200)
+        self.assertIn("Change history", response.unicode_normal_body)
+
+        response = self.app.get(get_history_url(planet, 0), status=200)
+        self.assertIn("Revert Planet object", response.unicode_normal_body)
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
+    def test_history_view__revert_disabled(self):
+        """Assert can revert if not disabled through settings.
+        """
+        self.login(superuser=False)
+        self.user.user_permissions.all().delete()
+        for permission in Permission.objects.filter(codename__contains="view"):
+            self.user.user_permissions.add(permission)
+        for permission in Permission.objects.filter(codename__contains="change"):
+            self.user.user_permissions.add(permission)
+        planet = Planet.objects.create(star="Sun")
+
+        response = self.app.get(get_history_url(planet), status=200)
+        self.assertIn("Change history", response.unicode_normal_body)
+
+        response = self.app.get(get_history_url(planet, 0), status=200)
+        self.assertIn("Revert Planet object", response.unicode_normal_body)
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    def test_history_view__revert_enabled(self):
+        """Assert cannot revert if disabled through settings.
+        """
+        self.login(superuser=False)
+        self.user.user_permissions.all().delete()
+        for permission in Permission.objects.filter(codename__contains="view"):
+            self.user.user_permissions.add(permission)
+        for permission in Permission.objects.filter(codename__contains="change"):
+            self.user.user_permissions.add(permission)
+        planet = Planet.objects.create(star="Sun")
+        if django.VERSION >= (2, 1):
+            response = self.app.get(get_history_url(planet), status=200)
+            self.assertIn("View history", response)
+            response = self.app.get(get_history_url(planet, 0), status=200)
+            self.assertIn("View Planet object", response)
+        else:
+            self.app.get(get_history_url(planet), status=403)
+            self.app.get(get_history_url(planet, 0), status=403)
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    def test_history_view__revert_disabled_but_superuser(self):
+        """Assert can revert if superuser even though
+        disabled through settings.
+        """
+        self.login(superuser=True)
+        self.user.user_permissions.all().delete()
+        for permission in Permission.objects.filter(codename__contains="view"):
+            self.user.user_permissions.add(permission)
+        for permission in Permission.objects.filter(codename__contains="change"):
+            self.user.user_permissions.add(permission)
+        planet = Planet.objects.create(star="Sun")
+
+        response = self.app.get(get_history_url(planet), status=200)
+        self.assertIn("Change history", response)
+
+        response = self.app.get(get_history_url(planet, 0), status=200)
+        self.assertIn("Revert Planet object", response.unicode_normal_body)

@@ -331,6 +331,11 @@ class Country(models.Model):
     code = models.CharField(max_length=15, unique=True)
 
 
+class Planet(models.Model):
+    star = models.CharField(max_length=30)
+    history = HistoricalRecords()
+
+
 class Province(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, to_field="code")
     history = HistoricalRecords()
