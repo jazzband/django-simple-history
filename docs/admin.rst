@@ -73,6 +73,8 @@ admin class
 Permissions
 ~~~~~~~~~~~
 
+(requires Django 2.1 or greater)
+
 Using Django's simple permissions system, you can assign historical model permissions to specific users and groups of users in the same way as you do for other models. 
 
 The ``view`` permission, which was introduced in ``Django`` 2.1, is particularly useful. Suppose you want to configure a user to have ``(`view`, `add`, `change`, `delete`)`` permissions for model ``Question``
