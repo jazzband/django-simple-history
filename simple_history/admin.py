@@ -20,15 +20,23 @@ USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split("
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
-class HistoricalModelPermissionsAdminMixin:
+class HistoricalModelPermissionsAdminMixin(object):
     def get_permissions_historical_codename(self, action):
         opts = self.opts
         return "%s_historical%s" % (action, opts.model_name)
 
-    def revert_disabled(self, request):
+    def revert_disabled(self, request, obj):
         if request.user.is_superuser:
-            return False
-        return getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
+            revert_disabled = False
+        try:
+            super(HistoricalModelPermissionsAdminMixin, self).has_view_permission(
+                request, obj
+            )
+        except AttributeError:
+            revert_disabled = False
+        else:
+            revert_disabled = getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
+        return revert_disabled
 
     def _has_permission(self, request, action=None, super_permission=None, obj=None):
         if request.user.is_superuser:
@@ -42,28 +50,38 @@ class HistoricalModelPermissionsAdminMixin:
         return permission
 
     def has_add_permission(self, request):
-        super_permission = super().has_add_permission(request)
+        super_permission = super(
+            HistoricalModelPermissionsAdminMixin, self
+        ).has_add_permission(request)
         return self._has_permission(
             request, action="add", super_permission=super_permission
         )
 
     def has_change_permission(self, request, obj=None):
-        super_permission = super().has_change_permission(request, obj)
+        super_permission = super(
+            HistoricalModelPermissionsAdminMixin, self
+        ).has_change_permission(request, obj)
         return self._has_permission(
             request, action="change", super_permission=super_permission
-        ) and not self.revert_disabled(request)
+        ) and not self.revert_disabled(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        super_permission = super().has_delete_permission(request, obj)
+        super_permission = super(
+            HistoricalModelPermissionsAdminMixin, self
+        ).has_delete_permission(request, obj)
         return self._has_permission(
             request, action="delete", super_permission=super_permission
         )
 
     def has_view_permission(self, request, obj=None):
         try:
-            super_permission = super().has_view_permission(request, obj)
+            super_permission = super(
+                HistoricalModelPermissionsAdminMixin, self
+            ).has_view_permission(request, obj)
         except AttributeError:
-            has_view_permission = super().has_change_permission(request, obj)
+            has_view_permission = super(
+                HistoricalModelPermissionsAdminMixin, self
+            ).has_change_permission(request, obj)
         else:
             has_view_permission = self._has_permission(
                 request, action="view", super_permission=super_permission
@@ -71,9 +89,12 @@ class HistoricalModelPermissionsAdminMixin:
         return has_view_permission
 
     def has_view_or_change_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj) or self.has_change_permission(
-            request, obj
-        )
+        has_change_permission = self.has_change_permission(request, obj)
+        try:
+            has_view_permission = self.has_view_permission(request, obj)
+        except AttributeError:
+            has_view_permission = has_change_permission
+        return has_view_permission or has_change_permission
 
 
 class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin):
@@ -129,7 +150,7 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
 
         If None attempts to get the instance from history.
         """
-        obj = super().get_object(request, object_id, **kwargs)
+        obj = super(SimpleHistoryAdmin, self).get_object(request, object_id, **kwargs)
         if not obj:
             try:
                 obj = object_history.latest("history_date").instance
@@ -155,7 +176,7 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         return getattr(self.model, self.model._meta.simple_history_manager_attribute)
 
     def fetch_history_list_display_callables(self, queryset):
-        """Returns the queryset after setting on each instance
+        """Returns a queryset after setting, on each instance,
         the value of any callables from `history_list_display`.
         """
         callable_attrs = self.history_list_display_callables
