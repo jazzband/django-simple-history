@@ -337,11 +337,17 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         )
 
     def history_form_view_title(self, request, obj):
+        """Returns a "change" or "view" title string rendered
+        relative to the user's permissions.
+        """
         return (
             _("Revert %s") if self.has_change_permission(request, obj) else _("View %s")
         ) % force_text(obj)
 
     def show_close(self, request, obj):
+        """Returns True if the "Close" button should be displayed
+        on the historical object's form.
+        """
         return not self.has_change_permission(
             request, obj
         ) and self.has_view_permission(request, obj)
