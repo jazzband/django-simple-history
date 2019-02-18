@@ -21,33 +21,45 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class HistoricalModelPermissionsAdminMixin(object):
-    def get_permissions_historical_codename(self, action):
-        opts = self.opts
-        return "%s_historical%s" % (action, opts.model_name)
-
     def revert_disabled(self, request, obj):
+        """Returns `True` or `False` based on settings attr.
+
+        Note:
+          * Always returns `False` if user is a superuser
+          * Always returns `False` if has_view_permission
+            is not available (<DJ21)
+        """
         if request.user.is_superuser:
             revert_disabled = False
-        try:
-            super(HistoricalModelPermissionsAdminMixin, self).has_view_permission(
-                request, obj
-            )
-        except AttributeError:
-            revert_disabled = False
         else:
-            revert_disabled = getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
+            try:
+                super(HistoricalModelPermissionsAdminMixin, self).has_view_permission(
+                    request, obj
+                )
+            except AttributeError:
+                revert_disabled = False
+            else:
+                revert_disabled = getattr(
+                    settings, "SIMPLE_HISTORY_REVERT_DISABLED", False
+                )
         return revert_disabled
 
     def _has_permission(self, request, action=None, super_permission=None, obj=None):
+        """Returns True where both model and historical model
+        permissions are `True` for the given `action`.
+        """
         if request.user.is_superuser:
-            permission = super_permission
+            has_permission = super_permission
         else:
-            opts = self.opts
-            historical_codename = self.get_permissions_historical_codename(action)
-            permission = super_permission and request.user.has_perm(
-                "%s.%s" % (opts.app_label, historical_codename)
+            historical_codename = "%s.%s_historical%s" % (
+                self.opts.app_label,
+                action,
+                self.opts.model_name,
             )
-        return permission
+            has_permission = super_permission and request.user.has_perm(
+                historical_codename, obj
+            )
+        return has_permission
 
     def has_add_permission(self, request):
         super_permission = super(
@@ -102,7 +114,8 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
     object_history_form_template = "simple_history/object_history_form.html"
 
     def get_urls(self):
-        """Returns the additional urls used by the Reversion admin."""
+        """Returns the additional urls used by the Reversion admin.
+        """
         urls = super(SimpleHistoryAdmin, self).get_urls()
         admin_site = self.admin_site
         opts = self.model._meta
@@ -117,9 +130,8 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         return history_urls + urls
 
     def history_view(self, request, object_id, extra_context=None):
-        """The 'history' admin view for this model.
+        """Overridden `history_view`.
         """
-
         request.current_app = self.admin_site.name
         object_id = unquote(object_id)
         object_history = self.get_object_history(object_id)
