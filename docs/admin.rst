@@ -94,4 +94,4 @@ Disable Revert
 
 By default, a user with ``change`` permissions may revert a model instance to a previous version in the history. To disable the revert feature for all historical models set ``SIMPLE_HISTORY_REVERT_DISABLED`` to ``True`` in ``settings.py``. The default is ``False``.
 
-Note: this setting is ignored for a user with  ``superuser`` privileges.
+.. note:: The revert feature is always available to users with ``superuser`` privileges.
