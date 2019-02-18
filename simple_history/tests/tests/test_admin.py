@@ -1034,8 +1034,9 @@ class AdminSiteTest(WebTest):
     def test_history_view__missing_objects(self):
         self.login(superuser=True)
         planet = Planet.objects.create(star="Sun")
-        planet.history.all().delete()
+        historical_model = planet.history.model
         planet_pk = planet.pk
         planet.delete()
         planet.pk = planet_pk
-        self.app.get(get_history_url(planet), status=200)
+        historical_model.objects.all().delete()
+        self.app.get(get_history_url(planet), status=404)
