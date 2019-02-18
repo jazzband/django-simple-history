@@ -193,9 +193,13 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return render(
+        return self.render(
             request, self.object_history_form_template, context, **extra_kwargs
         )
+    
+    def render(*args, **kwargs):
+        """Catch call to render, to allow overriding."""
+        return render(*args, **kwargs)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
