@@ -21,28 +21,10 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class HistoricalModelPermissionsAdminMixin(object):
-    def revert_disabled(self, request, obj):
-        """Returns `True` or `False` based on settings attr.
-
-        Note:
-          * Always returns `False` if user is a superuser
-          * Always returns `False` if has_view_permission
-            is not available (<DJ21)
-        """
-        if request.user.is_superuser:
-            revert_disabled = False
-        else:
-            try:
-                super(HistoricalModelPermissionsAdminMixin, self).has_view_permission(
-                    request, obj
-                )
-            except AttributeError:
-                revert_disabled = False
-            else:
-                revert_disabled = getattr(
-                    settings, "SIMPLE_HISTORY_REVERT_DISABLED", False
-                )
-        return revert_disabled
+    """Overrides `has_XXXX_permission` methods on ModelAdmin to
+    consider a user's historical model perms together with
+    model perms.
+    """
 
     def _has_permission(self, request, action=None, super_permission=None, obj=None):
         """Returns True where both model and historical model
@@ -108,6 +90,29 @@ class HistoricalModelPermissionsAdminMixin(object):
             has_view_permission = has_change_permission
         return has_view_permission or has_change_permission
 
+    def revert_disabled(self, request, obj):
+        """Returns `True` or `False` based on settings attr.
+
+        Note:
+          * Always returns `False` if user is a superuser
+          * Always returns `False` if has_view_permission
+            is not available (<DJ21)
+        """
+        if request.user.is_superuser:
+            revert_disabled = False
+        else:
+            try:
+                super(HistoricalModelPermissionsAdminMixin, self).has_view_permission(
+                    request, obj
+                )
+            except AttributeError:
+                revert_disabled = False
+            else:
+                revert_disabled = getattr(
+                    settings, "SIMPLE_HISTORY_REVERT_DISABLED", False
+                )
+        return revert_disabled
+
 
 class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
@@ -160,7 +165,7 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
     def get_object(self, request, object_id, object_history=None, **kwargs):
         """Returns the model instance or raises 404
 
-        If None attempts to get the instance from history.
+        If None, attempts to get the instance from history.
         """
         obj = super(SimpleHistoryAdmin, self).get_object(request, object_id, **kwargs)
         if not obj:
@@ -346,6 +351,7 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         ) and self.has_view_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
-        """Set special model attribute to user for reference after save"""
+        """Set special model attribute to user for reference after save.
+        """
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)

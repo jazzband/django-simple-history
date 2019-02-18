@@ -32,7 +32,6 @@ from ..models import (
     State,
     Planet,
 )
-from pprint import pprint
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
