@@ -874,9 +874,13 @@ class AdminSiteTest(WebTest):
         request._messages = FallbackStorage(request)
         request.user = self.user
 
-        Planet.objects.create(star="Moon")
-        Planet.objects.create(star="and stars")
-        planet = Planet.objects.create(star="Sun")
+        Planet.objects.create(star="Andromeda")
+        Planet.objects.create(star="Ursa Major")
+        planet = Planet.objects.create(star="S")
+        planet.star = "Su"
+        planet.save()
+        planet.star = "Sun"
+        planet.save()
 
         admin_site = AdminSite()
         admin = PlantAdmin(Planet, admin_site)

@@ -83,12 +83,9 @@ class HistoricalModelPermissionsAdminMixin(object):
         return has_view_permission
 
     def has_view_or_change_permission(self, request, obj=None):
-        has_change_permission = self.has_change_permission(request, obj)
-        try:
-            has_view_permission = self.has_view_permission(request, obj)
-        except AttributeError:
-            has_view_permission = has_change_permission
-        return has_view_permission or has_change_permission
+        return self.has_view_permission(request, obj) or self.has_change_permission(
+            request, obj
+        )
 
     def revert_disabled(self, request, obj):
         """Returns `True` or `False` based on settings attr.
