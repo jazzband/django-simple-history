@@ -1,7 +1,11 @@
 Changes
 =======
 
-- remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
+Unreleased
+----------
+- Remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
+- Add support for historical model permissions, including DJ2.1 view permission (gh-529)
+- Add option to disable a user's, or all user's, ability to "revert" to previous version (gh-529)
 
 2.7.0 (2019-01-16)
 ------------------
