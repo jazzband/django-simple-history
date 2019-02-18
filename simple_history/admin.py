@@ -178,7 +178,6 @@ class SimpleHistoryAdmin(HistoricalModelPermissionsAdminMixin, admin.ModelAdmin)
         queryset = self.history_manager.filter(
             **{self.model._meta.pk.attname: object_id}
         )
-
         if not isinstance(self.history_manager.model.history_user, property):
             queryset = queryset.select_related("history_user")
         return self.fetch_history_list_display_callables(queryset)

@@ -1030,3 +1030,12 @@ class AdminSiteTest(WebTest):
 
         response = self.app.get(get_history_url(planet, 0), status=200)
         self.assertIn("Revert Planet object", response.unicode_normal_body)
+
+    def test_history_view__missing_objects(self):
+        self.login(superuser=True)
+        planet = Planet.objects.create(star="Sun")
+        planet.history.all().delete()
+        planet_pk = planet.pk
+        planet.delete()
+        planet.pk = planet_pk
+        self.app.get(get_history_url(planet), status=200)
