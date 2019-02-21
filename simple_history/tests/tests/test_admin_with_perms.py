@@ -8,12 +8,12 @@ from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django_webtest import WebTest
 from mock import ANY, patch
+from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
 from simple_history.tests.admin import PlantAdmin
 
 from ..models import Planet
 from .test_admin import login, get_history_url
-from simple_history.admin import SimpleHistoryAdmin
 
 User = get_user_model()
 

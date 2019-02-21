@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-
 from simple_history.admin import SimpleHistoryAdmin
-from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
+
+from .external.models import ExternalModelWithCustomUserIdField
 from .models import (
     Book,
     Choice,

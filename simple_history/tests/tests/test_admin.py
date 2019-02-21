@@ -8,11 +8,10 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django_webtest import WebTest
 from mock import ANY, patch
-
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
-from simple_history.tests.tests.utils import middleware_override_settings
+
+from ..external.models import ExternalModelWithCustomUserIdField
 from ..models import (
     Book,
     BucketData,
@@ -24,6 +23,7 @@ from ..models import (
     Poll,
     State,
 )
+from .utils import middleware_override_settings
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)

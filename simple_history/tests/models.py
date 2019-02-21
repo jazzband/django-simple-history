@@ -5,9 +5,9 @@ from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
-
 from simple_history import register
 from simple_history.models import HistoricalRecords
+
 from .custom_user.models import CustomUser as User
 from .external.models import AbstractExternal
 
