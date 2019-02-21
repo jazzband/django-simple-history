@@ -328,7 +328,7 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         )
 
     def history_form_view_title(self, request, obj):
-        """Returns a "change" or "view" title string rendered
+        """Returns a "revert" or "view" title string rendered
         relative to the user's permissions.
         """
         if self.has_revert_permission(request, obj):
