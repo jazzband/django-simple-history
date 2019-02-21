@@ -80,7 +80,7 @@ class AdminSiteTest(WebTest):
 
         context = {
             # Verify this is set for original object
-            "title": admin.history_view_title(request, planet),
+            "title": ANY,
             "action_list": ANY,
             "module_name": "Planets",
             "object": planet,

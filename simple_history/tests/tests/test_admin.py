@@ -458,7 +458,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for original object
             "original": poll,
             "change_history": False,
-            "title": admin.history_form_view_title(request, poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -513,7 +513,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": history.instance,
             "change_history": True,
-            "title": admin.history_form_view_title(request, poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -567,7 +567,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": poll,
             "change_history": False,
-            "title": admin.history_form_view_title(request, poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -622,7 +622,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object
             "original": history.instance,
             "change_history": True,
-            "title": admin.history_form_view_title(request, obj),
+            "title": ANY,
             "adminform": ANY,
             "object_id": obj.id,
             "is_popup": False,
@@ -683,7 +683,7 @@ class AdminSiteTest(WebTest):
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
-            "title": admin.history_form_view_title(request, poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
