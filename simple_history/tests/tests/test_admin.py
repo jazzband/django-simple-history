@@ -42,8 +42,7 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
     else:
         return reverse(
-            "{site}:{app}_{model}_history".format(
-                site=site, app=app, model=model),
+            "{site}:{app}_{model}_history".format(site=site, app=app, model=model),
             args=[quote(obj.pk)],
         )
 
@@ -63,8 +62,7 @@ def login(testcase, user=None, superuser=None):
 
 class AdminSiteTest(WebTest):
     def setUp(self):
-        self.user = User.objects.create_superuser(
-            "user_login", "u@example.com", "pass")
+        self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
 
     def tearDown(self):
         try:
@@ -124,8 +122,7 @@ class AdminSiteTest(WebTest):
         file_model.title = "Title 2"
         file_model.save()
         response = self.app.get(get_history_url(file_model))
-        self.assertIn(get_history_url(file_model, 0),
-                      response.unicode_normal_body)
+        self.assertIn(get_history_url(file_model, 0), response.unicode_normal_body)
         self.assertIn("FileModel object", response.unicode_normal_body)
         self.assertIn("Created", response.unicode_normal_body)
         self.assertIn(self.user.username, response.unicode_normal_body)
@@ -219,8 +216,7 @@ class AdminSiteTest(WebTest):
         book._history_user = self.user
         book.save()
         response = self.app.get(get_history_url(book))
-        self.assertIn(book.history.all()[
-                      0].revert_url(), response.unicode_normal_body)
+        self.assertIn(book.history.all()[0].revert_url(), response.unicode_normal_body)
 
     def test_historical_user_no_setter(self):
         """Demonstrate admin error without `_historical_user` setter.
@@ -273,8 +269,7 @@ class AdminSiteTest(WebTest):
         # happens, e.g. in test cases), and verifies that subsequently
         # creating a new entry does not fail with a foreign key error.
         self.login()
-        self.assertEqual(self.app.get(
-            reverse("admin:tests_book_add")).status_code, 200)
+        self.assertEqual(self.app.get(reverse("admin:tests_book_add")).status_code, 200)
 
         book = Book.objects.create(isbn="9780147_513731")
 

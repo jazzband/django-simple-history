@@ -21,8 +21,7 @@ User = get_user_model()
 @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
 class AdminSiteTest(WebTest):
     def setUp(self):
-        self.user = User.objects.create_superuser(
-            "user_login", "u@example.com", "pass")
+        self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
 
     def tearDown(self):
         try:
@@ -40,27 +39,23 @@ class AdminSiteTest(WebTest):
     def add_view_permission(self, model_name):
         if django.VERSION >= (2, 1):
             self.user.user_permissions.add(
-                Permission.objects.get(
-                    codename="view_{}".format(model_name))
+                Permission.objects.get(codename="view_{}".format(model_name))
             )
 
     def add_historical_view_permission(self, model_name):
         if django.VERSION >= (2, 1):
             self.user.user_permissions.add(
-                Permission.objects.get(
-                    codename="view_historical{}".format(model_name))
+                Permission.objects.get(codename="view_historical{}".format(model_name))
             )
 
     def add_change_permission(self, model_name):
         self.user.user_permissions.add(
-            Permission.objects.get(
-                codename="change_{}".format(model_name))
+            Permission.objects.get(codename="change_{}".format(model_name))
         )
 
     def add_historical_change_permission(self, model_name):
         self.user.user_permissions.add(
-            Permission.objects.get(
-                codename="change_historical{}".format(model_name))
+            Permission.objects.get(codename="change_historical{}".format(model_name))
         )
 
     def test_history_view(self):
@@ -256,18 +251,20 @@ class AdminSiteTest(WebTest):
             admin = SimpleHistoryAdmin(Planet, admin_site=admin_site)
             planet = Planet.objects.create(star="Alpha")
 
-            self.add_change_permission('planet')
+            self.add_change_permission("planet")
 
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True):
+                self.assertFalse(admin.has_historical_view_permission(request, planet))
                 self.assertFalse(
-                    admin.has_historical_view_permission(request, planet))
+                    admin.has_historical_change_permission(request, planet)
+                )
                 self.assertFalse(
-                    admin.has_historical_change_permission(request, planet))
-                self.assertFalse(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=False):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
 
     def test_pre_django_21_with_historical(self):
         if django.VERSION < (2, 1):
@@ -280,15 +277,17 @@ class AdminSiteTest(WebTest):
             admin = SimpleHistoryAdmin(Planet, admin_site=admin_site)
             planet = Planet.objects.create(star="Alpha")
 
-            self.add_change_permission('planet')
-            self.add_historical_change_permission('planet')
+            self.add_change_permission("planet")
+            self.add_historical_change_permission("planet")
 
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=False):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
 
     def test_django_21_with_historical(self):
         if django.VERSION >= (2, 1):
@@ -301,17 +300,19 @@ class AdminSiteTest(WebTest):
             admin = SimpleHistoryAdmin(Planet, admin_site=admin_site)
             planet = Planet.objects.create(star="Alpha")
 
-            self.add_view_permission('planet')
-            self.add_change_permission('planet')
-            self.add_historical_view_permission('planet')
-            self.add_historical_change_permission('planet')
+            self.add_view_permission("planet")
+            self.add_change_permission("planet")
+            self.add_historical_view_permission("planet")
+            self.add_historical_change_permission("planet")
 
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=False):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
 
     def test_django_21_without_historical(self):
         if django.VERSION >= (2, 1):
@@ -324,12 +325,14 @@ class AdminSiteTest(WebTest):
             admin = SimpleHistoryAdmin(Planet, admin_site=admin_site)
             planet = Planet.objects.create(star="Alpha")
 
-            self.add_view_permission('planet')
-            self.add_change_permission('planet')
+            self.add_view_permission("planet")
+            self.add_change_permission("planet")
 
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True):
                 self.assertFalse(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )
             with override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=False):
                 self.assertTrue(
-                    admin.has_historical_view_or_change_permission(request, planet))
+                    admin.has_historical_view_or_change_permission(request, planet)
+                )

@@ -65,16 +65,14 @@ class CustomAttrNameForeignKey(models.ForeignKey):
         return self.attr_name or super(CustomAttrNameForeignKey, self).get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            CustomAttrNameForeignKey, self).deconstruct()
+        name, path, args, kwargs = super(CustomAttrNameForeignKey, self).deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
 
 
 class ModelWithCustomAttrForeignKey(models.Model):
-    poll = CustomAttrNameForeignKey(
-        Poll, models.CASCADE, attr_name="custom_poll")
+    poll = CustomAttrNameForeignKey(Poll, models.CASCADE, attr_name="custom_poll")
     history = HistoricalRecords()
 
 
@@ -117,8 +115,7 @@ register(Choice)
 
 class Voter(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    choice = models.ForeignKey(
-        Choice, on_delete=models.CASCADE, related_name="voters")
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name="voters")
 
     def __str__(self):
         return "Voter object"
@@ -304,8 +301,7 @@ class Series(models.Model):
 
 
 class SeriesWork(models.Model):
-    series = models.ForeignKey(
-        "Series", on_delete=models.CASCADE, related_name="works")
+    series = models.ForeignKey("Series", on_delete=models.CASCADE, related_name="works")
     title = models.CharField(max_length=100)
     history = HistoricalRecords()
 
@@ -314,8 +310,7 @@ class SeriesWork(models.Model):
 
 
 class PollInfo(models.Model):
-    poll = models.OneToOneField(
-        Poll, on_delete=models.CASCADE, primary_key=True)
+    poll = models.OneToOneField(Poll, on_delete=models.CASCADE, primary_key=True)
     history = HistoricalRecords()
 
 
@@ -328,8 +323,7 @@ class UserAccessorOverride(models.Model):
 
 
 class Employee(models.Model):
-    manager = models.OneToOneField(
-        "Employee", null=True, on_delete=models.CASCADE)
+    manager = models.OneToOneField("Employee", null=True, on_delete=models.CASCADE)
     history = HistoricalRecords()
 
 
@@ -346,8 +340,7 @@ class Planet(models.Model):
 
 
 class Province(models.Model):
-    country = models.ForeignKey(
-        Country, on_delete=models.CASCADE, to_field="code")
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, to_field="code")
     history = HistoricalRecords()
 
 
@@ -518,8 +511,7 @@ register(
 
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    history = HistoricalRecords(
-        history_id_field=models.UUIDField(default=uuid.uuid4))
+    history = HistoricalRecords(history_id_field=models.UUIDField(default=uuid.uuid4))
 
 
 class UUIDRegisterModel(models.Model):
@@ -557,8 +549,7 @@ delattr(settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD")
 
 class UserTextFieldChangeReasonModel(models.Model):
     greeting = models.CharField(max_length=100)
-    history = HistoricalRecords(
-        history_change_reason_field=models.TextField(null=True))
+    history = HistoricalRecords(history_change_reason_field=models.TextField(null=True))
 
 
 class CharFieldChangeReasonModel(models.Model):
@@ -568,8 +559,7 @@ class CharFieldChangeReasonModel(models.Model):
 
 class CustomNameModel(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    history = HistoricalRecords(
-        custom_model_name="MyHistoricalCustomNameModel")
+    history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")
 
 
 class CustomManagerNameModel(models.Model):
