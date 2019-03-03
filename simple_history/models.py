@@ -174,9 +174,9 @@ class HistoricalRecords(object):
             #  simple string
             name = self.custom_model_name
         # Desired class name cannot be same as the model it is tracking
-        if (
-            name.lower() != model._meta.object_name.lower()
-            or model.__module__ != self.module
+        if not (
+            name.lower() == model._meta.object_name.lower()
+            and model.__module__ == self.module
         ):
             return name
         raise ValueError(
