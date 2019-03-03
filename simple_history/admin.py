@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
 from django import http
+from django.apps import apps as django_apps
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -15,6 +15,7 @@ from django.utils.encoding import force_text
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
+from pprint import pprint
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
@@ -222,7 +223,9 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
 
     @property
     def admin_user_view(self):
-        content_type = ContentType.objects.get_by_natural_key(*USER_NATURAL_KEY)
+        content_type = self.content_type_model_cls.objects.get_by_natural_key(
+            *USER_NATURAL_KEY
+        )
         return "admin:%s_%s_change" % (content_type.app_label, content_type.model)
 
     @property
@@ -321,7 +324,9 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
             "has_absolute_url": False,
             "form_url": "",
             "opts": model._meta,
-            "content_type_id": ContentType.objects.get_for_model(self.model).id,
+            "content_type_id": self.content_type_model_cls.objects.get_for_model(
+                self.model
+            ).id,
             "save_as": self.save_as,
             "save_on_top": self.save_on_top,
             "root_path": getattr(self.admin_site, "root_path", None),
@@ -338,3 +343,9 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         """
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)
+
+    @property
+    def content_type_model_cls(self):
+        """Returns the ContentType model class.
+        """
+        return django_apps.get_model("contenttypes.contenttype")
