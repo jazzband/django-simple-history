@@ -15,7 +15,6 @@ from django.utils.encoding import force_text
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-from pprint import pprint
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
@@ -173,7 +172,9 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
             try:
                 obj = object_history.latest("history_date").instance
             except ObjectDoesNotExist:
-                obj = None
+                pass
+            except AttributeError:
+                pass
         return obj
 
     def get_object_history(self, object_id):
