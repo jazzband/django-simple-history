@@ -1,9 +1,8 @@
 Changes
 =======
 
-Unreleased
-----------
 - Allow `custom_model_name` parameter to be a callable (gh-489)
+- remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
 
 2.7.0 (2019-01-16)
 ------------------
