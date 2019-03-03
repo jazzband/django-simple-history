@@ -721,11 +721,11 @@ class CustomModelNameTests(unittest.TestCase):
             from ..models import OverrideModelNameAsString
         except ImportError:
             self.fail("{}OverrideModelNameAsString is in wrong module")
-        expected_clazz_name = "MyHistoricalCustomNameModel"
+        expected_cls_name = "MyHistoricalCustomNameModel"
         self.verify_custom_model_name_feature(
             OverrideModelNameAsString(),
-            expected_clazz_name,
-            "tests_{}".format(expected_clazz_name.lower()),
+            expected_cls_name,
+            "tests_{}".format(expected_cls_name.lower()),
         )
 
     def test_register_history_model_with_custom_model_name_override(self):
@@ -734,10 +734,10 @@ class CustomModelNameTests(unittest.TestCase):
         except ImportError:
             self.fail("OverrideModelNameRegisterMethod1 is in wrong module")
 
-        clazz = OverrideModelNameRegisterMethod1()
-        expected_clazz_name = "MyOverrideModelNameRegisterMethod1"
+        cls = OverrideModelNameRegisterMethod1()
+        expected_cls_name = "MyOverrideModelNameRegisterMethod1"
         self.verify_custom_model_name_feature(
-            clazz, expected_clazz_name, "tests_{}".format(expected_clazz_name.lower())
+            cls, expected_cls_name, "tests_{}".format(expected_cls_name.lower())
         )
 
         from simple_history import register
@@ -752,27 +752,27 @@ class CustomModelNameTests(unittest.TestCase):
             self.assertRaises(ValueError)
 
     def test_register_history_model_with_custom_model_name_from_abstract_model(self):
-        clazz = OverrideModelNameUsingBaseModel1
-        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        cls = OverrideModelNameUsingBaseModel1
+        expected_cls_name = "Audit{}".format(cls.__name__)
         self.verify_custom_model_name_feature(
-            clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
+            cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
 
     def test_register_history_model_with_custom_model_name_from_external_model(self):
         from ..models import OverrideModelNameUsingExternalModel1
 
-        clazz = OverrideModelNameUsingExternalModel1
-        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        cls = OverrideModelNameUsingExternalModel1
+        expected_cls_name = "Audit{}".format(cls.__name__)
         self.verify_custom_model_name_feature(
-            clazz, expected_clazz_name, "tests_" + expected_clazz_name.lower()
+            cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
 
         from ..models import OverrideModelNameUsingExternalModel2
 
-        clazz = OverrideModelNameUsingExternalModel2
-        expected_clazz_name = "Audit{}".format(clazz.__name__)
+        cls = OverrideModelNameUsingExternalModel2
+        expected_cls_name = "Audit{}".format(cls.__name__)
         self.verify_custom_model_name_feature(
-            clazz, expected_clazz_name, "external_" + expected_clazz_name.lower()
+            cls, expected_cls_name, "external_" + expected_cls_name.lower()
         )
 
 
