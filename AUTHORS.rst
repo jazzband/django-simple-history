@@ -83,6 +83,7 @@ Authors
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
 - `vnagendra <https://github.com/vnagendra>`_
+- Nick Träger
 
 Background
 ==========
