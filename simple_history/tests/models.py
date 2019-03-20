@@ -571,4 +571,4 @@ class ForeignKeyToSelfModel(models.Model):
 
 class Street(models.Model):
     name = models.CharField(max_length=150)
-    log = HistoricalRecords(related_name='history')
+    log = HistoricalRecords(related_name="history")

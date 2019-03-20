@@ -1425,15 +1425,15 @@ class RelatedNameTest(TestCase):
             username="username_two", email="second@user.com", password="top_secret"
         )
 
-        self.one = Street(name='Test Street')
+        self.one = Street(name="Test Street")
         self.one._history_user = self.user_one
         self.one.save()
 
-        self.two = Street(name='Sesame Street')
+        self.two = Street(name="Sesame Street")
         self.two._history_user = self.user_two
         self.two.save()
 
-        self.one.name = 'ABC Street'
+        self.one.name = "ABC Street"
         self.one._history_user = self.user_two
         self.one.save()
 
@@ -1442,7 +1442,9 @@ class RelatedNameTest(TestCase):
         self.assertEqual(self.two.history.count(), 1)
 
     def test_filter(self):
-        self.assertEqual(Street.objects.filter(
-            history__history_user=self.user_one.pk).count(), 1)
-        self.assertEqual(Street.objects.filter(
-            history__history_user=self.user_two.pk).count(), 2)
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_two.pk).count(), 2
+        )

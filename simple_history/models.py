@@ -448,9 +448,9 @@ class HistoricalRecords(object):
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
 
-        relation_field = getattr(manager.model, 'history_relation', None)
+        relation_field = getattr(manager.model, "history_relation", None)
         if relation_field is not None:
-            attrs['history_relation'] = instance
+            attrs["history_relation"] = instance
 
         history_instance = manager.model(
             history_date=history_date,
