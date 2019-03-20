@@ -74,6 +74,7 @@ from ..models import (
     Series,
     SeriesWork,
     State,
+    Street,
     Temperature,
     UUIDDefaultModel,
     UUIDModel,
@@ -1413,3 +1414,35 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
 
         self.assertEqual(user_id, instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
+
+
+class RelatedNameTest(TestCase):
+    def setUp(self):
+        self.user_one = get_user_model().objects.create(
+            username="username_one", email="first@user.com", password="top_secret"
+        )
+        self.user_two = get_user_model().objects.create(
+            username="username_two", email="second@user.com", password="top_secret"
+        )
+
+        self.one = Street(name='Test Street')
+        self.one._history_user = self.user_one
+        self.one.save()
+
+        self.two = Street(name='Sesame Street')
+        self.two._history_user = self.user_two
+        self.two.save()
+
+        self.one.name = 'ABC Street'
+        self.one._history_user = self.user_two
+        self.one.save()
+
+    def test_relation(self):
+        self.assertEqual(self.one.history.count(), 2)
+        self.assertEqual(self.two.history.count(), 1)
+
+    def test_filter(self):
+        self.assertEqual(Street.objects.filter(
+            history__history_user=self.user_one.pk).count(), 1)
+        self.assertEqual(Street.objects.filter(
+            history__history_user=self.user_two.pk).count(), 2)
