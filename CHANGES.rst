@@ -8,6 +8,10 @@ Unreleased
 ----------
 - Added the possibility to create a relation to the original model
 
+2.7.1 (2019-03-26)
+------------------
+- Added routing for saving historical records to separate databases if necessary.
+
 2.7.0 (2019-01-16)
 ------------------
 - Add support for ``using`` chained manager method and save/delete keyword argument (gh-507)

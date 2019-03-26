@@ -70,6 +70,7 @@ Authors
 - Nianpeng Li
 - Nick Träger
 - Phillip Marshall
+- Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
 - Ray Logel
 - Roberto Aguilar

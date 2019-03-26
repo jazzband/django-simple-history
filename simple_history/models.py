@@ -430,7 +430,6 @@ class HistoricalRecords(object):
         return meta_fields
 
     def post_save(self, instance, created, using=None, **kwargs):
-        print('post save called from simple history')
         if not created and hasattr(instance, "skip_history_when_saving"):
             return
         if not kwargs.get("raw", False):
