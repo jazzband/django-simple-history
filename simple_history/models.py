@@ -435,7 +435,9 @@ class HistoricalRecords(object):
         if not created and hasattr(instance, "skip_history_when_saving"):
             return
         if not kwargs.get("raw", False):
-            self.create_historical_record(instance, created and "+" or "~", using=(self.using or using))
+            self.create_historical_record(
+                instance, created and "+" or "~", using=(self.using or using)
+            )
 
     def post_delete(self, instance, using=None, **kwargs):
         if self.cascade_delete_history:
