@@ -15,6 +15,8 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from simple_history import register
+from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import HistoricalRecords, ModelChange
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
@@ -1448,3 +1450,7 @@ class RelatedNameTest(TestCase):
         self.assertEqual(
             Street.objects.filter(history__history_user=self.user_two.pk).count(), 2
         )
+
+    def test_name_equals_manager(self):
+        with self.assertRaises(RelatedNameConflictError):
+            register(Place, manager_name="history", related_name="history")
