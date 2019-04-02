@@ -319,6 +319,10 @@ class HistoricalRecords(object):
 
     def _get_history_related_field(self, model):
         if self.related_name:
+            if self.manager_name == self.related_name:
+                raise exceptions.RelatedNameConflictError(
+                    "The related name must not be called like the history manager."
+                )
             return {
                 "history_relation": models.ForeignKey(
                     model,
