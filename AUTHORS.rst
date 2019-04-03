@@ -67,6 +67,7 @@ Authors
 - Mike Spainhower
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
+- Nick Träger
 - Phillip Marshall
 - Rajesh Pappula
 - Ray Logel
@@ -83,7 +84,6 @@ Authors
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
 - `vnagendra <https://github.com/vnagendra>`_
-- Nick Träger
 
 Background
 ==========
