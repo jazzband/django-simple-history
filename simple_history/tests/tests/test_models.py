@@ -18,7 +18,10 @@ from django.urls import reverse
 from simple_history import register
 from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import HistoricalRecords, ModelChange
-from simple_history.signals import pre_create_historical_record
+from simple_history.signals import (
+    pre_create_historical_record,
+    post_create_historical_record,
+)
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
@@ -62,6 +65,7 @@ from ..models import (
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
     Library,
+    ModelWithHistoryInDifferentDb,
     MultiOneToOne,
     Person,
     Place,
@@ -1478,3 +1482,16 @@ class RelatedNameTest(TestCase):
 
         self.one = Street.objects.get(pk=id)
         self.assertEqual(self.one.history.count(), 4)
+@override_settings(**database_router_override_settings)
+class UsingSeparateDatabaseTestCase(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            username="username", email="username@test.com", password="top_secret"
+        )
+        self.model_ = ModelWithHistoryInDifferentDb(name="test")
+
+    def tearDown(self):
+        self.model_ = None
+
+    def test_using_separate_db(self):
+        self.assertEqual("default", self.model_.history.db)
