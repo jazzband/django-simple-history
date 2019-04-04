@@ -7,7 +7,8 @@ from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history, clean_duplicate_history
-from ..models import Book, Poll, PollWithExcludeFields, Restaurant, Place
+from ..models import (Book, CustomManagerNameModel, Place, Poll, PollWithExcludeFields,
+                      Restaurant)
 
 
 @contextmanager
@@ -355,3 +356,22 @@ class TestCleanDuplicateHistory(TestCase):
         # the "extra_one" (the record before the oldest match)
         # is identical to the oldest match, so oldest match is deleted
         self.assertEqual(Poll.history.all().count(), 5)
+
+    def test_auto_cleanup_custom_history_field(self):
+        m = CustomManagerNameModel.objects.create(name="John")
+        self.assertEqual(CustomManagerNameModel.log.all().count(), 1)
+        m.save()
+        self.assertEqual(CustomManagerNameModel.log.all().count(), 2)
+        m.name = "Ivan"
+        m.save()
+        self.assertEqual(CustomManagerNameModel.log.all().count(), 3)
+        out = StringIO()
+        management.call_command(
+            self.command_name, auto=True, stdout=out, stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.CustomManagerNameModel'>\n",
+        )
+        self.assertEqual(CustomManagerNameModel.log.all().count(), 2)
