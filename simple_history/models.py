@@ -329,6 +329,7 @@ class HistoricalRecords(object):
                     null=True,
                     on_delete=models.SET_NULL,
                     related_name=self.related_name,
+                    db_constraint=False,
                 )
             }
         else:
@@ -453,7 +454,7 @@ class HistoricalRecords(object):
             attrs[field.attname] = getattr(instance, field.attname)
 
         relation_field = getattr(manager.model, "history_relation", None)
-        if relation_field is not None:
+        if relation_field is not None and history_type != "-":
             attrs["history_relation"] = instance
 
         history_instance = manager.model(
