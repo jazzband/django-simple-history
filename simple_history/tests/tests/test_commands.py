@@ -7,8 +7,14 @@ from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import populate_history, clean_duplicate_history
-from ..models import (Book, CustomManagerNameModel, Place, Poll, PollWithExcludeFields,
-                      Restaurant)
+from ..models import (
+    Book,
+    CustomManagerNameModel,
+    Place,
+    Poll,
+    PollWithExcludeFields,
+    Restaurant,
+)
 
 
 @contextmanager

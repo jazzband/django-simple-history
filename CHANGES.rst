@@ -2,6 +2,7 @@ Changes
 =======
 
 - remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
+- Fixed hardcoded history manager (gh-540)
 
 2.7.0 (2019-01-16)
 ------------------
