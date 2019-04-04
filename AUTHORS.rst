@@ -25,6 +25,7 @@ Authors
 - Daniel Gilge
 - Daniel Levy
 - Daniel Roschka
+- Daniil Skrobov (`yetanotherape <https://github.com/yetanotherape>`_)
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - Eduardo Cuducos

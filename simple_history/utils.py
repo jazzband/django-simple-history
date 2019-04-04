@@ -14,7 +14,8 @@ def update_change_reason(instance, reason):
                 attrs[field.attname] = value
         else:
             attrs[field.attname] = value
-    record = manager.history.filter(**attrs).order_by("-history_date").first()
+    history = get_history_manager_for_model(manager)
+    record = history.filter(**attrs).order_by("-history_date").first()
     record.history_change_reason = reason
     record.save()
 
