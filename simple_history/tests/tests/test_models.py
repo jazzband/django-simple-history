@@ -1484,6 +1484,8 @@ class RelatedNameTest(TestCase):
         self.assertEqual(self.one.history.count(), 4)
 @override_settings(**database_router_override_settings)
 class UsingSeparateDatabaseTestCase(TestCase):
+    multi_db = True
+
     def setUp(self):
         self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
