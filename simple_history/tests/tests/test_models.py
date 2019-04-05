@@ -1482,9 +1482,12 @@ class RelatedNameTest(TestCase):
 
         self.one = Street.objects.get(pk=id)
         self.assertEqual(self.one.history.count(), 4)
+
+
 @override_settings(**database_router_override_settings)
 class UsingSeparateDatabaseTestCase(TestCase):
     multi_db = True
+    db_name = "other"
 
     def setUp(self):
         self.user = get_user_model().objects.create(
