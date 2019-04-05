@@ -326,8 +326,7 @@ class HistoricalRecords(object):
             return {
                 "history_relation": models.ForeignKey(
                     model,
-                    null=True,
-                    on_delete=models.SET_NULL,
+                    on_delete=models.DO_NOTHING,
                     related_name=self.related_name,
                     db_constraint=False,
                 )
@@ -454,7 +453,7 @@ class HistoricalRecords(object):
             attrs[field.attname] = getattr(instance, field.attname)
 
         relation_field = getattr(manager.model, "history_relation", None)
-        if relation_field is not None and history_type != "-":
+        if relation_field is not None:
             attrs["history_relation"] = instance
 
         history_instance = manager.model(

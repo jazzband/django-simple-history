@@ -1458,5 +1458,5 @@ class RelatedNameTest(TestCase):
     def test_deletion(self):
         self.two.delete()
 
-        self.assertEqual(Street.log.filter(history_relation__isnull=True).count(), 2)
+        self.assertEqual(Street.log.filter(history_relation=2).count(), 2)
         self.assertEqual(Street.log.count(), 4)
