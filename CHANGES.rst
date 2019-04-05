@@ -3,8 +3,8 @@ Changes
 
 - remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
 
-2.7.1 (2019-03-20)
-------------------
+Unreleased
+----------
 - Added the possibility to create a relation to the original model
 
 2.7.0 (2019-01-16)
