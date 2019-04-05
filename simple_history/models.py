@@ -78,6 +78,7 @@ class HistoricalRecords(object):
         history_user_id_field=None,
         history_user_getter=_history_user_getter,
         history_user_setter=_history_user_setter,
+        related_name=None,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -93,6 +94,7 @@ class HistoricalRecords(object):
         self.user_id_field = history_user_id_field
         self.user_getter = history_user_getter
         self.user_setter = history_user_setter
+        self.related_name = related_name
 
         if excluded_fields is None:
             excluded_fields = []
@@ -315,6 +317,23 @@ class HistoricalRecords(object):
 
         return history_user_fields
 
+    def _get_history_related_field(self, model):
+        if self.related_name:
+            if self.manager_name == self.related_name:
+                raise exceptions.RelatedNameConflictError(
+                    "The related name must not be called like the history manager."
+                )
+            return {
+                "history_relation": models.ForeignKey(
+                    model,
+                    on_delete=models.DO_NOTHING,
+                    related_name=self.related_name,
+                    db_constraint=False,
+                )
+            }
+        else:
+            return {}
+
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
@@ -387,6 +406,7 @@ class HistoricalRecords(object):
             ),
         }
 
+        extra_fields.update(self._get_history_related_field(model))
         extra_fields.update(self._get_history_user_fields())
 
         return extra_fields
@@ -431,6 +451,10 @@ class HistoricalRecords(object):
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
+
+        relation_field = getattr(manager.model, "history_relation", None)
+        if relation_field is not None:
+            attrs["history_relation"] = instance
 
         history_instance = manager.model(
             history_date=history_date,

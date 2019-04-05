@@ -15,6 +15,8 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from simple_history import register
+from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import HistoricalRecords, ModelChange
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
@@ -74,6 +76,7 @@ from ..models import (
     Series,
     SeriesWork,
     State,
+    Street,
     Temperature,
     UUIDDefaultModel,
     UUIDModel,
@@ -1413,3 +1416,65 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
 
         self.assertEqual(user_id, instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
+
+
+class RelatedNameTest(TestCase):
+    def setUp(self):
+        self.user_one = get_user_model().objects.create(
+            username="username_one", email="first@user.com", password="top_secret"
+        )
+        self.user_two = get_user_model().objects.create(
+            username="username_two", email="second@user.com", password="top_secret"
+        )
+
+        self.one = Street(name="Test Street")
+        self.one._history_user = self.user_one
+        self.one.save()
+
+        self.two = Street(name="Sesame Street")
+        self.two._history_user = self.user_two
+        self.two.save()
+
+        self.one.name = "ABC Street"
+        self.one._history_user = self.user_two
+        self.one.save()
+
+    def test_relation(self):
+        self.assertEqual(self.one.history.count(), 2)
+        self.assertEqual(self.two.history.count(), 1)
+
+    def test_filter(self):
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_two.pk).count(), 2
+        )
+
+    def test_name_equals_manager(self):
+        with self.assertRaises(RelatedNameConflictError):
+            register(Place, manager_name="history", related_name="history")
+
+    def test_deletion(self):
+        self.two.delete()
+
+        self.assertEqual(Street.log.filter(history_relation=2).count(), 2)
+        self.assertEqual(Street.log.count(), 4)
+
+    def test_revert(self):
+        id = self.one.pk
+
+        self.one.delete()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 0
+        )
+        self.assertEqual(Street.objects.filter(pk=id).count(), 0)
+
+        old = Street.log.filter(id=id).first()
+        old.history_object.save()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
+
+        self.one = Street.objects.get(pk=id)
+        self.assertEqual(self.one.history.count(), 4)

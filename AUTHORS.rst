@@ -68,6 +68,7 @@ Authors
 - Mike Spainhower
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
+- Nick Träger
 - Phillip Marshall
 - Rajesh Pappula
 - Ray Logel

@@ -567,3 +567,8 @@ class ForeignKeyToSelfModel(models.Model):
         "self", null=True, related_name="+", on_delete=models.CASCADE
     )
     history = HistoricalRecords()
+
+
+class Street(models.Model):
+    name = models.CharField(max_length=150)
+    log = HistoricalRecords(related_name="history")
