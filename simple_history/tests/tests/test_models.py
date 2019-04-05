@@ -1460,3 +1460,17 @@ class RelatedNameTest(TestCase):
 
         self.assertEqual(Street.log.filter(history_relation=2).count(), 2)
         self.assertEqual(Street.log.count(), 4)
+
+    def test_revert(self):
+        id = self.one.pk
+
+        self.one.delete()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 0
+        )
+
+        old = Street.log.filter(id=id).first()
+        old.history_object.save()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
