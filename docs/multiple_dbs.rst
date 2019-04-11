@@ -72,3 +72,18 @@ class MyModel(models.Model):
 
 As long as your historical table has been migrated to the `history_db`, you will
 be able to write to that database on every history event.
+
+## Testing
+If you wish to test the existence of historical models in separate databases,
+you will need to add a Meta inner class:
+
+```
+class ModelWithHistoryInDifferentDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords(using="other")
+
+    class Meta:
+        app_label = "external"
+```
+
+The app_label must be set to "external" for the migration to apply to the test database.
