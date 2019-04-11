@@ -30,8 +30,6 @@ class TestDbRouter(object):
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        print("db:", db)
-        print("model_name:", model_name)
         if app_label == "external":
             return db == "other"
         elif db == "other":

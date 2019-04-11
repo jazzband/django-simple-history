@@ -366,6 +366,9 @@ class ModelWithHistoryInDifferentDb(models.Model):
     name = models.CharField(max_length=30)
     history = HistoricalRecords(using="other")
 
+    class Meta:
+        app_label = "external"
+
 
 ###############################################################################
 #

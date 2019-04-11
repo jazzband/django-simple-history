@@ -1499,4 +1499,4 @@ class UsingSeparateDatabaseTestCase(TestCase):
         self.model_ = None
 
     def test_using_separate_db(self):
-        self.assertEqual("default", self.model_.history.db)
+        self.assertEqual("other", self.model_.history.db)
