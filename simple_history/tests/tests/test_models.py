@@ -1493,10 +1493,15 @@ class UsingSeparateDatabaseTestCase(TestCase):
         self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
         )
-        self.model_ = ModelWithHistoryInDifferentDb(name="test")
-
-    def tearDown(self):
-        self.model_ = None
 
     def test_using_separate_db(self):
-        self.assertEqual("other", self.model_.history.db)
+        self.model_ = ModelWithHistoryInDifferentDb(name="test")
+        self.model_.save()
+        self.assertEqual("other", self.model_.history.using('other').db)
+        self.assertEqual(1, self.model_.history.using('other').count())
+        self.assertEqual("+", self.model_.history.using('other').first().history_type)
+        self.model_.name = "test1"
+        self.model_.save()
+        self.assertEqual("other", self.model_.history.using('other').db)
+        self.assertEqual(2, self.model_.history.using('other').count())
+        self.assertEqual("~", self.model_.history.using('other').first().history_type)
