@@ -26,6 +26,7 @@ from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
     middleware_override_settings,
+    database_router_override_settings_history_in_diff_db,
 )
 from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
@@ -1484,22 +1485,44 @@ class RelatedNameTest(TestCase):
         self.assertEqual(self.one.history.count(), 4)
 
 
-@override_settings(**database_router_override_settings)
-class UsingSeparateDatabaseTestCase(TestCase):
+@override_settings(**database_router_override_settings_history_in_diff_db)
+class SaveHistoryInSeparateDatabaseTestCase(TestCase):
     multi_db = True
-    db_name = "other"
 
     def setUp(self):
-        self.user = get_user_model().objects.create(
-            username="username", email="username@test.com", password="top_secret"
+        self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")
+
+    def test_history_model_saved_in_separate_db(self):
+        self.assertEqual(0, self.model.history.using("default").count())
+        self.assertEqual(1, self.model.history.count())
+        self.assertEqual(1, self.model.history.using("other").count())
+        self.assertEqual(
+            1, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(1, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
         )
 
-    def test_using_separate_db(self):
-        self.model_ = ModelWithHistoryInDifferentDb(name="test")
-        self.model_.save()
-        self.assertEqual(1, self.model_.history.count())
-        self.assertEqual("+", self.model_.history.first().history_type)
-        self.model_.name = "test1"
-        self.model_.save()
-        self.assertEqual(2, self.model_.history.count())
-        self.assertEqual("~", self.model_.history.first().history_type)
+    def test_history_model_saved_in_separate_db_on_delete(self):
+        id = self.model.id
+        self.model.delete()
+
+        self.assertEqual(
+            0,
+            ModelWithHistoryInDifferentDb.history.using("default")
+            .filter(id=id)
+            .count(),
+        )
+        self.assertEqual(2, ModelWithHistoryInDifferentDb.history.filter(id=id).count())
+        self.assertEqual(
+            2,
+            ModelWithHistoryInDifferentDb.history.using("other").filter(id=id).count(),
+        )
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(0, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
+        )

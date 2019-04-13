@@ -436,7 +436,9 @@ class HistoricalRecords(object):
             return
         if not kwargs.get("raw", False):
             self.create_historical_record(
-                instance, created and "+" or "~", using=using if self.use_base_model_db else None
+                instance,
+                created and "+" or "~",
+                using=using if self.use_base_model_db else None,
             )
 
     def post_delete(self, instance, using=None, **kwargs):
@@ -444,7 +446,9 @@ class HistoricalRecords(object):
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()
         else:
-            self.create_historical_record(instance, "-", using=using if self.use_base_model_db else None)
+            self.create_historical_record(
+                instance, "-", using=using if self.use_base_model_db else None
+            )
 
     def create_historical_record(self, instance, history_type, using=None):
         history_date = getattr(instance, "_history_date", now())
