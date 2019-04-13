@@ -1497,11 +1497,9 @@ class UsingSeparateDatabaseTestCase(TestCase):
     def test_using_separate_db(self):
         self.model_ = ModelWithHistoryInDifferentDb(name="test")
         self.model_.save()
-        self.assertEqual("other", self.model_.history.using('other').db)
-        self.assertEqual(1, self.model_.history.using('other').count())
-        self.assertEqual("+", self.model_.history.using('other').first().history_type)
+        self.assertEqual(1, self.model_.history.count())
+        self.assertEqual("+", self.model_.history.first().history_type)
         self.model_.name = "test1"
         self.model_.save()
-        self.assertEqual("other", self.model_.history.using('other').db)
-        self.assertEqual(2, self.model_.history.using('other').count())
-        self.assertEqual("~", self.model_.history.using('other').first().history_type)
+        self.assertEqual(2, self.model_.history.count())
+        self.assertEqual("~", self.model_.history.first().history_type)

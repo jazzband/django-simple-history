@@ -3,6 +3,10 @@ from django.conf import settings
 
 request_middleware = "simple_history.middleware.HistoryRequestMiddleware"
 
+WHITELIST = (
+    'historicalmodelwithhistoryindifferentdb',
+)
+
 if django.__version__ >= "2.0":
     middleware_override_settings = {
         "MIDDLEWARE": (settings.MIDDLEWARE + [request_middleware])
@@ -30,7 +34,8 @@ class TestDbRouter(object):
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if app_label == "external":
+        print(db, model_name)
+        if app_label == "external" or model_name in WHITELIST:
             return db == "other"
         elif db == "other":
             return False
