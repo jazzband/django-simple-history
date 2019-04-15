@@ -53,4 +53,4 @@ class MyModel(models.Model):
 
 If set to `True`, migrations and audit
 events will be sent to the same database as the base model. If `False`, they
-will be sent to the place specified by the database router.
+will be sent to the place specified by the database router. The default value is `False`.

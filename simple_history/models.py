@@ -79,7 +79,7 @@ class HistoricalRecords(object):
         history_user_getter=_history_user_getter,
         history_user_setter=_history_user_setter,
         related_name=None,
-        use_base_model_db=True,
+        use_base_model_db=False,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
