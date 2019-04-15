@@ -4,7 +4,7 @@ Changes
 Unreleased
 ------------------
 - Added the possibility to create a relation to the original model (gh-536)
-- Fix router backward-compatibility issue with 2.7.0 (gh-539)
+- Fix router backward-compatibility issue with 2.7.0 (gh-539, gh-547)
 - Fix hardcoded history manager (gh-542)
 - Replace deprecated `django.utils.six` with `six` (gh-526)
 
