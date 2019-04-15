@@ -18,11 +18,15 @@ from django.urls import reverse
 from simple_history import register
 from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import HistoricalRecords, ModelChange
-from simple_history.signals import pre_create_historical_record
+from simple_history.signals import (
+    pre_create_historical_record,
+    post_create_historical_record,
+)
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
     middleware_override_settings,
+    database_router_override_settings_history_in_diff_db,
 )
 from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
@@ -62,6 +66,7 @@ from ..models import (
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
     Library,
+    ModelWithHistoryInDifferentDb,
     MultiOneToOne,
     Person,
     Place,
@@ -1478,3 +1483,46 @@ class RelatedNameTest(TestCase):
 
         self.one = Street.objects.get(pk=id)
         self.assertEqual(self.one.history.count(), 4)
+
+
+@override_settings(**database_router_override_settings_history_in_diff_db)
+class SaveHistoryInSeparateDatabaseTestCase(TestCase):
+    multi_db = True
+
+    def setUp(self):
+        self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")
+
+    def test_history_model_saved_in_separate_db(self):
+        self.assertEqual(0, self.model.history.using("default").count())
+        self.assertEqual(1, self.model.history.count())
+        self.assertEqual(1, self.model.history.using("other").count())
+        self.assertEqual(
+            1, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(1, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
+        )
+
+    def test_history_model_saved_in_separate_db_on_delete(self):
+        id = self.model.id
+        self.model.delete()
+
+        self.assertEqual(
+            0,
+            ModelWithHistoryInDifferentDb.history.using("default")
+            .filter(id=id)
+            .count(),
+        )
+        self.assertEqual(2, ModelWithHistoryInDifferentDb.history.filter(id=id).count())
+        self.assertEqual(
+            2,
+            ModelWithHistoryInDifferentDb.history.using("other").filter(id=id).count(),
+        )
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(0, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
+        )
