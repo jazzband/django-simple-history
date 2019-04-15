@@ -63,9 +63,9 @@ from ..models import (
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
     Library,
-    ModelWithFkToModelWithHistoryUseBaseModelDb,
+    ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
-    ModelWithHistoryUseBaseModelDb,
+    ModelWithHistoryUsingBaseModelDb,
     MultiOneToOne,
     Person,
     Place,
@@ -1261,13 +1261,13 @@ class MultiDBWithUsingTest(TestCase):
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
         self.assertRaises(ObjectDoesNotExist, model.history.get, name="1-84356-028-1")
 
     def test_multidb_with_using_is_on_dbtwo(self):
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
         try:
@@ -1276,19 +1276,19 @@ class MultiDBWithUsingTest(TestCase):
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_and_fk_not_on_default(self):
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
-        parent_model = ModelWithFkToModelWithHistoryUseBaseModelDb.objects.using(
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb.objects.using(
             self.db_name
         ).create(fk=model)
         self.assertRaises(ObjectDoesNotExist, parent_model.history.get, fk=model)
 
     def test_multidb_with_using_and_fk_on_dbtwo(self):
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
-        parent_model = ModelWithFkToModelWithHistoryUseBaseModelDb.objects.using(
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb.objects.using(
             self.db_name
         ).create(fk=model)
         try:
@@ -1297,12 +1297,12 @@ class MultiDBWithUsingTest(TestCase):
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_not_on_default(self):
-        model = ModelWithHistoryUseBaseModelDb(name="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
         model.save(using=self.db_name)
         self.assertRaises(ObjectDoesNotExist, model.history.get, name="1-84356-028-1")
 
     def test_multidb_with_using_keyword_in_save_on_dbtwo(self):
-        model = ModelWithHistoryUseBaseModelDb(name="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
         model.save(using=self.db_name)
         try:
             model.history.using(self.db_name).get(name="1-84356-028-1")
@@ -1310,9 +1310,9 @@ class MultiDBWithUsingTest(TestCase):
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_with_fk(self):
-        model = ModelWithHistoryUseBaseModelDb(name="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
         model.save(using=self.db_name)
-        parent_model = ModelWithFkToModelWithHistoryUseBaseModelDb(fk=model)
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb(fk=model)
         parent_model.save(using=self.db_name)
         # assert not created on default
         self.assertRaises(ObjectDoesNotExist, parent_model.history.get, fk=model)
@@ -1323,7 +1323,7 @@ class MultiDBWithUsingTest(TestCase):
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_and_update(self):
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
         model.save(using=self.db_name)
@@ -1339,9 +1339,9 @@ class MultiDBWithUsingTest(TestCase):
 
     def test_multidb_with_using_keyword_in_save_and_delete(self):
         HistoricalModelWithHistoryUseBaseModelDb = get_history_model_for_model(
-            ModelWithHistoryUseBaseModelDb
+            ModelWithHistoryUsingBaseModelDb
         )
-        model = ModelWithHistoryUseBaseModelDb.objects.using(self.db_name).create(
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
             name="1-84356-028-1"
         )
         model.save(using=self.db_name)
