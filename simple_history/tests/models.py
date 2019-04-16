@@ -364,7 +364,19 @@ class ModelWithHistoryInDifferentApp(models.Model):
 
 class ModelWithHistoryInDifferentDb(models.Model):
     name = models.CharField(max_length=30)
-    history = HistoricalRecords(use_base_model_db=False)
+    history = HistoricalRecords()
+
+
+class ModelWithHistoryUsingBaseModelDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords(use_base_model_db=True)
+
+
+class ModelWithFkToModelWithHistoryUsingBaseModelDb(models.Model):
+    fk = models.ForeignKey(
+        ModelWithHistoryUsingBaseModelDb, on_delete=models.CASCADE, null=True
+    )
+    history = HistoricalRecords(use_base_model_db=True)
 
 
 ###############################################################################
