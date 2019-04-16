@@ -1,7 +1,7 @@
 Changes
 =======
 
-Unreleased
+2.7.1 (2019-04-16)
 ------------------
 - Added the possibility to create a relation to the original model (gh-536)
 - Fix router backward-compatibility issue with 2.7.0 (gh-539, gh-547)
