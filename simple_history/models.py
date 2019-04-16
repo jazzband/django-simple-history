@@ -435,22 +435,17 @@ class HistoricalRecords(object):
         if not created and hasattr(instance, "skip_history_when_saving"):
             return
         if not kwargs.get("raw", False):
-            self.create_historical_record(
-                instance,
-                created and "+" or "~",
-                using=using if self.use_base_model_db else None,
-            )
+            self.create_historical_record(instance, created and "+" or "~", using=using)
 
     def post_delete(self, instance, using=None, **kwargs):
         if self.cascade_delete_history:
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()
         else:
-            self.create_historical_record(
-                instance, "-", using=using if self.use_base_model_db else None
-            )
+            self.create_historical_record(instance, "-", using=using)
 
     def create_historical_record(self, instance, history_type, using=None):
+        using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, "changeReason", None)
