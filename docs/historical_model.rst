@@ -122,12 +122,41 @@ Users can specify a custom model name via the constructor on
 ``HistoricalRecords``. The common use case for this is avoiding naming conflict
 if the user already defined a model named as 'Historical' + model name.
 
+This feature provides the ability to override the default model name used for the generated history model.
+
+To configure history models to use a different name for the history model class, use an option named ``custom_model_name``.
+The value for this option can be a `string` or a `callable`.
+A simple string replaces the default name of `'Historical' + model name` with the defined string.
+The most simple use case is illustrated below using a simple string:
+
 .. code-block:: python
 
     class ModelNameExample(models.Model):
         history = HistoricalRecords(
             custom_model_name='SimpleHistoricalModelNameExample'
         )
+
+If you are using a base class for your models and want to apply a name change for the historical model
+for all models using the base class then a callable can be used.
+The callable is passed the name of the model for which the history model will be created.
+As an example using the callable mechanism, the below changes the default prefix `Historical` to `Audit`:
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(custom_model_name=lambda x:f'Audit{x}')
+
+    class Opinion(models.Model):
+        opinion = models.CharField(max_length=2000)
+
+    register(Opinion, custom_model_name=lambda x:f'Audit{x}')
+    
+The resulting history class names would be `AuditPoll` and `AuditOpinion`.
+If the app the models are defined in is `yoda` then the corresponding history table names would be `yoda_auditpoll` and `yoda_auditopinion`
+ 
+IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
+           An error will be generated and no history model created if they are the same.
 
 
 TextField as `history_change_reason`

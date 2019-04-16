@@ -168,6 +168,28 @@ class HistoricalRecords(object):
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
+    def get_history_model_name(self, model):
+        if not self.custom_model_name:
+            return "Historical{}".format(model._meta.object_name)
+        # Must be trying to use a custom history model name
+        if callable(self.custom_model_name):
+            name = self.custom_model_name(model._meta.object_name)
+        else:
+            #  simple string
+            name = self.custom_model_name
+        # Desired class name cannot be same as the model it is tracking
+        if not (
+            name.lower() == model._meta.object_name.lower()
+            and model.__module__ == self.module
+        ):
+            return name
+        raise ValueError(
+            "The 'custom_model_name' option '{}' evaluates to a name that is the same "
+            "as the model it is tracking. This is not permitted.".format(
+                self.custom_model_name
+            )
+        )
+
     def create_history_model(self, model, inherited):
         """
         Creates a historical model to associate with the model provided.
@@ -198,11 +220,10 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
-        name = (
-            self.custom_model_name
-            if self.custom_model_name is not None
-            else "Historical%s" % model._meta.object_name
-        )
+
+        # Set as the default then check for overrides
+        name = self.get_history_model_name(model)
+
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(type(str(name), self.bases, attrs))
 

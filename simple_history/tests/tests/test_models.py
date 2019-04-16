@@ -62,6 +62,9 @@ from ..models import (
     HistoricalPoll,
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
+    OverrideModelNameAsCallable,
+    OverrideModelNameUsingBaseModel1,
+    MyOverrideModelNameRegisterMethod1,
     Library,
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
@@ -711,17 +714,72 @@ class CreateHistoryModelTests(unittest.TestCase):
                 "exception."
             )
 
-    def test_instantiate_history_model_with_custom_model_name(self):
+
+class CustomModelNameTests(unittest.TestCase):
+    def verify_custom_model_name_feature(
+        self, model, expected_class_name, expected_table_name
+    ):
+        history_model = model.history.model
+        self.assertEqual(history_model.__name__, expected_class_name)
+        self.assertEqual(history_model._meta.db_table, expected_table_name)
+
+    def test_instantiate_history_model_with_custom_model_name_as_string(self):
         try:
-            from ..models import MyHistoricalCustomNameModel
+            from ..models import OverrideModelNameAsString
         except ImportError:
-            self.fail("MyHistoricalCustomNameModel is in wrong module")
-        historical_model = MyHistoricalCustomNameModel()
-        self.assertEqual(
-            historical_model.__class__.__name__, "MyHistoricalCustomNameModel"
+            self.fail("{}OverrideModelNameAsString is in wrong module")
+        expected_cls_name = "MyHistoricalCustomNameModel"
+        self.verify_custom_model_name_feature(
+            OverrideModelNameAsString(),
+            expected_cls_name,
+            "tests_{}".format(expected_cls_name.lower()),
         )
-        self.assertEqual(
-            historical_model._meta.db_table, "tests_myhistoricalcustomnamemodel"
+
+    def test_register_history_model_with_custom_model_name_override(self):
+        try:
+            from ..models import OverrideModelNameRegisterMethod1
+        except ImportError:
+            self.fail("OverrideModelNameRegisterMethod1 is in wrong module")
+
+        cls = OverrideModelNameRegisterMethod1()
+        expected_cls_name = "MyOverrideModelNameRegisterMethod1"
+        self.verify_custom_model_name_feature(
+            cls, expected_cls_name, "tests_{}".format(expected_cls_name.lower())
+        )
+
+        from simple_history import register
+        from ..models import OverrideModelNameRegisterMethod2
+
+        try:
+            register(
+                OverrideModelNameRegisterMethod2,
+                custom_model_name=lambda x: "{}".format(x),
+            )
+        except ValueError:
+            self.assertRaises(ValueError)
+
+    def test_register_history_model_with_custom_model_name_from_abstract_model(self):
+        cls = OverrideModelNameUsingBaseModel1
+        expected_cls_name = "Audit{}".format(cls.__name__)
+        self.verify_custom_model_name_feature(
+            cls, expected_cls_name, "tests_" + expected_cls_name.lower()
+        )
+
+    def test_register_history_model_with_custom_model_name_from_external_model(self):
+        from ..models import OverrideModelNameUsingExternalModel1
+
+        cls = OverrideModelNameUsingExternalModel1
+        expected_cls_name = "Audit{}".format(cls.__name__)
+        self.verify_custom_model_name_feature(
+            cls, expected_cls_name, "tests_" + expected_cls_name.lower()
+        )
+
+        from ..models import OverrideModelNameUsingExternalModel2
+
+        cls = OverrideModelNameUsingExternalModel2
+        expected_cls_name = "Audit{}".format(cls.__name__)
+        self.verify_custom_model_name_feature(
+            cls, expected_cls_name, "external_" + expected_cls_name.lower()
         )
 
 

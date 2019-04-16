@@ -7,6 +7,7 @@ Changes
 - Fix router backward-compatibility issue with 2.7.0 (gh-539, gh-547)
 - Fix hardcoded history manager (gh-542)
 - Replace deprecated `django.utils.six` with `six` (gh-526)
+- Allow `custom_model_name` parameter to be a callable (gh-489)
 
 2.7.0 (2019-01-16)
 ------------------
