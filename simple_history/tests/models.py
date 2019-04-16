@@ -365,6 +365,23 @@ class ModelWithHistoryInDifferentApp(models.Model):
     history = HistoricalRecords(app="external")
 
 
+class ModelWithHistoryInDifferentDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords()
+
+
+class ModelWithHistoryUsingBaseModelDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords(use_base_model_db=True)
+
+
+class ModelWithFkToModelWithHistoryUsingBaseModelDb(models.Model):
+    fk = models.ForeignKey(
+        ModelWithHistoryUsingBaseModelDb, on_delete=models.CASCADE, null=True
+    )
+    history = HistoricalRecords(use_base_model_db=True)
+
+
 ###############################################################################
 #
 # Inheritance examples
@@ -615,3 +632,8 @@ class ForeignKeyToSelfModel(models.Model):
         "self", null=True, related_name="+", on_delete=models.CASCADE
     )
     history = HistoricalRecords()
+
+
+class Street(models.Model):
+    name = models.CharField(max_length=150)
+    log = HistoricalRecords(related_name="history")

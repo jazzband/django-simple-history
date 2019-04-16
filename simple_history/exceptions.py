@@ -13,3 +13,9 @@ class NotHistoricalModelError(TypeError):
     """No related history model found."""
 
     pass
+
+
+class RelatedNameConflictError(Exception):
+    """Related name conflicting with history manager"""
+
+    pass

@@ -147,3 +147,18 @@ If you want to save a model without a historical record, you can use the followi
 
     poll = Poll(question='something')
     poll.save_without_historical_record()
+
+
+Filtering data using a relationship to the model
+------------------------------------------------
+
+To filter changes to the data, a relationship to the history can be established. For example, all data records in which a particular user was involved.
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        log = HistoricalRecords(related_name='history')
+
+
+    Poll.objects.filter(history__history_user=4)

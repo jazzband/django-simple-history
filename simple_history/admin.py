@@ -15,6 +15,8 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
+from . import utils
+
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
@@ -130,7 +132,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             change_history = False
 
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:
-            obj = obj.history.get(pk=version_id).instance
+            history = utils.get_history_manager_for_model(obj)
+            obj = history.get(pk=version_id).instance
 
         formsets = []
         form_class = self.get_form(request, obj)

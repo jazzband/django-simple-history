@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import unittest
-
-import django
 import uuid
 import warnings
 from datetime import datetime, timedelta
+
+import django
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,19 +15,22 @@ from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from simple_history import register
+from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import HistoricalRecords, ModelChange
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
+    database_router_override_settings_history_in_diff_db,
     middleware_override_settings,
 )
 from simple_history.utils import get_history_model_for_model
 from simple_history.utils import update_change_reason
 from ..external.models import (
     ExternalModel,
-    ExternalModelWithCustomUserIdField,
     ExternalModelRegistered,
+    ExternalModelWithCustomUserIdField,
 )
 from ..models import (
     AbstractBase,
@@ -63,6 +66,9 @@ from ..models import (
     OverrideModelNameUsingBaseModel1,
     MyOverrideModelNameRegisterMethod1,
     Library,
+    ModelWithFkToModelWithHistoryUsingBaseModelDb,
+    ModelWithHistoryInDifferentDb,
+    ModelWithHistoryUsingBaseModelDb,
     MultiOneToOne,
     Person,
     Place,
@@ -77,6 +83,7 @@ from ..models import (
     Series,
     SeriesWork,
     State,
+    Street,
     Temperature,
     UUIDDefaultModel,
     UUIDModel,
@@ -1312,78 +1319,98 @@ class MultiDBWithUsingTest(TestCase):
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
-        self.assertRaises(ObjectDoesNotExist, book.history.get, isbn="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
+        self.assertRaises(ObjectDoesNotExist, model.history.get, name="1-84356-028-1")
 
     def test_multidb_with_using_is_on_dbtwo(self):
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
         try:
-            book.history.using(self.db_name).get(isbn="1-84356-028-1")
+            model.history.using(self.db_name).get(name="1-84356-028-1")
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_and_fk_not_on_default(self):
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
-        library = Library.objects.using(self.db_name).create(book=book)
-        self.assertRaises(ObjectDoesNotExist, library.history.get, book=book)
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb.objects.using(
+            self.db_name
+        ).create(fk=model)
+        self.assertRaises(ObjectDoesNotExist, parent_model.history.get, fk=model)
 
     def test_multidb_with_using_and_fk_on_dbtwo(self):
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
-        library = Library.objects.using(self.db_name).create(book=book)
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb.objects.using(
+            self.db_name
+        ).create(fk=model)
         try:
-            library.history.using(self.db_name).get(book=book)
+            parent_model.history.using(self.db_name).get(fk=model)
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_not_on_default(self):
-        book = Book(isbn="1-84356-028-1")
-        book.save(using=self.db_name)
-        self.assertRaises(ObjectDoesNotExist, book.history.get, isbn="1-84356-028-1")
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
+        model.save(using=self.db_name)
+        self.assertRaises(ObjectDoesNotExist, model.history.get, name="1-84356-028-1")
 
     def test_multidb_with_using_keyword_in_save_on_dbtwo(self):
-        book = Book(isbn="1-84356-028-1")
-        book.save(using=self.db_name)
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
+        model.save(using=self.db_name)
         try:
-            book.history.using(self.db_name).get(isbn="1-84356-028-1")
+            model.history.using(self.db_name).get(name="1-84356-028-1")
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_with_fk(self):
-        book = Book(isbn="1-84356-028-1")
-        book.save(using=self.db_name)
-        library = Library(book=book)
-        library.save(using=self.db_name)
+        model = ModelWithHistoryUsingBaseModelDb(name="1-84356-028-1")
+        model.save(using=self.db_name)
+        parent_model = ModelWithFkToModelWithHistoryUsingBaseModelDb(fk=model)
+        parent_model.save(using=self.db_name)
         # assert not created on default
-        self.assertRaises(ObjectDoesNotExist, library.history.get, book=book)
+        self.assertRaises(ObjectDoesNotExist, parent_model.history.get, fk=model)
         # assert created on dbtwo
         try:
-            library.history.using(self.db_name).get(book=book)
+            parent_model.history.using(self.db_name).get(fk=model)
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist unexpectedly raised.")
 
     def test_multidb_with_using_keyword_in_save_and_update(self):
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
-        book.save(using=self.db_name)
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
+        model.save(using=self.db_name)
         self.assertEqual(
             ["+", "~"],
             [
                 obj.history_type
-                for obj in book.history.using(self.db_name)
+                for obj in model.history.using(self.db_name)
                 .all()
                 .order_by("history_date")
             ],
         )
 
     def test_multidb_with_using_keyword_in_save_and_delete(self):
-        HistoricalBook = get_history_model_for_model(Book)
-        book = Book.objects.using(self.db_name).create(isbn="1-84356-028-1")
-        book.save(using=self.db_name)
-        book.delete(using=self.db_name)
+        HistoricalModelWithHistoryUseBaseModelDb = get_history_model_for_model(
+            ModelWithHistoryUsingBaseModelDb
+        )
+        model = ModelWithHistoryUsingBaseModelDb.objects.using(self.db_name).create(
+            name="1-84356-028-1"
+        )
+        model.save(using=self.db_name)
+        model.delete(using=self.db_name)
         self.assertEqual(
             ["+", "~", "-"],
             [
                 obj.history_type
-                for obj in HistoricalBook.objects.using(self.db_name)
+                for obj in HistoricalModelWithHistoryUseBaseModelDb.objects.using(
+                    self.db_name
+                )
                 .all()
                 .order_by("history_date")
             ],
@@ -1471,3 +1498,108 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
 
         self.assertEqual(user_id, instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
+
+
+class RelatedNameTest(TestCase):
+    def setUp(self):
+        self.user_one = get_user_model().objects.create(
+            username="username_one", email="first@user.com", password="top_secret"
+        )
+        self.user_two = get_user_model().objects.create(
+            username="username_two", email="second@user.com", password="top_secret"
+        )
+
+        self.one = Street(name="Test Street")
+        self.one._history_user = self.user_one
+        self.one.save()
+
+        self.two = Street(name="Sesame Street")
+        self.two._history_user = self.user_two
+        self.two.save()
+
+        self.one.name = "ABC Street"
+        self.one._history_user = self.user_two
+        self.one.save()
+
+    def test_relation(self):
+        self.assertEqual(self.one.history.count(), 2)
+        self.assertEqual(self.two.history.count(), 1)
+
+    def test_filter(self):
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_two.pk).count(), 2
+        )
+
+    def test_name_equals_manager(self):
+        with self.assertRaises(RelatedNameConflictError):
+            register(Place, manager_name="history", related_name="history")
+
+    def test_deletion(self):
+        self.two.delete()
+
+        self.assertEqual(Street.log.filter(history_relation=2).count(), 2)
+        self.assertEqual(Street.log.count(), 4)
+
+    def test_revert(self):
+        id = self.one.pk
+
+        self.one.delete()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 0
+        )
+        self.assertEqual(Street.objects.filter(pk=id).count(), 0)
+
+        old = Street.log.filter(id=id).first()
+        old.history_object.save()
+        self.assertEqual(
+            Street.objects.filter(history__history_user=self.user_one.pk).count(), 1
+        )
+
+        self.one = Street.objects.get(pk=id)
+        self.assertEqual(self.one.history.count(), 4)
+
+
+@override_settings(**database_router_override_settings_history_in_diff_db)
+class SaveHistoryInSeparateDatabaseTestCase(TestCase):
+    multi_db = True
+
+    def setUp(self):
+        self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")
+
+    def test_history_model_saved_in_separate_db(self):
+        self.assertEqual(0, self.model.history.using("default").count())
+        self.assertEqual(1, self.model.history.count())
+        self.assertEqual(1, self.model.history.using("other").count())
+        self.assertEqual(
+            1, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(1, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
+        )
+
+    def test_history_model_saved_in_separate_db_on_delete(self):
+        id = self.model.id
+        self.model.delete()
+
+        self.assertEqual(
+            0,
+            ModelWithHistoryInDifferentDb.history.using("default")
+            .filter(id=id)
+            .count(),
+        )
+        self.assertEqual(2, ModelWithHistoryInDifferentDb.history.filter(id=id).count())
+        self.assertEqual(
+            2,
+            ModelWithHistoryInDifferentDb.history.using("other").filter(id=id).count(),
+        )
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("default").count()
+        )
+        self.assertEqual(0, ModelWithHistoryInDifferentDb.objects.count())
+        self.assertEqual(
+            0, ModelWithHistoryInDifferentDb.objects.using("other").count()
+        )

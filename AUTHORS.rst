@@ -25,6 +25,7 @@ Authors
 - Daniel Gilge
 - Daniel Levy
 - Daniel Roschka
+- Daniil Skrobov (`yetanotherape <https://github.com/yetanotherape>`_)
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - Eduardo Cuducos
@@ -67,7 +68,9 @@ Authors
 - Mike Spainhower
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
+- Nick Träger
 - Phillip Marshall
+- Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
 - Ray Logel
 - Roberto Aguilar
