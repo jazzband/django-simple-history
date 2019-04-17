@@ -3,7 +3,7 @@ Changes
 
 2.7.2 (2019-04-17)
 ------------------
-- Fixed ModuleNotFound issue for `six`
+- Fixed ModuleNotFound issue for `six` (gh-553)
 
 2.7.1 (2019-04-16)
 ------------------
