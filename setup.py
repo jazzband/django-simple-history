@@ -3,7 +3,7 @@ import simple_history
 
 tests_require = [
     'Django>=1.11', 'WebTest==2.0.24', 'django-webtest==1.8.0', 'mock==1.0.1',
-    'six>=1.3.0']
+    'six']
 
 setup(
     name='django-simple-history',
@@ -40,7 +40,7 @@ setup(
     ],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     tests_require=tests_require,
-    install_requires=["six>=1.3.0"],
+    install_requires=["six"],
     include_package_data=True,
     test_suite='runtests.main',
 )
