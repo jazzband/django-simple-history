@@ -1,6 +1,10 @@
 Changes
 =======
 
+2.7.2 (2019-04-17)
+------------------
+- Fixed ModuleNotFound issue for `six` (gh-553)
+
 2.7.1 (2019-04-16)
 ------------------
 - Added the possibility to create a relation to the original model (gh-536)
