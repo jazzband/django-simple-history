@@ -1446,7 +1446,7 @@ class ForeignKeyToSelfTest(TestCase):
 @override_settings(**database_router_override_settings)
 class MultiDBExplicitHistoryUserIDTest(TestCase):
     if django.VERSION >= (2, 2):
-        databases = {'default', 'other'}
+        databases = {"default", "other"}
 
     def setUp(self):
         self.user = get_user_model().objects.create(
