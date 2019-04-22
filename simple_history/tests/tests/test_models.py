@@ -1321,9 +1321,9 @@ class MultiDBWithUsingTest(TestCase):
     keyword argument in `save()`.
     """
 
-    databases = {"default", "other"}
-
-    if django.VERSION < (2, 2, 0, "final"):
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
         multi_db = True
 
     db_name = "other"
@@ -1445,7 +1445,8 @@ class ForeignKeyToSelfTest(TestCase):
 
 @override_settings(**database_router_override_settings)
 class MultiDBExplicitHistoryUserIDTest(TestCase):
-    databases = {"default", "other"}
+    if django.VERSION >= (2, 2):
+        databases = {"default", "other"}
 
     def setUp(self):
         self.user = get_user_model().objects.create(
@@ -1576,9 +1577,9 @@ class RelatedNameTest(TestCase):
 
 @override_settings(**database_router_override_settings_history_in_diff_db)
 class SaveHistoryInSeparateDatabaseTestCase(TestCase):
-    databases = {"default", "other"}
-
-    if django.VERSION < (2, 2, 0, "final"):
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
         multi_db = True
 
     def setUp(self):
