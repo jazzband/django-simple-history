@@ -1,5 +1,5 @@
 language: python
-
+dist: xenial
 sudo: false
 
 python:
@@ -7,6 +7,7 @@ python:
   - 3.4
   - 3.5
   - 3.6
+  - 3.7
 
 env:
   - DJANGO="Django>=1.11,<1.12"
@@ -40,30 +41,5 @@ matrix:
       env: DJANGO="Django>=2.2,<2.3"
     - python: 3.4
       env: DJANGO="Django>=2.2,<2.3"
-  include:
-    - python: 3.7
-      env: DJANGO="Django>=1.11,<1.12"
-      dist: xenial
-      sudo: true
-    - python: 3.7
-      env: DJANGO="Django>=2.0,<2.1"
-      dist: xenial
-      sudo: true
-    - python: 3.7
-      env: DJANGO="Django>=2.1,<2.2"
-      dist: xenial
-      sudo: true
-    - python: 3.5
-      env: DJANGO="Django>=2.2,<2.3"
-      dist: xenial
-      sudo: true
-    - python: 3.6
-      env: DJANGO="Django>=2.2,<2.3"
-      dist: xenial
-      sudo: true
-    - python: 3.7
-      env: DJANGO="Django>=2.2,<2.3"
-      dist: xenial
-      sudo: true
 
 after_success: codecov
