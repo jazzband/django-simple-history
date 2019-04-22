@@ -21,7 +21,6 @@ install:
   - pip install -U $DJANGO
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install black; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install black; fi
-  - sqlite --version
   - pip freeze
 
 script:

@@ -3,6 +3,8 @@ import logging
 from os.path import abspath, dirname, join
 from shutil import rmtree
 import sys
+import sqlite3
+print(sqlite3.sqlite_version)
 
 import django
 from django.conf import settings
