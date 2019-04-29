@@ -156,3 +156,30 @@ So if we have:
 
 the ``instance`` field will not actually be tracked on the history table because it's
 in the reserved set of terms.
+
+Multi-table Inheritance
+-----------------------
+
+``django-simple-history`` supports tracking history on models that use multi-table
+inheritance, such as:
+
+.. code-block:: python
+
+    class ParentModel(models.Model):
+        parent_field = models.CharField(max_length=255)
+        history = HistoricalRecords()
+
+    class ChildModel(ParentModel):
+        child_field = models.CharField(max_length=255)
+        history = HistoricalRecords()
+
+
+A few notes:
+
+- On the child model, the ``HistoricalRecords`` instance is not inherited from the parent
+  model. This means that you can choose to track changes on just the parent model, just
+  the child model, or both.
+- The child's history table contains all fields from the child model as well as all the
+  fields from the parent model.
+- Updating a child instance only updates the child's history table, not the parent's
+  history table.
