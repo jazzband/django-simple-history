@@ -91,7 +91,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return self.render_history_view(request, self.object_history_template, context, **extra_kwargs)
+        return self.render_history_view(
+            request, self.object_history_template, context, **extra_kwargs
+        )
 
     def response_change(self, request, obj):
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:
@@ -196,7 +198,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return self.render_history_view(
             request, self.object_history_form_template, context, **extra_kwargs
         )
-    
+
     def render_history_view(self, *args, **kwargs):
         """Catch call to render, to allow overriding."""
         return render(*args, **kwargs)
