@@ -528,7 +528,9 @@ class HistoricalRecords(object):
 def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
-    if isinstance(field, models.AutoField):
+    if isinstance(field, models.BigAutoField):
+        field.__class__ = models.BigIntegerField
+    elif isinstance(field, models.AutoField):
         field.__class__ = models.IntegerField
 
     elif isinstance(field, models.FileField):
@@ -546,7 +548,6 @@ def transform_field(field):
         field._unique = False
         field.db_index = True
         field.serialize = True
-
 
 class HistoricalObjectDescriptor(object):
     def __init__(self, model, fields_included):
