@@ -199,7 +199,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request, self.object_history_form_template, context, **extra_kwargs
         )
 
-    def render_history_view(self, *args, **kwargs):
+    def render_history_view(self, request, template, context, **kwargs):
         """Catch call to render, to allow overriding."""
         return render(*args, **kwargs)
 
