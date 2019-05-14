@@ -201,7 +201,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     def render_history_view(self, request, template, context, **kwargs):
         """Catch call to render, to allow overriding."""
-        return render(*args, **kwargs)
+        return render(request, template, context, **kwargs)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
