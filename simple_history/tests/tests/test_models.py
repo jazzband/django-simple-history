@@ -463,18 +463,22 @@ class HistoricalRecordsTest(TestCase):
         poll_info.save()
 
     def test_model_with_excluded_fields(self):
-        p = PollWithExcludeFields(question="what's up?", pub_date=today)
+        p = PollWithExcludeFields(question="what's up?", pub_date=today, place='The Pub')
         p.save()
         history = PollWithExcludeFields.history.all()[0]
         all_fields_names = [f.name for f in history._meta.fields]
         self.assertIn("question", all_fields_names)
         self.assertNotIn("pub_date", all_fields_names)
+        self.assertEqual(history.question, p.question)
+        self.assertEqual(history.place, p.place)
 
         most_recent = p.history.most_recent()
         self.assertIn("question", all_fields_names)
         self.assertNotIn("pub_date", all_fields_names)
         self.assertEqual(most_recent.__class__, PollWithExcludeFields)
         self.assertIn("pub_date", history._history_excluded_fields)
+        self.assertEqual(most_recent.question, p.question)
+        self.assertEqual(most_recent.place, p.place)
 
     def test_user_model_override(self):
         user1 = User.objects.create_user("user1", "1@example.com")
