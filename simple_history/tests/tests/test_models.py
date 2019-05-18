@@ -463,7 +463,9 @@ class HistoricalRecordsTest(TestCase):
         poll_info.save()
 
     def test_model_with_excluded_fields(self):
-        p = PollWithExcludeFields(question="what's up?", pub_date=today, place='The Pub')
+        p = PollWithExcludeFields(
+            question="what's up?", pub_date=today, place="The Pub"
+        )
         p.save()
         history = PollWithExcludeFields.history.all()[0]
         all_fields_names = [f.name for f in history._meta.fields]
