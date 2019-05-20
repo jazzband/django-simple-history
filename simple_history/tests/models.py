@@ -30,6 +30,7 @@ class Poll(models.Model):
 class PollWithExcludeFields(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
+    place = models.TextField(null=True)
 
     history = HistoricalRecords(excluded_fields=["pub_date"])
 

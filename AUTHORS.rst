@@ -14,6 +14,7 @@ Authors
 - Adnan Umer (`uadnan <https://github.com/uadnan>`_)
 - Aleksey Kladov
 - Alexander Anikeev
+- Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - `bradford281 <https://github.com/bradford281>`_
 - Brian Armstrong (`barm <https://github.com/barm>`_)
