@@ -549,6 +549,7 @@ def transform_field(field):
         field.db_index = True
         field.serialize = True
 
+        
 class HistoricalObjectDescriptor(object):
     def __init__(self, model, fields_included):
         self.model = model
