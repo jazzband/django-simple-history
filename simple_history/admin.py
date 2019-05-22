@@ -168,12 +168,10 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         If None, attempts to get the instance from history.
         """
         obj = super(SimpleHistoryAdmin, self).get_object(request, object_id, **kwargs)
-        if not obj:
+        if not obj and object_history:
             try:
                 obj = object_history.latest("history_date").instance
             except ObjectDoesNotExist:
-                pass
-            except AttributeError:
                 pass
         return obj
 
