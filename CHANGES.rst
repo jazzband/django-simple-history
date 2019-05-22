@@ -1,6 +1,9 @@
 Changes
 =======
 
+Unreleased
+----------
+- Fixed BigAutoField not mirrored as BigInt (gh-556)
 - Fixed most_recent() bug with excluded_fields (gh-561)
 
 
