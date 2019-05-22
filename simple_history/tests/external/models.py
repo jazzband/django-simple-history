@@ -14,6 +14,26 @@ class AbstractExternal(models.Model):
         abstract = True
 
 
+class AbstractExternal2(models.Model):
+    history = HistoricalRecords(
+        inherit=True, custom_model_name=lambda x: "Audit{}".format(x)
+    )
+
+    class Meta:
+        abstract = True
+        app_label = "external"
+
+
+class AbstractExternal3(models.Model):
+    history = HistoricalRecords(
+        inherit=True, app="external", custom_model_name=lambda x: "Audit{}".format(x)
+    )
+
+    class Meta:
+        abstract = True
+        app_label = "external"
+
+
 class ExternalModel(models.Model):
     name = models.CharField(max_length=100)
     history = HistoricalRecords()

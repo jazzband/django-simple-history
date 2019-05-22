@@ -9,7 +9,10 @@ from simple_history import register
 from simple_history.models import HistoricalRecords
 
 from .custom_user.models import CustomUser as User
+
 from .external.models import AbstractExternal
+from .external.models import AbstractExternal2
+from .external.models import AbstractExternal3
 
 get_model = apps.get_model
 
@@ -27,6 +30,7 @@ class Poll(models.Model):
 class PollWithExcludeFields(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
+    place = models.TextField(null=True)
 
     history = HistoricalRecords(excluded_fields=["pub_date"])
 
@@ -370,6 +374,23 @@ class ModelWithHistoryInDifferentApp(models.Model):
     history = HistoricalRecords(app="external")
 
 
+class ModelWithHistoryInDifferentDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords()
+
+
+class ModelWithHistoryUsingBaseModelDb(models.Model):
+    name = models.CharField(max_length=30)
+    history = HistoricalRecords(use_base_model_db=True)
+
+
+class ModelWithFkToModelWithHistoryUsingBaseModelDb(models.Model):
+    fk = models.ForeignKey(
+        ModelWithHistoryUsingBaseModelDb, on_delete=models.CASCADE, null=True
+    )
+    history = HistoricalRecords(use_base_model_db=True)
+
+
 ###############################################################################
 #
 # Inheritance examples
@@ -557,14 +578,59 @@ class CharFieldChangeReasonModel(models.Model):
     history = HistoricalRecords()
 
 
-class CustomNameModel(models.Model):
+class CustomManagerNameModel(models.Model):
+    name = models.CharField(max_length=15)
+    log = HistoricalRecords()
+
+
+"""
+Following classes test the "custom_model_name" option
+"""
+
+
+class OverrideModelNameAsString(models.Model):
     name = models.CharField(max_length=15, unique=True)
     history = HistoricalRecords(custom_model_name="MyHistoricalCustomNameModel")
 
 
-class CustomManagerNameModel(models.Model):
-    name = models.CharField(max_length=15)
-    log = HistoricalRecords()
+class OverrideModelNameAsCallable(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    history = HistoricalRecords(custom_model_name=lambda x: "Audit{}".format(x))
+
+
+class AbstractModelCallable1(models.Model):
+    history = HistoricalRecords(
+        inherit=True, custom_model_name=lambda x: "Audit{}".format(x)
+    )
+
+    class Meta:
+        abstract = True
+
+
+class OverrideModelNameUsingBaseModel1(AbstractModelCallable1):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameUsingExternalModel1(AbstractExternal2):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameUsingExternalModel2(AbstractExternal3):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class OverrideModelNameRegisterMethod1(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+
+
+register(
+    OverrideModelNameRegisterMethod1,
+    custom_model_name="MyOverrideModelNameRegisterMethod1",
+)
+
+
+class OverrideModelNameRegisterMethod2(models.Model):
+    name = models.CharField(max_length=15, unique=True)
 
 
 class ForeignKeyToSelfModel(models.Model):
@@ -575,3 +641,8 @@ class ForeignKeyToSelfModel(models.Model):
         "self", null=True, related_name="+", on_delete=models.CASCADE
     )
     history = HistoricalRecords()
+
+
+class Street(models.Model):
+    name = models.CharField(max_length=150)
+    log = HistoricalRecords(related_name="history")

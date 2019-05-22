@@ -78,6 +78,8 @@ class HistoricalRecords(object):
         history_user_id_field=None,
         history_user_getter=_history_user_getter,
         history_user_setter=_history_user_setter,
+        related_name=None,
+        use_base_model_db=False,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -93,6 +95,8 @@ class HistoricalRecords(object):
         self.user_id_field = history_user_id_field
         self.user_getter = history_user_getter
         self.user_setter = history_user_setter
+        self.related_name = related_name
+        self.use_base_model_db = use_base_model_db
 
         if excluded_fields is None:
             excluded_fields = []
@@ -164,6 +168,28 @@ class HistoricalRecords(object):
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
+    def get_history_model_name(self, model):
+        if not self.custom_model_name:
+            return "Historical{}".format(model._meta.object_name)
+        # Must be trying to use a custom history model name
+        if callable(self.custom_model_name):
+            name = self.custom_model_name(model._meta.object_name)
+        else:
+            #  simple string
+            name = self.custom_model_name
+        # Desired class name cannot be same as the model it is tracking
+        if not (
+            name.lower() == model._meta.object_name.lower()
+            and model.__module__ == self.module
+        ):
+            return name
+        raise ValueError(
+            "The 'custom_model_name' option '{}' evaluates to a name that is the same "
+            "as the model it is tracking. This is not permitted.".format(
+                self.custom_model_name
+            )
+        )
+
     def create_history_model(self, model, inherited):
         """
         Creates a historical model to associate with the model provided.
@@ -194,11 +220,10 @@ class HistoricalRecords(object):
         attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
-        name = (
-            self.custom_model_name
-            if self.custom_model_name is not None
-            else "Historical%s" % model._meta.object_name
-        )
+
+        # Set as the default then check for overrides
+        name = self.get_history_model_name(model)
+
         registered_models[model._meta.db_table] = model
         return python_2_unicode_compatible(type(str(name), self.bases, attrs))
 
@@ -315,6 +340,23 @@ class HistoricalRecords(object):
 
         return history_user_fields
 
+    def _get_history_related_field(self, model):
+        if self.related_name:
+            if self.manager_name == self.related_name:
+                raise exceptions.RelatedNameConflictError(
+                    "The related name must not be called like the history manager."
+                )
+            return {
+                "history_relation": models.ForeignKey(
+                    model,
+                    on_delete=models.DO_NOTHING,
+                    related_name=self.related_name,
+                    db_constraint=False,
+                )
+            }
+        else:
+            return {}
+
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
@@ -387,6 +429,7 @@ class HistoricalRecords(object):
             ),
         }
 
+        extra_fields.update(self._get_history_related_field(model))
         extra_fields.update(self._get_history_user_fields())
 
         return extra_fields
@@ -423,6 +466,7 @@ class HistoricalRecords(object):
             self.create_historical_record(instance, "-", using=using)
 
     def create_historical_record(self, instance, history_type, using=None):
+        using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, "changeReason", None)
@@ -431,6 +475,10 @@ class HistoricalRecords(object):
         attrs = {}
         for field in self.fields_included(instance):
             attrs[field.attname] = getattr(instance, field.attname)
+
+        relation_field = getattr(manager.model, "history_relation", None)
+        if relation_field is not None:
+            attrs["history_relation"] = instance
 
         history_instance = manager.model(
             history_date=history_date,

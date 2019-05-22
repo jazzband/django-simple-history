@@ -17,6 +17,13 @@ class BulkCreateWithHistoryTestCase(TestCase):
             Poll(id=4, question="Question 4", pub_date=now()),
             Poll(id=5, question="Question 5", pub_date=now()),
         ]
+        self.data_with_excluded_fields = [
+            PollWithExcludeFields(id=1, question="Question 1", pub_date=now()),
+            PollWithExcludeFields(id=2, question="Question 2", pub_date=now()),
+            PollWithExcludeFields(id=3, question="Question 3", pub_date=now()),
+            PollWithExcludeFields(id=4, question="Question 4", pub_date=now()),
+            PollWithExcludeFields(id=5, question="Question 5", pub_date=now()),
+        ]
 
     def test_bulk_create_history(self):
         bulk_create_with_history(self.data, Poll)
@@ -48,7 +55,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.history.count(), 5)
 
     def test_bulk_create_works_with_excluded_fields(self):
-        bulk_create_with_history(self.data, PollWithExcludeFields)
+        bulk_create_with_history(self.data_with_excluded_fields, PollWithExcludeFields)
 
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Poll.history.count(), 0)

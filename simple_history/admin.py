@@ -16,7 +16,8 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
+USER_NATURAL_KEY = tuple(key.lower()
+                         for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 
 class HistoricalPermissionsModelAdminMixin(object):
@@ -48,7 +49,8 @@ class HistoricalPermissionsModelAdminMixin(object):
 
     def has_historical_view_permission(self, request, obj=None):
         if self.historical_permissions_enabled:
-            view_permission = self._has_historical_permission(request, "view", obj)
+            view_permission = self._has_historical_permission(
+                request, "view", obj)
         else:
             try:
                 view_permission = self.has_view_permission(request, obj)
@@ -58,7 +60,8 @@ class HistoricalPermissionsModelAdminMixin(object):
 
     def has_historical_change_permission(self, request, obj=None):
         if self.historical_permissions_enabled:
-            change_permission = self._has_historical_permission(request, "change", obj)
+            change_permission = self._has_historical_permission(
+                request, "change", obj)
         else:
             change_permission = self.has_change_permission(request, obj)
         return change_permission
@@ -70,7 +73,8 @@ class HistoricalPermissionsModelAdminMixin(object):
             ) or self.has_historical_change_permission(request, obj)
         else:
             try:
-                has_permission = self.has_view_or_change_permission(request, obj)
+                has_permission = self.has_view_or_change_permission(
+                    request, obj)
             except AttributeError:
                 has_permission = self.has_change_permission(request, obj)
         return has_permission
@@ -85,7 +89,8 @@ class HistoricalPermissionsModelAdminMixin(object):
         if request.user.is_superuser:
             revert_disabled = False
         else:
-            revert_disabled = getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
+            revert_disabled = getattr(
+                settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
         return revert_disabled
 
     def has_revert_permission(self, request, obj):
@@ -127,7 +132,8 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         opts = self.model._meta
         object_id = unquote(object_id)
         object_history = self.get_object_history(object_id)
-        obj = self.get_object(request, object_id, object_history=object_history)
+        obj = self.get_object(request, object_id,
+                              object_history=object_history)
         if obj is None:
             return self._get_obj_does_not_exist_redirect(request, opts, object_id)
 
@@ -158,14 +164,17 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return render(request, self.object_history_template, context, **extra_kwargs)
+        return self.render_history_view(
+            request, self.object_history_template, context, **extra_kwargs
+        )
 
     def get_object(self, request, object_id, object_history=None, **kwargs):
         """Returns the model instance or None
 
         If None, attempts to get the instance from history.
         """
-        obj = super(SimpleHistoryAdmin, self).get_object(request, object_id, **kwargs)
+        obj = super(SimpleHistoryAdmin, self).get_object(
+            request, object_id, **kwargs)
         if not obj and object_history:
             try:
                 obj = object_history.latest("history_date").instance
@@ -290,7 +299,8 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         )
 
         title = (
-            _("Revert %s") if self.has_revert_permission(request, obj) else _("View %s")
+            _("Revert %s") if self.has_revert_permission(
+                request, obj) else _("View %s")
         )
 
         model_name = original_opts.model_name
@@ -333,9 +343,13 @@ class SimpleHistoryAdmin(HistoricalPermissionsModelAdminMixin, admin.ModelAdmin)
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return render(
+        return self.render_history_view(
             request, self.object_history_form_template, context, **extra_kwargs
         )
+
+    def render_history_view(self, request, template, context, **kwargs):
+        """Catch call to render, to allow overriding."""
+        return render(request, template, context, **kwargs)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save.

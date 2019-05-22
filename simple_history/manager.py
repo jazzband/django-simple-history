@@ -56,12 +56,12 @@ class HistoryManager(models.Manager):
                 tmp.append(field.name)
         fields = tuple(tmp)
         try:
-            values = self.get_queryset().values_list(*fields)[0]
+            values = self.get_queryset().values(*fields)[0]
         except IndexError:
             raise self.instance.DoesNotExist(
                 "%s has no historical record." % self.instance._meta.object_name
             )
-        return self.instance.__class__(*values)
+        return self.instance.__class__(**values)
 
     def as_of(self, date):
         """Get a snapshot as of a specific date.

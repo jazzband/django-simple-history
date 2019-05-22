@@ -1,21 +1,34 @@
 Changes
 =======
 
-Unreleased
-----------
-- Remove reference to vendored library ``django.utils.six`` in favor of ``six`` (gh-526)
-- Add support for historical model permissions, including DJ2.1 view permission (gh-529)
-- Add option to disable a user's, or all user's, ability to "revert" to previous version (gh-529)
+- Fixed most_recent() bug with excluded_fields (gh-561)
+
+
+2.7.2 (2019-04-17)
+------------------
+- Fixed ModuleNotFound issue for `six` (gh-553)
+
+2.7.1 (2019-04-16)
+------------------
+- Added the possibility to create a relation to the original model (gh-536)
+- Fix router backward-compatibility issue with 2.7.0 (gh-539, gh-547)
+- Fix hardcoded history manager (gh-542)
+- Replace deprecated `django.utils.six` with `six` (gh-526)
+- Allow `custom_model_name` parameter to be a callable (gh-489)
 
 2.7.0 (2019-01-16)
 ------------------
-- Add support for ``using`` chained manager method and save/delete keyword argument (gh-507)
+- \* Add support for ``using`` chained manager method and save/delete keyword argument (gh-507)
 - Added management command ``clean_duplicate_history`` to remove duplicate history entries (gh-483)
 - Updated most_recent to work with excluded_fields (gh-477)
 - Fixed bug that prevented self-referential foreign key from using ``'self'`` (gh-513)
 - Added ability to track custom user with explicit custom ``history_user_id_field`` (gh-511)
 - Don't resolve relationships for history objects (gh-479)
 - Reorganization of docs (gh-510)
+
+\* NOTE: This change was not backward compatible for users using routers to write
+history tables to a separate database from their base tables. This issue is fixed in
+2.7.1.
 
 2.6.0 (2018-12-12)
 ------------------

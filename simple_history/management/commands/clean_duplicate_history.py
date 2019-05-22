@@ -74,7 +74,8 @@ class Command(populate_history.Command):
 
     def _process_instance(self, instance, model, stop_date=None, dry_run=True):
         entries_deleted = 0
-        o_qs = instance.history.all()
+        history = utils.get_history_manager_for_model(instance)
+        o_qs = history.all()
         if stop_date:
             # to compare last history match
             extra_one = o_qs.filter(history_date__lte=stop_date).first()
