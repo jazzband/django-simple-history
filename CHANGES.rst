@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Fixed most_recent() bug with excluded_fields (gh-561)
+
+
 2.7.2 (2019-04-17)
 ------------------
 - Fixed ModuleNotFound issue for `six` (gh-553)
