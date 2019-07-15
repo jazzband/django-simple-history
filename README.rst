@@ -40,6 +40,7 @@ This app supports the following combinations of Django and Python:
 1.11        2.7, 3.4, 3.5, 3.6, 3.7
 2.0         3.4, 3.5, 3.6, 3.7
 2.1         3.5, 3.6, 3.7
+2.2         3.5, 3.6, 3.7
 ==========  =======================
 
 Getting Help
