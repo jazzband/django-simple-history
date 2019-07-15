@@ -1,8 +1,8 @@
 Changes
 =======
 
-Unreleased
-----------
+2.7.3 (2019-07-15)
+------------------
 - Fixed BigAutoField not mirrored as BigInt (gh-556)
 - Fixed most_recent() bug with excluded_fields (gh-561)
 - Added official Django 2.2 support (gh-555)
