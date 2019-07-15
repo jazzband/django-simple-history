@@ -28,6 +28,15 @@ installed_apps = [
     'django.contrib.messages',
 ]
 
+
+class DisableMigrations:
+    def __contains__(self, item):
+        return True
+
+    def __getitem__(self, item):
+        return None
+
+
 DEFAULT_SETTINGS = dict(
     ALLOWED_HOSTS=['localhost'],
     AUTH_USER_MODEL='custom_user.CustomUser',
@@ -43,6 +52,7 @@ DEFAULT_SETTINGS = dict(
             'ENGINE': 'django.db.backends.sqlite3',
         }
     },
+    MIGRATION_MODULES=DisableMigrations(),
     TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
