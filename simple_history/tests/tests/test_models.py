@@ -1251,7 +1251,7 @@ class ExtraFieldsStaticIPAddressTestCase(TestCase):
 
         poll_history = poll.history.first()
 
-        self.assertEquals("192.168.0.1", poll_history.ip_address)
+        self.assertEqual("192.168.0.1", poll_history.ip_address)
 
     def test_extra_ip_address_field_not_present_on_poll(self):
         poll = PollWithHistoricalIPAddress.objects.create(
@@ -1321,7 +1321,11 @@ class MultiDBWithUsingTest(TestCase):
     keyword argument in `save()`.
     """
 
-    multi_db = True
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
+        multi_db = True
+
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
@@ -1441,6 +1445,9 @@ class ForeignKeyToSelfTest(TestCase):
 
 @override_settings(**database_router_override_settings)
 class MultiDBExplicitHistoryUserIDTest(TestCase):
+    if django.VERSION >= (2, 2):
+        databases = {"default", "other"}
+
     def setUp(self):
         self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
@@ -1570,7 +1577,10 @@ class RelatedNameTest(TestCase):
 
 @override_settings(**database_router_override_settings_history_in_diff_db)
 class SaveHistoryInSeparateDatabaseTestCase(TestCase):
-    multi_db = True
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
+        multi_db = True
 
     def setUp(self):
         self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")

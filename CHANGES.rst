@@ -5,7 +5,7 @@ Unreleased
 ----------
 - Fixed BigAutoField not mirrored as BigInt (gh-556)
 - Fixed most_recent() bug with excluded_fields (gh-561)
-
+- Added official Django 2.2 support (gh-555)
 
 2.7.2 (2019-04-17)
 ------------------
