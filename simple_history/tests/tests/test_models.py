@@ -1185,6 +1185,18 @@ class ExcludeFieldsTest(TestCase):
         original = historical.instance
         self.assertEqual(original.pub_date, poll.pub_date)
 
+    def test_get_default_values_for_excluded_fields(self):
+        poll = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        historical = poll.history.order_by("pk")[0]
+        poll.delete()
+        original = historical.instance
+        self.assertEqual(
+            original.pub_date,
+            PollWithExcludeFields._meta.get_field("pub_date").get_default(),
+        )
+
 
 class ExcludeForeignKeyTest(TestCase):
     def setUp(self):
