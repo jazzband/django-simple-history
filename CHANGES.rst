@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
+
 2.7.3 (2019-07-15)
 ------------------
 - Fixed BigAutoField not mirrored as BigInt (gh-556)

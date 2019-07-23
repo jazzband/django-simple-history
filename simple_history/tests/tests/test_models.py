@@ -75,6 +75,7 @@ from ..models import (
     Poll,
     PollInfo,
     PollWithExcludeFields,
+    PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
     PollWithHistoricalIPAddress,
     Province,
@@ -1184,6 +1185,29 @@ class ExcludeFieldsTest(TestCase):
             historical.pub_date
         original = historical.instance
         self.assertEqual(original.pub_date, poll.pub_date)
+
+
+class ExcludeFieldsForDeletedObjectTest(TestCase):
+    def setUp(self):
+        self.poll = PollWithExcludedFieldsWithDefaults.objects.create(
+            question="what's up?", pub_date=today, max_questions=12
+        )
+        self.historical = self.poll.history.order_by("pk")[0]
+        self.poll.delete()
+
+    def test_restore_deleted_poll_exclude_fields(self):
+        original = self.historical.instance
+        # pub_date don't have default value so it will be None
+        self.assertIsNone(original.pub_date)
+        # same for max_questions
+        self.assertIsNone(original.max_questions)
+
+    def test_restore_deleted_poll_exclude_fields_with_defaults(self):
+        poll = self.poll
+        original = self.historical.instance
+        self.assertEqual(original.expiration_time, poll.expiration_time)
+        self.assertEqual(original.place, poll.place)
+        self.assertEqual(original.min_questions, poll.min_questions)
 
 
 class ExcludeForeignKeyTest(TestCase):

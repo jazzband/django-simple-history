@@ -11,6 +11,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers import serialize
 from django.db import models
 from django.db.models import Q
@@ -378,12 +379,16 @@ class HistoricalRecords(object):
                     model._meta.get_field(field).attname
                     for field in self._history_excluded_fields
                 ]
-                values = (
-                    model.objects.filter(pk=getattr(self, model._meta.pk.attname))
-                    .values(*excluded_attnames)
-                    .get()
-                )
-                attrs.update(values)
+                try:
+                    values = (
+                        model.objects.filter(pk=getattr(self, model._meta.pk.attname))
+                        .values(*excluded_attnames)
+                        .get()
+                    )
+                except ObjectDoesNotExist:
+                    pass
+                else:
+                    attrs.update(values)
             return model(**attrs)
 
         def get_next_record(self):
