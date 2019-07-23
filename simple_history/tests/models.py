@@ -482,6 +482,14 @@ class InheritTracking3(BaseInheritTracking3):
 class InheritTracking4(TrackedAbstractBaseA):
     pass
 
+class BasePlace(models.Model):
+    name = models.CharField(max_length=50)
+    history = HistoricalRecords(
+        inherit=True,
+    ) 
+
+class InheritedRestaurant(BasePlace):
+    serves_hot_dogs = models.BooleanField(default=False)
 
 class BucketMember(models.Model):
     name = models.CharField(max_length=30)
