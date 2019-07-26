@@ -485,9 +485,7 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class BasePlace(models.Model):
     name = models.CharField(max_length=50)
-    history = HistoricalRecords(
-        inherit=True,
-    )
+    history = HistoricalRecords(inherit=True)
 
 
 class InheritedRestaurant(BasePlace):
