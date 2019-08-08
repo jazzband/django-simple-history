@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Added support for bulk_create_with_history for databeses different from PostgreSQL (gh-577)
 - Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
 
 2.7.3 (2019-07-15)
