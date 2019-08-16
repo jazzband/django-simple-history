@@ -183,3 +183,12 @@ A few notes:
   fields from the parent model.
 - Updating a child instance only updates the child's history table, not the parent's
   history table.
+
+
+Usage with django-modeltranslation
+----------------------------------
+
+If you have ``django-modeltranslation`` installed, you will need to use the ``register()`` 
+method to model translation, as described `here`_.
+
+..  _here https://github.com/treyhunner/django-simple-history/issues/209#issuecomment-181676111
