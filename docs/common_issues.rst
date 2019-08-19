@@ -192,3 +192,16 @@ If you have ``django-modeltranslation`` installed, you will need to use the ``re
 method to model translation, as described `here`_.
 
 ..  _here https://github.com/treyhunner/django-simple-history/issues/209#issuecomment-181676111
+
+
+Pointing to the model
+---------------------
+
+Sometimes you have to point to the model of the historical records. Examples are Django's generic views or Django REST framework's serializers. You can get there through your HistoricalRecords manager you defined in your model. According to our example:
+
+.. code-block:: python
+
+    class PollHistoryListView(ListView): # or PollHistorySerializer(ModelSerializer):
+        class Meta:
+            model = Poll.history.model
+           # ...
