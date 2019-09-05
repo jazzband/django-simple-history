@@ -561,8 +561,8 @@ class HistoricalObjectDescriptor(object):
         self.fields_included = fields_included
 
     def __get__(self, instance, owner):
-        values = (getattr(instance, f.attname) for f in self.fields_included)
-        return self.model(*values)
+        values = {f.attname: getattr(instance, f.attname) for f in self.fields_included}
+        return self.model(**values)
 
 
 class HistoricalChanges(object):
