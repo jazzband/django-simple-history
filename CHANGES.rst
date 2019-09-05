@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 - Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
+- Use Django's `model_to_dict` instead of a custom implementation so
+  it detect changes in a parent model when using `inherit=True`
+  (gh-576)
 
 2.7.3 (2019-07-15)
 ------------------
