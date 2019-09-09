@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 - Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
+- Fix `model_to_dict` to detect changes in a parent model when using
+  `inherit=True` (backwards-incompatible for users who were directly
+  using previous version) (gh-576)
 
 2.7.3 (2019-07-15)
 ------------------

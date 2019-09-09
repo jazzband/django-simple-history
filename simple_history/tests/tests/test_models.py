@@ -35,6 +35,7 @@ from ..external.models import (
 from ..models import (
     AbstractBase,
     AdminProfile,
+    BasePlace,
     Book,
     Bookcase,
     BucketData,
@@ -62,6 +63,7 @@ from ..models import (
     HistoricalPoll,
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
+    InheritedRestaurant,
     OverrideModelNameAsCallable,
     OverrideModelNameUsingBaseModel1,
     MyOverrideModelNameRegisterMethod1,
@@ -593,6 +595,19 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         delta = new_record.diff_against(old_record)
         self.assertNotIn("pub_date", delta.changed_fields)
+
+    def test_history_diff_includes_changed_fields_of_base_model(self):
+        r = InheritedRestaurant.objects.create(name="McDonna", serves_hot_dogs=False)
+        # change base model field
+        r.name = "DonnutsKing"
+        r.save()
+        new_record, old_record = r.history.all()
+        delta = new_record.diff_against(old_record)
+        expected_change = ModelChange("name", "McDonna", "DonnutsKing")
+        self.assertEqual(delta.changed_fields, ["name"])
+        self.assertEqual(delta.old_record, old_record)
+        self.assertEqual(delta.new_record, new_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
 
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)

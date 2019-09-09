@@ -16,6 +16,7 @@ from django.core.serializers import serialize
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
+from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import format_lazy
@@ -30,10 +31,6 @@ from .signals import post_create_historical_record, pre_create_historical_record
 import json
 
 registered_models = {}
-
-
-def _model_to_dict(model):
-    return json.loads(serialize("json", [model]))[0]["fields"]
 
 
 def _default_get_user(request, **kwargs):
@@ -576,8 +573,8 @@ class HistoricalChanges(object):
 
         changes = []
         changed_fields = []
-        old_values = _model_to_dict(old_history.instance)
-        current_values = _model_to_dict(self.instance)
+        old_values = model_to_dict(old_history.instance)
+        current_values = model_to_dict(self.instance)
         for field, new_value in current_values.items():
             if field in old_values:
                 old_value = old_values[field]
