@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import uuid
+
 from django.apps import apps
 from django.conf import settings
 from django.db import models
@@ -9,7 +10,6 @@ from simple_history import register
 from simple_history.models import HistoricalRecords
 
 from .custom_user.models import CustomUser as User
-
 from .external.models import AbstractExternal
 from .external.models import AbstractExternal2
 from .external.models import AbstractExternal3
