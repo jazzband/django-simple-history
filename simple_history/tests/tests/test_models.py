@@ -1364,7 +1364,6 @@ class MultiDBWithUsingTest(TestCase):
         databases = {"default", "other"}
     else:
         multi_db = True
-
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):

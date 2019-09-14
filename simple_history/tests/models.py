@@ -2,15 +2,15 @@ from __future__ import unicode_literals
 
 import datetime
 import uuid
+
 from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
-
 from simple_history import register
 from simple_history.models import HistoricalRecords
-from .custom_user.models import CustomUser as User
 
+from .custom_user.models import CustomUser as User
 from .external.models import AbstractExternal
 from .external.models import AbstractExternal2
 from .external.models import AbstractExternal3
@@ -353,6 +353,14 @@ class Employee(models.Model):
 
 class Country(models.Model):
     code = models.CharField(max_length=15, unique=True)
+
+
+class Planet(models.Model):
+    star = models.CharField(max_length=30)
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return self.star
 
 
 class Province(models.Model):

@@ -1,3 +1,4 @@
+*.settings
 *.egg
 *.egg-info/
 *.eggs
@@ -7,6 +8,7 @@
 .tox/
 /.project
 /.pydevproject
+/.settings
 /.ve
 build/
 dist/

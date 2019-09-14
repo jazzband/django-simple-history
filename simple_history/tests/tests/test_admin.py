@@ -6,14 +6,12 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
-from django.utils.encoding import force_text
 from django_webtest import WebTest
 from mock import ANY, patch
-
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
-from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
-from simple_history.tests.tests.utils import middleware_override_settings
+
+from ..external.models import ExternalModelWithCustomUserIdField
 from ..models import (
     Book,
     BucketData,
@@ -22,10 +20,10 @@ from ..models import (
     ConcreteExternal,
     Employee,
     FileModel,
-    Person,
     Poll,
     State,
 )
+from .utils import middleware_override_settings
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -49,6 +47,19 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
 
 
+def login(testcase, user=None, superuser=None):
+    user = testcase.user if user is None else user
+    superuser = True if superuser is None else superuser
+    if not superuser:
+        user.is_superuser = False
+        user.is_active = True
+        user.save()
+    form = testcase.app.get(reverse("admin:index")).maybe_follow().form
+    form["username"] = user.username
+    form["password"] = "pass"
+    return form.submit()
+
+
 class AdminSiteTest(WebTest):
     def setUp(self):
         self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
@@ -59,13 +70,8 @@ class AdminSiteTest(WebTest):
         except AttributeError:
             pass
 
-    def login(self, user=None):
-        if user is None:
-            user = self.user
-        form = self.app.get(reverse("admin:index")).maybe_follow().form
-        form["username"] = user.username
-        form["password"] = "pass"
-        return form.submit()
+    def login(self, user=None, superuser=None):
+        return login(self, user, superuser)
 
     def test_history_list(self):
         model_name = self.user._meta.model_name
@@ -133,16 +139,6 @@ class AdminSiteTest(WebTest):
         resp = self.app.get(get_history_url(instance))
 
         self.assertEqual(200, resp.status_code)
-
-    def test_history_view_permission(self):
-        self.login()
-        person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person), status=403)
-
-    def test_history_form_permission(self):
-        self.login(self.user)
-        person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person, 0), status=403)
 
     def test_invalid_history_form(self):
         self.login()
@@ -360,6 +356,19 @@ class AdminSiteTest(WebTest):
         response = self.app.get(get_history_url(employee))
         self.assertEqual(response.status_code, 200)
 
+    def test_history_object_does_not_exist(self):
+        """Ensure history page redirects if object and it's history
+        do not exist."""
+        self.login()
+        employee = Employee.objects.create()
+        employee_pk = employee.pk
+        employee.delete()
+        employee.pk = employee_pk
+        Employee.history.all().delete()
+        response = self.app.get(get_history_url(employee))
+        self.assertEqual(response.status_code, 302)
+
+    @override_settings(SIMPLE_HISTORY_EDIT=True)
     def test_response_change(self):
         """
         Test the response_change method that it works with a _change_history
@@ -378,8 +387,7 @@ class AdminSiteTest(WebTest):
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
-        with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", True):
-            response = admin.response_change(request, poll)
+        response = admin.response_change(request, poll)
 
         self.assertEqual(response["Location"], "/awesome/url/")
 
@@ -402,7 +410,7 @@ class AdminSiteTest(WebTest):
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
-        response = admin.response_change(request, poll)
+        admin.response_change(request, poll)
 
         with patch("simple_history.admin.admin.ModelAdmin.response_change") as m_admin:
             m_admin.return_value = "it was called"
@@ -450,7 +458,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for original object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -463,9 +471,11 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": ANY,
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_revert_permission": admin.has_revert_permission(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -480,6 +490,7 @@ class AdminSiteTest(WebTest):
             request, admin.object_history_form_template, context
         )
 
+    @override_settings(SIMPLE_HISTORY_EDIT=True)
     def test_history_form_view_getting_history(self):
         request = RequestFactory().post("/")
         request.session = "session"
@@ -496,14 +507,13 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         with patch("simple_history.admin.render") as mock_render:
-            with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", True):
-                admin.history_form_view(request, poll.id, history.pk)
+            admin.history_form_view(request, poll.id, history.pk)
 
         context = {
             # Verify this is set for history object not poll object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -516,9 +526,11 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/{pk}/history/".format(pk=poll.pk),
             "add": False,
             "change": True,
+            "has_view_permission": ANY,
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_revert_permission": admin.has_revert_permission(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -549,14 +561,13 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         with patch("simple_history.admin.render") as mock_render:
-            with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", False):
-                admin.history_form_view(request, poll.id, history.pk)
+            admin.history_form_view(request, poll.id, history.pk)
 
         context = {
             # Verify this is set for history object not poll object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -569,9 +580,11 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": ANY,
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_revert_permission": admin.has_revert_permission(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -586,6 +599,7 @@ class AdminSiteTest(WebTest):
             request, admin.object_history_form_template, context
         )
 
+    @override_settings(SIMPLE_HISTORY_EDIT=True)
     def test_history_form_view_getting_history_abstract_external(self):
         request = RequestFactory().post("/")
         request.session = "session"
@@ -602,14 +616,13 @@ class AdminSiteTest(WebTest):
         admin = SimpleHistoryAdmin(ConcreteExternal, admin_site)
 
         with patch("simple_history.admin.render") as mock_render:
-            with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", True):
-                admin.history_form_view(request, obj.id, history.pk)
+            admin.history_form_view(request, obj.id, history.pk)
 
         context = {
             # Verify this is set for history object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": ANY,
             "adminform": ANY,
             "object_id": obj.id,
             "is_popup": False,
@@ -624,9 +637,11 @@ class AdminSiteTest(WebTest):
             ),
             "add": False,
             "change": True,
+            "has_view_permission": ANY,
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, obj),
             "has_delete_permission": admin.has_delete_permission(request, obj),
+            "has_revert_permission": admin.has_revert_permission(request, obj),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -668,7 +683,7 @@ class AdminSiteTest(WebTest):
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": ANY,
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -681,9 +696,11 @@ class AdminSiteTest(WebTest):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
+            "has_view_permission": ANY,
             "has_add_permission": admin.has_add_permission(request),
             "has_change_permission": admin.has_change_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_revert_permission": admin.has_revert_permission(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
