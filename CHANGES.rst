@@ -1,10 +1,11 @@
 Changes
 =======
 
+2.7.3 (2019-07-15)
+------------------
+- Fixed BigAutoField not mirrored as BigInt (gh-556)
 - Fixed most_recent() bug with excluded_fields (gh-561)
-- Add support for historical model permissions, including DJ2.1 view permission (gh-529)
-- Add option to disable a user's, or all user's, ability to "revert" to previous version (gh-529)
-
+- Added official Django 2.2 support (gh-555)
 
 2.7.2 (2019-04-17)
 ------------------

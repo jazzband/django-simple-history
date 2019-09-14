@@ -35,6 +35,7 @@ from ..external.models import (
 from ..models import (
     AbstractBase,
     AdminProfile,
+    BasePlace,
     Book,
     Bookcase,
     BucketData,
@@ -62,6 +63,7 @@ from ..models import (
     HistoricalPoll,
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
+    InheritedRestaurant,
     OverrideModelNameAsCallable,
     OverrideModelNameUsingBaseModel1,
     MyOverrideModelNameRegisterMethod1,
@@ -75,6 +77,7 @@ from ..models import (
     Poll,
     PollInfo,
     PollWithExcludeFields,
+    PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
     PollWithHistoricalIPAddress,
     Province,
@@ -592,6 +595,19 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         delta = new_record.diff_against(old_record)
         self.assertNotIn("pub_date", delta.changed_fields)
+
+    def test_history_diff_includes_changed_fields_of_base_model(self):
+        r = InheritedRestaurant.objects.create(name="McDonna", serves_hot_dogs=False)
+        # change base model field
+        r.name = "DonnutsKing"
+        r.save()
+        new_record, old_record = r.history.all()
+        delta = new_record.diff_against(old_record)
+        expected_change = ModelChange("name", "McDonna", "DonnutsKing")
+        self.assertEqual(delta.changed_fields, ["name"])
+        self.assertEqual(delta.old_record, old_record)
+        self.assertEqual(delta.new_record, new_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
 
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
@@ -1186,6 +1202,29 @@ class ExcludeFieldsTest(TestCase):
         self.assertEqual(original.pub_date, poll.pub_date)
 
 
+class ExcludeFieldsForDeletedObjectTest(TestCase):
+    def setUp(self):
+        self.poll = PollWithExcludedFieldsWithDefaults.objects.create(
+            question="what's up?", pub_date=today, max_questions=12
+        )
+        self.historical = self.poll.history.order_by("pk")[0]
+        self.poll.delete()
+
+    def test_restore_deleted_poll_exclude_fields(self):
+        original = self.historical.instance
+        # pub_date don't have default value so it will be None
+        self.assertIsNone(original.pub_date)
+        # same for max_questions
+        self.assertIsNone(original.max_questions)
+
+    def test_restore_deleted_poll_exclude_fields_with_defaults(self):
+        poll = self.poll
+        original = self.historical.instance
+        self.assertEqual(original.expiration_time, poll.expiration_time)
+        self.assertEqual(original.place, poll.place)
+        self.assertEqual(original.min_questions, poll.min_questions)
+
+
 class ExcludeForeignKeyTest(TestCase):
     def setUp(self):
         self.poll = PollWithExcludedFKField.objects.create(
@@ -1251,7 +1290,7 @@ class ExtraFieldsStaticIPAddressTestCase(TestCase):
 
         poll_history = poll.history.first()
 
-        self.assertEquals("192.168.0.1", poll_history.ip_address)
+        self.assertEqual("192.168.0.1", poll_history.ip_address)
 
     def test_extra_ip_address_field_not_present_on_poll(self):
         poll = PollWithHistoricalIPAddress.objects.create(
@@ -1321,7 +1360,10 @@ class MultiDBWithUsingTest(TestCase):
     keyword argument in `save()`.
     """
 
-    databases = "__all__"
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
+        multi_db = True
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
@@ -1441,6 +1483,9 @@ class ForeignKeyToSelfTest(TestCase):
 
 @override_settings(**database_router_override_settings)
 class MultiDBExplicitHistoryUserIDTest(TestCase):
+    if django.VERSION >= (2, 2):
+        databases = {"default", "other"}
+
     def setUp(self):
         self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
@@ -1570,7 +1615,10 @@ class RelatedNameTest(TestCase):
 
 @override_settings(**database_router_override_settings_history_in_diff_db)
 class SaveHistoryInSeparateDatabaseTestCase(TestCase):
-    databases = "__all__"
+    if django.VERSION >= (2, 2, 0, "final"):
+        databases = {"default", "other"}
+    else:
+        multi_db = True
 
     def setUp(self):
         self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core import management
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from six.moves import cStringIO as StringIO
 
 from simple_history import exceptions, register
@@ -206,6 +206,7 @@ class TestCustomAttrForeignKey(TestCase):
         self.assertEqual(field.attr_name, "custom_poll")
 
 
+@override_settings(MIGRATION_MODULES={})
 class TestMigrate(TestCase):
     def test_makemigration_command(self):
         management.call_command(

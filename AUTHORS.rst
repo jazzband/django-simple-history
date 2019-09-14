@@ -58,6 +58,7 @@ Authors
 - Leticia Portella
 - Lucas Wiman
 - Maciej "RooTer" Urbański
+- Marcelo Canina (`marcanuy <https://github.com/marcanuy>`_)
 - Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
@@ -87,6 +88,7 @@ Authors
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
 - `vnagendra <https://github.com/vnagendra>`_
+- `yakimka <https://github.com/yakimka>`_
 
 Background
 ==========

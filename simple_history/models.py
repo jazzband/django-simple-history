@@ -11,10 +11,12 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers import serialize
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
+from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import format_lazy
@@ -29,10 +31,6 @@ from .signals import post_create_historical_record, pre_create_historical_record
 import json
 
 registered_models = {}
-
-
-def _model_to_dict(model):
-    return json.loads(serialize("json", [model]))[0]["fields"]
 
 
 def _default_get_user(request, **kwargs):
@@ -378,12 +376,16 @@ class HistoricalRecords(object):
                     model._meta.get_field(field).attname
                     for field in self._history_excluded_fields
                 ]
-                values = (
-                    model.objects.filter(pk=getattr(self, model._meta.pk.attname))
-                    .values(*excluded_attnames)
-                    .get()
-                )
-                attrs.update(values)
+                try:
+                    values = (
+                        model.objects.filter(pk=getattr(self, model._meta.pk.attname))
+                        .values(*excluded_attnames)
+                        .get()
+                    )
+                except ObjectDoesNotExist:
+                    pass
+                else:
+                    attrs.update(values)
             return model(**attrs)
 
         def get_next_record(self):
@@ -528,7 +530,9 @@ class HistoricalRecords(object):
 def transform_field(field):
     """Customize field appropriately for use in historical model"""
     field.name = field.attname
-    if isinstance(field, models.AutoField):
+    if isinstance(field, models.BigAutoField):
+        field.__class__ = models.BigIntegerField
+    elif isinstance(field, models.AutoField):
         field.__class__ = models.IntegerField
 
     elif isinstance(field, models.FileField):
@@ -569,8 +573,8 @@ class HistoricalChanges(object):
 
         changes = []
         changed_fields = []
-        old_values = _model_to_dict(old_history.instance)
-        current_values = _model_to_dict(self.instance)
+        old_values = model_to_dict(old_history.instance)
+        current_values = model_to_dict(self.instance)
         for field, new_value in current_values.items():
             if field in old_values:
                 old_value = old_values[field]

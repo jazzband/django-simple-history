@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import datetime
 import uuid
 
 from django.apps import apps
@@ -33,6 +34,25 @@ class PollWithExcludeFields(models.Model):
     place = models.TextField(null=True)
 
     history = HistoricalRecords(excluded_fields=["pub_date"])
+
+
+class PollWithExcludedFieldsWithDefaults(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    expiration_time = models.DateField(default=datetime.date(2030, 12, 12))
+    place = models.TextField(null=True)
+    min_questions = models.PositiveIntegerField(default=1)
+    max_questions = models.PositiveIntegerField()
+
+    history = HistoricalRecords(
+        excluded_fields=[
+            "pub_date",
+            "expiration_time",
+            "place",
+            "min_questions",
+            "max_questions",
+        ]
+    )
 
 
 class PollWithExcludedFKField(models.Model):
@@ -469,6 +489,15 @@ class InheritTracking3(BaseInheritTracking3):
 
 class InheritTracking4(TrackedAbstractBaseA):
     pass
+
+
+class BasePlace(models.Model):
+    name = models.CharField(max_length=50)
+    history = HistoricalRecords(inherit=True)
+
+
+class InheritedRestaurant(BasePlace):
+    serves_hot_dogs = models.BooleanField(default=False)
 
 
 class BucketMember(models.Model):
