@@ -1321,7 +1321,7 @@ class MultiDBWithUsingTest(TestCase):
     keyword argument in `save()`.
     """
 
-    multi_db = True
+    databases = "__all__"
     db_name = "other"
 
     def test_multidb_with_using_not_on_default(self):
@@ -1570,7 +1570,7 @@ class RelatedNameTest(TestCase):
 
 @override_settings(**database_router_override_settings_history_in_diff_db)
 class SaveHistoryInSeparateDatabaseTestCase(TestCase):
-    multi_db = True
+    databases = "__all__"
 
     def setUp(self):
         self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")
