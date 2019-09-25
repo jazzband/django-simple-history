@@ -44,4 +44,4 @@ release: dist
 	twine upload dist/*
 
 format:
-	black simple_history
+	black simple_history setup.py runtests.py

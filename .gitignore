@@ -5,6 +5,7 @@
 .coverage
 .idea
 .tox/
+.venv/
 /.project
 /.pydevproject
 /.ve
