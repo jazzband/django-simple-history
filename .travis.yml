@@ -25,8 +25,8 @@ install:
 
 script:
   - flake8 simple_history
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --check simple_history; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then black --check simple_history; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --check simple_history setup.py runtests.py; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then black --check simple_history setup.py runtests.py; fi
   - coverage run setup.py test
 
 matrix:
