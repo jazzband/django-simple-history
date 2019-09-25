@@ -10,22 +10,20 @@ from django.test.runner import DiscoverRunner
 
 sys.path.insert(0, abspath(dirname(__file__)))
 
-media_root = join(abspath(dirname(__file__)), 'test_files')
+media_root = join(abspath(dirname(__file__)), "test_files")
 rmtree(media_root, ignore_errors=True)
 
 installed_apps = [
-    'simple_history.tests',
-    'simple_history.tests.custom_user',
-    'simple_history.tests.external',
-    'simple_history.registry_tests.migration_test_app',
-
-    'simple_history',
-
-    'django.contrib.contenttypes',
-    'django.contrib.auth',
-    'django.contrib.sessions',
-    'django.contrib.admin',
-    'django.contrib.messages',
+    "simple_history.tests",
+    "simple_history.tests.custom_user",
+    "simple_history.tests.external",
+    "simple_history.registry_tests.migration_test_app",
+    "simple_history",
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.admin",
+    "django.contrib.messages",
 ]
 
 
@@ -38,42 +36,40 @@ class DisableMigrations:
 
 
 DEFAULT_SETTINGS = dict(
-    ALLOWED_HOSTS=['localhost'],
-    AUTH_USER_MODEL='custom_user.CustomUser',
-    ROOT_URLCONF='simple_history.tests.urls',
+    ALLOWED_HOSTS=["localhost"],
+    AUTH_USER_MODEL="custom_user.CustomUser",
+    ROOT_URLCONF="simple_history.tests.urls",
     MEDIA_ROOT=media_root,
-    STATIC_URL='/static/',
+    STATIC_URL="/static/",
     INSTALLED_APPS=installed_apps,
     DATABASES={
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-        },
-        'other': {
-            'ENGINE': 'django.db.backends.sqlite3',
-        }
+        "default": {"ENGINE": "django.db.backends.sqlite3"},
+        "other": {"ENGINE": "django.db.backends.sqlite3"},
     },
     MIGRATION_MODULES=DisableMigrations(),
-    TEMPLATES=[{
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ]
-        },
-    }],
+    TEMPLATES=[
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+            "OPTIONS": {
+                "context_processors": [
+                    "django.contrib.auth.context_processors.auth",
+                    "django.contrib.messages.context_processors.messages",
+                ]
+            },
+        }
+    ],
 )
 MIDDLEWARE = [
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
 ]
 
-if django.__version__ >= '2.0':
-    DEFAULT_SETTINGS['MIDDLEWARE'] = MIDDLEWARE
+if django.__version__ >= "2.0":
+    DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 else:
-    DEFAULT_SETTINGS['MIDDLEWARE_CLASSES'] = MIDDLEWARE
+    DEFAULT_SETTINGS["MIDDLEWARE_CLASSES"] = MIDDLEWARE
 
 
 def main():
@@ -81,8 +77,10 @@ def main():
     if not settings.configured:
         settings.configure(**DEFAULT_SETTINGS)
     django.setup()
-    failures = DiscoverRunner(failfast=False).run_tests(['simple_history.tests'])
-    failures |= DiscoverRunner(failfast=False).run_tests(['simple_history.registry_tests'])
+    failures = DiscoverRunner(failfast=False).run_tests(["simple_history.tests"])
+    failures |= DiscoverRunner(failfast=False).run_tests(
+        ["simple_history.registry_tests"]
+    )
     sys.exit(failures)
 
 
