@@ -7,16 +7,19 @@
 
 {% block content %}
   <div id="content-main">
-
-    <p>{% blocktrans %}Choose a date from the list below to revert to a previous version of this object.{% endblocktrans %}</p>
+      {% if has_revert_permission %}
+        <p>{% blocktrans %}
+          Choose a date from the list below to revert to a previous
+          version of this object.{% endblocktrans %}
+        </p>
+      {% endif %}
 
     <div class="module">
-      {% if action_list %}
-        {% display_list %}
-      {% else %}
-        <p>{% trans "This object doesn't have a change history." %}</p>
-      {% endif %}
+        {% if action_list %}
+            {% display_list %}
+        {% else %}
+          <p>{% trans "This object doesn't have a change history." %}</p>
+        {% endif %}
     </div>
   </div>
 {% endblock %}
-

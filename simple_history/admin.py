@@ -20,6 +20,9 @@ from . import utils
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
+SIMPLE_HISTORY_REVERT_DISABLED = getattr(
+    settings, "SIMPLE_HISTORY_REVERT_DISABLED", False
+)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
@@ -79,8 +82,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             content_type.app_label,
             content_type.model,
         )
+
+        title = (
+            _("Change history: %s")
+            if self.has_revert_permission(request, obj)
+            else _("View history: %s")
+        )
+
         context = {
-            "title": _("Change history: %s") % force_text(obj),
+            "title": title % force_text(obj),
             "action_list": action_list,
             "module_name": capfirst(force_text(opts.verbose_name_plural)),
             "object": obj,
@@ -89,6 +99,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
+            "has_revert_permission": self.has_revert_permission(request, obj),
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
@@ -166,8 +177,11 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
+        title = (
+            _("Revert %s") if self.has_revert_permission(request, obj) else _("View %s")
+        )
         context = {
-            "title": _("Revert %s") % force_text(obj),
+            "title": title % force_text(obj),
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -186,6 +200,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "has_add_permission": self.has_add_permission(request),
             "has_change_permission": self.has_change_permission(request, obj),
             "has_delete_permission": self.has_delete_permission(request, obj),
+            "has_revert_permission": self.has_revert_permission(request, obj),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -205,6 +220,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     def render_history_view(self, request, template, context, **kwargs):
         """Catch call to render, to allow overriding."""
         return render(request, template, context, **kwargs)
+
+    def has_revert_permission(self, request, obj):
+        if SIMPLE_HISTORY_REVERT_DISABLED:
+            # Only superusers can revert if revert is disabled
+            return request.user.is_superuser
+
+        # Users who can change the base model can revert to old versions of the model
+        return self.has_change_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""

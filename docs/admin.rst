@@ -68,3 +68,15 @@ admin class
 
 
 .. image:: screens/5_history_list_display.png
+
+
+Disable Revert
+~~~~~~~~~~~~~~
+
+By default, a user with ``change`` permission may revert a model instance to a previous
+version in the history. To disable the revert feature globally (except for
+a ``superuser``) add the following to your ``settings`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_REVERT_DISABLED = True
