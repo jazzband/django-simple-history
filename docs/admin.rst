@@ -68,3 +68,41 @@ admin class
 
 
 .. image:: screens/5_history_list_display.png
+
+
+Permissions
+~~~~~~~~~~~
+
+This feature is disabled by default. To enable, use ``django`` 2.1 or greater and add the following to your ``settings`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_PERMISSIONS_ENABLED = True
+
+Using Django's simple permissions system, you can assign historical model permission to specific users and groups of users in the same way as you do for other models.
+
+If you are using ``Django 2.1`` or greater, the new ``view`` permission is particularly useful. Suppose you want to configure a user to have ``(`view`, `add`, `change`, `delete`)`` permissions for model ``Question``
+but do not want the user to be able to use the history of ``Question`` to revert back to a previous instance as described above.
+The solution is to assign only the ``view`` permission to the user for the historical model of ``Question``.
+
+.. image:: screens/10_permissions.png
+
+In doing this the user can still view the history for ``Question`` ...
+
+.. image:: screens/20_permissions.png
+
+but can no longer revert to a previous instance because the revert button has been removed.
+
+.. image:: screens/30_permissions.png
+
+
+
+Disable Revert
+~~~~~~~~~~~~~~
+
+By default, a user with ``change`` permission may revert a model instance to a previous version in the history. To disable the revert feature globally (except for  a ``superuser``) add the following to your ``settings`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_REVERT_DISABLED = True
+
