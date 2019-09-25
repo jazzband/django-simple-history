@@ -8,7 +8,10 @@ def update_change_reason(instance, reason):
     attrs = {}
     model = type(instance)
     manager = instance if instance.id is not None else model
+    excluded_fields = getattr(model, "_history_excluded_fields", [])
     for field in instance._meta.fields:
+        if field.name in excluded_fields:
+            continue
         value = getattr(instance, field.attname)
         if field.primary_key is True:
             if value is not None:
