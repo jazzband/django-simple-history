@@ -112,3 +112,18 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
 
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Poll.history.count(), 0)
+
+    @patch("simple_history.utils.get_history_manager_for_model")
+    def test_bulk_create_no_ids_return(self, hist_manager_mock):
+        objects = [Place(id=1, name="Place 1")]
+        model = Mock(
+            objects=Mock(
+                bulk_create=Mock(return_value=[Place(name="Place 1")]),
+                filter=Mock(return_value=objects),
+            )
+        )
+        result = bulk_create_with_history(objects, model)
+        self.assertEqual(result, objects)
+        hist_manager_mock().bulk_history_create.assert_called_with(
+            objects, batch_size=None
+        )
