@@ -4,7 +4,13 @@ from django.utils.timezone import now
 from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
-from simple_history.tests.models import Document, Place, Poll, PollWithExcludeFields
+from simple_history.tests.models import (
+    Document,
+    Place,
+    Poll,
+    PollWithExcludeFields,
+    Street,
+)
 from simple_history.utils import bulk_create_with_history
 
 
@@ -62,6 +68,17 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
         self.assertEqual(PollWithExcludeFields.objects.count(), 5)
         self.assertEqual(PollWithExcludeFields.history.count(), 5)
+
+    def test_bulk_create_history_with_relation_name(self):
+        self.data = [
+            Street(name="Street 1"),
+            Street(name="Street 2"),
+            Street(name="Street 3"),
+            Street(name="Street 4"),
+        ]
+        bulk_create_with_history(self.data, Street)
+        self.assertEqual(Street.objects.count(), 4)
+        self.assertEqual(Street.log.count(), 4)
 
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
