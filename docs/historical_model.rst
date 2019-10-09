@@ -253,7 +253,7 @@ source model. This is possible by combining the ``bases`` functionality with the
         question = models.CharField(max_length=200)
         pub_date = models.DateTimeField('date published')
 
-        history = HistoricalRecords(bases=[IPAddressHistoricalModel,]
+        history = HistoricalRecords(bases=[IPAddressHistoricalModel,])
 
 
 .. code-block:: python

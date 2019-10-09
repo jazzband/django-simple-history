@@ -38,6 +38,7 @@ Authors
 - George Vilches
 - Gregory Bataille
 - Grzegorz Bialy
+- Guillermo Eijo (`guilleijo <https://github.com/guilleijo>`_)
 - Hamish Downer
 - Hanyin Zhang
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
