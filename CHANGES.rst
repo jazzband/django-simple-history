@@ -8,6 +8,7 @@ Unreleased
 - Fix `model_to_dict` to detect changes in a parent model when using
   `inherit=True` (backwards-incompatible for users who were directly
   using previous version) (gh-576)
+- Added index on ``history_date`` column
 
 2.7.3 (2019-07-15)
 ------------------
