@@ -22,6 +22,7 @@ Authors
 - Brian Dixon
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
 - Corey Bertram
+- Craig Maloney (`craigmaloney <https://github.com/craigmaloney>`_)
 - Damien Nozay
 - Daniel Gilge
 - Daniel Levy
