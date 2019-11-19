@@ -9,6 +9,7 @@ Unreleased
   `inherit=True` (backwards-incompatible for users who were directly
   using previous version) (gh-576)
 - Use an iterator for `clean_duplicate_history`
+- Add simple filtering if provided a minutes argument in `clean_duplicate_history`
 
 2.7.3 (2019-07-15)
 ------------------
