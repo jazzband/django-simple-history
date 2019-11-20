@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Fixed bulk_create_with_history support for HistoryRecords with `relation_name` attribute (gh-591)
 - Added support for bulk_create_with_history for databeses different from PostgreSQL (gh-577)
 - Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
 - Fix `model_to_dict` to detect changes in a parent model when using
