@@ -123,7 +123,7 @@ class HistoricalRecordsTest(TestCase):
     def test_create(self):
         p = Poll(question="what's up?", pub_date=today)
         p.save()
-        record, = p.history.all()
+        (record,) = p.history.all()
         self.assertRecordValues(
             record,
             Poll,
