@@ -22,9 +22,11 @@ class AsOfTest(TestCase):
         self.obj.changed_by = user
         self.obj.save()
         self.model.objects.all().delete()  # allows us to leave PK on instance
-        self.delete_history, self.change_history, self.create_history = (
-            self.model.history.all()
-        )
+        (
+            self.delete_history,
+            self.change_history,
+            self.create_history,
+        ) = self.model.history.all()
         self.create_history.history_date = self.now - timedelta(days=2)
         self.create_history.save()
         self.change_history.history_date = self.now - timedelta(days=1)

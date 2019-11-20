@@ -69,7 +69,7 @@ class Command(populate_history.Command):
             # have changes (in the given period) but
             # `m_qs.values(model._meta.pk.name).distinct()`
             # is actually slower than looping all and filtering in the code...
-            for o in model.objects.all():
+            for o in model.objects.iterator():
                 self._process_instance(o, model, stop_date=stop_date, dry_run=dry_run)
 
     def _process_instance(self, instance, model, stop_date=None, dry_run=True):
