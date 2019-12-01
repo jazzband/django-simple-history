@@ -2,33 +2,36 @@ from __future__ import unicode_literals
 
 import copy
 import importlib
-import six
 import threading
 import uuid
 import warnings
 
+import django
+import six
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.serializers import serialize
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import format_lazy
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
-
 from simple_history import utils
 from . import exceptions
 from .manager import HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
 
-import json
+if django.VERSION < (2,):
+    from django.utils.translation import ugettext_lazy as _
+    from django.utils.encoding import smart_text as smart_str
+    from django.utils.encoding import python_2_unicode_compatible
+else:
+    from django.utils.translation import gettext_lazy as _
+    from django.utils.encoding import smart_str
 
 registered_models = {}
 
@@ -223,7 +226,12 @@ class HistoricalRecords(object):
         name = self.get_history_model_name(model)
 
         registered_models[model._meta.db_table] = model
-        return python_2_unicode_compatible(type(str(name), self.bases, attrs))
+        history_model = type(str(name), self.bases, attrs)
+        return (
+            python_2_unicode_compatible(history_model)
+            if django.VERSION < (2,)
+            else history_model
+        )
 
     def fields_included(self, model):
         fields = []
@@ -448,7 +456,7 @@ class HistoricalRecords(object):
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
-            name = format_lazy("historical {}", smart_text(model._meta.verbose_name))
+            name = format_lazy("historical {}", smart_str(model._meta.verbose_name))
         meta_fields["verbose_name"] = name
         if self.app:
             meta_fields["app_label"] = self.app
