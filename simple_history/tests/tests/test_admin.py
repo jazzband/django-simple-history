@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
+
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
-from django.utils.encoding import force_text
-from django_webtest import WebTest
+import django
 from mock import ANY, patch
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -26,6 +27,11 @@ from ..models import (
     Poll,
     State,
 )
+
+if django.VERSION < (2,):
+    from django.utils.encoding import force_text as force_str
+else:
+    from django.utils.encoding import force_str
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)
@@ -49,7 +55,7 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
 
 
-class AdminSiteTest(WebTest):
+class AdminSiteTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
 
@@ -60,12 +66,7 @@ class AdminSiteTest(WebTest):
             pass
 
     def login(self, user=None):
-        if user is None:
-            user = self.user
-        form = self.app.get(reverse("admin:index")).maybe_follow().form
-        form["username"] = user.username
-        form["password"] = "pass"
-        return form.submit()
+        self.client.force_login(user or self.user)
 
     def test_history_list(self):
         model_name = self.user._meta.model_name
@@ -76,14 +77,14 @@ class AdminSiteTest(WebTest):
         poll._history_user = self.user
         poll.save()
 
-        response = self.app.get(get_history_url(poll))
-        self.assertIn(get_history_url(poll, 0), response.unicode_normal_body)
-        self.assertIn("Poll object", response.unicode_normal_body)
-        self.assertIn("Created", response.unicode_normal_body)
-        self.assertIn("Changed by", response.unicode_normal_body)
-        self.assertIn("Change reason", response.unicode_normal_body)
-        self.assertIn("A random test reason", response.unicode_normal_body)
-        self.assertIn(self.user.username, response.unicode_normal_body)
+        response = self.client.get(get_history_url(poll))
+        self.assertContains(response, get_history_url(poll, 0))
+        self.assertContains(response, "Poll object")
+        self.assertContains(response, "Created")
+        self.assertContains(response, "Changed by")
+        self.assertContains(response, "Change reason")
+        self.assertContains(response, "A random test reason")
+        self.assertContains(response, self.user.username)
 
     def test_history_list_custom_fields(self):
         model_name = self.user._meta.model_name
@@ -97,14 +98,14 @@ class AdminSiteTest(WebTest):
         choice.save()
         choice.votes = 15
         choice.save()
-        response = self.app.get(get_history_url(choice))
-        self.assertIn(get_history_url(choice, 0), response.unicode_normal_body)
-        self.assertIn("Choice object", response.unicode_normal_body)
-        self.assertIn("Created", response.unicode_normal_body)
-        self.assertIn(self.user.username, response.unicode_normal_body)
-        self.assertIn("votes", response.unicode_normal_body)
-        self.assertIn("12", response.unicode_normal_body)
-        self.assertIn("15", response.unicode_normal_body)
+        response = self.client.get(get_history_url(choice))
+        self.assertContains(response, get_history_url(choice, 0))
+        self.assertContains(response, "Choice object")
+        self.assertContains(response, "Created")
+        self.assertContains(response, self.user.username)
+        self.assertContains(response, "votes")
+        self.assertContains(response, "12")
+        self.assertContains(response, "15")
 
     def test_history_list_custom_admin_methods(self):
         model_name = self.user._meta.model_name
@@ -115,14 +116,14 @@ class AdminSiteTest(WebTest):
         file_model.save()
         file_model.title = "Title 2"
         file_model.save()
-        response = self.app.get(get_history_url(file_model))
-        self.assertIn(get_history_url(file_model, 0), response.unicode_normal_body)
-        self.assertIn("FileModel object", response.unicode_normal_body)
-        self.assertIn("Created", response.unicode_normal_body)
-        self.assertIn(self.user.username, response.unicode_normal_body)
-        self.assertIn("test_method_value", response.unicode_normal_body)
-        self.assertIn("Title 1", response.unicode_normal_body)
-        self.assertIn("Title 2", response.unicode_normal_body)
+        response = self.client.get(get_history_url(file_model))
+        self.assertContains(response, get_history_url(file_model, 0))
+        self.assertContains(response, "FileModel object")
+        self.assertContains(response, "Created")
+        self.assertContains(response, self.user.username)
+        self.assertContains(response, "test_method_value")
+        self.assertContains(response, "Title 1")
+        self.assertContains(response, "Title 2")
 
     def test_history_list_custom_user_id_field(self):
         instance = ExternalModelWithCustomUserIdField(name="random_name")
@@ -130,28 +131,26 @@ class AdminSiteTest(WebTest):
         instance.save()
 
         self.login()
-        resp = self.app.get(get_history_url(instance))
+        resp = self.client.get(get_history_url(instance))
 
         self.assertEqual(200, resp.status_code)
 
     def test_history_view_permission(self):
         self.login()
         person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person), status=403)
+        self.client.get(get_history_url(person), status=403)
 
     def test_history_form_permission(self):
         self.login(self.user)
         person = Person.objects.create(name="Sandra Hale")
-        self.app.get(get_history_url(person, 0), status=403)
+        self.client.get(get_history_url(person, 0), status=403)
 
     def test_invalid_history_form(self):
         self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
-        response = self.app.get(get_history_url(poll, 0))
-        response.form["question"] = ""
-        response = response.form.submit()
+        response = self.client.post(get_history_url(poll, 0), data={"question": ""})
         self.assertEqual(response.status_code, 200)
-        self.assertIn("This field is required", response.unicode_normal_body)
+        self.assertContains(response, "This field is required")
 
     def test_history_form(self):
         self.login()
@@ -160,33 +159,32 @@ class AdminSiteTest(WebTest):
         poll.save()
 
         # Make sure form for initial version is correct
-        response = self.app.get(get_history_url(poll, 0))
-        self.assertEqual(response.form["question"].value, "why?")
-        self.assertEqual(response.form["pub_date_0"].value, "2021-01-01")
-        self.assertEqual(response.form["pub_date_1"].value, "10:00:00")
+        response = self.client.get(get_history_url(poll, 0))
+        form = response.context.get("adminform").form
+        self.assertEqual(form["question"].value(), "why?")
+        self.assertEqual(form["pub_date"].value(), datetime(2021, 1, 1, 10, 0))
 
         # Create new version based on original version
-        response.form["question"] = "what?"
-        response.form["pub_date_0"] = "2021-01-02"
-        response = response.form.submit()
+        new_data = {
+            "pub_date_0": "2021-01-02",
+            "pub_date_1": "10:00:00",
+            "question": "what?",
+        }
+        response = self.client.post(get_history_url(poll, 0), data=new_data)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(
-            response.headers["location"].endswith(
-                reverse("admin:tests_poll_changelist")
-            )
-        )
+        self.assertTrue(response.url.endswith(reverse("admin:tests_poll_changelist")))
 
         # Ensure form for second version is correct
-        response = self.app.get(get_history_url(poll, 1))
-        self.assertEqual(response.form["question"].value, "how?")
-        self.assertEqual(response.form["pub_date_0"].value, "2021-01-01")
-        self.assertEqual(response.form["pub_date_1"].value, "10:00:00")
+        response = self.client.get(get_history_url(poll, 1))
+        form = response.context.get("adminform").form
+        self.assertEqual(form["question"].value(), "how?")
+        self.assertEqual(form["pub_date"].value(), datetime(2021, 1, 1, 10, 0))
 
         # Ensure form for new third version is correct
-        response = self.app.get(get_history_url(poll, 2))
-        self.assertEqual(response.form["question"].value, "what?")
-        self.assertEqual(response.form["pub_date_0"].value, "2021-01-02")
-        self.assertEqual(response.form["pub_date_1"].value, "10:00:00")
+        response = self.client.get(get_history_url(poll, 2))
+        form = response.context["adminform"].form
+        self.assertEqual(form["question"].value(), "what?")
+        self.assertEqual(form["pub_date"].value(), datetime(2021, 1, 2, 10, 0))
 
         # Ensure current version of poll is correct
         poll = Poll.objects.get()
@@ -200,16 +198,16 @@ class AdminSiteTest(WebTest):
         self.login()
 
         # Ensure polls created via admin interface save correct user
-        add_page = self.app.get(reverse("admin:tests_poll_add"))
-        add_page.form["question"] = "new poll?"
-        add_page.form["pub_date_0"] = "2012-01-01"
-        add_page.form["pub_date_1"] = "10:00:00"
-        changelist_page = add_page.form.submit().follow()
+        poll_data = {
+            "question": "new poll?",
+            "pub_date_0": "2012-01-01",
+            "pub_date_1": "10:00:00",
+        }
+        self.client.post(reverse("admin:tests_poll_add"), data=poll_data)
         self.assertEqual(Poll.history.get().history_user, self.user)
 
         # Ensure polls saved on edit page in admin interface save correct user
-        change_page = changelist_page.click("Poll object", index=1)
-        change_page.form.submit()
+        self.client.post(reverse("admin:tests_poll_add"), data=poll_data)
         self.assertEqual(
             [p.history_user for p in Poll.history.all()], [self.user, self.user]
         )
@@ -219,8 +217,8 @@ class AdminSiteTest(WebTest):
         book = Book(isbn="9780147_513731")
         book._history_user = self.user
         book.save()
-        response = self.app.get(get_history_url(book))
-        self.assertIn(book.history.all()[0].revert_url(), response.unicode_normal_body)
+        response = self.client.get(get_history_url(book))
+        self.assertContains(response, book.history.all()[0].revert_url())
 
     def test_historical_user_no_setter(self):
         """Demonstrate admin error without `_historical_user` setter.
@@ -228,14 +226,13 @@ class AdminSiteTest(WebTest):
 
         """
         self.login()
-        add_page = self.app.get(reverse("admin:tests_document_add"))
-        self.assertRaises(AttributeError, add_page.form.submit)
+        with self.assertRaises(AttributeError):
+            self.client.post(reverse("admin:tests_document_add"))
 
     def test_historical_user_with_setter(self):
         """Documented work-around for #43"""
         self.login()
-        add_page = self.app.get(reverse("admin:tests_paper_add"))
-        add_page.form.submit()
+        self.client.post(reverse("admin:tests_paper_add"))
 
     def test_history_user_not_saved(self):
         self.login()
@@ -249,9 +246,9 @@ class AdminSiteTest(WebTest):
     @override_settings(**middleware_override_settings)
     def test_middleware_saves_user(self):
         self.login()
-        form = self.app.get(reverse("admin:tests_book_add")).form
-        form["isbn"] = "9780147_513731"
-        form.submit()
+        self.client.post(
+            reverse("admin:tests_book_add"), data={"isbn": "9780147_513731"}
+        )
         book = Book.objects.get()
         historical_book = book.history.all()[0]
 
@@ -264,7 +261,7 @@ class AdminSiteTest(WebTest):
     @override_settings(**middleware_override_settings)
     def test_middleware_unsets_request(self):
         self.login()
-        self.app.get(reverse("admin:tests_book_add"))
+        self.client.get(reverse("admin:tests_book_add"))
         self.assertFalse(hasattr(HistoricalRecords.thread, "request"))
 
     @override_settings(**middleware_override_settings)
@@ -273,7 +270,9 @@ class AdminSiteTest(WebTest):
         # happens, e.g. in test cases), and verifies that subsequently
         # creating a new entry does not fail with a foreign key error.
         self.login()
-        self.assertEqual(self.app.get(reverse("admin:tests_book_add")).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("admin:tests_book_add")).status_code, 200
+        )
 
         book = Book.objects.create(isbn="9780147_513731")
 
@@ -286,7 +285,7 @@ class AdminSiteTest(WebTest):
 
     @override_settings(**middleware_override_settings)
     def test_middleware_anonymous_user(self):
-        self.app.get(reverse("admin:index"))
+        self.client.get(reverse("admin:index"))
         poll = Poll.objects.create(question="why?", pub_date=today)
         historical_poll = poll.history.all()[0]
         self.assertEqual(
@@ -304,9 +303,9 @@ class AdminSiteTest(WebTest):
         self.login()
         state = State.objects.create()
         history_url = get_history_url(state, site="other_admin")
-        self.app.get(history_url)
+        self.client.get(history_url)
         change_url = get_history_url(state, 0, site="other_admin")
-        self.app.get(change_url)
+        self.client.get(change_url)
 
     def test_deleting_user(self):
         """Test deletes of a user does not cascade delete the history"""
@@ -347,7 +346,7 @@ class AdminSiteTest(WebTest):
         employee.manager = None
         employee.save()
         manager.delete()
-        response = self.app.get(get_history_url(employee, 0))
+        response = self.client.get(get_history_url(employee, 0))
         self.assertEqual(response.status_code, 200)
 
     def test_history_deleted_instance(self):
@@ -357,7 +356,7 @@ class AdminSiteTest(WebTest):
         employee_pk = employee.pk
         employee.delete()
         employee.pk = employee_pk
-        response = self.app.get(get_history_url(employee))
+        response = self.client.get(get_history_url(employee))
         self.assertEqual(response.status_code, 200)
 
     def test_response_change(self):
@@ -450,7 +449,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for original object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -503,7 +502,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": "Revert %s" % force_str(history.instance),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -556,7 +555,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object not poll object
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
@@ -609,7 +608,7 @@ class AdminSiteTest(WebTest):
             # Verify this is set for history object
             "original": history.instance,
             "change_history": True,
-            "title": "Revert %s" % force_text(history.instance),
+            "title": "Revert %s" % force_str(history.instance),
             "adminform": ANY,
             "object_id": obj.id,
             "is_popup": False,
@@ -668,7 +667,7 @@ class AdminSiteTest(WebTest):
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
-            "title": "Revert %s" % force_text(poll),
+            "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
             "object_id": poll.id,
             "is_popup": False,
