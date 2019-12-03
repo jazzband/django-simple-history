@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
+
 2.8.0 (2019-12-02)
 ------------------
 - Fixed `bulk_create_with_history support` for HistoryRecords with `relation_name` attribute (gh-591)
