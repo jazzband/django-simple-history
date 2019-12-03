@@ -1,10 +1,9 @@
 Changes
 =======
 
-TBD
----
-
-- Add simple filtering if provided a minutes argument in `clean_duplicate_history`
+Unreleased
+----------
+- Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
 
 2.8.0 (2019-12-02)
 ------------------
@@ -16,7 +15,6 @@ TBD
   using previous version) (gh-576)
 - Use an iterator for `clean_duplicate_history` (gh-604)
 - Add support for Python 3.8 and Django 3.0 (gh-610)
-
 
 2.7.3 (2019-07-15)
 ------------------

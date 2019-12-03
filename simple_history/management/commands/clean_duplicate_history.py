@@ -75,10 +75,6 @@ class Command(populate_history.Command):
                     pk__in=(m_qs.values_list(model._meta.pk.name).distinct())
                 )
 
-            # it would be great if we could just iterate over the instances that
-            # have changes (in the given period) but
-            # `m_qs.values(model._meta.pk.name).distinct()`
-            # is actually slower than looping all and filtering in the code...
             for o in model_query.iterator():
                 self._process_instance(o, model, stop_date=stop_date, dry_run=dry_run)
 
