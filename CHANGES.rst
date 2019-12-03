@@ -1,16 +1,21 @@
 Changes
 =======
 
-Unreleased
-----------
-- Fixed bulk_create_with_history support for HistoryRecords with `relation_name` attribute (gh-591)
-- Added support for bulk_create_with_history for databeses different from PostgreSQL (gh-577)
-- Fixed DoesNotExist error when trying to get instance if object is deleted (gh-571)
+TBD
+---
+
+- Add simple filtering if provided a minutes argument in `clean_duplicate_history`
+
+2.8.0 (2019-12-02)
+------------------
+- Fixed `bulk_create_with_history support` for HistoryRecords with `relation_name` attribute (gh-591)
+- Added support for `bulk_create_with_history` for databases different from PostgreSQL (gh-577)
+- Fixed `DoesNotExist` error when trying to get instance if object is deleted (gh-571)
 - Fix `model_to_dict` to detect changes in a parent model when using
   `inherit=True` (backwards-incompatible for users who were directly
   using previous version) (gh-576)
-- Use an iterator for `clean_duplicate_history`
-- Add simple filtering if provided a minutes argument in `clean_duplicate_history`
+- Use an iterator for `clean_duplicate_history` (gh-604)
+- Add support for Python 3.8 and Django 3.0 (gh-610)
 
 
 2.7.3 (2019-07-15)

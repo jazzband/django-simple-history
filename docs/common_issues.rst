@@ -188,10 +188,8 @@ A few notes:
 Usage with django-modeltranslation
 ----------------------------------
 
-If you have ``django-modeltranslation`` installed, you will need to use the ``register()`` 
-method to model translation, as described `here`_.
-
-..  _here https://github.com/treyhunner/django-simple-history/issues/209#issuecomment-181676111
+If you have ``django-modeltranslation`` installed, you will need to use the ``register()``
+method to model translation, as described `here <https://github.com/treyhunner/django-simple-history/issues/209#issuecomment-181676111>`__.
 
 
 Pointing to the model
