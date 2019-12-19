@@ -109,6 +109,24 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class PollWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(m2m_fields=[places])
+
+
+class PollWithSeveralManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place", related_name="places_poll")
+    restaurants = models.ManyToManyField("Restaurant", related_name="restaurants_poll")
+    books = models.ManyToManyField("Book", related_name="books_poll")
+
+    history = HistoricalRecords(m2m_fields=[places, restaurants, books])
+
+
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)

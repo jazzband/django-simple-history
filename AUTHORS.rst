@@ -20,8 +20,9 @@ Authors
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
 - `bradford281 <https://github.com/bradford281>`_
 - Brian Armstrong (`barm <https://github.com/barm>`_)
-- Buddy Lindsey, Jr.
 - Brian Dixon
+- Brian Mesick (`bmedx <https://github.com/bmedx>`_)
+- Buddy Lindsey, Jr.
 - Carlos San Emeterio (`Carlos-San-Emeterio <https://github.com/Carlos-San-Emeterio>`_)
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
 - Christopher Johns (`tyrantwave <https://github.com/tyrantwave>`_)
