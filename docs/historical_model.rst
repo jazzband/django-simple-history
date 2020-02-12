@@ -386,3 +386,16 @@ or the record invocation: ``app="SomeAppName"``.
     register(Opinion, app="SomeAppName")
 
 
+`FileField` as a `CharField`
+----------------------------
+
+By default a ``FileField`` in the base model becomes a ``TextField`` in the history model.
+This is a historical choice that django-simple-history preserves for backwards
+compatibility; it is more correct for a ``FileField`` to be converted to a
+``CharField`` instead. To opt into the new behavior, set the following line in your
+``settings.py`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
+

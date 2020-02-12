@@ -545,7 +545,10 @@ def transform_field(field):
 
     elif isinstance(field, models.FileField):
         # Don't copy file, just path.
-        field.__class__ = models.TextField
+        if getattr(settings, "SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD", False):
+            field.__class__ = models.CharField
+        else:
+            field.__class__ = models.TextField
 
     # Historical instance shouldn't change create/update timestamps
     field.auto_now = False

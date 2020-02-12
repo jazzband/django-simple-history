@@ -42,6 +42,7 @@ from ..models import (
     BucketDataRegisterChangedBy,
     BucketMember,
     CharFieldChangeReasonModel,
+    CharFieldFileModel,
     Choice,
     City,
     ConcreteAttr,
@@ -310,6 +311,19 @@ class HistoricalRecordsTest(TestCase):
 
     def test_file_field(self):
         model = FileModel.objects.create(file=get_fake_file("name"))
+        self.assertEqual(model.file.name, "files/name")
+        model.file.delete()
+        update_record, create_record = model.history.all()
+        self.assertEqual(create_record.file, "files/name")
+        self.assertEqual(update_record.file, "")
+
+    def test_file_field_with_char_field_setting(self):
+        # setting means history table's file field is a CharField
+        file_field = CharFieldFileModel.history.model._meta.get_field("file")
+        self.assertIs(type(file_field), models.CharField)
+        self.assertEqual(file_field.max_length, 100)
+        # file field works the same as test_file_field()
+        model = CharFieldFileModel.objects.create(file=get_fake_file("name"))
         self.assertEqual(model.file.name, "files/name")
         model.file.delete()
         update_record, create_record = model.history.all()

@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 - Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
+- Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
 
 2.8.0 (2019-12-02)
 ------------------

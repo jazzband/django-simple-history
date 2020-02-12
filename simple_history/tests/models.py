@@ -192,6 +192,20 @@ class FileModel(models.Model):
     history = HistoricalRecords()
 
 
+# Set SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD
+setattr(settings, "SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD", True)
+
+
+class CharFieldFileModel(models.Model):
+    title = models.CharField(max_length=100)
+    file = models.FileField(upload_to="files")
+    history = HistoricalRecords()
+
+
+# Clear SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD
+delattr(settings, "SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD")
+
+
 class Document(models.Model):
     changed_by = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True
