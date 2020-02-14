@@ -203,3 +203,9 @@ Sometimes you have to point to the model of the historical records. Examples are
         class Meta:
             model = Poll.history.model
            # ...
+
+Working with BitBucket Pipelines
+--------------------------------
+
+When using BitBucket Pipelines to test your Django project with the
+django-simple-history middleware, you will run into an error relating to missing migrations relating to the historic User model from the auth app. This is because the migration file is not held within either your project or django-simple-history.  In order to pypass the error you need to add a ```python manage.py makemigrations auth``` step into your YML file prior to running the tests.
