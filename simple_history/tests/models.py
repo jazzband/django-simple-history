@@ -381,6 +381,14 @@ class City(models.Model):
     history = HistoricalRecords()
 
 
+class Planet(models.Model):
+    star = models.CharField(max_length=30)
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return self.star
+
+
 class Contact(models.Model):
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=255, unique=True)
@@ -576,7 +584,6 @@ class UUIDRegisterModel(models.Model):
 
 register(UUIDRegisterModel, history_id_field=models.UUIDField(default=uuid.uuid4))
 
-
 # Set the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
 setattr(settings, "SIMPLE_HISTORY_HISTORY_ID_USE_UUID", True)
 
@@ -588,7 +595,6 @@ class UUIDDefaultModel(models.Model):
 
 # Clear the SIMPLE_HISTORY_HISTORY_ID_USE_UUID
 delattr(settings, "SIMPLE_HISTORY_HISTORY_ID_USE_UUID")
-
 
 # Set the SIMPLE_HISTORY_HISTORY_CHANGE_REASON_FIELD
 setattr(settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD", True)
