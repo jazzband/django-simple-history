@@ -87,13 +87,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             content_type.app_label,
             content_type.model,
         )
-        if self.revert_permissions_enabled(request, obj):
-            title = _("Change history: %s")
-        else:
-            title = _("View history: %s")
 
         context = {
-            "title": title % force_str(obj),
+            "title": self.history_view_title(request, obj) % force_str(obj),
             "action_list": action_list,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
@@ -178,15 +174,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             model_admin=self,
         )
 
-        if self.revert_permissions_enabled(request, obj):
-            title = _("Revert %s")
-        else:
-            title = _("View %s")
-
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
-            "title": title % force_str(obj),
+            "title": self.history_form_view_title(request, obj) % force_str(obj),
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -310,3 +301,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     def content_type_model_cls(self):
         """Returns the ContentType model class."""
         return django_apps.get_model("contenttypes.contenttype")
+
+    def history_view_title(self, request, obj):
+        if self.revert_permissions_enabled(request, obj):
+            return _("Change history: %s")
+        else:
+            return _("View history: %s")
+
+    def history_form_view_title(self, request, obj):
+        if self.revert_permissions_enabled(request, obj):
+            return _("Revert %s")
+        else:
+            return _("View %s")
