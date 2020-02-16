@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import django
 
 from django.contrib.admin import AdminSite
@@ -8,7 +10,6 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import TestCase, tag
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
-# from django_webtest import WebTest
 from mock import ANY, patch
 from simple_history.admin import SimpleHistoryAdmin, USER_NATURAL_KEY
 from simple_history.models import HistoricalRecords
@@ -101,8 +102,9 @@ class AdminSiteTest(TestCase):
             "opts": ANY,
             "admin_user_view": admin_user_view,
             "history_list_display": getattr(admin, "history_list_display", []),
-            "has_change_permission": admin.has_change_permission(request, planet),
-            "has_revert_permission": admin.has_revert_permission(request, planet),
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, planet)
+            ),
         }
         context.update(admin_site.each_context(request))
         mock_render.assert_called_once_with(
@@ -116,8 +118,10 @@ class AdminSiteTest(TestCase):
         self.login(superuser=False)
         self.add_historical_view_permission("planet")
         planet = Planet.objects.create(star="Sun")
-        self.client.get(get_history_url(planet), status=403)
-        self.client.get(get_history_url(planet, 0), status=403)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(response.status_code, 403)
 
     @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
     def test_history_view__view_perms_enabled2(self):
@@ -126,8 +130,10 @@ class AdminSiteTest(TestCase):
         self.login(superuser=False)
         self.add_view_permission("planet")
         planet = Planet.objects.create(star="Sun")
-        self.client.get(get_history_url(planet), status=403)
-        self.client.get(get_history_url(planet, 0), status=403)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(response.status_code, 403)
 
     @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
     def test_history_view__view_perms_enabled3(self):
@@ -138,11 +144,15 @@ class AdminSiteTest(TestCase):
         self.add_historical_view_permission("planet")
         planet = Planet.objects.create(star="Sun")
         if django.VERSION >= (2, 1):
-            self.client.get(get_history_url(planet), status=200)
-            self.client.get(get_history_url(planet, 0), status=200)
+            response = self.client.get(get_history_url(planet))
+            self.assertEqual(response.status_code, 200)
+            response = self.client.get(get_history_url(planet, 0))
+            self.assertEqual(response.status_code, 200)
         else:
-            self.client.get(get_history_url(planet), status=403)
-            self.client.get(get_history_url(planet, 0), status=403)
+            response = self.client.get(get_history_url(planet))
+            self.assertEqual(response.status_code, 403)
+            response = self.client.get(get_history_url(planet, 0))
+            self.assertEqual(response.status_code, 403)
 
     @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
     def test_history_view__change_perms_enabled1(self):
@@ -151,8 +161,10 @@ class AdminSiteTest(TestCase):
         self.login(superuser=False)
         self.add_historical_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
-        self.client.get(get_history_url(planet), status=403)
-        self.client.get(get_history_url(planet, 0), status=403)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(response.status_code, 403)
 
     @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
     def test_history_view__change_perms_enabled2(self):
@@ -161,8 +173,10 @@ class AdminSiteTest(TestCase):
         self.login(superuser=False)
         self.add_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
-        self.client.get(get_history_url(planet), status=403)
-        self.client.get(get_history_url(planet, 0), status=403)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(response.status_code, 403)
 
     @override_settings(SIMPLE_HISTORY_PERMISSIONS_ENABLED=True)
     def test_history_view__change_perms_enabled3(self):
@@ -172,8 +186,10 @@ class AdminSiteTest(TestCase):
         self.add_change_permission("planet")
         self.add_historical_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
-        self.client.get(get_history_url(planet), status=200)
-        self.client.get(get_history_url(planet, 0), status=200)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(response.status_code, 200)
 
     def test_history_view__view_perms_enabled_title(self):
         self.login(superuser=False)
@@ -183,14 +199,15 @@ class AdminSiteTest(TestCase):
         if django.VERSION >= (2, 1):
             response = self.client.get(get_history_url(planet))
             self.assertContains(response, "View history")
-
-            response = self.client.get(get_history_url(planet, 0), status=200)
+            response = self.client.get(get_history_url(planet, 0))
             self.assertContains(response, "View Sun")
         else:
-            self.client.get(get_history_url(planet), status=403)
-            self.client.get(get_history_url(planet, 0), status=403)
+            response = self.client.get(get_history_url(planet))
+            self.assertEqual(response.status_code, 403)
+            response = self.client.get(get_history_url(planet, 0))
+            self.assertEqual(response.status_code, 403)
 
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
+    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=True)
     def test_history_view__revert_disabled(self):
         """Assert can revert if not disabled through settings.
         """
@@ -201,13 +218,12 @@ class AdminSiteTest(TestCase):
         self.add_historical_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
 
-        response = self.client.get(get_history_url(planet), status=200)
+        response = self.client.get(get_history_url(planet))
         self.assertContains(response, "Change history")
-
-        response = self.client.get(get_history_url(planet, 0), status=200)
+        response = self.client.get(get_history_url(planet, 0))
         self.assertContains(response, "Revert Sun")
 
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
     def test_history_view__revert_disabled_but_superuser(self):
         """Assert can "revert" if superuser even though
         disabled through settings.
@@ -219,14 +235,12 @@ class AdminSiteTest(TestCase):
         self.add_historical_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
 
-        response = self.client.get(get_history_url(planet), status=200)
+        response = self.client.get(get_history_url(planet))
         self.assertContains(response, "Change history")
-
-        response = self.client.get(get_history_url(planet, 0), status=200)
+        response = self.client.get(get_history_url(planet, 0))
         self.assertContains(response, "Revert Sun")
 
-    @tag("1")
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    @override_settings(SIMPLE_HISTORY_REVERT_ENABLED=False)
     def test_history_view__revert_disabled_not_superuser(self):
         """Assert cannot "revert" even though has all perms.
         """
@@ -237,10 +251,12 @@ class AdminSiteTest(TestCase):
         self.add_historical_change_permission("planet")
         planet = Planet.objects.create(star="Sun")
 
-        response = self.client.get(get_history_url(planet), status=200)
+        response = self.client.get(get_history_url(planet))
+        self.assertEquals(response.status_code, 200)
         self.assertContains(response, "View history")
 
-        response = self.client.get(get_history_url(planet, 0), status=200)
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEquals(response.status_code, 200)
         self.assertContains(response, "View Sun")
 
     def test_history_view__missing_objects(self):
@@ -251,7 +267,8 @@ class AdminSiteTest(TestCase):
         planet.delete()
         planet.pk = planet_pk
         historical_model.objects.all().delete()
-        self.client.get(get_history_url(planet), status=302)
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(response.status_code, 404)
 
     def test_pre_django_21_without_historical(self):
         if django.VERSION < (2, 1):
