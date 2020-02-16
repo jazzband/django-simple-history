@@ -7,7 +7,7 @@
 
 {% block content %}
   <div id="content-main">
-    {% if has_revert_permission %}
+    {% if revert_permissions_enabled %}
       <p>{% blocktrans %}Choose a date from the list below to revert to a previous version of this object.{% endblocktrans %}</p>
     {% endif %}
     <div class="module">
