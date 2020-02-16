@@ -2,12 +2,13 @@ from __future__ import unicode_literals
 
 import django
 from django import http
+from django.apps import apps as django_apps
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_permission_codename
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -69,8 +70,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 obj = action_list.latest("history_date").instance
             except action_list.model.DoesNotExist:
                 raise http.Http404
-
-        if not self.has_change_permission(request, obj):
+        if not self.has_historical_view_or_change_permission(request, obj):
             raise PermissionDenied
 
         # Set attribute on each action_list entry from admin methods
@@ -80,13 +80,20 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = ContentType.objects.get_by_natural_key(*USER_NATURAL_KEY)
+        content_type = self.content_type_model_cls.objects.get_by_natural_key(
+            *USER_NATURAL_KEY
+        )
         admin_user_view = "admin:%s_%s_change" % (
             content_type.app_label,
             content_type.model,
         )
+        if self.revert_permissions_enabled(request, obj):
+            title = _("Change history: %s")
+        else:
+            title = _("View history: %s")
+
         context = {
-            "title": _("Change history: %s") % force_str(obj),
+            "title": title % force_str(obj),
             "action_list": action_list,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
@@ -95,6 +102,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
+            "revert_permissions_enabled": self.revert_permissions_enabled(request, obj),
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
@@ -131,7 +139,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         ).instance
         obj._state.adding = False
 
-        if not self.has_change_permission(request, obj):
+        if not self.has_historical_view_or_change_permission(request, obj):
             raise PermissionDenied
 
         if SIMPLE_HISTORY_EDIT:
@@ -170,10 +178,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             model_admin=self,
         )
 
+        if self.revert_permissions_enabled(request, obj):
+            title = _("Revert %s")
+        else:
+            title = _("View %s")
+
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
-            "title": _("Revert %s") % force_str(obj),
+            "title": title % force_str(obj),
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -189,14 +202,20 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             # Context variables copied from render_change_form
             "add": False,
             "change": True,
-            "has_add_permission": self.has_add_permission(request),
-            "has_change_permission": self.has_change_permission(request, obj),
-            "has_delete_permission": self.has_delete_permission(request, obj),
+            "has_add_permission": False,
+            "has_view_permission": self.has_historical_view_permission(request, obj),
+            "has_change_permission": (
+                self.has_historical_change_permission(request, obj)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": self.revert_permissions_enabled(request, obj),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
             "opts": model._meta,
-            "content_type_id": ContentType.objects.get_for_model(self.model).id,
+            "content_type_id": self.content_type_model_cls.objects.get_for_model(
+                self.model
+            ).id,
             "save_as": self.save_as,
             "save_on_top": self.save_on_top,
             "root_path": getattr(self.admin_site, "root_path", None),
@@ -216,3 +235,78 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         """Set special model attribute to user for reference after save"""
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)
+
+    def revert_permissions_enabled(self, request, obj):
+        """Returns `True` if user has permission to revert
+        a model instance to a previous version in its
+        history.
+
+        See SIMPLE_HISTORY_REVERT_ENABLED
+
+        Default is True
+        """
+        if request.user.is_superuser:
+            return True
+        else:
+            return getattr(
+                settings, "SIMPLE_HISTORY_REVERT_ENABLED", True
+            ) and self.has_historical_change_permission(request, obj)
+
+    @property
+    def historical_permissions_enabled(self):
+        """Returns True/False based on settings SIMPLE_HISTORY_PERMISSIONS_ENABLED.
+
+        Defaults to False.
+        """
+        return getattr(settings, "SIMPLE_HISTORY_PERMISSIONS_ENABLED", False)
+
+    def get_historical_permission(self, request, action, obj=None):
+        history_manager = getattr(
+            self.model, self.model._meta.simple_history_manager_attribute
+        )
+        historical_opts = history_manager.model._meta
+        historical_codename = get_permission_codename(action, historical_opts)
+        try:
+            func = getattr(self, "has_%s_permission" % action)
+        except AttributeError:
+            permission = False
+        else:
+            permission = func(request, obj)
+        historical_permission = request.user.has_perm(
+            "%s.%s" % (historical_opts.app_label, historical_codename)
+        )
+        return permission and historical_permission
+
+    def has_historical_view_permission(self, request, obj=None):
+        if self.historical_permissions_enabled:
+            view_permission = self.get_historical_permission(request, "view", obj)
+        else:
+            try:
+                view_permission = self.has_view_permission(request, obj)
+            except AttributeError:
+                view_permission = self.has_change_permission(request, obj)
+        return view_permission
+
+    def has_historical_change_permission(self, request, obj=None):
+        if self.historical_permissions_enabled:
+            change_permission = self.get_historical_permission(request, "change", obj)
+        else:
+            change_permission = self.has_change_permission(request, obj)
+        return change_permission
+
+    def has_historical_view_or_change_permission(self, request, obj=None):
+        if self.historical_permissions_enabled:
+            has_permission = self.has_historical_view_permission(
+                request, obj
+            ) or self.has_historical_change_permission(request, obj)
+        else:
+            try:
+                has_permission = self.has_view_or_change_permission(request, obj)
+            except AttributeError:
+                has_permission = self.has_change_permission(request, obj)
+        return has_permission
+
+    @property
+    def content_type_model_cls(self):
+        """Returns the ContentType model class."""
+        return django_apps.get_model("contenttypes.contenttype")
