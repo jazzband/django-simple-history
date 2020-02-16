@@ -462,9 +462,17 @@ class AdminSiteTest(TestCase):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
-            "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
-            "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_add_permission": False,
+            "has_view_permission": (
+                admin.has_historical_view_permission(request, poll)
+            ),
+            "has_change_permission": (
+                admin.has_historical_change_permission(request, poll)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, poll)
+            ),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -515,9 +523,17 @@ class AdminSiteTest(TestCase):
             "history_url": "/admin/tests/poll/{pk}/history/".format(pk=poll.pk),
             "add": False,
             "change": True,
-            "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
-            "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_add_permission": False,
+            "has_view_permission": (
+                admin.has_historical_view_permission(request, poll)
+            ),
+            "has_change_permission": (
+                admin.has_historical_change_permission(request, poll)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, poll)
+            ),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -568,9 +584,17 @@ class AdminSiteTest(TestCase):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
-            "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
-            "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_add_permission": False,
+            "has_view_permission": (
+                admin.has_historical_view_permission(request, poll)
+            ),
+            "has_change_permission": (
+                admin.has_historical_change_permission(request, poll)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, poll)
+            ),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -623,9 +647,15 @@ class AdminSiteTest(TestCase):
             ),
             "add": False,
             "change": True,
-            "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, obj),
-            "has_delete_permission": admin.has_delete_permission(request, obj),
+            "has_add_permission": False,
+            "has_view_permission": (admin.has_historical_view_permission(request, obj)),
+            "has_change_permission": (
+                admin.has_historical_change_permission(request, obj)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, obj)
+            ),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -680,9 +710,17 @@ class AdminSiteTest(TestCase):
             "history_url": "/admin/tests/poll/1/history/",
             "add": False,
             "change": True,
-            "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
-            "has_delete_permission": admin.has_delete_permission(request, poll),
+            "has_add_permission": False,
+            "has_view_permission": (
+                admin.has_historical_view_permission(request, poll)
+            ),
+            "has_change_permission": (
+                admin.has_historical_change_permission(request, poll)
+            ),
+            "has_delete_permission": False,
+            "revert_permissions_enabled": (
+                admin.revert_permissions_enabled(request, poll)
+            ),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
