@@ -5,6 +5,8 @@ Unreleased
 ----------
 - Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
 - Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
+- import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
+  to avoid possible `AppRegistryNotReady` exception (gh-630)
 
 2.8.0 (2019-12-02)
 ------------------

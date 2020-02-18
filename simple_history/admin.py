@@ -297,11 +297,6 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 has_permission = self.has_change_permission(request, obj)
         return has_permission
 
-    @property
-    def content_type_model_cls(self):
-        """Returns the ContentType model class."""
-        return django_apps.get_model("contenttypes.contenttype")
-
     def history_view_title(self, request, obj):
         if self.revert_permissions_enabled(request, obj):
             return _("Change history: %s")
@@ -313,3 +308,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             return _("Revert %s")
         else:
             return _("View %s")
+
+    @property
+    def content_type_model_cls(self):
+        """Returns the ContentType model class."""
+        return django_apps.get_model("contenttypes.contenttype")
