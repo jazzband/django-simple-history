@@ -223,18 +223,16 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return render(request, template, context, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        """Set special model attribute to user for reference after save"""
+        """Set special model attribute to user for reference after save."""
         obj._history_user = request.user
         super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)
 
     def revert_permissions_enabled(self, request, obj):
         """Returns `True` if user has permission to revert
         a model instance to a previous version in its
-        history.
+        history based on settings SIMPLE_HISTORY_REVERT_ENABLED.
 
-        See SIMPLE_HISTORY_REVERT_ENABLED
-
-        Default is True
+        Default is True.
         """
         if request.user.is_superuser:
             return True
@@ -245,40 +243,36 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     @property
     def historical_permissions_enabled(self):
-        """Returns True/False based on settings SIMPLE_HISTORY_PERMISSIONS_ENABLED.
+        """Returns True/False based on settings
+        SIMPLE_HISTORY_PERMISSIONS_ENABLED.
 
         Defaults to False.
         """
         return getattr(settings, "SIMPLE_HISTORY_PERMISSIONS_ENABLED", False)
 
-    def get_historical_permission(self, request, action, obj=None):
-        history_manager = getattr(
-            self.model, self.model._meta.simple_history_manager_attribute
-        )
-        historical_opts = history_manager.model._meta
-        historical_codename = get_permission_codename(action, historical_opts)
-        try:
-            func = getattr(self, "has_%s_permission" % action)
-        except AttributeError:
-            permission = False
-        else:
-            permission = func(request, obj)
-        historical_permission = request.user.has_perm(
-            "%s.%s" % (historical_opts.app_label, historical_codename)
-        )
-        return permission and historical_permission
-
     def has_historical_view_permission(self, request, obj=None):
+        """Returns True if user has permission to view the historical
+        model.
+
+        If historical permissions are not enabled, defaults to model
+        permissions.
+        """
         if self.historical_permissions_enabled:
             view_permission = self.get_historical_permission(request, "view", obj)
         else:
-            try:
+            if django.VERSION >= (2, 1):
                 view_permission = self.has_view_permission(request, obj)
-            except AttributeError:
+            else:
                 view_permission = self.has_change_permission(request, obj)
         return view_permission
 
     def has_historical_change_permission(self, request, obj=None):
+        """Returns True if user has permission to change the historical\
+        model.
+
+        If historical permissions are not enabled, defaults to model
+        permissions.
+        """
         if self.historical_permissions_enabled:
             change_permission = self.get_historical_permission(request, "change", obj)
         else:
@@ -286,16 +280,46 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return change_permission
 
     def has_historical_view_or_change_permission(self, request, obj=None):
+        """Returns True if user has permission to either view
+        or change the historical model.
+
+        This corresponds to django's `has_view_or_change_permission`.
+
+        If historical permissions are not enabled, defaults to model
+        permissions.
+        """
         if self.historical_permissions_enabled:
             has_permission = self.has_historical_view_permission(
                 request, obj
             ) or self.has_historical_change_permission(request, obj)
         else:
-            try:
+            if django.VERSION >= (2, 1):
                 has_permission = self.has_view_or_change_permission(request, obj)
-            except AttributeError:
+            else:
                 has_permission = self.has_change_permission(request, obj)
         return has_permission
+
+    def get_historical_permission(self, request, action, obj=None):
+        """
+        Returns True only if user has both model and historical model
+        permissions for the given action.
+        """
+        try:
+            func = getattr(self, "has_%s_permission" % action)
+        except AttributeError:
+            permission = False
+        else:
+            permission = func(request, obj)
+
+        history_manager = getattr(
+            self.model, self.model._meta.simple_history_manager_attribute
+        )
+        historical_opts = history_manager.model._meta
+        historical_codename = get_permission_codename(action, historical_opts)
+        historical_permission = request.user.has_perm(
+            "%s.%s" % (historical_opts.app_label, historical_codename)
+        )
+        return permission and historical_permission
 
     def history_view_title(self, request, obj):
         if self.revert_permissions_enabled(request, obj):
@@ -311,5 +335,5 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     @property
     def content_type_model_cls(self):
-        """Returns the ContentType model class."""
+        """Returns the ContentType model class ."""
         return django_apps.get_model("contenttypes.contenttype")
