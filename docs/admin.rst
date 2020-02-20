@@ -68,3 +68,16 @@ admin class
 
 
 .. image:: screens/5_history_list_display.png
+
+Disabling the option to revert an object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, an object can be reverted to its previous version. To disable this option update your settings with the following:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_REVERT_DISABLED=True
+
+When ``SIMPLE_HISTORY_REVERT_DISABLED`` is set to ``True``, the revert button is removed from the form.
+
+.. image:: screens/10_revert_disabled.png
