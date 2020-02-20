@@ -8,7 +8,7 @@
 {% block content %}
   <div id="content-main">
 
-    <p>{% blocktrans %}Choose a date from the list below to revert to a previous version of this object.{% endblocktrans %}</p>
+    {% if revert_disabled %}<p>{% blocktrans %}Choose a date from the list below to revert to a previous version of this object.{% endblocktrans %}</p>{% endif %}
 
     <div class="module">
       {% if action_list %}
