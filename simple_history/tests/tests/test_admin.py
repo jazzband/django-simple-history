@@ -4,7 +4,7 @@ from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test import TestCase, tag
+from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -141,13 +141,11 @@ class AdminSiteTest(TestCase):
 
         self.assertEqual(200, resp.status_code)
 
-    @tag("2")
     def test_history_view_permission(self):
         self.login()
         person = Person.objects.create(name="Sandra Hale")
         self.client.get(get_history_url(person), status=403)
 
-    @tag("2")
     def test_history_form_permission(self):
         self.login(self.user)
         person = Person.objects.create(name="Sandra Hale")
@@ -710,7 +708,6 @@ class AdminSiteTest(TestCase):
             request, admin.object_history_form_template, context
         )
 
-    @tag("1")
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_view__title_is_view(self):
         self.login()
@@ -718,7 +715,6 @@ class AdminSiteTest(TestCase):
         response = self.client.get(get_history_url(planet))
         self.assertContains(response, "View history: Sun")
 
-    @tag("3")
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False, SIMPLE_HISTORY_EDIT=True)
     def test_history_view__title_is_change(self):
         self.login()
@@ -726,14 +722,12 @@ class AdminSiteTest(TestCase):
         response = self.client.get(get_history_url(planet))
         self.assertContains(response, "Change history: Sun")
 
-    @tag("1")
     def test_history_view__shows_revert_button_by_default(self):
         self.login()
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet))
         self.assertContains(response, "Change history: Sun")
 
-    @tag("1")
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_form_view__does_not_show_revert_button(self):
         self.login()
@@ -743,7 +737,6 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "View Sun")
         self.assertNotContains(response, "Revert")
 
-    @tag("1")
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
     def test_history_form_view__shows_revert_button(self):
         """Assert revert button is shown.
