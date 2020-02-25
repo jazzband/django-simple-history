@@ -708,25 +708,44 @@ class AdminSiteTest(TestCase):
             request, admin.object_history_form_template, context
         )
 
+    def test_history_view__title_suggests_revert_by_default(self):
+        self.login()
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet))
+        self.assertContains(response, "Change history: Sun")
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
+    def test_history_view__title_suggests_revert(self):
+        self.login()
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet))
+        self.assertContains(response, "Change history: Sun")
+        self.assertContains(response, "Choose a date")
+
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
-    def test_history_view__title_is_view(self):
+    def test_history_view__title_suggests_view_only(self):
         self.login()
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet))
         self.assertContains(response, "View history: Sun")
+        self.assertNotContains(response, "Choose a date")
 
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False, SIMPLE_HISTORY_EDIT=True)
-    def test_history_view__title_is_change(self):
+    def test_history_form_view__shows_revert_button_by_default(self):
         self.login()
         planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertContains(response, "Change history: Sun")
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertContains(response, "Revert Planet")
+        self.assertContains(response, "Revert Sun")
+        self.assertContains(response, "Press the 'Revert' button")
 
-    def test_history_view__shows_revert_button_by_default(self):
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
+    def test_history_form_view__shows_revert_button(self):
         self.login()
         planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertContains(response, "Change history: Sun")
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertContains(response, "Revert Planet")
+        self.assertContains(response, "Revert Sun")
+        self.assertContains(response, "Press the 'Revert' button")
 
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_form_view__does_not_show_revert_button(self):
@@ -736,14 +755,3 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "View Planet")
         self.assertContains(response, "View Sun")
         self.assertNotContains(response, "Revert")
-
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
-    def test_history_form_view__shows_revert_button(self):
-        """Assert revert button is shown.
-        """
-        self.login()
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet, 0))
-        self.assertContains(response, "Revert Planet")
-        self.assertContains(response, "Revert Sun")
-        self.assertContains(response, "Press the 'Revert' button")
