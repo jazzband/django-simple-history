@@ -310,11 +310,12 @@ class HistoricalRecordsTest(TestCase):
         )
 
     def test_file_field(self):
-        model = FileModel.objects.create(file=get_fake_file("name"))
-        self.assertEqual(model.file.name, "files/name")
+        filename = str(uuid.uuid4())
+        model = FileModel.objects.create(file=get_fake_file(filename))
+        self.assertEqual(model.file.name, "files/{}".format(filename))
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/name")
+        self.assertEqual(create_record.file, "files/{}".format(filename))
         self.assertEqual(update_record.file, "")
 
     def test_file_field_with_char_field_setting(self):
@@ -323,11 +324,12 @@ class HistoricalRecordsTest(TestCase):
         self.assertIs(type(file_field), models.CharField)
         self.assertEqual(file_field.max_length, 100)
         # file field works the same as test_file_field()
-        model = CharFieldFileModel.objects.create(file=get_fake_file("name"))
-        self.assertEqual(model.file.name, "files/name")
+        filename = str(uuid.uuid4())
+        model = CharFieldFileModel.objects.create(file=get_fake_file(filename))
+        self.assertEqual(model.file.name, "files/{}".format(filename))
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/name")
+        self.assertEqual(create_record.file, "files/{}".format(filename))
         self.assertEqual(update_record.file, "")
 
     def test_inheritance(self):
