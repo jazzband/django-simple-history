@@ -42,6 +42,14 @@ can add `changeReason` on each instance:
     >>> Poll.history.get(id=data[0].id).history_change_reason
     'reason'
 
+You can also specify a default user responsible for the change ( _history_user keeps precedence)
+
+.. code-block:: pycon
+
+    >>> user = User.objects.create_user("tester", "tester@example.com")
+    >>> objs = bulk_create_with_history(data, Poll, batch_size=500, default_user=user)
+    >>> Poll.history.get(id=data[0].id).history_user == user
+    True
 
 QuerySet Updates with History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, TransactionTestCase
 from django.utils.timezone import now
@@ -12,6 +13,8 @@ from simple_history.tests.models import (
     Street,
 )
 from simple_history.utils import bulk_create_with_history
+
+User = get_user_model()
 
 
 class BulkCreateWithHistoryTestCase(TestCase):
@@ -36,6 +39,15 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 5)
+
+    def test_bulk_create_history_with_default_user(self):
+        user = User.objects.create_user("tester", "tester@example.com")
+
+        bulk_create_with_history(self.data, Poll, default_user=user)
+
+        self.assertTrue(
+            all([history.history_user == user for history in Poll.history.all()])
+        )
 
     def test_bulk_create_history_num_queries_is_two(self):
         with self.assertNumQueries(2):

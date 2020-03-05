@@ -37,7 +37,7 @@ def get_history_model_for_model(model):
     return get_history_manager_for_model(model).model
 
 
-def bulk_create_with_history(objs, model, batch_size=None):
+def bulk_create_with_history(objs, model, batch_size=None, default_user=None):
     """
     Bulk create the objects specified by objs while also bulk creating
     their history (all in one transaction).
@@ -56,7 +56,9 @@ def bulk_create_with_history(objs, model, batch_size=None):
         objs_with_id = model.objects.bulk_create(objs, batch_size=batch_size)
         if objs_with_id and objs_with_id[0].pk:
             second_transaction_required = False
-            history_manager.bulk_history_create(objs_with_id, batch_size=batch_size)
+            history_manager.bulk_history_create(
+                objs_with_id, batch_size=batch_size, default_user=default_user
+            )
     if second_transaction_required:
         obj_list = []
         with transaction.atomic(savepoint=False):
@@ -65,6 +67,8 @@ def bulk_create_with_history(objs, model, batch_size=None):
                     filter(lambda x: x[1] is not None, model_to_dict(obj).items())
                 )
                 obj_list += model.objects.filter(**attributes)
-            history_manager.bulk_history_create(obj_list, batch_size=batch_size)
+            history_manager.bulk_history_create(
+                obj_list, batch_size=batch_size, default_user=default_user
+            )
         objs_with_id = obj_list
     return objs_with_id

@@ -126,6 +126,15 @@ class BulkHistoryCreateTestCase(TestCase):
             )
         )
 
+    def test_bulk_history_create_with_default_user(self):
+        user = User.objects.create_user("tester", "tester@example.com")
+
+        Poll.history.bulk_history_create(self.data, default_user=user)
+
+        self.assertTrue(
+            all([history.history_user == user for history in Poll.history.all()])
+        )
+
     def test_bulk_history_create_on_objs_without_ids(self):
         self.data = [
             Poll(question="Question 1", pub_date=datetime.now()),
