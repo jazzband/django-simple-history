@@ -98,7 +98,14 @@ class HistoryManager(models.Manager):
                 continue
             yield last_change.instance
 
-    def bulk_history_create(self, objs, batch_size=None, update=False):
+    def bulk_history_create(
+        self,
+        objs,
+        batch_size=None,
+        update=False,
+        default_user=None,
+        default_change_reason="",
+    ):
         """
         Bulk create the history for the objects specified by objs.
         If called by bulk_update_with_history, use the update boolean and
@@ -113,8 +120,8 @@ class HistoryManager(models.Manager):
         for instance in objs:
             row = self.model(
                 history_date=getattr(instance, "_history_date", timezone.now()),
-                history_user=getattr(instance, "_history_user", None),
-                history_change_reason=getattr(instance, "changeReason", ""),
+                history_user=getattr(instance, "_history_user", default_user),
+                history_change_reason=getattr(instance, "changeReason", default_change_reason),
                 history_type=history_type,
                 **{
                     field.attname: getattr(instance, field.attname)

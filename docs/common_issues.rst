@@ -32,16 +32,27 @@ history:
     >>> Poll.history.count()
     1000
 
-If you want to specify a change reason for each record in the bulk create, you
-can add `changeReason` on each instance:
+If you want to specify a change reason or history user for each record in the bulk create,
+you can add `changeReason` or `_history_user` on each instance:
 
 .. code-block:: pycon
 
     >>> for poll in data:
             poll.changeReason = 'reason'
+            poll._history_user = my_user
     >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
     >>> Poll.history.get(id=data[0].id).history_change_reason
     'reason'
+
+You can also specify a default user or default change reason responsible for the change
+(`_history_user` and `changeReason` take precedence).
+
+.. code-block:: pycon
+
+    >>> user = User.objects.create_user("tester", "tester@example.com")
+    >>> objs = bulk_create_with_history(data, Poll, batch_size=500, default_user=user)
+    >>> Poll.history.get(id=data[0].id).history_user == user
+    True
 
 Bulk Updating a Model with History (New)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,11 +69,11 @@ Bulk update was introduced with Django 2.2. We can use the utility function
     >>> data = [Poll(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
     >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
     >>> for obj in objs: obj.question = 'Duplicate Questions'
-    >>> bulk_update_with_history(objs, Poll, ['question'], batch_size=500)        
+    >>> bulk_update_with_history(objs, Poll, ['question'], batch_size=500)
     >>> Poll.objects.first().question
     'Duplicate Question'
 
-QuerySet Updates with History (Updated in Django 2.2) 
+QuerySet Updates with History (Updated in Django 2.2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Unlike with ``bulk_create``, `queryset updates`_ perform an SQL update query on
 the queryset, and never return the actual updated objects (which would be
@@ -81,7 +92,7 @@ As the Django documentation says::
 
 .. _queryset updates: https://docs.djangoproject.com/en/2.2/ref/models/querysets/#update
 
-Note: Django 2.2 now allows ``bulk_update``. No ``pre_save`` or ``post_save`` signals are sent still. 
+Note: Django 2.2 now allows ``bulk_update``. No ``pre_save`` or ``post_save`` signals are sent still.
 
 Tracking Custom Users
 ---------------------
