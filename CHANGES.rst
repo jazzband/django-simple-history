@@ -7,6 +7,7 @@ Unreleased
 - Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
 - import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
   to avoid possible `AppRegistryNotReady` exception (gh-630)
+- Fix `utils.update_change_reason` when user specifies excluded_fields
 
 2.8.0 (2019-12-02)
 ------------------
