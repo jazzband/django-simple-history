@@ -8,14 +8,18 @@ def update_change_reason(instance, reason):
     attrs = {}
     model = type(instance)
     manager = instance if instance.id is not None else model
+    history = get_history_manager_for_model(manager)
+    history_fields = [field.attname for field in history.model._meta.fields]
     for field in instance._meta.fields:
+        if field.attname not in history_fields:
+            continue
         value = getattr(instance, field.attname)
         if field.primary_key is True:
             if value is not None:
                 attrs[field.attname] = value
         else:
             attrs[field.attname] = value
-    history = get_history_manager_for_model(manager)
+
     record = history.filter(**attrs).order_by("-history_date").first()
     record.history_change_reason = reason
     record.save()
