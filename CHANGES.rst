@@ -7,8 +7,10 @@ Unreleased
 - Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
 - import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
   to avoid possible `AppRegistryNotReady` exception (gh-630)
+- Fix `utils.update_change_reason` when user specifies excluded_fields
 - settings.SIMPLE_HISTORY_REVERT_DISABLED if True removes the Revert
   button from the history form for all historical models (gh-632))
+
 2.8.0 (2019-12-02)
 ------------------
 - Fixed `bulk_create_with_history support` for HistoryRecords with `relation_name` attribute (gh-591)
