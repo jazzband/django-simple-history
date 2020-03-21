@@ -7,6 +7,8 @@ Unreleased
 - Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
 - import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
   to avoid possible `AppRegistryNotReady` exception (gh-630)
+- Render fields as readonly in history detail view if `SIMPLE_HISTORY_EDIT` is not set
+  `True`
 
 2.8.0 (2019-12-02)
 ------------------

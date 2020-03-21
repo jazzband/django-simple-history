@@ -79,6 +79,7 @@ Authors
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
 - Ray Logel
+- Reza Pourmeshki (`partizaans <https://github.com/partizaans>`_)
 - Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote

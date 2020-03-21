@@ -148,7 +148,8 @@ class AdminSiteTest(TestCase):
     def test_invalid_history_form(self):
         self.login()
         poll = Poll.objects.create(question="why?", pub_date=today)
-        response = self.client.post(get_history_url(poll, 0), data={"question": ""})
+        with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", True):
+            response = self.client.post(get_history_url(poll, 0), data={"question": ""})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "This field is required")
 
@@ -193,6 +194,25 @@ class AdminSiteTest(TestCase):
         self.assertEqual(
             [p.history_user for p in Poll.history.all()], [self.user, None, None]
         )
+
+    def test_readonly_history_form_without_setting_simple_history_edit(self):
+        self.login()
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        response = self.client.get(get_history_url(poll, 0))
+        readonly_fields = response.context["adminform"].readonly_fields
+        self.assertCountEqual(["question", "pub_date"], readonly_fields)
+
+    def test_readonly_history_form_with_enabled_simple_history_edit(self):
+        self.login()
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+        with patch("simple_history.admin.SIMPLE_HISTORY_EDIT", True):
+            response = self.client.get(get_history_url(poll, 0))
+        readonly_fields = response.context["adminform"].readonly_fields
+        self.assertEqual(0, len(readonly_fields))
 
     def test_history_user_on_save_in_admin(self):
         self.login()

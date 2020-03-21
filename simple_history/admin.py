@@ -168,7 +168,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             form,
             self.get_fieldsets(request, obj),
             self.prepopulated_fields,
-            self.get_readonly_fields(request, obj),
+            self.get_readonly_fields(request, obj)
+            if change_history
+            else self.get_fields(request, obj),
             model_admin=self,
         )
 
