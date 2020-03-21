@@ -11,7 +11,7 @@ from simple_history.tests.models import (
     PollWithExcludeFields,
     Street,
 )
-from simple_history.utils import bulk_create_with_history
+from simple_history.utils import bulk_create_with_history, update_change_reason
 
 
 class BulkCreateWithHistoryTestCase(TestCase):
@@ -144,3 +144,14 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         hist_manager_mock().bulk_history_create.assert_called_with(
             objects, batch_size=None
         )
+
+
+class UpdateChangeReasonTestCase(TestCase):
+    def test_update_change_reason_with_excluded_fields(self):
+        poll = PollWithExcludeFields(
+            question="what's up?", pub_date=now(), place="The Pub"
+        )
+        poll.save()
+        update_change_reason(poll, "Test change reason.")
+        most_recent = poll.history.order_by("-history_date").first()
+        self.assertEqual(most_recent.history_change_reason, "Test change reason.")

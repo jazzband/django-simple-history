@@ -20,6 +20,7 @@ Authors
 - Brian Armstrong (`barm <https://github.com/barm>`_)
 - Buddy Lindsey, Jr.
 - Brian Dixon
+- Carlos San Emeterio (`Carlos-San-Emeterio <https://github.com/Carlos-San-Emeterio>`_)
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
 - Corey Bertram
 - Craig Maloney (`craigmaloney <https://github.com/craigmaloney>`_)
@@ -52,6 +53,7 @@ Authors
 - `jofusa <https://github.com/jofusa>`_
 - John Whitlock
 - Jonathan Leroy
+- Jonathan Loo (`alpha1d3d <https://github.com/alpha1d3d>`_)
 - Jonathan Sanchez
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Josh Fyne
