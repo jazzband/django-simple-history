@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Changed how `now` is imported from `timezone` (`timezone` module is imported now)
 - Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
 - Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
 - import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
