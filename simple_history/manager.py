@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.timezone import now
+from django.utils import timezone
 
 
 class HistoryDescriptor(object):
@@ -104,7 +104,7 @@ class HistoryManager(models.Manager):
         historical_instances = []
         for instance in objs:
             row = self.model(
-                history_date=getattr(instance, "_history_date", now()),
+                history_date=getattr(instance, "_history_date", timezone.now()),
                 history_user=getattr(instance, "_history_user", None),
                 history_change_reason=getattr(instance, "changeReason", ""),
                 history_type="+",

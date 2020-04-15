@@ -1,6 +1,6 @@
 from django.db import IntegrityError
 from django.test import TestCase, TransactionTestCase
-from django.utils.timezone import now
+from django.utils import timezone
 from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
@@ -17,18 +17,18 @@ from simple_history.utils import bulk_create_with_history, update_change_reason
 class BulkCreateWithHistoryTestCase(TestCase):
     def setUp(self):
         self.data = [
-            Poll(id=1, question="Question 1", pub_date=now()),
-            Poll(id=2, question="Question 2", pub_date=now()),
-            Poll(id=3, question="Question 3", pub_date=now()),
-            Poll(id=4, question="Question 4", pub_date=now()),
-            Poll(id=5, question="Question 5", pub_date=now()),
+            Poll(id=1, question="Question 1", pub_date=timezone.now()),
+            Poll(id=2, question="Question 2", pub_date=timezone.now()),
+            Poll(id=3, question="Question 3", pub_date=timezone.now()),
+            Poll(id=4, question="Question 4", pub_date=timezone.now()),
+            Poll(id=5, question="Question 5", pub_date=timezone.now()),
         ]
         self.data_with_excluded_fields = [
-            PollWithExcludeFields(id=1, question="Question 1", pub_date=now()),
-            PollWithExcludeFields(id=2, question="Question 2", pub_date=now()),
-            PollWithExcludeFields(id=3, question="Question 3", pub_date=now()),
-            PollWithExcludeFields(id=4, question="Question 4", pub_date=now()),
-            PollWithExcludeFields(id=5, question="Question 5", pub_date=now()),
+            PollWithExcludeFields(id=1, question="Question 1", pub_date=timezone.now()),
+            PollWithExcludeFields(id=2, question="Question 2", pub_date=timezone.now()),
+            PollWithExcludeFields(id=3, question="Question 3", pub_date=timezone.now()),
+            PollWithExcludeFields(id=4, question="Question 4", pub_date=timezone.now()),
+            PollWithExcludeFields(id=5, question="Question 5", pub_date=timezone.now()),
         ]
 
     def test_bulk_create_history(self):
@@ -84,11 +84,11 @@ class BulkCreateWithHistoryTestCase(TestCase):
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     def setUp(self):
         self.data = [
-            Poll(id=1, question="Question 1", pub_date=now()),
-            Poll(id=2, question="Question 2", pub_date=now()),
-            Poll(id=3, question="Question 3", pub_date=now()),
-            Poll(id=4, question="Question 4", pub_date=now()),
-            Poll(id=5, question="Question 5", pub_date=now()),
+            Poll(id=1, question="Question 1", pub_date=timezone.now()),
+            Poll(id=2, question="Question 2", pub_date=timezone.now()),
+            Poll(id=3, question="Question 3", pub_date=timezone.now()),
+            Poll(id=4, question="Question 4", pub_date=timezone.now()),
+            Poll(id=5, question="Question 5", pub_date=timezone.now()),
         ]
 
     @patch(
@@ -112,7 +112,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         self.assertEqual(Poll.history.count(), 0)
 
     def test_bulk_create_history_rolls_back_when_last_exists(self):
-        Poll.objects.create(id=5, question="Question 5", pub_date=now())
+        Poll.objects.create(id=5, question="Question 5", pub_date=timezone.now())
 
         self.assertEqual(Poll.objects.count(), 1)
         self.assertEqual(Poll.history.count(), 1)
@@ -149,7 +149,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
 class UpdateChangeReasonTestCase(TestCase):
     def test_update_change_reason_with_excluded_fields(self):
         poll = PollWithExcludeFields(
-            question="what's up?", pub_date=now(), place="The Pub"
+            question="what's up?", pub_date=timezone.now(), place="The Pub"
         )
         poll.save()
         update_change_reason(poll, "Test change reason.")
