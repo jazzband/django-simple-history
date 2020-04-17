@@ -162,3 +162,9 @@ To filter changes to the data, a relationship to the history can be established.
 
 
     Poll.objects.filter(history__history_user=4)
+
+You can also prefetch the objects with this relationship using somthing like this for example to prefetch order by history_date descending:
+
+.. code-block:: python
+    Poll.objects.filter(something).prefetch_related(Prefetch('history', queryset=Poll.history.order_by('-history_date'),
+                                                to_attr='ordered_histories')
