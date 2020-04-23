@@ -72,3 +72,20 @@ def bulk_create_with_history(objs, model, batch_size=None):
             history_manager.bulk_history_create(obj_list, batch_size=batch_size)
         objs_with_id = obj_list
     return objs_with_id
+
+
+def bulk_update_with_history(objs, model, fields, batch_size=None):
+    """
+    Bulk update the objects specified by objs while also bulk creating
+    their history (all in one transaction).
+    :param objs: List of objs of type model to be updated
+    :param model: Model class that should be updated
+    :param fields: The fields that are updated
+    :param batch_size: Number of objects that should be updated in each batch
+    """
+    history_manager = get_history_manager_for_model(model)
+    with transaction.atomic(savepoint=False):
+        model.objects.bulk_update(objs, fields, batch_size=batch_size)
+        history_manager.bulk_history_create(
+            objs, batch_size=batch_size, update=True
+        )
