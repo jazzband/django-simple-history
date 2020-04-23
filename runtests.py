@@ -73,12 +73,14 @@ else:
 
 
 def main():
-
     if not settings.configured:
         settings.configure(**DEFAULT_SETTINGS)
     django.setup()
-    failures = DiscoverRunner(failfast=False).run_tests(["simple_history.tests"])
-    failures |= DiscoverRunner(failfast=False).run_tests(
+    tags = [t.split("=")[1] for t in sys.argv if t.startswith("--tag")]
+    failures = DiscoverRunner(failfast=False, tags=tags).run_tests(
+        ["simple_history.tests"]
+    )
+    failures |= DiscoverRunner(failfast=False, tags=tags).run_tests(
         ["simple_history.registry_tests"]
     )
     sys.exit(failures)
