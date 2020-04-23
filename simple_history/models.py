@@ -19,7 +19,7 @@ from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils.text import format_lazy
-from django.utils.timezone import now
+from django.utils import timezone
 from simple_history import utils
 from . import exceptions
 from .manager import HistoryDescriptor
@@ -477,7 +477,7 @@ class HistoricalRecords(object):
 
     def create_historical_record(self, instance, history_type, using=None):
         using = using if self.use_base_model_db else None
-        history_date = getattr(instance, "_history_date", now())
+        history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
         history_change_reason = getattr(instance, "changeReason", None)
         manager = getattr(instance, self.manager_name)

@@ -88,7 +88,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             content_type.model,
         )
         context = {
-            "title": _("Change history: %s") % force_str(obj),
+            "title": self.history_view_title(obj),
             "action_list": action_list,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
@@ -97,6 +97,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
+            "revert_disabled": self.revert_disabled,
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
@@ -104,6 +105,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return self.render_history_view(
             request, self.object_history_template, context, **extra_kwargs
         )
+
+    def history_view_title(self, obj):
+        if self.revert_disabled and not SIMPLE_HISTORY_EDIT:
+            return _("View history: %s") % force_str(obj)
+        else:
+            return _("Change history: %s") % force_str(obj)
 
     def response_change(self, request, obj):
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:
@@ -177,7 +184,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
-            "title": _("Revert %s") % force_str(obj),
+            "title": self.history_form_view_title(obj),
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -190,6 +197,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "change_url": reverse("%s:%s_%s_change" % url_triplet, args=(obj.pk,)),
             "history_url": reverse("%s:%s_%s_history" % url_triplet, args=(obj.pk,)),
             "change_history": change_history,
+            "revert_disabled": self.revert_disabled,
             # Context variables copied from render_change_form
             "add": False,
             "change": True,
@@ -214,6 +222,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request, self.object_history_form_template, context, **extra_kwargs
         )
 
+    def history_form_view_title(self, obj):
+        if self.revert_disabled:
+            return _("View %s") % force_str(obj)
+        else:
+            return _("Revert %s") % force_str(obj)
+
     def render_history_view(self, request, template, context, **kwargs):
         """Catch call to render, to allow overriding."""
         return render(request, template, context, **kwargs)
@@ -228,3 +242,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         """Returns the ContentType model class.
         """
         return django_apps.get_model("contenttypes.contenttype")
+
+    @property
+    def revert_disabled(self):
+        return getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)

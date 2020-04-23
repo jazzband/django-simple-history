@@ -43,6 +43,7 @@ Authors
 - Guillermo Eijo (`guilleijo <https://github.com/guilleijo>`_)
 - Hamish Downer
 - Hanyin Zhang
+- Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
