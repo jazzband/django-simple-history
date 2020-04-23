@@ -1,16 +1,17 @@
 Changes
 =======
 
-Unreleased
-----------
-- Changed how `now` is imported from `timezone` (`timezone` module is imported now)
+2.9.0 (2020-04-23)
+------------------
 - Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
-- Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-623)
+- Add setting to convert `FileField` to `CharField` instead of `TextField` (gh-625)
+- Added notes on BitBucket Pipelines (gh-627)
 - import model `ContentType` in `SimpleHistoryAdmin` using `django_apps.get_model`
   to avoid possible `AppRegistryNotReady` exception (gh-630)
-- Fix `utils.update_change_reason` when user specifies excluded_fields
+- Fix `utils.update_change_reason` when user specifies excluded_fields (gh-637)
+- Changed how `now` is imported from `timezone` (`timezone` module is imported now) (gh-643)
 - Render fields as readonly in history detail view if `SIMPLE_HISTORY_EDIT` is not set
-  `True`
+  `True` (gh-641)
 - settings.SIMPLE_HISTORY_REVERT_DISABLED if True removes the Revert
   button from the history form for all historical models (gh-632))
 
