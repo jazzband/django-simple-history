@@ -54,8 +54,10 @@ def bulk_create_with_history(
     :param objs: List of objs (not yet saved to the db) of type model
     :param model: Model class that should be created
     :param batch_size: Number of objects that should be created in each batch
-    :param default_user: Optional user to specify as the history_user in each historical record
-    :param default_change_reason: Optional change reason to specify as the change_reason in each historical record
+    :param default_user: Optional user to specify as the history_user in each historical
+        record
+    :param default_change_reason: Optional change reason to specify as the change_reason
+        in each historical record
     :return: List of objs with IDs
     """
 
@@ -99,8 +101,10 @@ def bulk_update_with_history(
     :param model: Model class that should be updated
     :param fields: The fields that are updated
     :param batch_size: Number of objects that should be updated in each batch
-    :param default_user: Optional user to specify as the history_user in each historical record
-    :param default_change_reason: Optional change reason to specify as the change_reason in each historical record
+    :param default_user: Optional user to specify as the history_user in each historical
+        record
+    :param default_change_reason: Optional change reason to specify as the change_reason
+        in each historical record
     """
     if django.VERSION < (2, 2,):
         raise NotImplementedError(
