@@ -49,6 +49,20 @@ class BulkCreateWithHistoryTestCase(TestCase):
             all([history.history_user == user for history in Poll.history.all()])
         )
 
+    def test_bulk_create_history_with_default_change_reason(self):
+        bulk_create_with_history(
+            self.data, Poll, default_change_reason="my change reason"
+        )
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_change_reason == "my change reason"
+                    for history in Poll.history.all()
+                ]
+            )
+        )
+
     def test_bulk_create_history_num_queries_is_two(self):
         with self.assertNumQueries(2):
             bulk_create_with_history(self.data, Poll)
@@ -154,7 +168,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
         hist_manager_mock().bulk_history_create.assert_called_with(
-            objects, batch_size=None
+            objects, batch_size=None, default_user=None, default_change_reason=None
         )
 
 
