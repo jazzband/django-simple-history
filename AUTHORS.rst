@@ -48,6 +48,7 @@ Authors
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
 - Jesse Shapiro
+- Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
 - Joao Junior (`joaojunior <https://github.com/joaojunior>`_)
 - Joao Pedro Francese
