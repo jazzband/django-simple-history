@@ -107,7 +107,7 @@ class HistoryManager(models.Manager):
 
         history_type = "+"
         if update:
-            history_type = '~'
+            history_type = "~"
 
         historical_instances = []
         for instance in objs:
@@ -129,5 +129,3 @@ class HistoryManager(models.Manager):
         return self.model.objects.bulk_create(
             historical_instances, batch_size=batch_size
         )
-
-    

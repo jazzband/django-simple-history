@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+------------
+- Added `bulk_update_with_history` utility function (gh-650)
+
 2.9.0 (2020-04-23)
 ------------------
 - Add simple filtering if provided a minutes argument in `clean_duplicate_history` (gh-606)
