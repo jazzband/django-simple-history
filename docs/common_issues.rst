@@ -5,7 +5,7 @@ Bulk Creating and Queryset Updating
 -----------------------------------
 ``django-simple-history`` functions by saving history using a ``post_save`` signal
 every time that an object with history is saved. However, for certain bulk
-operations, such as bulk_create_ and `queryset updates <https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update>`_,
+operations, such as bulk_create_, `bulk_update, and `queryset updates <https://docs.djangoproject.com/en/2.2/ref/models/querysets/#update>`_,
 signals are not sent, and the history is not saved automatically. However,
 ``django-simple-history`` provides utility functions to work around this.
 
@@ -42,8 +42,28 @@ can add `changeReason` on each instance:
     >>> Poll.history.get(id=data[0].id).history_change_reason
     'reason'
 
+Bulk Updating a Model with History (New)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Bulk update was introduced with Django 2.2. We can use the utility function
+``bulk_update_with_history`` in order to bulk update objects using Django's ``bulk_update`` function while saving the object history:
 
-QuerySet Updates with History
+.. _bulk_create: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#bulk-create
+
+
+.. code-block:: pycon
+
+    >>> from simple_history.utils import bulk_create_with_history
+    >>> from simple_history.tests.models import Poll
+    >>> from django.utils.timezone import now
+    >>>
+    >>> data = [Poll(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
+    >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
+    >>> for obj in objs: obj.question = 'Duplicate Questions'
+    >>> bulk_update_with_history(objs, Poll, ['question'], batch_size=500)        
+    >>> Poll.objects.first().question
+    'Duplicate Question'
+
+QuerySet Updates with History (Updated in Django 2.2) 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Unlike with ``bulk_create``, `queryset updates`_ perform an SQL update query on
 the queryset, and never return the actual updated objects (which would be
@@ -62,6 +82,7 @@ As the Django documentation says::
 
 .. _queryset updates: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#update
 
+Note: Django 2.2 now allows ``bulk_update``. No ``pre_save`` or ``post_save`` signals are sent still. 
 
 Tracking Custom Users
 ---------------------
