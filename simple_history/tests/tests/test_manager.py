@@ -158,3 +158,44 @@ class BulkHistoryCreateTestCase(TestCase):
     def test_efficiency(self):
         with self.assertNumQueries(1):
             Poll.history.bulk_history_create(self.data)
+
+
+class BulkHistoryUpdateTestCase(TestCase):
+    def setUp(self):
+        self.data = [
+            Poll(id=1, question="Question 1", pub_date=datetime.now()),
+            Poll(id=2, question="Question 2", pub_date=datetime.now()),
+            Poll(id=3, question="Question 3", pub_date=datetime.now()),
+            Poll(id=4, question="Question 4", pub_date=datetime.now()),
+        ]
+
+    def test_simple_bulk_history_create(self):
+        created = Poll.history.bulk_history_create(self.data, update=True)
+        self.assertEqual(len(created), 4)
+        self.assertQuerysetEqual(
+            Poll.history.order_by("question"),
+            ["Question 1", "Question 2", "Question 3", "Question 4"],
+            attrgetter("question"),
+        )
+        self.assertTrue(
+            all([history.history_type == "~" for history in Poll.history.all()])
+        )
+
+        created = Poll.history.bulk_create([])
+        self.assertEqual(created, [])
+        self.assertEqual(Poll.history.count(), 4)
+
+    def test_bulk_history_create_with_change_reason(self):
+        for poll in self.data:
+            poll.changeReason = "reason"
+
+        Poll.history.bulk_history_create(self.data)
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_change_reason == "reason"
+                    for history in Poll.history.all()
+                ]
+            )
+        )
