@@ -1,3 +1,4 @@
+import django
 from django.db import transaction
 from django.forms.models import model_to_dict
 
@@ -83,6 +84,11 @@ def bulk_update_with_history(objs, model, fields, batch_size=None):
     :param fields: The fields that are updated
     :param batch_size: Number of objects that should be updated in each batch
     """
+    if django.VERSION < (2, 2,):
+        raise NotImplementedError(
+            "bulk_update_with_history is only available on "
+            "Django versions 2.2 and later"
+        )
     history_manager = get_history_manager_for_model(model)
     with transaction.atomic(savepoint=False):
         model.objects.bulk_update(objs, fields, batch_size=batch_size)
