@@ -121,7 +121,9 @@ class HistoryManager(models.Manager):
             row = self.model(
                 history_date=getattr(instance, "_history_date", timezone.now()),
                 history_user=getattr(instance, "_history_user", default_user),
-                history_change_reason=getattr(instance, "changeReason", default_change_reason),
+                history_change_reason=getattr(
+                    instance, "changeReason", default_change_reason
+                ),
                 history_type=history_type,
                 **{
                     field.attname: getattr(instance, field.attname)
