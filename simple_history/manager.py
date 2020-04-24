@@ -102,7 +102,7 @@ class HistoryManager(models.Manager):
         """
         Bulk create the history for the objects specified by objs.
         If called by bulk_update_with_history, use the update boolean and
-        save the history_type accordingly. 
+        save the history_type accordingly.
         """
 
         history_type = "+"
