@@ -126,6 +126,55 @@ class BulkHistoryCreateTestCase(TestCase):
             )
         )
 
+    def test_bulk_history_create_with_default_user(self):
+        user = User.objects.create_user("tester", "tester@example.com")
+
+        Poll.history.bulk_history_create(self.data, default_user=user)
+
+        self.assertTrue(
+            all([history.history_user == user for history in Poll.history.all()])
+        )
+
+    def test_bulk_history_create_with_default_change_reason(self):
+        Poll.history.bulk_history_create(self.data, default_change_reason="test")
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_change_reason == "test"
+                    for history in Poll.history.all()
+                ]
+            )
+        )
+
+    def test_bulk_history_create_history_user_overrides_default(self):
+        user1 = User.objects.create_user("tester1", "tester1@example.com")
+        user2 = User.objects.create_user("tester2", "tester2@example.com")
+
+        for data in self.data:
+            data._history_user = user1
+
+        Poll.history.bulk_history_create(self.data, default_user=user2)
+
+        self.assertTrue(
+            all([history.history_user == user1 for history in Poll.history.all()])
+        )
+
+    def test_bulk_history_create_change_reason_overrides_default(self):
+        for data in self.data:
+            data.changeReason = "my_reason"
+
+        Poll.history.bulk_history_create(self.data, default_change_reason="test")
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_change_reason == "my_reason"
+                    for history in Poll.history.all()
+                ]
+            )
+        )
+
     def test_bulk_history_create_on_objs_without_ids(self):
         self.data = [
             Poll(question="Question 1", pub_date=datetime.now()),
