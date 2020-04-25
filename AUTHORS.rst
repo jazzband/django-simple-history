@@ -84,6 +84,7 @@ Authors
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
 - Ray Logel
+- Raynald de Lahondes
 - Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote
