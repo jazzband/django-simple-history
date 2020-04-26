@@ -113,7 +113,7 @@ class BulkHistoryCreateTestCase(TestCase):
 
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:
-            poll.changeReason = "reason"
+            poll._change_reason = "reason"
 
         Poll.history.bulk_history_create(self.data)
 
@@ -162,7 +162,7 @@ class BulkHistoryCreateTestCase(TestCase):
 
     def test_bulk_history_create_change_reason_overrides_default(self):
         for data in self.data:
-            data.changeReason = "my_reason"
+            data._change_reason = "my_reason"
 
         Poll.history.bulk_history_create(self.data, default_change_reason="test")
 
@@ -236,7 +236,7 @@ class BulkHistoryUpdateTestCase(TestCase):
 
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:
-            poll.changeReason = "reason"
+            poll._change_reason = "reason"
 
         Poll.history.bulk_history_create(self.data)
 

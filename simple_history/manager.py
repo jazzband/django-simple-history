@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 
+from simple_history.utils import get_change_reason_from_object
+
 
 class HistoryDescriptor(object):
     def __init__(self, model):
@@ -121,9 +123,8 @@ class HistoryManager(models.Manager):
             row = self.model(
                 history_date=getattr(instance, "_history_date", timezone.now()),
                 history_user=getattr(instance, "_history_user", default_user),
-                history_change_reason=getattr(
-                    instance, "changeReason", default_change_reason
-                ),
+                history_change_reason=get_change_reason_from_object(instance)
+                or default_change_reason,
                 history_type=history_type,
                 **{
                     field.attname: getattr(instance, field.attname)
