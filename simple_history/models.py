@@ -24,6 +24,7 @@ from simple_history import utils
 from . import exceptions
 from .manager import HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
+from .utils import get_change_reason_from_object
 
 if django.VERSION < (2,):
     from django.utils.translation import ugettext_lazy as _
@@ -479,7 +480,7 @@ class HistoricalRecords(object):
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
-        history_change_reason = getattr(instance, "changeReason", None)
+        history_change_reason = get_change_reason_from_object(instance)
         manager = getattr(instance, self.manager_name)
 
         attrs = {}

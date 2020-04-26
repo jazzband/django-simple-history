@@ -171,7 +171,7 @@ class HistoricalRecordsTest(TestCase):
     def test_delete_verify_change_reason_implicitly(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         poll_id = p.id
-        p.changeReason = "wrongEntry"
+        p._change_reason = "wrongEntry"
         p.delete()
         delete_record, create_record = Poll.history.all()
         self.assertRecordValues(

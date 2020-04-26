@@ -151,10 +151,10 @@ As an example using the callable mechanism, the below changes the default prefix
         opinion = models.CharField(max_length=2000)
 
     register(Opinion, custom_model_name=lambda x:f'Audit{x}')
-    
+
 The resulting history class names would be `AuditPoll` and `AuditOpinion`.
 If the app the models are defined in is `yoda` then the corresponding history table names would be `yoda_auditpoll` and `yoda_auditopinion`
- 
+
 IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
            An error will be generated and no history model created if they are the same.
 
@@ -287,8 +287,8 @@ Change Reason
 Change reason is a message to explain why the change was made in the instance. It is stored in the
 field ``history_change_reason`` and its default value is ``None``.
 
-By default, the django-simple-history gets the change reason in the field ``changeReason`` of the instance. Also, is possible to pass
-the ``changeReason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+By default, the django-simple-history gets the change reason in the field ``_change_reason`` of the instance. Also, is possible to pass
+the ``_change_reason`` explicitly. For this, after a save or delete in an instance, is necessary call the
 function ``utils.update_change_reason``. The first argument of this function is the instance and the second
 is the message that represents the change reason.
 
@@ -308,7 +308,7 @@ You can create an instance with an implicit change reason.
 .. code-block:: python
 
     poll = Poll(question='Question 1')
-    poll.changeReason = 'Add a question'
+    poll._change_reason = 'Add a question'
     poll.save()
 
 Or you can pass the change reason explicitly:

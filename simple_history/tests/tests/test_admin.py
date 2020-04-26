@@ -79,7 +79,7 @@ class AdminSiteTest(TestCase):
         self.assertEqual(model_name, "customuser")
         self.login()
         poll = Poll(question="why?", pub_date=today)
-        poll.changeReason = "A random test reason"
+        poll._change_reason = "A random test reason"
         poll._history_user = self.user
         poll.save()
 

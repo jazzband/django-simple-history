@@ -1,3 +1,5 @@
+import warnings
+
 import django
 from django.db import transaction
 from django.forms.models import model_to_dict
@@ -123,3 +125,17 @@ def bulk_update_with_history(
             default_user=default_user,
             default_change_reason=default_change_reason,
         )
+
+
+def get_change_reason_from_object(obj):
+    if hasattr(obj, "_change_reason"):
+        return getattr(obj, "_change_reason")
+
+    if hasattr(obj, "changeReason"):
+        warning_msg = "Using the attr changeReason to populate history_change_reason is" \
+                      " deprecated in 2.10.0 and will be removed in 3.0.0. Use " \
+                      "_change_reason instead. "
+        warnings.warn(warning_msg, DeprecationWarning)
+        return getattr(obj, "changeReason")
+
+    return None
