@@ -7,7 +7,7 @@ Changes
 - Add default user and default change reason to ``bulk_create_with_history`` and ``bulk_update_with_history`` (gh-653)
 - Add french translation (gh-654)
 - Start using ``_change_reason`` instead of ``changeReason`` to add change reasons to historical
-    objects. ``changeReason`` is deprecated and will be removed in version ``3.0.0`` (gh-655)
+  objects. ``changeReason`` is deprecated and will be removed in version ``3.0.0`` (gh-655)
 
 2.9.0 (2020-04-23)
 ------------------
