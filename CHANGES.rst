@@ -1,7 +1,7 @@
 Changes
 =======
 
-2.10.0 (2020-04-26)
+2.10.0 (2020-04-27)
 -------------------
 - Added ``bulk_update_with_history`` utility function (gh-650)
 - Add default user and default change reason to ``bulk_create_with_history`` and ``bulk_update_with_history`` (gh-653)
