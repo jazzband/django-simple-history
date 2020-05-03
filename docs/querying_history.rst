@@ -44,7 +44,7 @@ records for all ``Choice`` instances can be queried by using the manager on the
     [<HistoricalChoice: Choice object as of 2010-10-25 18:05:12.183340>, <HistoricalChoice: Choice object as of 2010-10-25 18:04:59.047351>]
 
 Because the history is model, you can also filter it like regularly QuerySets,
-a.k.a. ``Choice.history.filter(choice_text='Not Much')`` will work!
+e.g. ``Choice.history.filter(choice_text='Not Much')`` will work!
 
 Getting previous and next historical record
 -------------------------------------------
