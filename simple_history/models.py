@@ -485,7 +485,7 @@ class HistoricalRecords(object):
 
         attrs = {}
         for field in self.fields_included(instance):
-            if  not isinstance(field, django.db.models.fields.PositiveIntegerField):
+            if not isinstance(field, django.db.models.fields.PositiveIntegerField):
                 attrs[field.attname] = getattr(instance, field.attname)
 
         relation_field = getattr(manager.model, "history_relation", None)
