@@ -477,6 +477,7 @@ class HistoricalRecords(object):
             self.create_historical_record(instance, "-", using=using)
 
     def create_historical_record(self, instance, history_type, using=None):
+        #instance = models.Model(instance)
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
@@ -485,7 +486,8 @@ class HistoricalRecords(object):
 
         attrs = {}
         for field in self.fields_included(instance):
-            attrs[field.attname] = getattr(instance, field.attname)
+            if  not isinstance(field, django.db.models.fields.PositiveIntegerField):
+                attrs[field.attname] = getattr(instance, field.attname)
 
         relation_field = getattr(manager.model, "history_relation", None)
         if relation_field is not None:
