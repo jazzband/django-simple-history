@@ -104,7 +104,6 @@ Tracking Custom Users
 
     Use ``register()`` to track changes to the custom user model
     instead of setting ``HistoricalRecords`` on the model directly.
-    See :ref:`register`.
 
     The reason for this, is that unfortunately ``HistoricalRecords``
     cannot be set directly on a swapped user model because of the user
