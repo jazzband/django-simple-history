@@ -122,9 +122,6 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-.. _register:
-
-
 Save without a historical record
 --------------------------------
 
