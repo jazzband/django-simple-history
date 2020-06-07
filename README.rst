@@ -29,6 +29,10 @@ django-simple-history
    :target: https://github.com/ambv/black
    :alt: Code Style
 
+.. image:: https://jazzband.co/static/img/badge.svg
+   :target: https://jazzband.co/
+   :alt: Jazzband
+
 
 django-simple-history stores Django model state on every create/update/delete.
 
