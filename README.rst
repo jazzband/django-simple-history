@@ -52,7 +52,7 @@ Documentation is available at https://django-simple-history.readthedocs.io/
 Pull requests are welcome.  Read the `CONTRIBUTING`_ file for tips on
 submitting a pull request.
 
-.. _CONTRIBUTING: https://github.com/treyhunner/django-simple-history/blob/master/CONTRIBUTING.rst
+.. _CONTRIBUTING: https://github.com/jazzband/django-simple-history/blob/master/CONTRIBUTING.rst
 
 License
 -------
