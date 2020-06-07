@@ -1,16 +1,16 @@
 django-simple-history
 =====================
 
-.. image:: https://secure.travis-ci.org/treyhunner/django-simple-history.svg?branch=master
-   :target: http://travis-ci.org/treyhunner/django-simple-history
+.. image:: https://secure.travis-ci.org/jazzband/django-simple-history.svg?branch=master
+   :target: http://travis-ci.org/jazzband/django-simple-history
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
    :target: https://django-simple-history.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://img.shields.io/codecov/c/github/treyhunner/django-simple-history/master.svg
-   :target: http://codecov.io/github/treyhunner/django-simple-history?branch=master
+.. image:: https://img.shields.io/codecov/c/github/jazzband/django-simple-history/master.svg
+   :target: http://codecov.io/github/jazzband/django-simple-history?branch=master
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/pypi/v/django-simple-history.svg
