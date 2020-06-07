@@ -219,7 +219,7 @@ Usage with django-modeltranslation
 ----------------------------------
 
 If you have ``django-modeltranslation`` installed, you will need to use the ``register()``
-method to model translation, as described `here <https://github.com/treyhunner/django-simple-history/issues/209#issuecomment-181676111>`__.
+method to model translation, as described `here <https://github.com/jazzband/django-simple-history/issues/209#issuecomment-181676111>`__.
 
 
 Pointing to the model

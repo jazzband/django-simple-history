@@ -16,7 +16,7 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
         author="Corey Bertram",
         author_email="corey@qr7.com",
         maintainer="Trey Hunner",
-        url="https://github.com/treyhunner/django-simple-history",
+        url="https://github.com/jazzband/django-simple-history",
         packages=[
             "simple_history",
             "simple_history.management",
