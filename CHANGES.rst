@@ -1,5 +1,7 @@
 Changes
 =======
+2.10.1 (2020-06-16)
+- added ``clean_old_history`` command to run on Cron/tasks (gh-675)
 
 2.10.0 (2020-04-27)
 -------------------
