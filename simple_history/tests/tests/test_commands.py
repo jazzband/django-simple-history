@@ -6,7 +6,11 @@ from django.test import TestCase
 from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
-from simple_history.management.commands import populate_history, clean_duplicate_history, clean_old_history
+from simple_history.management.commands import (
+    populate_history,
+    clean_duplicate_history,
+    clean_old_history,
+)
 from ..models import (
     Book,
     CustomManagerNameModel,
@@ -414,9 +418,7 @@ class TestCleanOldHistory(TestCase):
         out = StringIO()
         with replace_registry({"test_place": Place}):
             management.call_command(self.command_name, auto=True, stdout=out)
-        self.assertIn(
-            clean_old_history.Command.NO_REGISTERED_MODELS, out.getvalue()
-        )
+        self.assertIn(clean_old_history.Command.NO_REGISTERED_MODELS, out.getvalue())
 
     def test_auto_dry_run(self):
         p = Poll.objects.create(
@@ -496,7 +498,7 @@ class TestCleanOldHistory(TestCase):
             stdout=out,
             stderr=StringIO(),
         )
-        
+
         self.assertEqual(
             out.getvalue(),
             "<class 'simple_history.tests.models.Poll'> has 1 old historical entries\n"
@@ -524,11 +526,7 @@ class TestCleanOldHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name,
-            auto=True,
-            days=20,
-            stdout=StringIO(),
-            stderr=StringIO(),
+            self.command_name, auto=True, days=20, stdout=StringIO(), stderr=StringIO(),
         )
         self.assertEqual(Poll.history.all().count(), 2)
 
@@ -553,11 +551,7 @@ class TestCleanOldHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name,
-            auto=True,
-            days=20,
-            stdout=StringIO(),
-            stderr=StringIO(),
+            self.command_name, auto=True, days=20, stdout=StringIO(), stderr=StringIO(),
         )
         # We will remove the 3 ones that we are marking as old
         self.assertEqual(Poll.history.all().count(), 2)
@@ -577,7 +571,7 @@ class TestCleanOldHistory(TestCase):
         management.call_command(
             self.command_name, auto=True, stdout=out, stderr=StringIO()
         )
-        
+
         self.assertEqual(
             out.getvalue(),
             "Removed 1 historical records for "

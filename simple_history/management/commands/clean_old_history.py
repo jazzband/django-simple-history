@@ -8,10 +8,7 @@ from ...exceptions import NotHistoricalModelError
 
 class Command(populate_history.Command):
     args = "<app.model app.model ...>"
-    help = (
-        "Scans HistoricalRecords for old entries "
-        "and deletes them."
-    )
+    help = "Scans HistoricalRecords for old entries " "and deletes them."
 
     DONE_CLEANING_FOR_MODEL = "Removed {count} historical records for {model}\n"
 
@@ -31,13 +28,11 @@ class Command(populate_history.Command):
             action="store_true",
             dest="days",
             default=30,
-
         )
 
         parser.add_argument(
             "-d", "--dry", action="store_true", help="Dry (test) run only, no changes"
         )
-        
 
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
@@ -48,17 +43,17 @@ class Command(populate_history.Command):
         if model_strings:
             for model_pair in self._handle_model_list(*model_strings):
                 to_process.add(model_pair)
-        
+
         elif options["auto"]:
             to_process = self._auto_models()
 
         else:
             self.log(self.COMMAND_HINT)
-        
+
         self._process(to_process, days_back=options["days"], dry_run=options["dry"])
 
     def _process(self, to_process, days_back=None, dry_run=True):
-        
+
         start_date = timezone.now() - timezone.timedelta(days=days_back)
         for model, history_model in to_process:
             m_qs = history_model.objects
@@ -70,10 +65,7 @@ class Command(populate_history.Command):
             if not dry_run:
                 m_qs.delete()
 
-            self.log(
-                self.DONE_CLEANING_FOR_MODEL.format(model=model, count=found)
-            )
-        
+            self.log(self.DONE_CLEANING_FOR_MODEL.format(model=model, count=found))
 
     def log(self, message, verbosity_level=1):
         if self.verbosity >= verbosity_level:
