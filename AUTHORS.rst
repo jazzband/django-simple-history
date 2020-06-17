@@ -60,6 +60,7 @@ Authors
 - Jonathan Sanchez
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Josh Fyne
+- Keith Hackbarth
 - Kevin Foster
 - Klaas van Schelven
 - Kris Neuharth

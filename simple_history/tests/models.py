@@ -214,7 +214,10 @@ class Document(models.Model):
 
     @property
     def _history_user(self):
-        return self.changed_by
+        try:
+            return self.changed_by
+        except User.DoesNotExist:
+            return None
 
 
 class Paper(Document):
