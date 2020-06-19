@@ -67,7 +67,6 @@ class HistoricalRecords(object):
         verbose_name=None,
         bases=(models.Model,),
         user_related_name="+",
-        user_db_constraint=True,
         table_name=None,
         inherit=False,
         excluded_fields=None,
@@ -83,6 +82,7 @@ class HistoricalRecords(object):
         history_user_setter=_history_user_setter,
         related_name=None,
         use_base_model_db=False,
+        user_db_constraint=True,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
