@@ -99,6 +99,7 @@ Authors
 - Ulysses Vilela
 - `vnagendra <https://github.com/vnagendra>`_
 - `yakimka <https://github.com/yakimka>`_
+- `Paulo Peres <https://github.com/PauloPeres>`_
 
 Background
 ==========

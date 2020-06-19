@@ -23,3 +23,26 @@ so you can schedule, for instance, an hourly cronjob such as
 .. code-block:: bash
 
     $ python manage.py clean_duplicate_history -m 60 --auto
+
+
+clean_old_history
+-----------------------
+
+You may want to remove historical records that have existed for a certain amount of time. 
+
+If you find yourself with a lot of old history you can schedule the
+``clean_old_history`` command
+
+.. code-block:: bash
+
+    $ python manage.py clean_old_history --auto
+
+You can use ``--auto`` to remove old historial entries 
+with ``HistoricalRecords`` or enumerate specific models as args.
+You may also specify a  ``--days`` parameter, which indicates how many 
+days of records you want to keep. The default it 30 days, meaning that
+all records older than 30 days would be removed.
+
+.. code-block:: bash
+
+    $ python manage.py clean_old_history --days 60 --auto
