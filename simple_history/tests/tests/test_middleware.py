@@ -176,7 +176,9 @@ class MiddlewareBulkOpsTest(TestCase):
 
         self.assertListEqual([ph.history_user_id for ph in poll_history], [None, None])
 
-    def test_request_user_is_overwritten_by_default_user_on_bulk_create_view_when_logged_in(self):
+    def test_request_user_is_overwritten_by_default_user_on_bulk_create_view_when_logged_in(
+        self,
+    ):
         self.client.force_login(self.user)
         self.client.post(reverse("poll-bulk-create-with-default-user"), data={})
 
@@ -191,7 +193,9 @@ class MiddlewareBulkOpsTest(TestCase):
     def test_user_is_set_on_bulk_update_view_when_logged_in(self):
         self.client.force_login(self.user)
         poll_1 = Poll.objects.create(question="Test question 1", pub_date=date.today())
-        poll_2 = Poll.objects.create(question="Test question 2", pub_date=date(2020, 1, 1))
+        poll_2 = Poll.objects.create(
+            question="Test question 2", pub_date=date(2020, 1, 1)
+        )
 
         self.client.post(reverse("poll-bulk-update"), data={})
 
@@ -200,12 +204,18 @@ class MiddlewareBulkOpsTest(TestCase):
 
         self.assertEqual("1", poll_1.history.latest("history_date").question)
         self.assertEqual("0", poll_2.history.latest("history_date").question)
-        self.assertEqual(self.user.id, poll_1.history.latest("history_date").history_user_id)
-        self.assertEqual(self.user.id, poll_2.history.latest("history_date").history_user_id)
+        self.assertEqual(
+            self.user.id, poll_1.history.latest("history_date").history_user_id
+        )
+        self.assertEqual(
+            self.user.id, poll_2.history.latest("history_date").history_user_id
+        )
 
     def test_user_is_not_set_on_bulk_update_view_when_not_logged_in(self):
         poll_1 = Poll.objects.create(question="Test question 1", pub_date=date.today())
-        poll_2 = Poll.objects.create(question="Test question 2", pub_date=date(2020, 1, 1))
+        poll_2 = Poll.objects.create(
+            question="Test question 2", pub_date=date(2020, 1, 1)
+        )
 
         self.client.post(reverse("poll-bulk-update"), data={})
 
@@ -219,4 +229,6 @@ class MiddlewareBulkOpsTest(TestCase):
         self.client.post(reverse("poll-bulk-update-with-default-user"), data={})
 
         self.assertIsNotNone(poll.history.latest("history_date").history_user_id)
-        self.assertNotEqual(self.user.id, poll.history.latest("history_date").history_user_id)
+        self.assertNotEqual(
+            self.user.id, poll.history.latest("history_date").history_user_id
+        )

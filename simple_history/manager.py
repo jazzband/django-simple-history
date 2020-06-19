@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import threading
-
 from django.db import models
 from django.utils import timezone
 
@@ -19,8 +17,6 @@ class HistoryDescriptor(object):
 
 
 class HistoryManager(models.Manager):
-    thread = threading.local()
-
     def __init__(self, model, instance=None):
         super(HistoryManager, self).__init__()
         self.model = model
@@ -104,13 +100,6 @@ class HistoryManager(models.Manager):
                 continue
             yield last_change.instance
 
-    def _get_user_from_thread(self):
-        try:
-            if self.thread.request.user.is_authenticated:
-                return self.thread.request.user
-        except AttributeError:
-            return None
-
     def bulk_history_create(
         self,
         objs,
@@ -129,12 +118,16 @@ class HistoryManager(models.Manager):
         if update:
             history_type = "~"
 
-        default_user = default_user or self._get_user_from_thread()
         historical_instances = []
         for instance in objs:
+            history_user = getattr(
+                instance,
+                "_history_user",
+                default_user or self.model.get_default_history_user(instance),
+            )
             row = self.model(
                 history_date=getattr(instance, "_history_date", timezone.now()),
-                history_user=getattr(instance, "_history_user", default_user),
+                history_user=history_user,
                 history_change_reason=get_change_reason_from_object(instance)
                 or default_change_reason,
                 history_type=history_type,

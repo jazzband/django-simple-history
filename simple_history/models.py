@@ -422,11 +422,9 @@ class HistoricalRecords(object):
                 .last()
             )
 
-        def __init__(instance, *args, **kwargs):
-            """Sets the user from get_user method on instance when initializing"""
-            super(type(instance), instance).__init__(*args, **kwargs)
-            if not instance.history_user_id and instance._adding:
-                instance.history_user = self.get_history_user(instance)
+        def get_default_history_user(instance):
+            """Returns the user specified by the `get_user` method for use when manually creating an historical object"""
+            return self.get_history_user(instance)
 
         extra_fields = {
             "history_id": self._get_history_id_field(),
@@ -447,7 +445,7 @@ class HistoricalRecords(object):
             "__str__": lambda self: "{} as of {}".format(
                 self.history_object, self.history_date
             ),
-            "__init__": __init__
+            "get_default_history_user": staticmethod(get_default_history_user),
         }
 
         extra_fields.update(self._get_history_related_field(model))
