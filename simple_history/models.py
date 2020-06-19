@@ -423,7 +423,10 @@ class HistoricalRecords(object):
             )
 
         def get_default_history_user(instance):
-            """Returns the user specified by the `get_user` method for use when manually creating an historical object"""
+            """
+            Returns the user specified by `get_user` method for manually creating
+            historical objects
+            """
             return self.get_history_user(instance)
 
         extra_fields = {

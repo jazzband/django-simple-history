@@ -176,9 +176,7 @@ class MiddlewareBulkOpsTest(TestCase):
 
         self.assertListEqual([ph.history_user_id for ph in poll_history], [None, None])
 
-    def test_request_user_is_overwritten_by_default_user_on_bulk_create_view_when_logged_in(
-        self,
-    ):
+    def test_request_user_is_overwritten_by_default_user_on_bulk_create_view(self,):
         self.client.force_login(self.user)
         self.client.post(reverse("poll-bulk-create-with-default-user"), data={})
 
