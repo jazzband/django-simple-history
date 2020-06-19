@@ -82,9 +82,11 @@ class HistoricalRecords(object):
         history_user_setter=_history_user_setter,
         related_name=None,
         use_base_model_db=False,
+        user_db_constraint=True,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
+        self.user_db_constraint = user_db_constraint
         self.table_name = table_name
         self.inherit = inherit
         self.history_id_field = history_id_field
@@ -342,6 +344,7 @@ class HistoricalRecords(object):
                     null=True,
                     related_name=self.user_related_name,
                     on_delete=models.SET_NULL,
+                    db_constraint=self.user_db_constraint,
                 )
             }
 

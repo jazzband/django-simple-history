@@ -370,6 +370,32 @@ class HistoricalRecordsTest(TestCase):
             [d.history_user for d in document.history.all()], [None, user2, user1]
         )
 
+    def test_specify_history_user_self_reference_delete(self):
+        user1 = User.objects.create_user("user1", "1@example.com")
+        user2 = User.objects.create_user("user2", "1@example.com")
+        document = Document.objects.create(changed_by=user1)
+        document.changed_by = user2
+        document.save()
+        document.changed_by = None
+        document.save()
+        self.assertEqual(
+            [d.history_user for d in document.history.all()], [None, user2, user1]
+        )
+
+        # Change back to user1
+        document.changed_by = user1
+        document.save()
+
+        # Deleting user1 will cascade delete the document,
+        # but fails when it tries to make the historical
+        # record for the deleted user1.
+        # This test performs differently on Postgres vs. SQLite
+        # because of how the two database handle database constraints
+        try:
+            user1.delete()
+        except IntegrityError as e:
+            self.fail(e)
+
     def test_specify_history_date_1(self):
         temperature = Temperature.objects.create(
             location="London", temperature=14, _history_date=today
@@ -398,7 +424,7 @@ class HistoricalRecordsTest(TestCase):
         library.book = None
         library.save()
         self.assertEqual(
-            [l.book_id for l in library.history.all()], [None, book2.pk, book1.pk]
+            [lib.book_id for lib in library.history.all()], [None, book2.pk, book1.pk]
         )
 
     def test_string_defined_foreign_key_save(self):
