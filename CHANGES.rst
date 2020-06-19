@@ -1,6 +1,7 @@
 Changes
 =======
 2.10.1 (2020-06-16)
+- added ``user_db_constraint`` param to history to avoid circular reference on delete (gh-676)
 - added ``clean_old_history`` management command (gh-675)
 
 2.10.0 (2020-04-27)
