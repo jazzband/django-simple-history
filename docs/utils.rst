@@ -28,8 +28,7 @@ so you can schedule, for instance, an hourly cronjob such as
 clean_old_history
 -----------------------
 
-After a While your Historical Records start to get a little bit to big, and maybe you don't
-need to save history for more than x amount of days,
+You may want to remove historical records that have existed for a certain amount of time. 
 
 If you find yourself with a lot of old history you can schedule the
 ``clean_old_history`` command
