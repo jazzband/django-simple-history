@@ -56,14 +56,16 @@ class Command(populate_history.Command):
 
         start_date = timezone.now() - timezone.timedelta(days=days_back)
         for model, history_model in to_process:
-            m_qs = history_model.objects
-            m_qs = m_qs.filter(history_date__lte=start_date)
-            found = m_qs.count()
+            history_model_manager = history_model.objects
+            history_model_manager = history_model_manager.filter(
+                history_date__lt=start_date
+            )
+            found = len(history_model_manager)
             self.log("{0} has {1} old historical entries".format(model, found), 2)
             if not found:
                 continue
             if not dry_run:
-                m_qs.delete()
+                history_model_manager.delete()
 
             self.log(self.DONE_CLEANING_FOR_MODEL.format(model=model, count=found))
 

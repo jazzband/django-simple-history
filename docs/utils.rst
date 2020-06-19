@@ -37,11 +37,11 @@ If you find yourself with a lot of old history you can schedule the
 
     $ python manage.py clean_old_history --auto
 
-You can use ``--auto`` to clean up duplicates for every model
+You can use ``--auto`` to remove old historial entries 
 with ``HistoricalRecords`` or enumerate specific models as args.
-There is also ``--days`` to specify how days you want to keep the records
-back in history while searching (default is 30 days),
-so you can schedule, for instance, an hourly cronjob such as
+You may also specify a  ``--days`` parameter, which indicates how many 
+days of records you want to keep. The default it 30 days, meaning that
+all records older than 30 days would be removed.
 
 .. code-block:: bash
 
