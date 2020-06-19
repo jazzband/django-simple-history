@@ -31,7 +31,7 @@ clean_old_history
 After a While your Historical Records start to get a little bit to big, and maybe you don't
 need to save history for more than x amount of days,
 
-If you find yourself with a lot of olf history you can schedule the
+If you find yourself with a lot of old history you can schedule the
 ``clean_old_history`` command
 
 .. code-block:: bash
