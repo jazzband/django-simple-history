@@ -422,6 +422,12 @@ class HistoricalRecords(object):
                 .last()
             )
 
+        def __init__(instance, *args, **kwargs):
+            """Sets the user from get_user method on instance when initializing"""
+            super(type(instance), instance).__init__(*args, **kwargs)
+            if not instance.history_user_id and instance._adding:
+                instance.history_user = self.get_history_user(instance)
+
         extra_fields = {
             "history_id": self._get_history_id_field(),
             "history_date": models.DateTimeField(),
@@ -441,6 +447,7 @@ class HistoricalRecords(object):
             "__str__": lambda self: "{} as of {}".format(
                 self.history_object, self.history_date
             ),
+            "__init__": __init__
         }
 
         extra_fields.update(self._get_history_related_field(model))
