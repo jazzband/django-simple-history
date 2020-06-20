@@ -12,6 +12,10 @@ from simple_history.tests.view import (
     PollList,
     PollUpdate,
     PollWithHistoricalIPAddressCreate,
+    PollBulkCreateView,
+    PollBulkCreateWithDefaultUserView,
+    PollBulkUpdateView,
+    PollBulkUpdateWithDefaultUserView,
 )
 from . import other_admin
 
@@ -40,4 +44,16 @@ urlpatterns = [
     url(r"^poll/(?P<pk>[0-9]+)/delete/$", PollDelete.as_view(), name="poll-delete"),
     url(r"^polls/(?P<pk>[0-9]+)/$", PollDetail.as_view(), name="poll-detail"),
     url(r"^polls/$", PollList.as_view(), name="poll-list"),
+    url(r"^polls-bulk-create/$", PollBulkCreateView.as_view(), name="poll-bulk-create"),
+    url(
+        r"^polls-bulk-create-default-user/$",
+        PollBulkCreateWithDefaultUserView.as_view(),
+        name="poll-bulk-create-with-default-user",
+    ),
+    url(r"^polls-bulk-update/$", PollBulkUpdateView.as_view(), name="poll-bulk-update"),
+    url(
+        r"^polls-bulk-update-default-user/$",
+        PollBulkUpdateWithDefaultUserView.as_view(),
+        name="poll-bulk-update-with-default-user",
+    ),
 ]

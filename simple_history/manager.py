@@ -120,9 +120,14 @@ class HistoryManager(models.Manager):
 
         historical_instances = []
         for instance in objs:
+            history_user = getattr(
+                instance,
+                "_history_user",
+                default_user or self.model.get_default_history_user(instance),
+            )
             row = self.model(
                 history_date=getattr(instance, "_history_date", timezone.now()),
-                history_user=getattr(instance, "_history_user", default_user),
+                history_user=history_user,
                 history_change_reason=get_change_reason_from_object(instance)
                 or default_change_reason,
                 history_type=history_type,

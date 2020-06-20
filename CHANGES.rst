@@ -1,8 +1,12 @@
 Changes
 =======
-2.10.1 (2020-06-16)
-- added ``user_db_constraint`` param to history to avoid circular reference on delete (gh-676)
-- added ``clean_old_history`` management command (gh-675)
+
+Unreleased
+----------
+- Added ``clean_old_history`` management command (gh-675)
+- Added ``user_db_constraint`` param to history to avoid circular reference on delete (gh-676)
+- Leverages ``get_user`` from ``HistoricalRecords`` in order to set a fallback user on
+  bulk update and bulk create (gh-677)
 
 2.10.0 (2020-04-27)
 -------------------

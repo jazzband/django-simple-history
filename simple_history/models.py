@@ -422,6 +422,13 @@ class HistoricalRecords(object):
                 .last()
             )
 
+        def get_default_history_user(instance):
+            """
+            Returns the user specified by `get_user` method for manually creating
+            historical objects
+            """
+            return self.get_history_user(instance)
+
         extra_fields = {
             "history_id": self._get_history_id_field(),
             "history_date": models.DateTimeField(),
@@ -441,6 +448,7 @@ class HistoricalRecords(object):
             "__str__": lambda self: "{} as of {}".format(
                 self.history_object, self.history_date
             ),
+            "get_default_history_user": staticmethod(get_default_history_user),
         }
 
         extra_fields.update(self._get_history_related_field(model))
