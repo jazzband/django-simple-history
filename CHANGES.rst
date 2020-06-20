@@ -1,8 +1,8 @@
 Changes
 =======
 
-Unreleased
-----------
+2.11.0 (2020-06-20)
+-------------------
 - Added ``clean_old_history`` management command (gh-675)
 - Added ``user_db_constraint`` param to history to avoid circular reference on delete (gh-676)
 - Leverages ``get_user`` from ``HistoricalRecords`` in order to set a fallback user on
