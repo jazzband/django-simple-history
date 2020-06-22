@@ -1,6 +1,11 @@
 Changes
 =======
 
+Unreleased
+----------
+- Added ``--excluded_fields`` argument to ``clean_duplicate_history`` command
+
+
 2.11.0 (2020-06-20)
 -------------------
 - Added ``clean_old_history`` management command (gh-675)
