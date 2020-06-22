@@ -396,8 +396,11 @@ class TestCleanDuplicateHistory(TestCase):
         self.assertEqual(Poll.history.all().count(), 2)
         out = StringIO()
         management.call_command(
-            self.command_name, auto=True, excluded_fields=('pub_date',), stdout=out,
-            stderr=StringIO()
+            self.command_name,
+            auto=True,
+            excluded_fields=("pub_date",),
+            stdout=out,
+            stderr=StringIO(),
         )
         self.assertEqual(
             out.getvalue(),

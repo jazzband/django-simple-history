@@ -32,8 +32,9 @@ class Command(populate_history.Command):
             "-m", "--minutes", type=int, help="Only search the last MINUTES of history"
         )
         parser.add_argument(
-            "--excluded_fields", nargs='+', help="List of fields to be excluded "
-                                                 "from the diff_against check"
+            "--excluded_fields",
+            nargs="+",
+            help="List of fields to be excluded " "from the diff_against check",
         )
 
     def handle(self, *args, **options):

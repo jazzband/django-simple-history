@@ -664,10 +664,9 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record, excluded_fields=('question',))
+        delta = new_record.diff_against(old_record, excluded_fields=("question",))
         self.assertEqual(delta.changed_fields, [])
         self.assertEqual(delta.changes, [])
-
 
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
