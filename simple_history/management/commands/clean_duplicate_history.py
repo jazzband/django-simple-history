@@ -34,7 +34,7 @@ class Command(populate_history.Command):
         parser.add_argument(
             "--excluded_fields",
             nargs="+",
-            help="List of fields to be excluded " "from the diff_against check",
+            help="List of fields to be excluded from the diff_against check",
         )
 
     def handle(self, *args, **options):
