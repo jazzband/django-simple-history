@@ -33,19 +33,20 @@ history:
     1000
 
 If you want to specify a change reason or history user for each record in the bulk create,
-you can add `_change_reason` or `_history_user` on each instance:
+you can add `_change_reason`, `_history_user` or `_history_date` on each instance:
 
 .. code-block:: pycon
 
     >>> for poll in data:
             poll._change_reason = 'reason'
             poll._history_user = my_user
+            poll._history_date = some_date
     >>> objs = bulk_create_with_history(data, Poll, batch_size=500)
     >>> Poll.history.get(id=data[0].id).history_change_reason
     'reason'
 
 You can also specify a default user or default change reason responsible for the change
-(`_history_user` and `_change_reason` take precedence).
+(`_change_reason`, `_history_user` and `_history_date` take precedence).
 
 .. code-block:: pycon
 

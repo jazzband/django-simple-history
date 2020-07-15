@@ -107,6 +107,7 @@ class HistoryManager(models.Manager):
         update=False,
         default_user=None,
         default_change_reason="",
+        default_date=None,
     ):
         """
         Bulk create the history for the objects specified by objs.
@@ -126,7 +127,9 @@ class HistoryManager(models.Manager):
                 default_user or self.model.get_default_history_user(instance),
             )
             row = self.model(
-                history_date=getattr(instance, "_history_date", timezone.now()),
+                history_date=getattr(
+                    instance, "_history_date", default_date or timezone.now()
+                ),
                 history_user=history_user,
                 history_change_reason=get_change_reason_from_object(instance)
                 or default_change_reason,

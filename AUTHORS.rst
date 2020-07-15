@@ -94,6 +94,7 @@ Authors
 - Sergey Ozeranskiy (`ozeranskiy <https://github.com/ozeranskiy>`_)
 - Shane Engelman
 - Steeve Chailloux
+- Stefan Borer (`sbor23 <https://github.com/sbor23>`_)
 - Steven Klass
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)

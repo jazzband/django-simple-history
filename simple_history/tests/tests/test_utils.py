@@ -1,4 +1,5 @@
 from unittest import skipIf
+from datetime import datetime
 
 import django
 from django.contrib.auth import get_user_model
@@ -68,6 +69,14 @@ class BulkCreateWithHistoryTestCase(TestCase):
                     for history in Poll.history.all()
                 ]
             )
+        )
+
+    def test_bulk_create_history_with_default_date(self):
+        date = datetime(2020, 7, 1)
+        bulk_create_with_history(self.data, Poll, default_date=date)
+
+        self.assertTrue(
+            all([history.history_date == date for history in Poll.history.all()])
         )
 
     def test_bulk_create_history_num_queries_is_two(self):
@@ -175,7 +184,11 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
         hist_manager_mock().bulk_history_create.assert_called_with(
-            objects, batch_size=None, default_user=None, default_change_reason=None
+            objects,
+            batch_size=None,
+            default_user=None,
+            default_change_reason=None,
+            default_date=None,
         )
 
 
@@ -231,6 +244,21 @@ class BulkUpdateWithHistoryTestCase(TestCase):
             all(
                 [
                     history.history_change_reason == "my change reason"
+                    for history in Poll.history.filter(history_type="~")
+                ]
+            )
+        )
+
+    def test_bulk_update_history_with_default_date(self):
+        date = datetime(2020, 7, 1)
+        bulk_update_with_history(
+            self.data, Poll, fields=["question"], default_date=date
+        )
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_date == date
                     for history in Poll.history.filter(history_type="~")
                 ]
             )
