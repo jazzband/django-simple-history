@@ -132,9 +132,7 @@ def bulk_update_with_history(
         )
     history_manager = get_history_manager_for_model(model)
     with transaction.atomic(savepoint=False):
-        model.objects.bulk_update(
-            objs, fields, batch_size=batch_size
-        )
+        model.objects.bulk_update(objs, fields, batch_size=batch_size)
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
