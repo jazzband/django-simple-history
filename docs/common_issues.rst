@@ -62,7 +62,7 @@ Bulk update was introduced with Django 2.2. We can use the utility function
 
 .. code-block:: pycon
 
-    >>> from simple_history.utils import bulk_create_with_history
+    >>> from simple_history.utils import bulk_update_with_history
     >>> from simple_history.tests.models import Poll
     >>> from django.utils.timezone import now
     >>>
