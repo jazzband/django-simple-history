@@ -1,6 +1,10 @@
 Changes
 =======
 
+Unreleased
+----------
+- Add default date to ``bulk_create_with_history`` and ``bulk_update_with_history`` (gh-687)
+
 2.11.0 (2020-06-20)
 -------------------
 - Added ``clean_old_history`` management command (gh-675)
