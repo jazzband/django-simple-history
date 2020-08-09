@@ -10,6 +10,7 @@ from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
 from simple_history.tests.models import (
+    BulkCreateManyToManyModel,
     Document,
     Place,
     Poll,
@@ -179,7 +180,8 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             objects=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
                 filter=Mock(return_value=objects),
-            )
+            ),
+            _meta=Mock(get_fields=Mock(return_value=[])),
         )
         result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
@@ -190,6 +192,22 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             default_change_reason=None,
             default_date=None,
         )
+
+
+class BulkCreateWithManyToManyField(TestCase):
+    def setUp(self):
+        self.data = [
+            BulkCreateManyToManyModel(name="Object 1"),
+            BulkCreateManyToManyModel(name="Object 2"),
+            BulkCreateManyToManyModel(name="Object 3"),
+            BulkCreateManyToManyModel(name="Object 4"),
+            BulkCreateManyToManyModel(name="Object 5"),
+        ]
+
+    def test_bulk_create_with_history(self):
+        bulk_create_with_history(self.data, BulkCreateManyToManyModel)
+
+        self.assertEqual(BulkCreateManyToManyModel.objects.count(), 5)
 
 
 @skipIf(django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2")
