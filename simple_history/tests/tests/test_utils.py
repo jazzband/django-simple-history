@@ -180,7 +180,8 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             objects=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
                 filter=Mock(return_value=objects),
-            )
+            ),
+            _meta=Mock(get_fields=Mock(return_value=[])),
         )
         result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
