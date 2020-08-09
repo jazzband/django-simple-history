@@ -72,8 +72,11 @@ def bulk_create_with_history(
     """
     # Exclude ManyToManyFields because they end up as invalid kwargs to
     # model.objects.filter(...) below.
-    exclude_fields = [field.name for field in model._meta.get_fields()
-                      if isinstance(field, ManyToManyField)]
+    exclude_fields = [
+        field.name
+        for field in model._meta.get_fields()
+        if isinstance(field, ManyToManyField)
+    ]
     history_manager = get_history_manager_for_model(model)
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
@@ -92,7 +95,10 @@ def bulk_create_with_history(
         with transaction.atomic(savepoint=False):
             for obj in objs_with_id:
                 attributes = dict(
-                    filter(lambda x: x[1] is not None, model_to_dict(obj, exclude=exclude_fields).items())
+                    filter(
+                        lambda x: x[1] is not None,
+                        model_to_dict(obj, exclude=exclude_fields).items(),
+                    )
                 )
                 obj_list += model.objects.filter(**attributes)
             history_manager.bulk_history_create(

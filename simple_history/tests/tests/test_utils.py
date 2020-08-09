@@ -197,11 +197,11 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
 class BulkCreateWithManyToManyField(TestCase):
     def setUp(self):
         self.data = [
-            BulkCreateManyToManyModel(name='Object 1'),
-            BulkCreateManyToManyModel(name='Object 2'),
-            BulkCreateManyToManyModel(name='Object 3'),
-            BulkCreateManyToManyModel(name='Object 4'),
-            BulkCreateManyToManyModel(name='Object 5'),
+            BulkCreateManyToManyModel(name="Object 1"),
+            BulkCreateManyToManyModel(name="Object 2"),
+            BulkCreateManyToManyModel(name="Object 3"),
+            BulkCreateManyToManyModel(name="Object 4"),
+            BulkCreateManyToManyModel(name="Object 5"),
         ]
 
     def test_bulk_create_with_history(self):
