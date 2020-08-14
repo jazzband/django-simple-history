@@ -2,6 +2,7 @@ import warnings
 
 import django
 from django.db import transaction
+from django.db.models import ManyToManyField
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import NotHistoricalModelError
@@ -45,7 +46,12 @@ def get_history_model_for_model(model):
 
 
 def bulk_create_with_history(
-    objs, model, batch_size=None, default_user=None, default_change_reason=None
+    objs,
+    model,
+    batch_size=None,
+    default_user=None,
+    default_change_reason=None,
+    default_date=None,
 ):
     """
     Bulk create the objects specified by objs while also bulk creating
@@ -60,9 +66,17 @@ def bulk_create_with_history(
         record
     :param default_change_reason: Optional change reason to specify as the change_reason
         in each historical record
+    :param default_date: Optional date to specify as the history_date in each historical
+        record
     :return: List of objs with IDs
     """
-
+    # Exclude ManyToManyFields because they end up as invalid kwargs to
+    # model.objects.filter(...) below.
+    exclude_fields = [
+        field.name
+        for field in model._meta.get_fields()
+        if isinstance(field, ManyToManyField)
+    ]
     history_manager = get_history_manager_for_model(model)
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
@@ -74,13 +88,17 @@ def bulk_create_with_history(
                 batch_size=batch_size,
                 default_user=default_user,
                 default_change_reason=default_change_reason,
+                default_date=default_date,
             )
     if second_transaction_required:
         obj_list = []
         with transaction.atomic(savepoint=False):
             for obj in objs_with_id:
                 attributes = dict(
-                    filter(lambda x: x[1] is not None, model_to_dict(obj).items())
+                    filter(
+                        lambda x: x[1] is not None,
+                        model_to_dict(obj, exclude=exclude_fields).items(),
+                    )
                 )
                 obj_list += model.objects.filter(**attributes)
             history_manager.bulk_history_create(
@@ -88,13 +106,20 @@ def bulk_create_with_history(
                 batch_size=batch_size,
                 default_user=default_user,
                 default_change_reason=default_change_reason,
+                default_date=default_date,
             )
         objs_with_id = obj_list
     return objs_with_id
 
 
 def bulk_update_with_history(
-    objs, model, fields, batch_size=None, default_user=None, default_change_reason=None,
+    objs,
+    model,
+    fields,
+    batch_size=None,
+    default_user=None,
+    default_change_reason=None,
+    default_date=None,
 ):
     """
     Bulk update the objects specified by objs while also bulk creating
@@ -107,6 +132,8 @@ def bulk_update_with_history(
         record
     :param default_change_reason: Optional change reason to specify as the change_reason
         in each historical record
+    :param default_date: Optional date to specify as the history_date in each historical
+        record
     """
     if django.VERSION < (2, 2,):
         raise NotImplementedError(
@@ -115,15 +142,14 @@ def bulk_update_with_history(
         )
     history_manager = get_history_manager_for_model(model)
     with transaction.atomic(savepoint=False):
-        model.objects.bulk_update(
-            objs, fields, batch_size=batch_size,
-        )
+        model.objects.bulk_update(objs, fields, batch_size=batch_size)
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
             update=True,
             default_user=default_user,
             default_change_reason=default_change_reason,
+            default_date=default_date,
         )
 
 

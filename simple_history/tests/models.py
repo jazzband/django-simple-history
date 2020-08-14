@@ -693,3 +693,13 @@ class ForeignKeyToSelfModel(models.Model):
 class Street(models.Model):
     name = models.CharField(max_length=150)
     log = HistoricalRecords(related_name="history")
+
+
+class BulkCreateManyToManyModelOther(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class BulkCreateManyToManyModel(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    other = models.ManyToManyField(BulkCreateManyToManyModelOther)
+    history = HistoricalRecords()

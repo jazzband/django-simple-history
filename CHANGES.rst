@@ -3,8 +3,9 @@ Changes
 
 Unreleased
 ----------
-- Added ``--excluded_fields`` argument to ``clean_duplicate_history`` command
-
+- Add default date to ``bulk_create_with_history`` and ``bulk_update_with_history`` (gh-687)
+- Exclude ManyToManyFields when using ``bulk_create_with_history`` (gh-699)
+- Added ``--excluded_fields`` argument to ``clean_duplicate_history`` command (gh-674)
 
 2.11.0 (2020-06-20)
 -------------------

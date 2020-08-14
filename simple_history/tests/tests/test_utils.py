@@ -1,4 +1,5 @@
 from unittest import skipIf
+from datetime import datetime
 
 import django
 from django.contrib.auth import get_user_model
@@ -9,6 +10,7 @@ from mock import Mock, patch
 
 from simple_history.exceptions import NotHistoricalModelError
 from simple_history.tests.models import (
+    BulkCreateManyToManyModel,
     Document,
     Place,
     Poll,
@@ -68,6 +70,14 @@ class BulkCreateWithHistoryTestCase(TestCase):
                     for history in Poll.history.all()
                 ]
             )
+        )
+
+    def test_bulk_create_history_with_default_date(self):
+        date = datetime(2020, 7, 1)
+        bulk_create_with_history(self.data, Poll, default_date=date)
+
+        self.assertTrue(
+            all([history.history_date == date for history in Poll.history.all()])
         )
 
     def test_bulk_create_history_num_queries_is_two(self):
@@ -170,13 +180,34 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             objects=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
                 filter=Mock(return_value=objects),
-            )
+            ),
+            _meta=Mock(get_fields=Mock(return_value=[])),
         )
         result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
         hist_manager_mock().bulk_history_create.assert_called_with(
-            objects, batch_size=None, default_user=None, default_change_reason=None
+            objects,
+            batch_size=None,
+            default_user=None,
+            default_change_reason=None,
+            default_date=None,
         )
+
+
+class BulkCreateWithManyToManyField(TestCase):
+    def setUp(self):
+        self.data = [
+            BulkCreateManyToManyModel(name="Object 1"),
+            BulkCreateManyToManyModel(name="Object 2"),
+            BulkCreateManyToManyModel(name="Object 3"),
+            BulkCreateManyToManyModel(name="Object 4"),
+            BulkCreateManyToManyModel(name="Object 5"),
+        ]
+
+    def test_bulk_create_with_history(self):
+        bulk_create_with_history(self.data, BulkCreateManyToManyModel)
+
+        self.assertEqual(BulkCreateManyToManyModel.objects.count(), 5)
 
 
 @skipIf(django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2")
@@ -231,6 +262,21 @@ class BulkUpdateWithHistoryTestCase(TestCase):
             all(
                 [
                     history.history_change_reason == "my change reason"
+                    for history in Poll.history.filter(history_type="~")
+                ]
+            )
+        )
+
+    def test_bulk_update_history_with_default_date(self):
+        date = datetime(2020, 7, 1)
+        bulk_update_with_history(
+            self.data, Poll, fields=["question"], default_date=date
+        )
+
+        self.assertTrue(
+            all(
+                [
+                    history.history_date == date
                     for history in Poll.history.filter(history_type="~")
                 ]
             )
