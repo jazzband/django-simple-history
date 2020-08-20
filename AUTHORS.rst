@@ -103,6 +103,7 @@ Authors
 - `vnagendra <https://github.com/vnagendra>`_
 - `yakimka <https://github.com/yakimka>`_
 - `Paulo Peres <https://github.com/PauloPeres>`_
+- `Alex Todorov <https://github.com/atodorov>`_
 
 Background
 ==========
