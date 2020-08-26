@@ -704,7 +704,8 @@ class BulkCreateManyToManyModel(models.Model):
     other = models.ManyToManyField(ManyToManyModelOther)
     history = HistoricalRecords()
 
+
 class ModelWithExcludedManyToMany(models.Model):
     name = models.CharField(max_length=15, unique=True)
     other = models.ManyToManyField(ManyToManyModelOther)
-    history = HistoricalRecords(excluded_fields=['other'])
+    history = HistoricalRecords(excluded_fields=["other"])
