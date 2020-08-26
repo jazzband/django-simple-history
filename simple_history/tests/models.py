@@ -695,11 +695,16 @@ class Street(models.Model):
     log = HistoricalRecords(related_name="history")
 
 
-class BulkCreateManyToManyModelOther(models.Model):
+class ManyToManyModelOther(models.Model):
     name = models.CharField(max_length=15, unique=True)
 
 
 class BulkCreateManyToManyModel(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    other = models.ManyToManyField(BulkCreateManyToManyModelOther)
+    other = models.ManyToManyField(ManyToManyModelOther)
     history = HistoricalRecords()
+
+class ModelWithExcludedManyToMany(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    other = models.ManyToManyField(ManyToManyModelOther)
+    history = HistoricalRecords(excluded_fields=['other'])

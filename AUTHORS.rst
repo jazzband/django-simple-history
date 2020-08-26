@@ -59,6 +59,7 @@ Authors
 - Jonathan Loo (`alpha1d3d <https://github.com/alpha1d3d>`_)
 - Jonathan Sanchez
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
+- Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
 - Josh Fyne
 - Keith Hackbarth
 - Kevin Foster

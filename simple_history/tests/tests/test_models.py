@@ -69,6 +69,8 @@ from ..models import (
     OverrideModelNameUsingBaseModel1,
     MyOverrideModelNameRegisterMethod1,
     Library,
+    ManyToManyModelOther,
+    ModelWithExcludedManyToMany,
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
@@ -994,6 +996,16 @@ class HistoryManagerTest(TestCase):
         poll.save()
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
+
+    def test_as_of_excluded_many_to_many_succeeds(self):
+        id1 = ManyToManyModelOther.objects.create(name="test1")
+        id2 = ManyToManyModelOther.objects.create(name="test2")
+
+        m = ModelWithExcludedManyToMany.objects.create(name="test")
+        m.other.add(id1, id2)
+
+        # This will fail if the ManyToMany field is not excluded.
+        self.assertEqual(m.history.as_of(datetime.now()), m)
 
     def test_foreignkey_field(self):
         why_poll = Poll.objects.create(question="why?", pub_date=today)
