@@ -4,7 +4,11 @@ import django
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
-from django.conf.urls import url
+
+try:
+    from django.urls import re_path as url
+except ImportError:
+    from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
