@@ -384,6 +384,8 @@ class HistoricalRecords(object):
                 field.attname: getattr(self, field.attname) for field in fields.values()
             }
             if self._history_excluded_fields:
+                # We don't add ManyToManyFields to this list because they may cause
+                # the subsequent `.get()` call to fail. See #706 for context.
                 excluded_attnames = [
                     model._meta.get_field(field).attname
                     for field in self._history_excluded_fields
