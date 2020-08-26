@@ -998,11 +998,11 @@ class HistoryManagerTest(TestCase):
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
 
     def test_as_of_excluded_many_to_many_succeeds(self):
-        id1 = ManyToManyModelOther.objects.create(name="test1")
-        id2 = ManyToManyModelOther.objects.create(name="test2")
+        other1 = ManyToManyModelOther.objects.create(name="test1")
+        other2 = ManyToManyModelOther.objects.create(name="test2")
 
         m = ModelWithExcludedManyToMany.objects.create(name="test")
-        m.other.add(id1, id2)
+        m.other.add(other1, other2)
 
         # This will fail if the ManyToMany field is not excluded.
         self.assertEqual(m.history.as_of(datetime.now()), m)
