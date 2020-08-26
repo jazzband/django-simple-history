@@ -24,6 +24,12 @@ so you can schedule, for instance, an hourly cronjob such as
 
     $ python manage.py clean_duplicate_history -m 60 --auto
 
+You can also use ``--excluded_fields`` to provide a list of fields to be excluded
+from the duplicate check
+
+.. code-block:: bash
+
+    $ python manage.py clean_duplicate_history --auto --excluded_fields field1 field2
 
 clean_old_history
 -----------------------

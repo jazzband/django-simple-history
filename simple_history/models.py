@@ -586,19 +586,22 @@ class HistoricalObjectDescriptor(object):
 
 
 class HistoricalChanges(object):
-    def diff_against(self, old_history):
+    def diff_against(self, old_history, excluded_fields=None):
         if not isinstance(old_history, type(self)):
             raise TypeError(
                 ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
                     type(self), type(old_history)
                 )
             )
-
+        if excluded_fields is None:
+            excluded_fields = []
         changes = []
         changed_fields = []
         old_values = model_to_dict(old_history.instance)
         current_values = model_to_dict(self.instance)
         for field, new_value in current_values.items():
+            if field in excluded_fields:
+                continue
             if field in old_values:
                 old_value = old_values[field]
                 if old_value != new_value:

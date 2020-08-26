@@ -31,9 +31,15 @@ class Command(populate_history.Command):
         parser.add_argument(
             "-m", "--minutes", type=int, help="Only search the last MINUTES of history"
         )
+        parser.add_argument(
+            "--excluded_fields",
+            nargs="+",
+            help="List of fields to be excluded from the diff_against check",
+        )
 
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
+        self.excluded_fields = options.get("excluded_fields")
 
         to_process = set()
         model_strings = options.get("models", []) or args
@@ -109,7 +115,7 @@ class Command(populate_history.Command):
             self.stdout.write(message)
 
     def _check_and_delete(self, entry1, entry2, dry_run=True):
-        delta = entry1.diff_against(entry2)
+        delta = entry1.diff_against(entry2, excluded_fields=self.excluded_fields)
         if not delta.changed_fields:
             if not dry_run:
                 entry1.delete()
