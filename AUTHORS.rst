@@ -75,6 +75,7 @@ Authors
 - Marty Alchin
 - Matheus Cansian (`mscansian <https://github.com/mscansian>`_)
 - Mauricio de Abreu Antunes
+- Maxim Zemskov (`MaximZemskov <https://github.com/MaximZemskov>`_)
 - Micah Denbraver
 - Michael England
 - Miguel Vargas
@@ -104,6 +105,7 @@ Authors
 - `vnagendra <https://github.com/vnagendra>`_
 - `yakimka <https://github.com/yakimka>`_
 - `Paulo Peres <https://github.com/PauloPeres>`_
+- `Alex Todorov <https://github.com/atodorov>`_
 
 Background
 ==========
