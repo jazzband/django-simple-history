@@ -337,6 +337,78 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
 
+@skipIf(django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2")
+class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
+    def setUp(self):
+        self.data = [
+            PollWithAlternativeManager(
+                id=1, question="Question 1", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=2, question="Question 2", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=3, question="Question 3", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=4, question="Question 4", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=5, question="Question 5", pub_date=timezone.now()
+            ),
+        ]
+        bulk_create_with_history(
+            self.data, PollWithAlternativeManager,
+        )
+
+    def test_bulk_update_history_default_manager(self):
+        self.data[3].question = "Updated question"
+
+        bulk_update_with_history(
+            self.data, PollWithAlternativeManager, fields=["question"],
+        )
+
+        self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
+        self.assertEqual(
+            PollWithAlternativeManager.all_objects.get(id=4).question,
+            "Updated question",
+        )
+        self.assertEqual(PollWithAlternativeManager.history.count(), 10)
+        self.assertEqual(
+            PollWithAlternativeManager.history.filter(history_type="~").count(), 5
+        )
+
+    def test_bulk_update_history_other_manager(self):
+        # filtered by default manager
+        self.data[0].question = "Updated question"
+
+        bulk_update_with_history(
+            self.data,
+            PollWithAlternativeManager,
+            fields=["question"],
+            manager=PollWithAlternativeManager.all_objects,
+        )
+
+        self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
+        self.assertEqual(
+            PollWithAlternativeManager.all_objects.get(id=1).question,
+            "Updated question",
+        )
+        self.assertEqual(PollWithAlternativeManager.history.count(), 10)
+        self.assertEqual(
+            PollWithAlternativeManager.history.filter(history_type="~").count(), 5
+        )
+
+    def test_bulk_update_history_wrong_manager(self):
+        with self.assertRaises(AlternativeManagerError):
+            bulk_update_with_history(
+                self.data,
+                PollWithAlternativeManager,
+                fields=["question"],
+                manager=Poll.objects,
+            )
+
+
 class UpdateChangeReasonTestCase(TestCase):
     def test_update_change_reason_with_excluded_fields(self):
         poll = PollWithExcludeFields(

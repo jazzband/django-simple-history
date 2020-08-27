@@ -122,6 +122,7 @@ def bulk_update_with_history(
     default_user=None,
     default_change_reason=None,
     default_date=None,
+    manager=None,
 ):
     """
     Bulk update the objects specified by objs while also bulk creating
@@ -136,6 +137,8 @@ def bulk_update_with_history(
         in each historical record
     :param default_date: Optional date to specify as the history_date in each historical
         record
+    :param manager: Optional model manager to use for the model instead of the default
+        manager
     """
     if django.VERSION < (2, 2,):
         raise NotImplementedError(
@@ -143,8 +146,12 @@ def bulk_update_with_history(
             "Django versions 2.2 and later"
         )
     history_manager = get_history_manager_for_model(model)
+    model_manager = manager or model._default_manager
+    if model_manager.model is not model:
+        raise AlternativeManagerError("The given manager does not belong to the model.")
+
     with transaction.atomic(savepoint=False):
-        model.objects.bulk_update(objs, fields, batch_size=batch_size)
+        model_manager.bulk_update(objs, fields, batch_size=batch_size)
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
