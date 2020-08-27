@@ -7,6 +7,10 @@ Unreleased
 - Exclude ManyToManyFields when using ``bulk_create_with_history`` (gh-699)
 - Added ``--excluded_fields`` argument to ``clean_duplicate_history`` command (gh-674)
 - Exclude ManyToManyFields when fetching excluded fields (gh-707)
+- Use default model manager for ``bulk_create_with_history`` and
+  ``bulk_update_with_history`` instead of ``objects`` (gh-703)
+- Add optional ``manager`` argument to ``bulk_update_with_history`` to use instead of
+  the default manager (gh-703)
 
 2.11.0 (2020-06-20)
 -------------------

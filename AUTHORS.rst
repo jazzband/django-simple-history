@@ -38,6 +38,7 @@ Authors
 - Filipe Pina (@fopina)
 - Florian Eßer
 - Frank Sachsenheim
+- George Kettleborough (`georgek <https://github.com/georgek>`_)
 - George Vilches
 - Gregory Bataille
 - Grzegorz Bialy
