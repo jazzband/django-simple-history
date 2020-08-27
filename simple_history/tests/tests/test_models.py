@@ -69,6 +69,8 @@ from ..models import (
     OverrideModelNameUsingBaseModel1,
     MyOverrideModelNameRegisterMethod1,
     Library,
+    ManyToManyModelOther,
+    ModelWithExcludedManyToMany,
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
@@ -1004,6 +1006,16 @@ class HistoryManagerTest(TestCase):
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.as_of, time)
 
+    def test_as_of_excluded_many_to_many_succeeds(self):
+        other1 = ManyToManyModelOther.objects.create(name="test1")
+        other2 = ManyToManyModelOther.objects.create(name="test2")
+
+        m = ModelWithExcludedManyToMany.objects.create(name="test")
+        m.other.add(other1, other2)
+
+        # This will fail if the ManyToMany field is not excluded.
+        self.assertEqual(m.history.as_of(datetime.now()), m)
+
     def test_foreignkey_field(self):
         why_poll = Poll.objects.create(question="why?", pub_date=today)
         how_poll = Poll.objects.create(question="how?", pub_date=today)
@@ -1163,7 +1175,14 @@ class TestOrderWrtField(TestCase):
 
         model_state = state.ModelState.from_model(SeriesWork.history.model)
         found = False
-        for name, field in model_state.fields:
+        # `fields` is a dict in Django 3.1
+        fields = None
+        if isinstance(model_state.fields, dict):
+            fields = model_state.fields.items()
+        else:
+            fields = model_state.fields
+
+        for name, field in fields:
             if name == "_order":
                 found = True
                 self.assertEqual(type(field), models.IntegerField)

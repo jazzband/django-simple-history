@@ -14,7 +14,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import Q
+from django.db.models import ManyToManyField, Q
 from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -384,9 +384,12 @@ class HistoricalRecords(object):
                 field.attname: getattr(self, field.attname) for field in fields.values()
             }
             if self._history_excluded_fields:
+                # We don't add ManyToManyFields to this list because they may cause
+                # the subsequent `.get()` call to fail. See #706 for context.
                 excluded_attnames = [
                     model._meta.get_field(field).attname
                     for field in self._history_excluded_fields
+                    if not isinstance(model._meta.get_field(field), ManyToManyField)
                 ]
                 try:
                     values = (
