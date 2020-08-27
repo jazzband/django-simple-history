@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models import ManyToManyField
 from django.forms.models import model_to_dict
 
-from simple_history.exceptions import NotHistoricalModelError
+from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 
 
 def update_change_reason(instance, reason):
@@ -78,9 +78,11 @@ def bulk_create_with_history(
         if isinstance(field, ManyToManyField)
     ]
     history_manager = get_history_manager_for_model(model)
+    model_manager = model._default_manager
+
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
-        objs_with_id = model.objects.bulk_create(objs, batch_size=batch_size)
+        objs_with_id = model_manager.bulk_create(objs, batch_size=batch_size)
         if objs_with_id and objs_with_id[0].pk:
             second_transaction_required = False
             history_manager.bulk_history_create(
@@ -100,7 +102,7 @@ def bulk_create_with_history(
                         model_to_dict(obj, exclude=exclude_fields).items(),
                     )
                 )
-                obj_list += model.objects.filter(**attributes)
+                obj_list += model_manager.filter(**attributes)
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,

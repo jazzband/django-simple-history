@@ -8,12 +8,13 @@ from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 from mock import Mock, patch
 
-from simple_history.exceptions import NotHistoricalModelError
+from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
     BulkCreateManyToManyModel,
     Document,
     Place,
     Poll,
+    PollWithAlternativeManager,
     PollWithExcludeFields,
     Street,
 )
@@ -42,12 +43,37 @@ class BulkCreateWithHistoryTestCase(TestCase):
             PollWithExcludeFields(id=4, question="Question 4", pub_date=timezone.now()),
             PollWithExcludeFields(id=5, question="Question 5", pub_date=timezone.now()),
         ]
+        self.data_with_alternative_manager = [
+            PollWithAlternativeManager(
+                id=1, question="Question 1", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=2, question="Question 2", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=3, question="Question 3", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=4, question="Question 4", pub_date=timezone.now()
+            ),
+            PollWithAlternativeManager(
+                id=5, question="Question 5", pub_date=timezone.now()
+            ),
+        ]
 
     def test_bulk_create_history(self):
         bulk_create_with_history(self.data, Poll)
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 5)
+
+    def test_bulk_create_history_alternative_manager(self):
+        bulk_create_with_history(
+            self.data, PollWithAlternativeManager,
+        )
+
+        self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
+        self.assertEqual(PollWithAlternativeManager.history.count(), 5)
 
     def test_bulk_create_history_with_default_user(self):
         user = User.objects.create_user("tester", "tester@example.com")
@@ -177,7 +203,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     def test_bulk_create_no_ids_return(self, hist_manager_mock):
         objects = [Place(id=1, name="Place 1")]
         model = Mock(
-            objects=Mock(
+            _default_manager=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
                 filter=Mock(return_value=objects),
             ),
