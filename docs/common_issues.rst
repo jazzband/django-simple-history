@@ -56,9 +56,11 @@ You can also specify a default user or default change reason responsible for the
     True
 
 Bulk Updating a Model with History (New)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Bulk update was introduced with Django 2.2. We can use the utility function
-``bulk_update_with_history`` in order to bulk update objects using Django's ``bulk_update`` function while saving the object history:
+``bulk_update_with_history`` in order to bulk update objects using Django's
+``bulk_update`` function while saving the object history:
 
 
 .. code-block:: pycon
@@ -72,7 +74,19 @@ Bulk update was introduced with Django 2.2. We can use the utility function
     >>> for obj in objs: obj.question = 'Duplicate Questions'
     >>> bulk_update_with_history(objs, Poll, ['question'], batch_size=500)
     >>> Poll.objects.first().question
-    'Duplicate Question'
+    'Duplicate Question``
+
+If your models require the use of an alternative model manager (usually because the
+default manager returns a filtered set), you can specify which manager to use with the
+``manager`` argument:
+
+.. code-block:: pycon
+
+    >>> from simple_history.utils import bulk_update_with_history
+    >>> from simple_history.tests.models import PollWithAlternativeManager
+    >>>
+    >>> data = [PollWithAlternativeManager(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
+    >>> objs = bulk_create_with_history(data, PollWithAlternativeManager, batch_size=500, manager=PollWithAlternativeManager.all_polls)
 
 QuerySet Updates with History (Updated in Django 2.2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

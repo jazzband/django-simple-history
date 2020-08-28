@@ -19,3 +19,9 @@ class RelatedNameConflictError(Exception):
     """Related name conflicting with history manager"""
 
     pass
+
+
+class AlternativeManagerError(Exception):
+    """Manager does not belong to model"""
+
+    pass

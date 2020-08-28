@@ -63,6 +63,21 @@ class PollWithExcludedFKField(models.Model):
     history = HistoricalRecords(excluded_fields=["place"])
 
 
+class AlternativePollManager(models.Manager):
+    def get_queryset(self):
+        return super(AlternativePollManager, self).get_queryset().exclude(id=1)
+
+
+class PollWithAlternativeManager(models.Model):
+    some_objects = AlternativePollManager()
+    all_objects = models.Manager()
+
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+
+    history = HistoricalRecords()
+
+
 class IPAddressHistoricalModel(models.Model):
     ip_address = models.GenericIPAddressField()
 

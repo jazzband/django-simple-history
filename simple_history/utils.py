@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models import ManyToManyField
 from django.forms.models import model_to_dict
 
-from simple_history.exceptions import NotHistoricalModelError
+from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 
 
 def update_change_reason(instance, reason):
@@ -78,9 +78,11 @@ def bulk_create_with_history(
         if isinstance(field, ManyToManyField)
     ]
     history_manager = get_history_manager_for_model(model)
+    model_manager = model._default_manager
+
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
-        objs_with_id = model.objects.bulk_create(objs, batch_size=batch_size)
+        objs_with_id = model_manager.bulk_create(objs, batch_size=batch_size)
         if objs_with_id and objs_with_id[0].pk:
             second_transaction_required = False
             history_manager.bulk_history_create(
@@ -100,7 +102,7 @@ def bulk_create_with_history(
                         model_to_dict(obj, exclude=exclude_fields).items(),
                     )
                 )
-                obj_list += model.objects.filter(**attributes)
+                obj_list += model_manager.filter(**attributes)
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,
@@ -120,6 +122,7 @@ def bulk_update_with_history(
     default_user=None,
     default_change_reason=None,
     default_date=None,
+    manager=None,
 ):
     """
     Bulk update the objects specified by objs while also bulk creating
@@ -134,6 +137,8 @@ def bulk_update_with_history(
         in each historical record
     :param default_date: Optional date to specify as the history_date in each historical
         record
+    :param manager: Optional model manager to use for the model instead of the default
+        manager
     """
     if django.VERSION < (2, 2,):
         raise NotImplementedError(
@@ -141,8 +146,12 @@ def bulk_update_with_history(
             "Django versions 2.2 and later"
         )
     history_manager = get_history_manager_for_model(model)
+    model_manager = manager or model._default_manager
+    if model_manager.model is not model:
+        raise AlternativeManagerError("The given manager does not belong to the model.")
+
     with transaction.atomic(savepoint=False):
-        model.objects.bulk_update(objs, fields, batch_size=batch_size)
+        model_manager.bulk_update(objs, fields, batch_size=batch_size)
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
