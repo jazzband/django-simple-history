@@ -34,6 +34,7 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "Framework :: Django :: 2.1",
             "Framework :: Django :: 2.2",
             "Framework :: Django :: 3.0",
+            "Framework :: Django :: 3.1",
             "Programming Language :: Python",
             "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",

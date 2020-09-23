@@ -11,6 +11,7 @@ Unreleased
   ``bulk_update_with_history`` instead of ``objects`` (gh-703)
 - Add optional ``manager`` argument to ``bulk_update_with_history`` to use instead of
   the default manager (gh-703)
+- Add support for Django 3.1 (gh-713)
 
 2.11.0 (2020-06-20)
 -------------------

@@ -16,6 +16,7 @@ env:
   - DJANGO="Django>=2.1,<2.2"
   - DJANGO="Django>=2.2,<2.3"
   - DJANGO="Django>=3.0,<3.1"
+  - DJANGO="Django>=3.1,<3.2"
 
 install:
   - pip install -U coverage codecov
@@ -55,5 +56,11 @@ matrix:
       env: DJANGO="Django>=3.0,<3.1"
     - python: 3.5
       env: DJANGO="Django>=3.0,<3.1"
+    - python: 2.7
+      env: DJANGO="Django>=3.1,<3.2"
+    - python: 3.4
+      env: DJANGO="Django>=3.1,<3.2"
+    - python: 3.5
+      env: DJANGO="Django>=3.1,<3.2"
 
 after_success: codecov
