@@ -37,6 +37,7 @@ Authors
 - Erik van Widenfelt (`erikvw <https://github.com/erikvw>`_)
 - Filipe Pina (@fopina)
 - Florian Eßer
+- François Martin (`martinfrancois <https://github.com/martinfrancois>`_)
 - Frank Sachsenheim
 - George Kettleborough (`georgek <https://github.com/georgek>`_)
 - George Vilches
