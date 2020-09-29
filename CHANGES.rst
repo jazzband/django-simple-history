@@ -14,6 +14,7 @@ Unreleased
   ``bulk_update_with_history`` instead of ``objects`` (gh-703)
 - Add optional ``manager`` argument to ``bulk_update_with_history`` to use instead of
   the default manager (gh-703)
+- Removed support for Django versions prior to 2.2
 - Add support for Django 3.1 (gh-713)
 - Fix a bug with ``clean_old_history`` command's `--days` argument (gh-722)
 

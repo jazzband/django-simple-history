@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 try:
     from django.urls import re_path as url
 except ImportError:

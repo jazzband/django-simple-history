@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import unittest
 import uuid
 import warnings
@@ -1430,10 +1428,7 @@ class MultiDBWithUsingTest(TestCase):
     keyword argument in `save()`.
     """
 
-    if django.VERSION >= (2, 2, 0, "final"):
-        databases = {"default", "other"}
-    else:
-        multi_db = True
+    databases = {"default", "other"}
 
     db_name = "other"
 
@@ -1554,44 +1549,18 @@ class ForeignKeyToSelfTest(TestCase):
 
 @override_settings(**database_router_override_settings)
 class MultiDBExplicitHistoryUserIDTest(TestCase):
-    if django.VERSION >= (2, 2):
-        databases = {"default", "other"}
+    databases = {"default", "other"}
 
     def setUp(self):
         self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
         )
 
-    @unittest.skipIf(
-        django.VERSION < (2, 1), "Bug with allow_relation call before Django 2.1"
-    )
     def test_history_user_with_fk_in_different_db_raises_value_error(self):
         instance = ExternalModel(name="random_name")
         instance._history_user = self.user
         with self.assertRaises(ValueError):
             instance.save()
-
-    @unittest.skipIf(
-        django.VERSION < (2, 0) or django.VERSION >= (2, 1),
-        "Django 2.0 is first version with sqlite db constraints",
-    )
-    def test_history_user_with_fk_in_different_db_raises_integrity_error_in_2_0(self):
-        instance = ExternalModel(name="random_name")
-        instance._history_user = self.user
-        with self.assertRaises(IntegrityError):
-            instance.save()
-
-    @unittest.skipUnless(
-        django.VERSION < (2, 0),
-        "Django 1.11 doesn't have integrity constraints on sqlite",
-    )
-    def test_history_user_with_fk_in_different_db_raises_error(self):
-        instance = ExternalModel(name="random_name")
-        instance._history_user = self.user
-        instance.save()
-
-        with self.assertRaises(CustomUser.DoesNotExist):
-            instance.history.first().history_user
 
     def test_history_user_with_integer_field(self):
         instance = ExternalModelWithCustomUserIdField(name="random_name")
@@ -1686,10 +1655,7 @@ class RelatedNameTest(TestCase):
 
 @override_settings(**database_router_override_settings_history_in_diff_db)
 class SaveHistoryInSeparateDatabaseTestCase(TestCase):
-    if django.VERSION >= (2, 2, 0, "final"):
-        databases = {"default", "other"}
-    else:
-        multi_db = True
+    databases = {"default", "other"}
 
     def setUp(self):
         self.model = ModelWithHistoryInDifferentDb.objects.create(name="test")

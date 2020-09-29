@@ -1,12 +1,10 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.utils import timezone
 
 from simple_history.utils import get_change_reason_from_object
 
 
-class HistoryDescriptor(object):
+class HistoryDescriptor:
     def __init__(self, model):
         self.model = model
 

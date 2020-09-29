@@ -68,10 +68,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
 ]
 
-if django.__version__ >= "2.0":
-    DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
-else:
-    DEFAULT_SETTINGS["MIDDLEWARE_CLASSES"] = MIDDLEWARE
+DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
 
 def main():

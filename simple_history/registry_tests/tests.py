@@ -1,5 +1,4 @@
-from __future__ import unicode_literals
-
+from io import StringIO
 import unittest
 import uuid
 from datetime import datetime, timedelta
@@ -8,7 +7,6 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core import management
 from django.test import TestCase, override_settings
-from six.moves import cStringIO as StringIO
 
 from simple_history import exceptions, register
 from ..tests.models import (

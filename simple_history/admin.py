@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-import django
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
@@ -20,12 +17,8 @@ from django.utils.text import capfirst
 
 from . import utils
 
-if django.VERSION < (2,):
-    from django.utils.encoding import force_text as force_str
-    from django.utils.translation import ugettext as _
-else:
-    from django.utils.encoding import force_str
-    from django.utils.translation import gettext as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext as _
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
