@@ -36,6 +36,7 @@ class DisableMigrations:
 
 
 DEFAULT_SETTINGS = dict(
+    SECRET_KEY="not a secret",
     ALLOWED_HOSTS=["localhost"],
     AUTH_USER_MODEL="custom_user.CustomUser",
     ROOT_URLCONF="simple_history.tests.urls",
