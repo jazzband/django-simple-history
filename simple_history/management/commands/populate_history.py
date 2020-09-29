@@ -126,7 +126,7 @@ class Command(BaseCommand):
                 )
             )
 
-        iterator_kwargs = ({"chunk_size": batch_size})
+        iterator_kwargs = {"chunk_size": batch_size}
         for index, instance in enumerate(
             model._default_manager.iterator(**iterator_kwargs)
         ):

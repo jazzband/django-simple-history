@@ -237,7 +237,12 @@ class BulkCreateWithManyToManyField(TestCase):
 
 
 @skipIf(
-    django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
+    django.VERSION
+    < (
+        2,
+        2,
+    ),
+    reason="bulk_update does not exist before 2.2",
 )
 class BulkUpdateWithHistoryTestCase(TestCase):
     def setUp(self):
@@ -339,9 +344,7 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
 
-@skipIf(
-    django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
-)
+@skipIf(django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2")
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
     def setUp(self):
         self.data = [
