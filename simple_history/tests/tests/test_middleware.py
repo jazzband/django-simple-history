@@ -191,12 +191,7 @@ class MiddlewareBulkOpsTest(TestCase):
         self.assertFalse(any(ph.history_user_id is None for ph in poll_history))
 
     @skipIf(
-        django.VERSION
-        < (
-            2,
-            2,
-        ),
-        reason="bulk_update does not exist before 2.2",
+        django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
     )
     def test_user_is_set_on_bulk_update_view_when_logged_in(self):
         self.client.force_login(self.user)
@@ -220,12 +215,7 @@ class MiddlewareBulkOpsTest(TestCase):
         )
 
     @skipIf(
-        django.VERSION
-        < (
-            2,
-            2,
-        ),
-        reason="bulk_update does not exist before 2.2",
+        django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
     )
     def test_user_is_not_set_on_bulk_update_view_when_not_logged_in(self):
         poll_1 = Poll.objects.create(question="Test question 1", pub_date=date.today())
@@ -240,14 +230,6 @@ class MiddlewareBulkOpsTest(TestCase):
 
     @skipIf(
         django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
-    )
-    @skipIf(
-        django.VERSION
-        < (
-            2,
-            2,
-        ),
-        reason="bulk_update does not exist before 2.2",
     )
     def test_request_user_is_overwritten_by_default_user_on_bulk_update(self):
         self.client.force_login(self.user)

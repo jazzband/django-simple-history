@@ -140,10 +140,7 @@ def bulk_update_with_history(
     :param manager: Optional model manager to use for the model instead of the default
         manager
     """
-    if django.VERSION < (
-        2,
-        2,
-    ):
+    if django.VERSION < (2, 2,):
         raise NotImplementedError(
             "bulk_update_with_history is only available on "
             "Django versions 2.2 and later"
