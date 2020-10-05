@@ -549,11 +549,7 @@ class TestCleanOldHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name,
-            auto=True,
-            days=20,
-            stdout=StringIO(),
-            stderr=StringIO(),
+            self.command_name, auto=True, days=20, stdout=StringIO(), stderr=StringIO(),
         )
         self.assertEqual(Poll.history.all().count(), 2)
 
@@ -578,11 +574,7 @@ class TestCleanOldHistory(TestCase):
             h.save()
 
         management.call_command(
-            self.command_name,
-            auto=True,
-            days=20,
-            stdout=StringIO(),
-            stderr=StringIO(),
+            self.command_name, auto=True, days=20, stdout=StringIO(), stderr=StringIO(),
         )
         # We will remove the 3 ones that we are marking as old
         self.assertEqual(Poll.history.all().count(), 2)
