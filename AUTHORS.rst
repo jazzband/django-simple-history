@@ -33,6 +33,7 @@ Authors
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
+- Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
 - Erik van Widenfelt (`erikvw <https://github.com/erikvw>`_)
 - Filipe Pina (@fopina)

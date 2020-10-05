@@ -241,8 +241,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     @property
     def content_type_model_cls(self):
-        """Returns the ContentType model class.
-        """
+        """Returns the ContentType model class."""
         return django_apps.get_model("contenttypes.contenttype")
 
     @property
