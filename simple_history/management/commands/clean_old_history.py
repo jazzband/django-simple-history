@@ -26,6 +26,7 @@ class Command(populate_history.Command):
             "--days",
             help="Only Keep the last X Days of history, default is 30",
             dest="days",
+            type=int,
             default=30,
         )
 
