@@ -25,7 +25,6 @@ class Command(populate_history.Command):
         parser.add_argument(
             "--days",
             help="Only Keep the last X Days of history, default is 30",
-            action="store_true",
             dest="days",
             default=30,
         )
