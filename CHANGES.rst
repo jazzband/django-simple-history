@@ -12,6 +12,7 @@ Unreleased
 - Add optional ``manager`` argument to ``bulk_update_with_history`` to use instead of
   the default manager (gh-703)
 - Add support for Django 3.1 (gh-713)
+- Fix a bug with ``clean_old_history`` command's `--days` argument
 
 2.11.0 (2020-06-20)
 -------------------
