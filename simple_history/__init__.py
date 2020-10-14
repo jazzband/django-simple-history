@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-__version__ = "2.11.0"
+__version__ = "2.12.0"
 
 
 def register(

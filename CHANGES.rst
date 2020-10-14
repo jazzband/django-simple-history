@@ -3,6 +3,9 @@ Changes
 
 Unreleased
 ----------
+
+2.12.0 (2020-10-14)
+-------------------
 - Add default date to ``bulk_create_with_history`` and ``bulk_update_with_history`` (gh-687)
 - Exclude ManyToManyFields when using ``bulk_create_with_history`` (gh-699)
 - Added ``--excluded_fields`` argument to ``clean_duplicate_history`` command (gh-674)
@@ -12,7 +15,9 @@ Unreleased
 - Add optional ``manager`` argument to ``bulk_update_with_history`` to use instead of
   the default manager (gh-703)
 - Add support for Django 3.1 (gh-713)
-- Fix a bug with ``clean_old_history`` command's `--days` argument
+- Fix a bug with ``clean_old_history`` command's `--days` argument (gh-722)
+
+\* NOTE: This will be the last minor release before 3.0.0.
 
 2.11.0 (2020-06-20)
 -------------------
