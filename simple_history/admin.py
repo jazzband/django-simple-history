@@ -2,10 +2,7 @@ from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
 
-try:
-    from django.urls import re_path as url
-except ImportError:
-    from django.conf.urls import url
+from django.urls import re_path
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
@@ -36,7 +33,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = self.model._meta
         info = opts.app_label, opts.model_name
         history_urls = [
-            url(
+            re_path(
                 "^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name="%s_%s_simple_history" % info,
