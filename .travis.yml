@@ -11,6 +11,8 @@ python:
 install:
 - travis_retry pip install tox-travis codecov
 script:
+- python --version
+- tox -a
 - tox -v
 after_success: codecov
 jobs:
