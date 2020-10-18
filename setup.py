@@ -1,12 +1,6 @@
 from setuptools import setup
 import simple_history
 
-tests_require = [
-    "Django>=1.11",
-    "mock==1.0.1",
-    "six",
-]
-
 with open("README.rst") as readme, open("CHANGES.rst") as changes:
     setup(
         name="django-simple-history",
@@ -46,8 +40,6 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "License :: OSI Approved :: BSD License",
         ],
         python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-        tests_require=tests_require,
         install_requires=["six"],
         include_package_data=True,
-        test_suite="runtests.main",
     )
