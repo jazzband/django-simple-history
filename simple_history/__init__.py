@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from . import version
 
-__version__ = version.__version__
+__version__ = version.version
 
 
 def register(
