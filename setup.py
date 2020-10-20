@@ -1,16 +1,14 @@
 from setuptools import setup
-import simple_history
-
-tests_require = [
-    "Django>=1.11",
-    "mock==1.0.1",
-    "six",
-]
 
 with open("README.rst") as readme, open("CHANGES.rst") as changes:
     setup(
         name="django-simple-history",
-        version=simple_history.__version__,
+        use_scm_version={
+            "version_scheme": "post-release",
+            "write_to": "simple_history/version.py",
+            "write_to_template": 'version = "{version}"\n',
+        },
+        setup_requires=["setuptools_scm"],
         description="Store model history and view/revert changes from admin site.",
         long_description="\n".join((readme.read(), changes.read())),
         author="Corey Bertram",
@@ -46,8 +44,6 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "License :: OSI Approved :: BSD License",
         ],
         python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-        tests_require=tests_require,
         install_requires=["six"],
         include_package_data=True,
-        test_suite="runtests.main",
     )

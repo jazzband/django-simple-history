@@ -69,7 +69,7 @@ To run tox and generate an HTML code coverage report (available in the
 To quickly run the tests against a single version of Python and Django (note: you must
 ``pip install django`` beforehand)::
 
-    python setup.py test
+    python runtests.py
 
 Code Formatting
 ---------------
