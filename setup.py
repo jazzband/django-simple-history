@@ -6,7 +6,7 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
         use_scm_version={
             "version_scheme": "post-release",
             "write_to": "simple_history/version.py",
-            "write_to_template": '__version__ = "{version}"',
+            "write_to_template": 'version = "{version}"',
         },
         setup_requires=["setuptools_scm"],
         description="Store model history and view/revert changes from admin site.",
