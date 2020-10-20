@@ -31,4 +31,4 @@ jobs:
         secure: aFt6pFTwuzSZnYqQpdO9UKtsLplWIBhI7iwH7/aeH2B0hNCvr5pYfZ2UWvQqNh3aIXoJOoIAN5+Na+YGzY+Y54ZAaFAlEtfEiuXe1APuJ0hLuNvo1IJ/t4ABS2aN4W1HEaoVBaykUNHns+Vo3yfIesK4m9qk5TFuMMbdA6vTxg4=
       on:
         tags: true
-        repo: jazzband/prettytable
+        repo: jazzband/django-simple-history
