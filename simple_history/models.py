@@ -568,6 +568,9 @@ def transform_field(field):
     # Historical instance shouldn't change create/update timestamps
     field.auto_now = False
     field.auto_now_add = False
+    # Just setting db_collation explicitly since we're not using
+    # field.deconstruct() here
+    field.db_collation = None
 
     if field.primary_key or field.unique:
         # Unique fields can no longer be guaranteed unique,
