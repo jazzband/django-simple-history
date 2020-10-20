@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
-from . import version
+from pkg_resources import get_distribution, DistributionNotFound
 
-__version__ = version.version
-
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+     # package is not installed
+    pass
 
 def register(
     model,
