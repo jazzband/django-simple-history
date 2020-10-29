@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Added index on ``history_date`` column
 
 2.12.0 (2020-10-14)
 -------------------

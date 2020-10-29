@@ -434,7 +434,7 @@ class HistoricalRecords(object):
 
         extra_fields = {
             "history_id": self._get_history_id_field(),
-            "history_date": models.DateTimeField(),
+            "history_date": models.DateTimeField(db_index=True),
             "history_change_reason": self._get_history_change_reason_field(),
             "history_type": models.CharField(
                 max_length=1,
@@ -466,8 +466,12 @@ class HistoricalRecords(object):
         """
         meta_fields = {
             "ordering": ("-history_date", "-history_id"),
-            "get_latest_by": "history_date",
+            "get_latest_by": ("history_date", "history_id"),
         }
+
+        if django.VERSION < (2,):
+            meta_fields["get_latest_by"] = "history_date"
+
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
