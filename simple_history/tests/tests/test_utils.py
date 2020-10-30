@@ -1,7 +1,5 @@
-from unittest import skipIf
 from datetime import datetime
 
-import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, TransactionTestCase
@@ -236,9 +234,6 @@ class BulkCreateWithManyToManyField(TestCase):
         self.assertEqual(BulkCreateManyToManyModel.objects.count(), 5)
 
 
-@skipIf(
-    django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
-)
 class BulkUpdateWithHistoryTestCase(TestCase):
     def setUp(self):
         self.data = [
@@ -339,9 +334,6 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
 
-@skipIf(
-    django.VERSION < (2, 2,), reason="bulk_update does not exist before 2.2",
-)
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
     def setUp(self):
         self.data = [

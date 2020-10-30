@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Removed support for Django versions prior to 2.2 (gh-652)
 - Added index on ``history_date`` column
 
 2.12.0 (2020-10-14)

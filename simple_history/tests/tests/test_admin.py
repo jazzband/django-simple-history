@@ -29,10 +29,7 @@ from ..models import (
     Planet,
 )
 
-if django.VERSION < (2,):
-    from django.utils.encoding import force_text as force_str
-else:
-    from django.utils.encoding import force_str
+from django.utils.encoding import force_str
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)

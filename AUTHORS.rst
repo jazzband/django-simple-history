@@ -109,6 +109,7 @@ Authors
 - `yakimka <https://github.com/yakimka>`_
 - `Paulo Peres <https://github.com/PauloPeres>`_
 - `Alex Todorov <https://github.com/atodorov>`_
+- David Smith (`smithdc1 <https://github.com/smithdc1>`_)
 
 Background
 ==========
