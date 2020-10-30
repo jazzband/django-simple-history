@@ -456,9 +456,6 @@ class HistoricalRecords:
             "get_latest_by": ("history_date", "history_id"),
         }
 
-        if django.VERSION < (2,):
-            meta_fields["get_latest_by"] = "history_date"
-
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
         else:
