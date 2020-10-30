@@ -1,14 +1,8 @@
-from __future__ import unicode_literals
-
-import django
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
 
-try:
-    from django.urls import re_path as url
-except ImportError:
-    from django.conf.urls import url
+from django.urls import re_path
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
@@ -20,12 +14,8 @@ from django.utils.text import capfirst
 
 from . import utils
 
-if django.VERSION < (2,):
-    from django.utils.encoding import force_text as force_str
-    from django.utils.translation import ugettext as _
-else:
-    from django.utils.encoding import force_str
-    from django.utils.translation import gettext as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext as _
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
@@ -43,7 +33,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         opts = self.model._meta
         info = opts.app_label, opts.model_name
         history_urls = [
-            url(
+            re_path(
                 "^([^/]+)/history/([^/]+)/$",
                 admin_site.admin_view(self.history_form_view),
                 name="%s_%s_simple_history" % info,

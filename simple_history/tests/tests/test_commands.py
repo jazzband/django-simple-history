@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from io import StringIO
 
 from django.core import management
 from django.test import TestCase
-from six.moves import cStringIO as StringIO
 
 from simple_history import models as sh_models
 from simple_history.management.commands import (

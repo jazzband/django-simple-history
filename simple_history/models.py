@@ -1,13 +1,9 @@
-from __future__ import unicode_literals
-
 import copy
 import importlib
 import threading
 import uuid
 import warnings
 
-import django
-import six
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -26,13 +22,8 @@ from .manager import HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
 from .utils import get_change_reason_from_object
 
-if django.VERSION < (2,):
-    from django.utils.translation import ugettext_lazy as _
-    from django.utils.encoding import smart_text as smart_str
-    from django.utils.encoding import python_2_unicode_compatible
-else:
-    from django.utils.translation import gettext_lazy as _
-    from django.utils.encoding import smart_str
+from django.utils.translation import gettext_lazy as _
+from django.utils.encoding import smart_str
 
 registered_models = {}
 
@@ -59,7 +50,7 @@ def _history_user_setter(historical_instance, user):
         historical_instance.history_user_id = user.pk
 
 
-class HistoricalRecords(object):
+class HistoricalRecords:
     thread = threading.local()
 
     def __init__(
@@ -106,7 +97,7 @@ class HistoricalRecords(object):
             excluded_fields = []
         self.excluded_fields = excluded_fields
         try:
-            if isinstance(bases, six.string_types):
+            if isinstance(bases, str):
                 raise TypeError
             self.bases = (HistoricalChanges,) + tuple(bases)
         except TypeError:
@@ -230,11 +221,7 @@ class HistoricalRecords(object):
 
         registered_models[model._meta.db_table] = model
         history_model = type(str(name), self.bases, attrs)
-        return (
-            python_2_unicode_compatible(history_model)
-            if django.VERSION < (2,)
-            else history_model
-        )
+        return history_model
 
     def fields_included(self, model):
         fields = []
@@ -581,7 +568,7 @@ def transform_field(field):
         field.serialize = True
 
 
-class HistoricalObjectDescriptor(object):
+class HistoricalObjectDescriptor:
     def __init__(self, model, fields_included):
         self.model = model
         self.fields_included = fields_included
@@ -591,7 +578,7 @@ class HistoricalObjectDescriptor(object):
         return self.model(**values)
 
 
-class HistoricalChanges(object):
+class HistoricalChanges:
     def diff_against(self, old_history, excluded_fields=None):
         if not isinstance(old_history, type(self)):
             raise TypeError(
@@ -618,14 +605,14 @@ class HistoricalChanges(object):
         return ModelDelta(changes, changed_fields, old_history, self)
 
 
-class ModelChange(object):
+class ModelChange:
     def __init__(self, field_name, old_value, new_value):
         self.field = field_name
         self.old = old_value
         self.new = new_value
 
 
-class ModelDelta(object):
+class ModelDelta:
     def __init__(self, changes, changed_fields, old_record, new_record):
         self.changes = changes
         self.changed_fields = changed_fields
