@@ -49,6 +49,7 @@ def bulk_create_with_history(
     objs,
     model,
     batch_size=None,
+    ignore_conflicts=False,
     default_user=None,
     default_change_reason=None,
     default_date=None,
@@ -82,7 +83,9 @@ def bulk_create_with_history(
 
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
-        objs_with_id = model_manager.bulk_create(objs, batch_size=batch_size)
+        objs_with_id = model_manager.bulk_create(
+            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
+        )
         if objs_with_id and objs_with_id[0].pk:
             second_transaction_required = False
             history_manager.bulk_history_create(
