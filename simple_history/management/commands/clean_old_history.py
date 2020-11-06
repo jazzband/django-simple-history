@@ -60,7 +60,7 @@ class Command(populate_history.Command):
             history_model_manager = history_model_manager.filter(
                 history_date__lt=start_date
             )
-            found = len(history_model_manager)
+            found = history_model_manager.count()
             self.log("{0} has {1} old historical entries".format(model, found), 2)
             if not found:
                 continue
