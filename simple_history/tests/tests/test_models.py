@@ -42,6 +42,7 @@ from ..models import (
     CharFieldChangeReasonModel,
     CharFieldFileModel,
     Choice,
+    ChoiceWithIgnoredHistoryOnDelete,
     City,
     ConcreteAttr,
     ConcreteExternal,
@@ -237,6 +238,21 @@ class HistoricalRecordsTest(TestCase):
 
         self.assertEqual(len(thames.history.all()), 1)
         self.assertEqual(len(nile.history.all()), 0)
+
+    def test_ignore_saving_historical_record_on_delete(self):
+        poll = Poll.objects.create(question="foo", pub_date=today)
+        choice_with_history = Choice.objects.create(poll=poll, choice="a", votes=1)
+        choice_without_deletion_history = ChoiceWithIgnoredHistoryOnDelete.objects.create(
+            poll=poll, choice="c", votes=1
+        )
+
+        self.assertEqual(len(choice_with_history.history.all()), 1)
+        self.assertEqual(len(choice_without_deletion_history.history.all()), 1)
+        poll.delete()
+        self.assertEqual(len(choice_with_history.history.all()), 2)
+        self.assertFalse(
+            choice_without_deletion_history.history.filter(history_type="-").exists()
+        )
 
     def test_save_without_historical_record(self):
         pizza_place = Restaurant.objects.create(name="Pizza Place", rating=3)

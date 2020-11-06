@@ -146,6 +146,20 @@ If you want to save a model without a historical record, you can use the followi
     poll.save_without_historical_record()
 
 
+Delete model without saving historical record
+---------------------------------------------
+
+If you have a model that will cause a large number of cascading deletions and 
+you don't wish to save history instances due to performance issues, you can
+set ``ignore_saving_historical_record_on_delete`` to ``True`` on ``HistoricalRecord``
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(ignore_saving_historical_record_on_delete=True)
+
+
 Filtering data using a relationship to the model
 ------------------------------------------------
 

@@ -147,6 +147,14 @@ class Choice(models.Model):
     votes = models.IntegerField()
 
 
+class ChoiceWithIgnoredHistoryOnDelete(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    choice = models.CharField(max_length=200)
+    votes = models.IntegerField()
+
+    history = HistoricalRecords(ignore_saving_historical_record_on_delete=True)
+
+
 register(Choice)
 
 
