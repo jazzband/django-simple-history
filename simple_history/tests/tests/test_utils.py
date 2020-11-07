@@ -67,7 +67,8 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     def test_bulk_create_history_alternative_manager(self):
         bulk_create_with_history(
-            self.data, PollWithAlternativeManager,
+            self.data,
+            PollWithAlternativeManager,
         )
 
         self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
@@ -249,7 +250,9 @@ class BulkUpdateWithHistoryTestCase(TestCase):
 
     def test_bulk_update_history(self):
         bulk_update_with_history(
-            self.data, Poll, fields=["question"],
+            self.data,
+            Poll,
+            fields=["question"],
         )
 
         self.assertEqual(Poll.objects.count(), 5)
@@ -308,7 +311,9 @@ class BulkUpdateWithHistoryTestCase(TestCase):
     def test_bulk_update_history_num_queries_is_two(self):
         with self.assertNumQueries(2):
             bulk_update_with_history(
-                self.data, Poll, fields=["question"],
+                self.data,
+                Poll,
+                fields=["question"],
             )
 
     def test_bulk_update_history_on_model_without_history_raises_error(self):
@@ -354,14 +359,17 @@ class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
             ),
         ]
         bulk_create_with_history(
-            self.data, PollWithAlternativeManager,
+            self.data,
+            PollWithAlternativeManager,
         )
 
     def test_bulk_update_history_default_manager(self):
         self.data[3].question = "Updated question"
 
         bulk_update_with_history(
-            self.data, PollWithAlternativeManager, fields=["question"],
+            self.data,
+            PollWithAlternativeManager,
+            fields=["question"],
         )
 
         self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
