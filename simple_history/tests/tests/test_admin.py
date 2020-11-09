@@ -9,7 +9,7 @@ from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
 import django
-from mock import ANY, patch
+from unittest.mock import ANY, patch
 
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
