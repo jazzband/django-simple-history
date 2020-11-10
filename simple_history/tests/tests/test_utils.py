@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
