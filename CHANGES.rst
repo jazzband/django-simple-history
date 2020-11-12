@@ -5,6 +5,7 @@ Unreleased
 ----------
 - Removed support for Django versions prior to 2.2 (gh-652)
 - Migrate from TravisCI to Github Actions (gh-739)
+- Add Python 3.9 support (gh-745)
 
 2.12.0 (2020-10-14)
 -------------------
