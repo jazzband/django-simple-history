@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 from unittest.mock import Mock, patch
@@ -14,6 +14,7 @@ from simple_history.tests.models import (
     Poll,
     PollWithAlternativeManager,
     PollWithExcludeFields,
+    PollWithUniqueQuestion,
     Street,
 )
 from simple_history.utils import (
@@ -56,6 +57,17 @@ class BulkCreateWithHistoryTestCase(TestCase):
             ),
             PollWithAlternativeManager(
                 id=5, question="Question 5", pub_date=timezone.now()
+            ),
+        ]
+        self.data_with_duplicates = [
+            PollWithUniqueQuestion(
+                pk=1, question="Question 1", pub_date=timezone.now()
+            ),
+            PollWithUniqueQuestion(
+                pk=2, question="Question 2", pub_date=timezone.now()
+            ),
+            PollWithUniqueQuestion(
+                pk=3, question="Question 1", pub_date=timezone.now()
             ),
         ]
 
@@ -147,6 +159,25 @@ class BulkCreateWithHistoryTestCase(TestCase):
         bulk_create_with_history(self.data, Street)
         self.assertEqual(Street.objects.count(), 4)
         self.assertEqual(Street.log.count(), 4)
+
+    def test_bulk_create_history_with_duplicates(self):
+        with transaction.atomic(), self.assertRaises(IntegrityError):
+            bulk_create_with_history(
+                self.data_with_duplicates,
+                PollWithUniqueQuestion,
+                ignore_conflicts=False,
+            )
+
+        self.assertEqual(PollWithUniqueQuestion.objects.count(), 0)
+        self.assertEqual(PollWithUniqueQuestion.history.count(), 0)
+
+    def test_bulk_create_history_with_duplicates_ignore_conflicts(self):
+        bulk_create_with_history(
+            self.data_with_duplicates, PollWithUniqueQuestion, ignore_conflicts=True
+        )
+
+        self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
+        self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
