@@ -1,8 +1,8 @@
 django-simple-history
 =====================
 
-.. image:: https://secure.travis-ci.org/jazzband/django-simple-history.svg?branch=master
-   :target: http://travis-ci.org/jazzband/django-simple-history
+.. image:: https://github.com/jazzband/django-simple-history/workflows/build/badge.svg?branch=master
+   :target: https://github.com/jazzband/django-simple-history/actions?workflow=build
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
@@ -41,9 +41,9 @@ This app supports the following combinations of Django and Python:
 ==========  =======================
   Django      Python
 ==========  =======================
-2.2         3.5, 3.6, 3.7, 3.8
-3.0         3.6, 3.7, 3.8
-3.1         3.6, 3.7, 3.8
+2.2         3.5, 3.6, 3.7, 3.8, 3.9
+3.0         3.6, 3.7, 3.8, 3.9
+3.1         3.6, 3.7, 3.8, 3.9
 ==========  =======================
 
 Getting Help

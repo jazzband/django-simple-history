@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
@@ -14,6 +14,7 @@ from simple_history.tests.models import (
     Poll,
     PollWithAlternativeManager,
     PollWithExcludeFields,
+    PollWithUniqueQuestion,
     Street,
 )
 from simple_history.utils import (
@@ -58,6 +59,17 @@ class BulkCreateWithHistoryTestCase(TestCase):
                 id=5, question="Question 5", pub_date=timezone.now()
             ),
         ]
+        self.data_with_duplicates = [
+            PollWithUniqueQuestion(
+                pk=1, question="Question 1", pub_date=timezone.now()
+            ),
+            PollWithUniqueQuestion(
+                pk=2, question="Question 2", pub_date=timezone.now()
+            ),
+            PollWithUniqueQuestion(
+                pk=3, question="Question 1", pub_date=timezone.now()
+            ),
+        ]
 
     def test_bulk_create_history(self):
         bulk_create_with_history(self.data, Poll)
@@ -67,7 +79,8 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     def test_bulk_create_history_alternative_manager(self):
         bulk_create_with_history(
-            self.data, PollWithAlternativeManager,
+            self.data,
+            PollWithAlternativeManager,
         )
 
         self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
@@ -146,6 +159,25 @@ class BulkCreateWithHistoryTestCase(TestCase):
         bulk_create_with_history(self.data, Street)
         self.assertEqual(Street.objects.count(), 4)
         self.assertEqual(Street.log.count(), 4)
+
+    def test_bulk_create_history_with_duplicates(self):
+        with transaction.atomic(), self.assertRaises(IntegrityError):
+            bulk_create_with_history(
+                self.data_with_duplicates,
+                PollWithUniqueQuestion,
+                ignore_conflicts=False,
+            )
+
+        self.assertEqual(PollWithUniqueQuestion.objects.count(), 0)
+        self.assertEqual(PollWithUniqueQuestion.history.count(), 0)
+
+    def test_bulk_create_history_with_duplicates_ignore_conflicts(self):
+        bulk_create_with_history(
+            self.data_with_duplicates, PollWithUniqueQuestion, ignore_conflicts=True
+        )
+
+        self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
+        self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
@@ -249,7 +281,9 @@ class BulkUpdateWithHistoryTestCase(TestCase):
 
     def test_bulk_update_history(self):
         bulk_update_with_history(
-            self.data, Poll, fields=["question"],
+            self.data,
+            Poll,
+            fields=["question"],
         )
 
         self.assertEqual(Poll.objects.count(), 5)
@@ -308,7 +342,9 @@ class BulkUpdateWithHistoryTestCase(TestCase):
     def test_bulk_update_history_num_queries_is_two(self):
         with self.assertNumQueries(2):
             bulk_update_with_history(
-                self.data, Poll, fields=["question"],
+                self.data,
+                Poll,
+                fields=["question"],
             )
 
     def test_bulk_update_history_on_model_without_history_raises_error(self):
@@ -354,14 +390,17 @@ class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
             ),
         ]
         bulk_create_with_history(
-            self.data, PollWithAlternativeManager,
+            self.data,
+            PollWithAlternativeManager,
         )
 
     def test_bulk_update_history_default_manager(self):
         self.data[3].question = "Updated question"
 
         bulk_update_with_history(
-            self.data, PollWithAlternativeManager, fields=["question"],
+            self.data,
+            PollWithAlternativeManager,
+            fields=["question"],
         )
 
         self.assertEqual(PollWithAlternativeManager.all_objects.count(), 5)
