@@ -1371,7 +1371,7 @@ class ExtraFieldsStaticIPAddressTestCase(TestCase):
 
 def add_dynamic_history_ip_address(sender, **kwargs):
     history_instance = kwargs["history_instance"]
-    history_instance.ip_address = HistoricalRecords.thread.request.META["REMOTE_ADDR"]
+    history_instance.ip_address = HistoricalRecords.context.request.META["REMOTE_ADDR"]
 
 
 @override_settings(**middleware_override_settings)
@@ -1390,7 +1390,7 @@ class ExtraFieldsDynamicIPAddressTestCase(TestCase):
             dispatch_uid="add_dynamic_history_ip_address",
         )
 
-    def test_signal_is_able_to_retrieve_request_from_thread(self):
+    def test_signal_is_able_to_retrieve_request_from_context(self):
         data = {"question": "Will it blend?", "pub_date": "2018-10-30"}
 
         self.client.post(reverse("pollip-add"), data=data)
