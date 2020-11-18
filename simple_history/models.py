@@ -1,6 +1,5 @@
 import copy
 import importlib
-import threading
 import uuid
 import warnings
 
@@ -24,6 +23,11 @@ from .utils import get_change_reason_from_object
 
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import smart_str
+
+try:
+    from asgiref.local import Local as LocalContext
+except ImportError:
+    from threading import local as LocalContext
 
 registered_models = {}
 
@@ -51,7 +55,7 @@ def _history_user_setter(historical_instance, user):
 
 
 class HistoricalRecords:
-    thread = threading.local()
+    thread = context = LocalContext()  # retain thread for backwards compatibility
 
     def __init__(
         self,
@@ -529,8 +533,8 @@ class HistoricalRecords:
         except AttributeError:
             request = None
             try:
-                if self.thread.request.user.is_authenticated:
-                    request = self.thread.request
+                if self.context.request.user.is_authenticated:
+                    request = self.context.request
             except AttributeError:
                 pass
 

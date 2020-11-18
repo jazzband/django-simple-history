@@ -59,7 +59,7 @@ class AdminSiteTest(TestCase):
 
     def tearDown(self):
         try:
-            del HistoricalRecords.thread.request
+            del HistoricalRecords.context.request
         except AttributeError:
             pass
 
@@ -265,7 +265,7 @@ class AdminSiteTest(TestCase):
     def test_middleware_unsets_request(self):
         self.login()
         self.client.get(reverse("admin:tests_book_add"))
-        self.assertFalse(hasattr(HistoricalRecords.thread, "request"))
+        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
 
     @override_settings(**middleware_override_settings)
     def test_rolled_back_user_does_not_lead_to_foreign_key_error(self):

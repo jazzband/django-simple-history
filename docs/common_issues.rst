@@ -144,8 +144,8 @@ you use:
 .. code-block:: python
 
     from simple_history.middleware import HistoricalRecords
-    if hasattr(HistoricalRecords.thread, 'request'):
-        del HistoricalRecords.thread.request
+    if hasattr(HistoricalRecords.context, 'request'):
+        del HistoricalRecords.context.request
 
 Using F() expressions
 ---------------------
