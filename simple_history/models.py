@@ -497,7 +497,7 @@ class HistoricalRecords:
             history_type=history_type,
             history_user=history_user,
             history_change_reason=history_change_reason,
-            **attrs
+            **attrs,
         )
 
         pre_create_historical_record.send(

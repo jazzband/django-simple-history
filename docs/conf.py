@@ -42,8 +42,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"django-simple-history"
-copyright = u"2013, Corey Bertram"
+project = "django-simple-history"
+copyright = "2013, Corey Bertram"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -188,8 +188,8 @@ latex_documents = [
     (
         "index",
         "django-simple-history.tex",
-        u"django-simple-history Documentation",
-        u"Corey Bertram",
+        "django-simple-history Documentation",
+        "Corey Bertram",
         "manual",
     ),
 ]
@@ -223,8 +223,8 @@ man_pages = [
     (
         "index",
         "django-simple-history",
-        u"django-simple-history Documentation",
-        [u"Corey Bertram"],
+        "django-simple-history Documentation",
+        ["Corey Bertram"],
         1,
     )
 ]
@@ -242,8 +242,8 @@ texinfo_documents = [
     (
         "index",
         "django-simple-history",
-        u"django-simple-history Documentation",
-        u"Corey Bertram",
+        "django-simple-history Documentation",
+        "Corey Bertram",
         "django-simple-history",
         "One line description of project.",
         "Miscellaneous",
