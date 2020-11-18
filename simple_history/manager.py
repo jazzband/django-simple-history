@@ -136,7 +136,7 @@ class HistoryManager(models.Manager):
                     field.attname: getattr(instance, field.attname)
                     for field in instance._meta.fields
                     if field.name not in self.model._history_excluded_fields
-                }
+                },
             )
             if hasattr(self.model, "history_relation"):
                 row.history_relation_id = instance.pk

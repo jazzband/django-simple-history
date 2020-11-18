@@ -56,7 +56,7 @@ class TestPopulateHistory(TestCase):
                 self.command_name,
                 *args,
                 stdout=StringIO(),
-                stderr=out
+                stderr=out,
             )
             self.assertIn(msg, out.getvalue())
 
@@ -216,7 +216,7 @@ class TestCleanDuplicateHistory(TestCase):
                 self.command_name,
                 *args,
                 stdout=StringIO(),
-                stderr=out
+                stderr=out,
             )
             self.assertIn(msg, out.getvalue())
 
@@ -433,7 +433,7 @@ class TestCleanOldHistory(TestCase):
                 self.command_name,
                 *args,
                 stdout=StringIO(),
-                stderr=out
+                stderr=out,
             )
             self.assertIn(msg, out.getvalue())
 
