@@ -1,7 +1,7 @@
-from io import StringIO
 import unittest
 import uuid
 from datetime import datetime, timedelta
+from io import StringIO
 
 from django.apps import apps
 from django.contrib.auth import get_user_model
@@ -9,12 +9,15 @@ from django.core import management
 from django.test import TestCase, override_settings
 
 from simple_history import exceptions, register
+
 from ..tests.models import (
     Choice,
     InheritTracking1,
     InheritTracking2,
     InheritTracking3,
     InheritTracking4,
+    ModelWithCustomAttrForeignKey,
+    ModelWithHistoryInDifferentApp,
     Poll,
     Restaurant,
     TrackedAbstractBaseA,
@@ -25,8 +28,6 @@ from ..tests.models import (
     UserAccessorOverride,
     UUIDRegisterModel,
     Voter,
-    ModelWithCustomAttrForeignKey,
-    ModelWithHistoryInDifferentApp,
 )
 
 get_model = apps.get_model

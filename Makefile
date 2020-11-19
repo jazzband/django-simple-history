@@ -44,4 +44,5 @@ release: dist
 	twine upload dist/*
 
 format:
-	black --target-version=py35 docs simple_history runtests.py setup.py
+	isort docs simple_history runtests.py setup.py
+	black docs simple_history runtests.py setup.py

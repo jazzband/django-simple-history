@@ -1,21 +1,18 @@
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
-
-from django.urls import re_path
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import re_path, reverse
+from django.utils.encoding import force_str
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
+from django.utils.translation import gettext as _
 
 from . import utils
-
-from django.utils.encoding import force_str
-from django.utils.translation import gettext as _
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 

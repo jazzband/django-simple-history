@@ -8,6 +8,7 @@ Unreleased
 - Add Python 3.9 support (gh-745)
 - Support ``ignore_conflicts`` in ``bulk_create_with_history`` (gh-733)
 - Use ``asgiref`` when available instead of thread locals (gh-747)
+- Sort imports with isort (gh-751)
 
 2.12.0 (2020-10-14)
 -------------------

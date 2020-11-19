@@ -1,9 +1,9 @@
-from django.utils import timezone
 from django.db import transaction
+from django.utils import timezone
 
-from . import populate_history
 from ... import models, utils
 from ...exceptions import NotHistoricalModelError
+from . import populate_history
 
 
 class Command(populate_history.Command):

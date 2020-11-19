@@ -7,7 +7,6 @@ from django.test import TestCase, skipUnlessDBFeature
 
 from ..models import Document, Poll
 
-
 User = get_user_model()
 
 
