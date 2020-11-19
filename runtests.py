@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import sys
+from argparse import ArgumentParser
 from os.path import abspath, dirname, join
 from shutil import rmtree
 
@@ -35,6 +36,12 @@ class DisableMigrations:
         return None
 
 
+DATABASE_NAME_TO_BACKEND = {
+    "sqlite3": "django.db.backends.sqlite3",
+    "postgres": "django.db.backends.postgresql"
+}
+
+
 DEFAULT_SETTINGS = dict(
     SECRET_KEY="not a secret",
     ALLOWED_HOSTS=["localhost"],
@@ -43,10 +50,6 @@ DEFAULT_SETTINGS = dict(
     MEDIA_ROOT=media_root,
     STATIC_URL="/static/",
     INSTALLED_APPS=installed_apps,
-    DATABASES={
-        "default": {"ENGINE": "django.db.backends.sqlite3"},
-        "other": {"ENGINE": "django.db.backends.sqlite3"},
-    },
     LOGGING={
         "version": 1,
         "disable_existing_loggers": True,
@@ -85,10 +88,32 @@ DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
 
 def main():
+    parser = ArgumentParser(description="Run package tests.")
+    parser.add_argument(
+        "--tag",
+        action="append",
+        nargs="?"
+    )
+    parser.add_argument(
+        "--database",
+        action="store",
+        nargs="?",
+        default="sqlite3"
+    )
+    namespace = parser.parse_args()
+    db_engine = DATABASE_NAME_TO_BACKEND[namespace.database]
     if not settings.configured:
-        settings.configure(**DEFAULT_SETTINGS)
+        settings.configure(
+            **DEFAULT_SETTINGS,
+            DATABASES={
+                "default": {"ENGINE": db_engine},
+                "other": {"ENGINE": db_engine},
+            },
+        )
+
     django.setup()
-    tags = [t.split("=")[1] for t in sys.argv if t.startswith("--tag")]
+
+    tags = namespace.tag
     failures = DiscoverRunner(failfast=False, tags=tags).run_tests(
         ["simple_history.tests"]
     )
