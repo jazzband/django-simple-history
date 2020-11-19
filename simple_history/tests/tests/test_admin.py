@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+from unittest.mock import ANY, patch
 
+import django
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
@@ -8,13 +10,13 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
-import django
-from unittest.mock import ANY, patch
+from django.utils.encoding import force_str
 
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
 from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
 from simple_history.tests.tests.utils import middleware_override_settings
+
 from ..models import (
     Book,
     BucketData,
@@ -24,12 +26,10 @@ from ..models import (
     Employee,
     FileModel,
     Person,
+    Planet,
     Poll,
     State,
-    Planet,
 )
-
-from django.utils.encoding import force_str
 
 User = get_user_model()
 today = datetime(2021, 1, 1, 10, 0)

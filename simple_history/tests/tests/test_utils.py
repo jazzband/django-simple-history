@@ -1,10 +1,10 @@
 from datetime import datetime
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
-from unittest.mock import Mock, patch
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
@@ -19,8 +19,8 @@ from simple_history.tests.models import (
 )
 from simple_history.utils import (
     bulk_create_with_history,
-    update_change_reason,
     bulk_update_with_history,
+    update_change_reason,
 )
 
 User = get_user_model()

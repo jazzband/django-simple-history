@@ -3,8 +3,8 @@ from datetime import datetime
 from django.test import TestCase
 
 from simple_history.signals import (
-    pre_create_historical_record,
     post_create_historical_record,
+    pre_create_historical_record,
 )
 
 from ..models import Poll

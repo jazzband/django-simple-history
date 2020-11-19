@@ -1,6 +1,6 @@
-from simple_history.templatetags.getattributes import getattribute
-
 from django.test import TestCase
+
+from simple_history.templatetags.getattributes import getattribute
 
 
 class Foo(object):

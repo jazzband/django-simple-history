@@ -13,16 +13,17 @@ from django.db.models import ManyToManyField, Q
 from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from django.utils.text import format_lazy
 from django.utils import timezone
+from django.utils.encoding import smart_str
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _
+
 from simple_history import utils
+
 from . import exceptions
 from .manager import HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
 from .utils import get_change_reason_from_object
-
-from django.utils.translation import gettext_lazy as _
-from django.utils.encoding import smart_str
 
 try:
     from asgiref.local import Local as LocalContext

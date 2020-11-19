@@ -1,20 +1,21 @@
-from django.urls import path, re_path
 from django.contrib import admin
+from django.urls import path, re_path
 
 from simple_history.tests.view import (
     BucketDataRegisterRequestUserCreate,
     BucketDataRegisterRequestUserDetail,
+    PollBulkCreateView,
+    PollBulkCreateWithDefaultUserView,
+    PollBulkUpdateView,
+    PollBulkUpdateWithDefaultUserView,
     PollCreate,
     PollDelete,
     PollDetail,
     PollList,
     PollUpdate,
     PollWithHistoricalIPAddressCreate,
-    PollBulkCreateView,
-    PollBulkCreateWithDefaultUserView,
-    PollBulkUpdateView,
-    PollBulkUpdateWithDefaultUserView,
 )
+
 from . import other_admin
 
 admin.autodiscover()

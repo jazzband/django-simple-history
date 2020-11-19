@@ -7,10 +7,11 @@ from django.test import TestCase
 
 from simple_history import models as sh_models
 from simple_history.management.commands import (
-    populate_history,
     clean_duplicate_history,
     clean_old_history,
+    populate_history,
 )
+
 from ..models import (
     Book,
     CustomManagerNameModel,

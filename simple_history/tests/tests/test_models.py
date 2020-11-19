@@ -23,8 +23,8 @@ from simple_history.tests.tests.utils import (
     database_router_override_settings_history_in_diff_db,
     middleware_override_settings,
 )
-from simple_history.utils import get_history_model_for_model
-from simple_history.utils import update_change_reason
+from simple_history.utils import get_history_model_for_model, update_change_reason
+
 from ..external.models import (
     ExternalModel,
     ExternalModelRegistered,
@@ -63,9 +63,6 @@ from ..models import (
     HistoricalPollWithHistoricalIPAddress,
     HistoricalState,
     InheritedRestaurant,
-    OverrideModelNameAsCallable,
-    OverrideModelNameUsingBaseModel1,
-    MyOverrideModelNameRegisterMethod1,
     Library,
     ManyToManyModelOther,
     ModelWithExcludedManyToMany,
@@ -73,13 +70,16 @@ from ..models import (
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
     MultiOneToOne,
+    MyOverrideModelNameRegisterMethod1,
+    OverrideModelNameAsCallable,
+    OverrideModelNameUsingBaseModel1,
     Person,
     Place,
     Poll,
     PollInfo,
-    PollWithExcludeFields,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
+    PollWithExcludeFields,
     PollWithHistoricalIPAddress,
     Province,
     Restaurant,
@@ -89,10 +89,10 @@ from ..models import (
     State,
     Street,
     Temperature,
-    UUIDDefaultModel,
-    UUIDModel,
     UnicodeVerboseName,
     UserTextFieldChangeReasonModel,
+    UUIDDefaultModel,
+    UUIDModel,
     WaterLevel,
 )
 
@@ -821,6 +821,7 @@ class CustomModelNameTests(unittest.TestCase):
         )
 
         from simple_history import register
+
         from ..models import OverrideModelNameRegisterMethod2
 
         try:
