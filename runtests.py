@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import logging
+import sys
 from os.path import abspath, dirname, join
 from shutil import rmtree
-import sys
 
 import django
 from django.conf import settings
@@ -47,6 +47,19 @@ DEFAULT_SETTINGS = dict(
         "default": {"ENGINE": "django.db.backends.sqlite3"},
         "other": {"ENGINE": "django.db.backends.sqlite3"},
     },
+    LOGGING={
+        "version": 1,
+        "disable_existing_loggers": True,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+        },
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+    },
     MIGRATION_MODULES=DisableMigrations(),
     TEMPLATES=[
         {
@@ -86,5 +99,4 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig()
     main()

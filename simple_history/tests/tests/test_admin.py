@@ -141,12 +141,18 @@ class AdminSiteTest(TestCase):
     def test_history_view_permission(self):
         self.login()
         person = Person.objects.create(name="Sandra Hale")
-        self.client.get(get_history_url(person), status=403)
+
+        resp = self.client.get(get_history_url(person))
+
+        self.assertEqual(403, resp.status_code)
 
     def test_history_form_permission(self):
         self.login(self.user)
         person = Person.objects.create(name="Sandra Hale")
-        self.client.get(get_history_url(person, 0), status=403)
+
+        resp = self.client.get(get_history_url(person, 0))
+
+        self.assertEqual(403, resp.status_code)
 
     def test_invalid_history_form(self):
         self.login()
