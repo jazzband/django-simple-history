@@ -97,8 +97,14 @@ def main():
         settings.configure(
             **DEFAULT_SETTINGS,
             DATABASES={
-                "default": {"ENGINE": db_engine},
-                "other": {"ENGINE": db_engine},
+                "default": {
+                    "ENGINE": db_engine,
+                    "NAME": "test",
+                },
+                "other": {
+                    "ENGINE": db_engine,
+                    "NAME": "test",
+                },
             },
         )
 
