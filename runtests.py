@@ -39,6 +39,7 @@ class DisableMigrations:
 DATABASE_NAME_TO_BACKEND = {
     "sqlite3": "django.db.backends.sqlite3",
     "postgres": "django.db.backends.postgresql",
+    "mysql": "django.db.backends.mysql",
 }
 
 
