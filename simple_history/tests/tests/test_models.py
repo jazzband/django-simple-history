@@ -1229,18 +1229,19 @@ class TestMissingOneToOne(TestCase):
         self.employee = Employee.objects.create(manager=self.manager1)
         self.employee.manager = self.manager2
         self.employee.save()
+        self.manager1_id = self.manager1.id
         self.manager1.delete()
 
     def test_history_is_complete(self):
         historical_manager_ids = list(
             self.employee.history.order_by("pk").values_list("manager_id", flat=True)
         )
-        self.assertEqual(historical_manager_ids, [1, 2])
+        self.assertEqual(historical_manager_ids, [self.manager1_id, self.manager2.id])
 
     def test_restore_employee(self):
         historical = self.employee.history.order_by("pk")[0]
         original = historical.instance
-        self.assertEqual(original.manager_id, 1)
+        self.assertEqual(original.manager_id, self.manager1_id)
         with self.assertRaises(Employee.DoesNotExist):
             original.manager
 
