@@ -38,7 +38,7 @@ class DisableMigrations:
 
 DATABASE_NAME_TO_BACKEND = {
     "sqlite3": "django.db.backends.sqlite3",
-    "postgres": "django.db.backends.postgresql"
+    "postgres": "django.db.backends.postgresql",
 }
 
 
@@ -89,17 +89,8 @@ DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
 def main():
     parser = ArgumentParser(description="Run package tests.")
-    parser.add_argument(
-        "--tag",
-        action="append",
-        nargs="?"
-    )
-    parser.add_argument(
-        "--database",
-        action="store",
-        nargs="?",
-        default="sqlite3"
-    )
+    parser.add_argument("--tag", action="append", nargs="?")
+    parser.add_argument("--database", action="store", nargs="?", default="sqlite3")
     namespace = parser.parse_args()
     db_engine = DATABASE_NAME_TO_BACKEND[namespace.database]
     if not settings.configured:
