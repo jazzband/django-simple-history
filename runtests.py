@@ -100,10 +100,18 @@ def main():
                 "default": {
                     "ENGINE": db_engine,
                     "NAME": "test",
+                    "USER": "postgres",
+                    "PASSWORD": "postgres",
+                    "HOST": "localhost",
+                    "PORT": "5432",
                 },
                 "other": {
                     "ENGINE": db_engine,
-                    "NAME": "test",
+                    "NAME": "other",
+                    "USER": "postgres",
+                    "PASSWORD": "postgres",
+                    "HOST": "localhost",
+                    "PORT": "5432",
                 },
             },
         )
