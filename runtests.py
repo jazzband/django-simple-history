@@ -78,6 +78,24 @@ DATABASE_NAME_TO_DATABASE_SETTINGS = {
             "PORT": 3306,
         },
     },
+    "mariadb": {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "test",
+            "USER": "root",
+            "PASSWORD": "mariadb",
+            "HOST": "127.0.0.1",
+            "PORT": 3307,
+        },
+        "other": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "other",
+            "USER": "root",
+            "PASSWORD": "mariadb",
+            "HOST": "127.0.0.1",
+            "PORT": 3307,
+        },
+    },
 }
 
 
