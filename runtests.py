@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import logging
 import sys
 from argparse import ArgumentParser
 from os.path import abspath, dirname, join
@@ -36,9 +35,67 @@ class DisableMigrations:
         return None
 
 
-DATABASE_NAME_TO_BACKEND = {
-    "sqlite3": "django.db.backends.sqlite3",
-    "postgres": "django.db.backends.postgresql",
+DATABASE_NAME_TO_DATABASE_SETTINGS = {
+    "sqlite3": {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+        },
+        "other": {"ENGINE": "django.db.backends.sqlite3"},
+    },
+    "postgres": {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "test",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "127.0.0.1",
+            "PORT": 5432,
+        },
+        "other": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "other",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "127.0.0.1",
+            "PORT": 5432,
+        },
+    },
+    "mysql": {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "test",
+            "USER": "root",
+            "PASSWORD": "mysql",
+            "HOST": "127.0.0.1",
+            "PORT": 3306,
+        },
+        "other": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "other",
+            "USER": "root",
+            "PASSWORD": "mysql",
+            "HOST": "127.0.0.1",
+            "PORT": 3306,
+        },
+    },
+    "mariadb": {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "test",
+            "USER": "root",
+            "PASSWORD": "mariadb",
+            "HOST": "127.0.0.1",
+            "PORT": 3307,
+        },
+        "other": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "other",
+            "USER": "root",
+            "PASSWORD": "mariadb",
+            "HOST": "127.0.0.1",
+            "PORT": 3307,
+        },
+    },
 }
 
 
@@ -92,29 +149,9 @@ def main():
     parser.add_argument("--tag", action="append", nargs="?")
     parser.add_argument("--database", action="store", nargs="?", default="sqlite3")
     namespace = parser.parse_args()
-    db_engine = DATABASE_NAME_TO_BACKEND[namespace.database]
+    db_settings = DATABASE_NAME_TO_DATABASE_SETTINGS[namespace.database]
     if not settings.configured:
-        settings.configure(
-            **DEFAULT_SETTINGS,
-            DATABASES={
-                "default": {
-                    "ENGINE": db_engine,
-                    "NAME": "test",
-                    "USER": "postgres",
-                    "PASSWORD": "postgres",
-                    "HOST": "localhost",
-                    "PORT": "5432",
-                },
-                "other": {
-                    "ENGINE": db_engine,
-                    "NAME": "other",
-                    "USER": "postgres",
-                    "PASSWORD": "postgres",
-                    "HOST": "localhost",
-                    "PORT": "5432",
-                },
-            },
-        )
+        settings.configure(**DEFAULT_SETTINGS, DATABASES=db_settings)
 
     django.setup()
 
