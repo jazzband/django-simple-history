@@ -22,16 +22,21 @@ jobs:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: mysql
+          MYSQL_ROOT_PASSWORD: mysql
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     strategy:
       matrix:
         python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
-    - name: start mysql
-      run:
-        sudo systemctl enable mysql.service
-        sudo systemctl start mysql.service
     - uses: actions/checkout@v2
     - name: set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
