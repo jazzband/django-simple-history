@@ -92,7 +92,7 @@ class HistoryManager(models.Manager):
         queryset = self.get_queryset().filter(history_date__lte=date)
         latest_pk_attr_historic_ids = (
             queryset.filter(**{pk_attr: OuterRef(pk_attr)})
-            .order_by("-pk")
+            .order_by("-history_date", "-pk")
             .values("pk")[:1]
         )
         latest_historics = queryset.filter(
