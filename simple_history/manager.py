@@ -1,4 +1,4 @@
-from django.db import models, connection
+from django.db import connection, models
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 
