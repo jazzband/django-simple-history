@@ -23,6 +23,7 @@ Authors
 - Brian Dixon
 - Carlos San Emeterio (`Carlos-San-Emeterio <https://github.com/Carlos-San-Emeterio>`_)
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
+- Christopher Johns (`tyrantwave <https://github.com/tyrantwave>`_)
 - Corey Bertram
 - Craig Maloney (`craigmaloney <https://github.com/craigmaloney>`_)
 - Damien Nozay

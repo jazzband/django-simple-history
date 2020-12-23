@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import connection, models
+from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 
 from simple_history.utils import get_change_reason_from_object
@@ -89,14 +90,38 @@ class HistoryManager(models.Manager):
         model = type(self.model().instance)  # a bit of a hack to get the model
         pk_attr = model._meta.pk.name
         queryset = self.get_queryset().filter(history_date__lte=date)
-        for original_pk in set(queryset.order_by().values_list(pk_attr, flat=True)):
-            changes = queryset.filter(**{pk_attr: original_pk})
-            last_change = changes.latest("history_date")
-            if changes.filter(
-                history_date=last_change.history_date, history_type="-"
-            ).exists():
-                continue
-            yield last_change.instance
+        # If using MySQL, need to get a list of IDs in memory and then use them for the
+        # second query.
+        # Does mean two loops through the DB to get the full set, but still a speed
+        # improvement.
+        backend = connection.vendor
+        if backend == "mysql":
+            history_ids = {}
+            for item in queryset.order_by("-history_date", "-pk"):
+                if getattr(item, pk_attr) not in history_ids:
+                    history_ids[getattr(item, pk_attr)] = item.pk
+            latest_historics = queryset.filter(history_id__in=history_ids.values())
+        elif backend == "postgresql":
+            latest_pk_attr_historic_ids = (
+                queryset.order_by(pk_attr, "-history_date", "-pk")
+                .distinct(pk_attr)
+                .values_list("pk", flat=True)
+            )
+            latest_historics = queryset.filter(
+                history_id__in=latest_pk_attr_historic_ids
+            )
+        else:
+            latest_pk_attr_historic_ids = (
+                queryset.filter(**{pk_attr: OuterRef(pk_attr)})
+                .order_by("-history_date", "-pk")
+                .values("pk")[:1]
+            )
+            latest_historics = queryset.filter(
+                history_id__in=Subquery(latest_pk_attr_historic_ids)
+            )
+        adjusted = latest_historics.exclude(history_type="-").order_by(pk_attr)
+        for historic_item in adjusted:
+            yield historic_item.instance
 
     def bulk_history_create(
         self,
