@@ -1,17 +1,20 @@
-name: build
+name: Test
 
-on:
-  push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+on: [push, pull_request]
 
 jobs:
   build:
-    name: python ${{ matrix.python-version }}
+    name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+        django-version: ['2.2', '3.0', '3.1', 'dev']
+
     services:
+
       postgres:
         image: postgres:latest
         env:
@@ -22,6 +25,7 @@ jobs:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
       mysql:
         image: mysql:latest
         env:
@@ -30,6 +34,7 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
       mariadb:
         image: mariadb:latest
         env:
@@ -39,21 +44,40 @@ jobs:
           - 3307:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-    strategy:
-      matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
-
     steps:
     - uses: actions/checkout@v2
-    - name: set up Python ${{ matrix.python-version }}
+
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: install dependencies
+
+    - name: Get pip cache dir
+      id: pip-cache
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements/tox.txt
-    - name: run tox
-      run: tox
-    - name: publish coverage
+        echo "::set-output name=dir::$(pip cache dir)"
+
+    - name: Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key:
+          ${{ matrix.python-version }}-v1-${{ hashFiles('**/setup.py') }}-${{ hashFiles('**/tox.ini') }}
+        restore-keys: |
+          ${{ matrix.python-version }}-v1-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements/tox.txt
+
+    - name: Tox tests
+      run: |
+        tox -v
+      env:
+        DJANGO: ${{ matrix.django-version }}
+
+    - name: Upload coverage
       uses: codecov/codecov-action@v1
+      with:
+        name: Python ${{ matrix.python-version }}
