@@ -134,6 +134,7 @@ DEFAULT_SETTINGS = dict(
             },
         }
     ],
+    DEFAULT_AUTO_FIELD="django.db.models.AutoField",
 )
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
