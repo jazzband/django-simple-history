@@ -98,7 +98,7 @@ from ..models import (
 
 get_model = apps.get_model
 User = get_user_model()
-today = datetime(2021, 1, 1, 10, 0)
+today = datetime(3021, 1, 1, 10, 0)
 tomorrow = today + timedelta(days=1)
 yesterday = today - timedelta(days=1)
 
