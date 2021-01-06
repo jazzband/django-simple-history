@@ -50,6 +50,7 @@ Authors
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
+- Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
 - Jesse Shapiro
