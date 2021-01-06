@@ -623,7 +623,8 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record)
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         expected_change = ModelChange("question", "what's up?", "what's up, man")
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(delta.old_record, old_record)
@@ -635,7 +636,8 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record)
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         self.assertNotIn("pub_date", delta.changed_fields)
 
     def test_history_diff_includes_changed_fields_of_base_model(self):
@@ -644,7 +646,9 @@ class HistoricalRecordsTest(TestCase):
         r.name = "DonnutsKing"
         r.save()
         new_record, old_record = r.history.all()
-        delta = new_record.diff_against(old_record)
+        # Two queries due to base lookup
+        with self.assertNumQueries(2):
+            delta = new_record.diff_against(old_record)
         expected_change = ModelChange("name", "McDonna", "DonnutsKing")
         self.assertEqual(delta.changed_fields, ["name"])
         self.assertEqual(delta.old_record, old_record)
@@ -664,7 +668,8 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record, excluded_fields=("question",))
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, excluded_fields=("question",))
         self.assertEqual(delta.changed_fields, [])
         self.assertEqual(delta.changes, [])
 
@@ -673,11 +678,13 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record, included_fields=[])
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, included_fields=[])
         self.assertEqual(delta.changed_fields, [])
         self.assertEqual(delta.changes, [])
 
-        delta = new_record.diff_against(old_record, included_fields=["question"])
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, included_fields=["question"])
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(len(delta.changes), 1)
 
