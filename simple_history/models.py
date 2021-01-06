@@ -11,7 +11,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
-from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import smart_str
@@ -594,20 +593,26 @@ class HistoricalChanges:
                 )
             )
         if excluded_fields is None:
-            excluded_fields = []
+            excluded_fields = set()
+
+        excluded_fields = set(excluded_fields).union(self._history_excluded_fields)
+
+        fields = {
+            f.name
+            for f in old_history.instance_type._meta.fields
+            if f.name not in excluded_fields
+        }
+
         changes = []
         changed_fields = []
-        old_values = model_to_dict(old_history.instance)
-        current_values = model_to_dict(self.instance)
-        for field, new_value in current_values.items():
-            if field in excluded_fields:
-                continue
-            if field in old_values:
-                old_value = old_values[field]
-                if old_value != new_value:
-                    change = ModelChange(field, old_value, new_value)
-                    changes.append(change)
-                    changed_fields.append(field)
+
+        for field in fields:
+            old_value = getattr(old_history, field)
+            current_value = getattr(self, field)
+
+            if old_value != current_value:
+                changes.append(ModelChange(field, old_value, current_value))
+                changed_fields.append(field)
 
         return ModelDelta(changes, changed_fields, old_history, self)
 
