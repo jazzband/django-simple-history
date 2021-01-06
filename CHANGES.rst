@@ -9,6 +9,8 @@ Unreleased
 - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
 - Fixed `make format` so it works by using tox (gh-859)
 - Fixed bug where latest() is not idempotent for identical ``history_date`` records (gh-861)
+- Support ``included_fields`` for ``history.diff_against`` (gh-776)
+- Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
 
 3.0.0 (2021-04-16)
 ------------------
