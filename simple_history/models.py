@@ -585,7 +585,7 @@ class HistoricalObjectDescriptor:
 
 
 class HistoricalChanges:
-    def diff_against(self, old_history, excluded_fields=None):
+    def diff_against(self, old_history, excluded_fields=None, included_fields=None):
         if not isinstance(old_history, type(self)):
             raise TypeError(
                 ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
@@ -595,13 +595,10 @@ class HistoricalChanges:
         if excluded_fields is None:
             excluded_fields = set()
 
-        excluded_fields = set(excluded_fields).union(self._history_excluded_fields)
+        if included_fields is None:
+            included_fields = {f.name for f in old_history.instance_type._meta.fields}
 
-        fields = {
-            f.name
-            for f in old_history.instance_type._meta.fields
-            if f.name not in excluded_fields
-        }
+        fields = set(included_fields).difference(excluded_fields)
 
         changes = []
         changed_fields = []

@@ -668,6 +668,19 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.changed_fields, [])
         self.assertEqual(delta.changes, [])
 
+    def test_history_diff_with_included_fields(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        delta = new_record.diff_against(old_record, included_fields=[])
+        self.assertEqual(delta.changed_fields, [])
+        self.assertEqual(delta.changes, [])
+
+        delta = new_record.diff_against(old_record, included_fields=["question"])
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(len(delta.changes), 1)
+
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
     def assertRecordsMatch(self, record_a, record_b):
