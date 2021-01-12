@@ -646,8 +646,7 @@ class HistoricalRecordsTest(TestCase):
         r.name = "DonnutsKing"
         r.save()
         new_record, old_record = r.history.all()
-        # Two queries due to base lookup
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record)
         expected_change = ModelChange("name", "McDonna", "DonnutsKing")
         self.assertEqual(delta.changed_fields, ["name"])

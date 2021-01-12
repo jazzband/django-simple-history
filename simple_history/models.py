@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
+from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import smart_str
@@ -603,9 +604,15 @@ class HistoricalChanges:
         changes = []
         changed_fields = []
 
+        old_values = model_to_dict(old_history, fields=fields)
+        current_values = model_to_dict(self, fields=fields)
+
         for field in fields:
-            old_value = getattr(old_history, field)
-            current_value = getattr(self, field)
+            try:
+                old_value = old_values[field]
+                current_value = current_values[field]
+            except KeyError:
+                continue
 
             if old_value != current_value:
                 changes.append(ModelChange(field, old_value, current_value))
