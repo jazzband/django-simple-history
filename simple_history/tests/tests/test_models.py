@@ -69,6 +69,8 @@ from ..models import (
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
+    ModelWithMultipleNoDBIndex,
+    ModelWithSingleNoDBIndexUnique,
     MultiOneToOne,
     MyOverrideModelNameRegisterMethod1,
     OverrideModelNameAsCallable,
@@ -1696,3 +1698,35 @@ class SaveHistoryInSeparateDatabaseTestCase(TestCase):
         self.assertEqual(
             0, ModelWithHistoryInDifferentDb.objects.using("other").count()
         )
+
+
+class ModelWithMultipleNoDBIndexTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithMultipleNoDBIndex
+        self.history_model = self.model.history.model
+
+    def test_field_indices(self):
+        for field in ['name', 'fk']:
+            # dropped index
+            self.assertTrue(getattr(self.model, field).field.db_index)
+            self.assertFalse(getattr(self.history_model, field).field.db_index)
+
+            # keeps index
+            keeps_index = "%s_keeps_index" % field
+            self.assertTrue(getattr(self.model, keeps_index).field.db_index)
+            self.assertTrue(getattr(self.history_model, keeps_index).field.db_index)
+
+
+class ModelWithSingleNoDBIndexUniqueTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithSingleNoDBIndexUnique
+        self.history_model = self.model.history.model
+
+    def test_unique_field_index(self):
+        # dropped index
+        self.assertTrue(getattr(self.model, 'name').field.db_index)
+        self.assertFalse(getattr(self.history_model, 'name').field.db_index)
+
+        # keeps index
+        self.assertTrue(getattr(self.model, 'name_keeps_index').field.db_index)
+        self.assertTrue(getattr(self.history_model, 'name_keeps_index').field.db_index)
