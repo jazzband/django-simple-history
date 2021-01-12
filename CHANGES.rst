@@ -10,6 +10,7 @@ Unreleased
 - Use ``asgiref`` when available instead of thread locals (gh-747)
 - Sort imports with isort (gh-751)
 - Queryset ``history.as_of`` speed improvements by calculating in the DB (gh-758)
+- RecordModels now support a no_db_index setting, to drop indices in historical models, default stays the same (gh-720)
 
 2.12.0 (2020-10-14)
 -------------------

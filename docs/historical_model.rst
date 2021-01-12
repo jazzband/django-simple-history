@@ -399,3 +399,31 @@ compatibility; it is more correct for a ``FileField`` to be converted to a
 
     SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 
+
+Drop Database Indices
+--------------------------------
+
+It is possible to use the parameter ``no_db_index`` to choose which fields
+that will not create a database index.
+
+For example, if you have the model:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200, db_index=True)
+
+
+
+And you don't want to create database index for ``question``, it is necessary to update the model to:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200, db_index=True)
+
+        history = HistoricalRecords(no_db_index=['question'])
+
+
+By default, django-simple-history keeps all indices. and even forces them on unique fields and relations.
+WARNING: This will drop performance on historical lookups
