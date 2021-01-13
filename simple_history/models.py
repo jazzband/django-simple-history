@@ -98,7 +98,9 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
-        no_db_index = [no_db_index] if isinstance(no_db_index, str) else no_db_index
+
+        if isinstance(no_db_index, str):
+            no_db_index = [no_db_index]
         self.no_db_index = no_db_index
 
         if excluded_fields is None:
