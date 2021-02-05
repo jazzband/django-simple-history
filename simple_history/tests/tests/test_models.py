@@ -714,6 +714,18 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
 
         self.assertRecordsMatch(second_record.prev_record, first_record)
 
+    def test_get_prev_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
+
     def test_get_next_record(self):
         self.poll.question = "ask questions?"
         self.poll.save()
@@ -750,6 +762,18 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         second_record = instance.log.filter(name="Test name 2").get()
 
         self.assertRecordsMatch(first_record.next_record, second_record)
+
+    def test_get_next_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
 
 
 class CreateHistoryModelTests(unittest.TestCase):

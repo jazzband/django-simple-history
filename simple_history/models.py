@@ -399,7 +399,7 @@ class HistoricalRecords:
             """
             Get the next history record for the instance. `None` if last.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_for_model(self.instance_type)
             return (
                 history.filter(Q(history_date__gt=self.history_date))
                 .order_by("history_date")
@@ -410,7 +410,7 @@ class HistoricalRecords:
             """
             Get the previous history record for the instance. `None` if first.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_for_model(self.instance_type)
             return (
                 history.filter(Q(history_date__lt=self.history_date))
                 .order_by("history_date")
