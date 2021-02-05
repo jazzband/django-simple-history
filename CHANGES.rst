@@ -10,6 +10,7 @@ Unreleased
 - Use ``asgiref`` when available instead of thread locals (gh-747)
 - Sort imports with isort (gh-751)
 - Queryset ``history.as_of`` speed improvements by calculating in the DB (gh-758)
+- ``prev_record`` and ``next_record`` speed improvements when using ``excluded_fields`` (gh-791)
 
 2.12.0 (2020-10-14)
 -------------------
