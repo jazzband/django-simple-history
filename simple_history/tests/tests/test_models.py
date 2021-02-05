@@ -708,14 +708,14 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         first_record = self.poll.history.filter(question="what's up?").get()
         self.assertIsNone(first_record.prev_record)
 
-    def get_prev_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_prev_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
+        self.assertEqual(second_record.prev_record, first_record)
 
     def test_get_prev_record_with_excluded_field(self):
         instance = PollWithExcludeFields.objects.create(
@@ -760,14 +760,14 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         recent_record = self.poll.history.filter(question="ask questions?").get()
         self.assertIsNone(recent_record.next_record)
 
-    def get_next_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_next_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
+        self.assertEqual(first_record.next_record, second_record)
 
     def test_get_next_record_with_excluded_field(self):
         instance = PollWithExcludeFields.objects.create(
