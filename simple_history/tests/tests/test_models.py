@@ -690,9 +690,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         third_record = self.poll.history.filter(question="eh?").get()
         fourth_record = self.poll.history.filter(question="one more?").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
-        self.assertRecordsMatch(third_record.prev_record, second_record)
-        self.assertRecordsMatch(fourth_record.prev_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.prev_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(fourth_record.prev_record, third_record)
 
     def test_get_prev_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
@@ -739,9 +742,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         fourth_record = self.poll.history.filter(question="one more?").get()
         self.assertIsNone(fourth_record.next_record)
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
-        self.assertRecordsMatch(second_record.next_record, third_record)
-        self.assertRecordsMatch(third_record.next_record, fourth_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.next_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.next_record, fourth_record)
 
     def test_get_next_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
