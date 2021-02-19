@@ -428,7 +428,7 @@ class HistoricalRecords:
             Get the difference between this and the next record. `None` of no next record.
             """
             
-            next_record = self.get_prev_record()
+            next_record = self.get_next_record()
             
             if next_record is not None:
                 return self.diff_against(previous_record)
