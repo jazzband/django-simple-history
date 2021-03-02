@@ -283,3 +283,16 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return getattr(
             settings, "SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS", False
         )
+
+
+class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
+    title = "Entries"
+    parameter_name = "entries"
+
+    def lookups(self, request, model_admin):
+        return (("deleted_only", "Only Deleted"),)
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.model.history.filter(history_type="-").distinct()
+        return queryset
