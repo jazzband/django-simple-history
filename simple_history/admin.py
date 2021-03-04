@@ -296,3 +296,24 @@ class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.model.history.filter(history_type="-").distinct()
         return queryset
+
+
+class YourModelAdmin(SimpleHistoryAdmin):
+    def get_changelist(self, request, **kwargs):
+        def url_from_result_maker(history=False):
+            def custom_url_for_result(self, result):
+                pk = getattr(result, self.pk_attname)
+                from django.urls import reverse
+                from django.contrib.admin.utils import quote
+                route_type = 'history' if history else 'change'
+                route = f'{self.opts.app_label}_{self.opts.model_name}_{route_type}'
+                return reverse(f'admin:{route}',
+                               args=(quote(pk),),
+                               current_app=self.model_admin.admin_site.name)
+            return custom_url_for_result
+        changelist = super().get_changelist(request, **kwargs)
+        if request.GET.get('entries', None) == 'deleted_only':
+            changelist.url_for_result = url_from_result_maker(history=True)
+        else:
+            changelist.url_for_result = url_from_result_maker(history=False)
+        return changelist
