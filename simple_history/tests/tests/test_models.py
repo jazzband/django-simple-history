@@ -1708,13 +1708,13 @@ class ModelWithMultipleNoDBIndexTest(TestCase):
     def test_field_indices(self):
         for field in ["name", "fk"]:
             # dropped index
-            self.assertTrue(getattr(self.model, field).field.db_index)
-            self.assertFalse(getattr(self.history_model, field).field.db_index)
+            self.assertTrue(self.model._meta.get_field(field).db_index)
+            self.assertFalse(self.history_model._meta.get_field(field).db_index)
 
             # keeps index
             keeps_index = "%s_keeps_index" % field
-            self.assertTrue(getattr(self.model, keeps_index).field.db_index)
-            self.assertTrue(getattr(self.history_model, keeps_index).field.db_index)
+            self.assertTrue(self.model._meta.get_field(keeps_index).db_index)
+            self.assertFalse(self.history_model._meta.get_field(keeps_index).db_index)
 
 
 class ModelWithSingleNoDBIndexUniqueTest(TestCase):
