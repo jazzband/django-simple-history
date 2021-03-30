@@ -1723,10 +1723,10 @@ class ModelWithSingleNoDBIndexUniqueTest(TestCase):
         self.history_model = self.model.history.model
 
     def test_unique_field_index(self):
-        # dropped index
-        self.assertTrue(getattr(self.model, "name").field.db_index)
-        self.assertFalse(getattr(self.history_model, "name").field.db_index)
+        # Ending up with deferred fields (dont know why), using work around
+        self.assertTrue(self.model._meta.get_field('name').db_index)
+        self.assertFalse(self.history_model._meta.get_field('name').db_index)
 
         # keeps index
-        self.assertTrue(getattr(self.model, "name_keeps_index").field.db_index)
-        self.assertTrue(getattr(self.history_model, "name_keeps_index").field.db_index)
+        self.assertTrue(self.model._meta.get_field('name_keeps_index').db_index)
+        self.assertTrue(self.history_model._meta.get_field('name_keeps_index').db_index)
