@@ -1714,7 +1714,7 @@ class ModelWithMultipleNoDBIndexTest(TestCase):
             # keeps index
             keeps_index = "%s_keeps_index" % field
             self.assertTrue(self.model._meta.get_field(keeps_index).db_index)
-            self.assertFalse(self.history_model._meta.get_field(keeps_index).db_index)
+            self.assertTrue(self.history_model._meta.get_field(keeps_index).db_index)
 
 
 class ModelWithSingleNoDBIndexUniqueTest(TestCase):
