@@ -45,7 +45,7 @@ msgstr "Voir %s"
 #: .\simple_history\admin.py:218
 #, python-format
 msgid "Revert %s"
-msgstr "Annuler %s"
+msgstr "Rétablir %s"
 
 #: .\simple_history\models.py:433
 msgid "Created"
@@ -88,8 +88,8 @@ msgid ""
 "Choose a date from the list below to revert to a previous version of this "
 "object."
 msgstr ""
-"Choisissez une date dans le liste ci-dessous pour revenir à une version "
-"précédante de cet objet."
+"Choisissez une date dans la liste ci-dessous pour revenir à une version "
+"précédente de cet objet."
 
 #: .\simple_history\templates\simple_history\object_history.html:16
 msgid "This object doesn't have a change history."
@@ -111,14 +111,14 @@ msgstr "Voir %(verbose_name)s"
 #: .\simple_history\templates\simple_history\object_history_form.html:12
 #, python-format
 msgid "Revert %(verbose_name)s"
-msgstr "Annuler %(verbose_name)s"
+msgstr "Rétablir %(verbose_name)s"
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid ""
 "Press the 'Revert' button below to revert to this version of the object. "
 msgstr ""
-"Cliquez sur le bouton 'Annuler' ci-dessous pour revenir à la version de cet "
-"objet. "
+"Cliquez sur le bouton 'Rétablir' ci-dessous pour revenir à cette version de "
+"l' objet. "
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
@@ -127,11 +127,11 @@ msgstr ""
 
 #: .\simple_history\templates\simple_history\submit_line.html:4
 msgid "Revert"
-msgstr "Annuler"
+msgstr "Rétablir"
 
 #: .\simple_history\templates\simple_history\submit_line.html:6
 msgid "Change History"
-msgstr "Historique de changement"
+msgstr "Historique des changements"
 
 #: .\simple_history\templates\simple_history\submit_line.html:7
 msgid "Close"
