@@ -12,6 +12,7 @@ Unreleased
 - Queryset ``history.as_of`` speed improvements by calculating in the DB (gh-758)
 - Increase `black` and `isort` python version to 3.6
 - Remove Django 3.0 support
+- Add Django 3.2 support
 
 2.12.0 (2020-10-14)
 -------------------
