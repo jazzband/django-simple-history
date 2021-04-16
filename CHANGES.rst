@@ -6,6 +6,14 @@ Unreleased
 
 3.0.0 (2021-04-16)
 ----------
+
+Breaking changes:
+
+- Removed support for Django 3.0
+- Removed `changeReason` in favor of `_change_reason` (see 2.10.0)
+
+Full list of changes:
+
 - Removed support for Django versions prior to 2.2 (gh-652)
 - Migrate from TravisCI to Github Actions (gh-739)
 - Add Python 3.9 support (gh-745)
