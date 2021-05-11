@@ -1189,7 +1189,7 @@ class TestOrderWrtField(TestCase):
 
 
 class TestLatest(TestCase):
-    """"Test behavior of `latest()` without any field parameters"""
+    """ "Test behavior of `latest()` without any field parameters"""
 
     def setUp(self):
         poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)

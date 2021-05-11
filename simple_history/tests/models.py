@@ -82,6 +82,22 @@ class PollWithAlternativeManager(models.Model):
     history = HistoricalRecords()
 
 
+class CustomPollManager(models.Manager):
+    def get_queryset(self):
+        return super(CustomPollManager, self).get_queryset().exclude(hidden=True)
+
+
+class PollWithCustomManager(models.Model):
+    some_objects = CustomPollManager()
+    all_objects = models.Manager()
+
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    hidden = models.BooleanField(default=False)
+
+    history = HistoricalRecords()
+
+
 class IPAddressHistoricalModel(models.Model):
     ip_address = models.GenericIPAddressField()
 
