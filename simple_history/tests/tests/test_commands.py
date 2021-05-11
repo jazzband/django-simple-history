@@ -18,6 +18,7 @@ from ..models import (
     Place,
     Poll,
     PollWithExcludeFields,
+    PollWithAlternativeManager,
     Restaurant,
 )
 
@@ -282,6 +283,58 @@ class TestCleanDuplicateHistory(TestCase):
             "<class 'simple_history.tests.models.Poll'>\n",
         )
         self.assertEqual(Poll.history.all().count(), 2)
+
+    def _prepare_cleanup_manager(self):
+        one = PollWithAlternativeManager._default_manager.create(
+            question="This is hidden in default manager",
+            pub_date=datetime.now()
+        )
+        one.save()
+
+        two = PollWithAlternativeManager._default_manager.create(
+            question="This is visible in default manager",
+            pub_date=datetime.now()
+        )
+        two.save()
+
+        self.assertEqual(PollWithAlternativeManager.history.count(), 4)
+
+    def test_auto_cleanup_defaultmanager(self):
+        self._prepare_cleanup_manager()
+
+        out = StringIO()
+        management.call_command(
+            self.command_name,
+            auto=True,
+            stdout=out,
+            stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.PollWithAlternativeManager'>\n",
+        )
+        self.assertEqual(PollWithAlternativeManager.history.count(), 3)
+
+    def test_auto_cleanup_basemanage(self):
+        self._prepare_cleanup_manager()
+
+        out = StringIO()
+        management.call_command(
+            self.command_name,
+            auto=True,
+            base_manager=True,
+            stdout=out,
+            stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.PollWithAlternativeManager'>\n"
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.PollWithAlternativeManager'>\n",
+        )
+        self.assertEqual(PollWithAlternativeManager.history.count(), 2)
 
     def test_auto_cleanup_verbose(self):
         p = Poll.objects.create(
