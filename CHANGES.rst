@@ -3,6 +3,17 @@ Changes
 
 Unreleased
 ----------
+
+3.0.0 (2021-04-16)
+------------------
+
+Breaking changes:
+
+- Removed support for Django 3.0
+- Removed `changeReason` in favor of `_change_reason` (see 2.10.0)
+
+Full list of changes:
+
 - Removed support for Django versions prior to 2.2 (gh-652)
 - Migrate from TravisCI to Github Actions (gh-739)
 - Add Python 3.9 support (gh-745)
@@ -11,6 +22,11 @@ Unreleased
 - Sort imports with isort (gh-751)
 - Queryset ``history.as_of`` speed improvements by calculating in the DB (gh-758)
 - RecordModels now support a no_db_index setting, to drop indices in historical models, default stays the same (gh-720)
+- Increase `black` and `isort` python version to 3.6 (gh-817)
+- Remove Django 3.0 support (gh-817)
+- Add Django 3.2 support (gh-817)
+- Improve French translations (gh-811)
+- Remove support for changeReason (gh-819)
 
 2.12.0 (2020-10-14)
 -------------------

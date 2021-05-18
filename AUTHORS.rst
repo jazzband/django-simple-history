@@ -93,6 +93,7 @@ Authors
 - Rajesh Pappula
 - Ray Logel
 - Raynald de Lahondes
+- Renaud Perrin (`leminaw <https://github.com/leminaw>`_)
 - Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote
