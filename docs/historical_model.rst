@@ -26,7 +26,7 @@ The example below uses a ``UUIDField`` instead of an ``AutoField``:
 
 
 Since using a ``UUIDField`` for the ``history_id`` is a common use case, there is a
-``SIMPLE_HISTORY_HISTORY_ID_USE_UUID`` setting that will set all ``history_id``s to UUIDs.
+``SIMPLE_HISTORY_HISTORY_ID_USE_UUID`` setting that will set all instances of ``history_id`` to UUIDs.
 Set this with the following line in your ``settings.py`` file:
 
 
