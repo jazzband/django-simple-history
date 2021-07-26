@@ -150,7 +150,7 @@ the fields in the instance of the base model, as well as other metadata:
 - ``history_user``: the user that made the create/update/delete
 - ``history_date``: the datetime at which the create/update/delete occurred
 - ``history_change_reason``: the reason the create/update/delete occurred (null by default)
-- ``history_id``: the primary key for the historical table (note the the base table's
+- ``history_id``: the primary key for the historical table (note the base table's
   primary key is not unique on the historical table since there are multiple versions of it
   on the historical table)
 - ``history_type``: ``+`` for create, ``~`` for update, and ``-`` for delete
