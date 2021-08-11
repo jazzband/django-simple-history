@@ -25,3 +25,9 @@ class AlternativeManagerError(Exception):
     """Manager does not belong to model"""
 
     pass
+
+
+class CannotSwitchQuerySetResultTypeError(Exception):
+    """Cannot call as_original once a queryset has fetched."""
+
+    pass

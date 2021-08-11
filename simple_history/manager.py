@@ -1,8 +1,112 @@
 from django.db import connection, models
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, QuerySet, Subquery
 from django.utils import timezone
 
+from simple_history.exceptions import CannotSwitchQuerySetResultTypeError
 from simple_history.utils import get_change_reason_from_object
+
+
+class HistoricalQuerySet(QuerySet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pk_attr = type(self.model().instance)._meta.pk.name
+
+    def as_original(self):
+        """
+        Tells the QuerySet you are looking for genuine records to be generated
+        instead of the default behavior whichgenerates historical records.  You
+        cannot switch modes after results have been fetched.
+        """
+        if self._result_cache:
+            raise CannotSwitchQuerySetResultTypeError()
+
+        self._as_original = True
+        return self
+
+    def _clone(self):
+        c = super()._clone()
+        setattr(c, "_as_original", getattr(self, "_as_original", False))
+        setattr(c, "_originalized", getattr(self, "_originalized", False))
+        return c
+
+    def _fetch_all(self):
+        super()._fetch_all()
+        if getattr(self, "_as_original", False) and not getattr(
+            self, "_originalized", False
+        ):
+            self._originalized = True
+            self._result_cache = [item.instance for item in self._result_cache]
+
+    def filter(self, *args, **kwargs):
+        """
+        This handles two special cases when building a filter queryset:
+
+        1. You may get a filter kwargs containing "pk" (DRF does this).  This is
+           interpreted as the backing table's primary key, however in our case that means
+           it is the Historical model's history_id.  The caller wants to query on the
+           original table's primary key, not ours.  One should query on history_id if
+           one wants to find a specific historical record.
+
+        2. If the query contains an as_of expression we properly handle it based
+           on whether this is an as_original queryset or a historical one.  The
+           historical one does not drop deleted records, and the as_original one does.
+        """
+        as_of = kwargs.pop("as_of", None)
+        if as_of:
+            self._as_of_filter(
+                as_of, drop_deletions=getattr(self, "_as_original", False)
+            )
+
+        pk = kwargs.pop("pk", None)
+        if pk:
+            kwargs[self._pk_attr] = pk
+
+        return super().filter(*args, **kwargs)
+
+    def _as_of_filter(self, date, drop_deletions, **kwargs):
+        """Return a HistoricalQuerySet containing a filter as of the specified
+        timestamp.  Additional filter arguments can also be passed in.
+
+        For additional history on this topic, see:
+        https://github.com/jazzband/django-simple-history/pull/229
+        https://github.com/jazzband/django-simple-history/issues/354
+        https://github.com/jazzband/django-simple-history/issues/397
+        """
+        queryset = super().filter(history_date__lte=date, **kwargs)
+        # If using MySQL, need to get a list of IDs in memory and then use them for the
+        # second query.
+        # Does mean two loops through the DB to get the full set, but still a speed
+        # improvement.
+        backend = connection.vendor
+        if backend == "mysql":
+            history_ids = {}
+            for item in queryset.order_by("-history_date", "-pk"):
+                if getattr(item, self._pk_attr) not in history_ids:
+                    history_ids[getattr(item, self._pk_attr)] = item.pk
+            latest_historics = queryset.filter(history_id__in=history_ids.values())
+        elif backend == "postgresql":
+            latest_pk_attr_historic_ids = (
+                queryset.order_by(self._pk_attr, "-history_date", "-pk")
+                .distinct(self._pk_attr)
+                .values_list("pk", flat=True)
+            )
+            latest_historics = queryset.filter(
+                history_id__in=latest_pk_attr_historic_ids
+            )
+        else:
+            latest_pk_attr_historic_ids = (
+                queryset.filter(**{self._pk_attr: OuterRef(self._pk_attr)})
+                .order_by("-history_date", "-pk")
+                .values("pk")[:1]
+            )
+            latest_historics = queryset.filter(
+                history_id__in=Subquery(latest_pk_attr_historic_ids)
+            )
+        if drop_deletions:
+            latest_historics = latest_historics.exclude(history_type="-").order_by(
+                self._pk_attr
+            )
+        return latest_historics
 
 
 class HistoryDescriptor:
@@ -11,7 +115,7 @@ class HistoryDescriptor:
 
     def __get__(self, instance, owner):
         if instance is None:
-            return HistoryManager(self.model)
+            return HistoryManager.from_queryset(HistoricalQuerySet)(self.model)
         return HistoryManager(self.model, instance)
 
 
@@ -64,16 +168,18 @@ class HistoryManager(models.Manager):
             )
         return self.instance.__class__(**values)
 
-    def as_of(self, date):
+    def as_of(self, date, **kwargs):
         """Get a snapshot as of a specific date.
+
+        Additional filter arguments can be passed in.
 
         Returns an instance, or an iterable of the instances, of the
         original model with all the attributes set according to what
         was present on the object on the date provided.
         """
         if not self.instance:
-            return self._as_of_set(date)
-        queryset = self.get_queryset().filter(history_date__lte=date)
+            return self._as_of_set(date, **kwargs)
+        queryset = self.get_queryset().filter(history_date__lte=date, **kwargs)
         try:
             history_obj = queryset[0]
         except IndexError:
@@ -86,41 +192,10 @@ class HistoryManager(models.Manager):
             )
         return history_obj.instance
 
-    def _as_of_set(self, date):
-        model = type(self.model().instance)  # a bit of a hack to get the model
-        pk_attr = model._meta.pk.name
-        queryset = self.get_queryset().filter(history_date__lte=date)
-        # If using MySQL, need to get a list of IDs in memory and then use them for the
-        # second query.
-        # Does mean two loops through the DB to get the full set, but still a speed
-        # improvement.
-        backend = connection.vendor
-        if backend == "mysql":
-            history_ids = {}
-            for item in queryset.order_by("-history_date", "-pk"):
-                if getattr(item, pk_attr) not in history_ids:
-                    history_ids[getattr(item, pk_attr)] = item.pk
-            latest_historics = queryset.filter(history_id__in=history_ids.values())
-        elif backend == "postgresql":
-            latest_pk_attr_historic_ids = (
-                queryset.order_by(pk_attr, "-history_date", "-pk")
-                .distinct(pk_attr)
-                .values_list("pk", flat=True)
-            )
-            latest_historics = queryset.filter(
-                history_id__in=latest_pk_attr_historic_ids
-            )
-        else:
-            latest_pk_attr_historic_ids = (
-                queryset.filter(**{pk_attr: OuterRef(pk_attr)})
-                .order_by("-history_date", "-pk")
-                .values("pk")[:1]
-            )
-            latest_historics = queryset.filter(
-                history_id__in=Subquery(latest_pk_attr_historic_ids)
-            )
-        adjusted = latest_historics.exclude(history_type="-").order_by(pk_attr)
-        for historic_item in adjusted:
+    def _as_of_set(self, date, **kwargs):
+        for historic_item in self.get_queryset()._as_of_filter(
+            date, drop_deletions=True, **kwargs
+        ):
             yield historic_item.instance
 
     def bulk_history_create(

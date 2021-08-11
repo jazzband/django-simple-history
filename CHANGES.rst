@@ -4,7 +4,9 @@ Changes
 Unreleased
 ----------
 
- - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Allow for queryset based ``as_of`` filtering with optional conversion to genuine records (gh-397)
+- ``as_of`` now allows for additional filter parameters (gh-397)
 
 3.0.0 (2021-04-16)
 ------------------

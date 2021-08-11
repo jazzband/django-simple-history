@@ -109,6 +109,25 @@ the provided date and time.
     >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
+The ``as_of`` method returns a generator - not a queryset.  If you want to build a
+complex point-in-time query, you can express ``as_of`` through a filter() like so:
+
+.. code-block:: pycon
+
+    >>> from datetime import datetime
+    >>> poll.history.filter(as_of=datetime(2010, 10, 25, 18, 4, 0))
+    <HistoricalQuerySet [<HistoricalPoll: Poll object as of 2010-10-25 18:03:29.855689>]>
+
+If you want the resulting queryset to return genuine instances instead of
+historical records, you can tell the queryset to do that:
+
+.. code-block:: pycon
+
+    >>> from datetime import datetime
+    >>> poll.history.filter(as_of=datetime(2010, 10, 25, 18, 4, 0)).as_original()
+    <HistoricalQuerySet [<Poll: Poll object as of 2010-10-25 18:03:29.855689>]>
+
+
 most_recent
 -----------
 

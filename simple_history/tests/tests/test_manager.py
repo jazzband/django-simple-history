@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, skipUnlessDBFeature
 
-from ..models import Document, Poll
+from simple_history.exceptions import CannotSwitchQuerySetResultTypeError
+
+from ..models import Document, Poll, RankedDocument
 
 User = get_user_model()
 
@@ -79,10 +81,50 @@ class AsOfAdditionalTestCase(TestCase):
         self.assertFalse(list(docs_as_of_tmw))
 
     def test_multiple(self):
-        document1 = Document.objects.create()
-        document2 = Document.objects.create()
-        historical = Document.history.as_of(datetime.now() + timedelta(days=1))
+        document1 = RankedDocument.objects.create(rank=25)
+        document2 = RankedDocument.objects.create(rank=75)
+        foo = RankedDocument.history.filter(as_of=datetime.now() + timedelta(days=1))
+        historical = RankedDocument.history.as_of(datetime.now() + timedelta(days=1))
         self.assertEqual(list(historical), [document1, document2])
+
+        # you can pass additional filter arguments into as_of
+        historical = RankedDocument.history.as_of(
+            datetime.now() + timedelta(days=1), rank__gte=50
+        )
+        self.assertEqual(list(historical), [document2])
+
+        # if you query against as_of with None, it gets all historic records
+        historical = RankedDocument.history.filter(as_of=None)
+        self.assertEqual(len(historical), 2)
+        self.assertNotEqual(RankedDocument.history.model, RankedDocument)
+        self.assertEqual(
+            [item.__class__ for item in historical],
+            [RankedDocument.history.model, RankedDocument.history.model],
+        )
+
+        # if you query with as_of set to a time point, you get historical records
+        historical = RankedDocument.history.filter(
+            as_of=datetime.now() + timedelta(days=1)
+        )
+        self.assertEqual(len(historical), 2)
+        self.assertNotEqual(RankedDocument.history.model, RankedDocument)
+        self.assertEqual(
+            [item.__class__ for item in historical],
+            [RankedDocument.history.model, RankedDocument.history.model],
+        )
+
+        # note: you cannot call as_original() after the queryset has fetched
+        with self.assertRaises(CannotSwitchQuerySetResultTypeError):
+            historical.as_original()
+
+        # use as_original to get a HistoryQuerySet that generates genuine RankedDocument(s)
+        # instead of historical records
+        genuine = RankedDocument.history.filter(
+            as_of=datetime.now() + timedelta(days=1), rank__lte=50
+        ).as_original()
+        self.assertEqual(len(genuine), 1)
+        self.assertEqual([item.__class__ for item in genuine], [RankedDocument])
+        self.assertEqual(list(genuine)[0].rank, 25)
 
 
 class BulkHistoryCreateTestCase(TestCase):
