@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 
 import django
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
@@ -1037,6 +1038,25 @@ class HistoryManagerTest(TestCase):
         poll.save()
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+
+    def test_date_indexing_options(self):
+        records = HistoricalRecords()
+        delattr(settings, "SIMPLE_HISTORY_DATE_INDEX")
+        self.assertTrue(records._date_indexing)
+        settings.SIMPLE_HISTORY_DATE_INDEX = False
+        self.assertFalse(records._date_indexing)
+        settings.SIMPLE_HISTORY_DATE_INDEX = "Composite"
+        self.assertEqual(records._date_indexing, "composite")
+        settings.SIMPLE_HISTORY_DATE_INDEX = "foo"
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        settings.SIMPLE_HISTORY_DATE_INDEX = 42
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        settings.SIMPLE_HISTORY_DATE_INDEX = None
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        delattr(settings, "SIMPLE_HISTORY_DATE_INDEX")
 
     def test_as_of(self):
         poll = Poll.objects.create(question="what's up?", pub_date=today)

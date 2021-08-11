@@ -7,7 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
@@ -426,7 +426,7 @@ class HistoricalRecords:
 
         extra_fields = {
             "history_id": self._get_history_id_field(),
-            "history_date": models.DateTimeField(),
+            "history_date": models.DateTimeField(db_index=self._date_indexing is True),
             "history_change_reason": self._get_history_change_reason_field(),
             "history_type": models.CharField(
                 max_length=1,
@@ -451,6 +451,23 @@ class HistoricalRecords:
 
         return extra_fields
 
+    @property
+    def _date_indexing(self):
+        """False, True, or 'composite'; default is True"""
+        result = getattr(settings, "SIMPLE_HISTORY_DATE_INDEX", True)
+        valid = True
+        if isinstance(result, str):
+            result = result.lower()
+            if result not in ("composite",):
+                valid = False
+        elif not isinstance(result, bool):
+            valid = False
+        if not valid:
+            raise ImproperlyConfigured(
+                "SIMPLE_HISTORY_DATE_INDEX must be one of (False, True, 'Composite')"
+            )
+        return result
+
     def get_meta_options(self, model):
         """
         Returns a dictionary of fields that will be added to
@@ -467,6 +484,8 @@ class HistoricalRecords:
         meta_fields["verbose_name"] = name
         if self.app:
             meta_fields["app_label"] = self.app
+        if self._date_indexing == "composite":
+            meta_fields["index_together"] = (("history_date", model._meta.pk.attname),)
         return meta_fields
 
     def post_save(self, instance, created, using=None, **kwargs):
