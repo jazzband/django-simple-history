@@ -458,7 +458,7 @@ class HistoricalRecords:
         """
         meta_fields = {
             "ordering": ("-history_date", "-history_id"),
-            "get_latest_by": "history_date",
+            "get_latest_by": ("history_date", "history_id"),
         }
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name

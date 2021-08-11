@@ -198,7 +198,7 @@ class TestTrackingInheritance(TestCase):
 
 
 class TestCustomAttrForeignKey(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/431 """
+    """https://github.com/jazzband/django-simple-history/issues/431"""
 
     def test_custom_attr(self):
         field = ModelWithCustomAttrForeignKey.history.model._meta.get_field("poll")
@@ -219,7 +219,7 @@ class TestMigrate(TestCase):
 
 
 class TestModelWithHistoryInDifferentApp(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/485 """
+    """https://github.com/jazzband/django-simple-history/issues/485"""
 
     def test__different_app(self):
         appLabel = ModelWithHistoryInDifferentApp.history.model._meta.app_label
