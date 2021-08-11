@@ -10,6 +10,7 @@ Upgrade Implications:
 
 Full list of changes:
 
+- Added queryset-based filtering with ``as_of`` (gh-397)
 - Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
 - Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
   additional arguments that don't exist on ``ForeignKey``. (gh-870)
