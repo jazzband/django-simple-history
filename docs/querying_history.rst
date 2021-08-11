@@ -95,19 +95,68 @@ This will change the ``poll`` instance to have the data from the
 ``HistoricalPoll`` table indicating that a new change has been made.
 
 
-as_of
------
+as_of, as_instances
+-------------------
 
-This method will return an instance of the model as it would have existed at
-the provided date and time.
+The HistoryManager allows you to query a point in time for the latest historical
+records.  The following examples come from the manager unit tests.
 
 .. code-block:: pycon
 
-    >>> from datetime import datetime
-    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 4, 0))
-    <Poll: Poll object as of 2010-10-25 18:03:29.855689>
-    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
-    <Poll: Poll object as of 2010-10-25 18:04:13.814128>
+    >>> RankedDocument.history.all().as_of(t1)
+    <HistoricalQuerySet [
+        <HistoricalRankedDocument: RankedDocument object (1) as of 2021-08-12 13:47:29.002680>,
+        <HistoricalRankedDocument: RankedDocument object (2) as of 2021-08-12 13:47:29.003526>
+    ]>
+
+The queryset-based ``as_of`` returns historical models and will include
+deletion records.  You may call ``as_instances`` on the queryset to return
+a queryset that returns instances.  Whether you call ``as_instances`` or not,
+these are querysets so you can continue to filter them.
+
+.. code-block:: pycon
+
+    >>> RankedDocument.history.all().as_of(t1).as_instances()
+    <HistoricalQuerySet [
+        <RankedDocument: RankedDocument object (1)>,
+        <RankedDocument: RankedDocument object (2)>
+    ]>
+    >>> RankedDocument.history.all().as_of(t1).as_instances().filter(rank__gte=50)
+    <HistoricalQuerySet [
+        <RankedDocument: RankedDocument object (2)>
+    ]>
+
+The ``HistoryManager.as_of`` is a legacy convenience that does the same thing
+and returning a queryset.
+
+.. code-block:: pycon
+
+    >>> list(RankedDocument.history.as_of(t1))
+    [
+        <RankedDocument: RankedDocument object (1)>,
+        <RankedDocument: RankedDocument object (2)>
+    ]
+
+The queryset-based as_of will return deletion records.  Between t1 and t2, the test
+modifies object 2 and deletes object 1.
+
+.. code-block:: pycon
+
+    >>> uut = RankedDocument.history.all().as_of(t2)
+    >>> uut
+    <HistoricalQuerySet [
+        <HistoricalRankedDocument: RankedDocument object (1) as of 2021-08-12 13:47:29.002680>,
+        <HistoricalRankedDocument: RankedDocument object (2) as of 2021-08-12 13:47:29.003526>
+    ]>
+    >>> {item.id: item.history_type for item in uut}
+    {1: '-', 2: '~'}
+    >>> {item.id: item.history_type for item in uut.filter(rank__lte=50)}
+    {1: '-'}
+    >>> uut.as_instances()
+    <HistoricalQuerySet [
+        <RankedDocument: RankedDocument object (2)>
+    ]>
+
 
 most_recent
 -----------

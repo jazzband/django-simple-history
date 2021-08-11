@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, skipUnlessDBFeature
 
-from ..models import Document, Poll
+from ..models import Document, Poll, RankedDocument
 
 User = get_user_model()
 
@@ -83,6 +83,72 @@ class AsOfAdditionalTestCase(TestCase):
         document2 = Document.objects.create()
         historical = Document.history.as_of(datetime.now() + timedelta(days=1))
         self.assertEqual(list(historical), [document1, document2])
+
+    def test_filter_pk_as_instance(self):
+        # when a queryset is returning historical documents, `pk` queries
+        # reference the history_id; however when a queryset is returning
+        # instances, `pk' queries reference the original table's primary key
+        document1 = RankedDocument.objects.create(id=101, rank=42)
+        document2 = RankedDocument.objects.create(id=102, rank=84)
+        self.assertFalse(RankedDocument.history.filter(pk=document1.id))
+        self.assertTrue(
+            RankedDocument.history.all().as_instances().filter(pk=document1.id)
+        )
+
+    def test_historical_queryset(self):
+        t0 = datetime.now()
+        document1 = RankedDocument.objects.create(rank=42)
+        document2 = RankedDocument.objects.create(rank=84)
+        t1 = datetime.now()
+        document2.rank = 51
+        document2.save()
+
+        # nothing exists at t0 (this call goes to the legacy HistoryManager method)
+        uut = RankedDocument.history.as_of(t0)
+        self.assertEqual(list(uut), [])
+
+        # Leverage the new filter-based as_of directly; this is
+        # returning historical records and not instances
+        uut = RankedDocument.history.all().as_of(t1)
+        self.assertEqual(len(list(uut)), 2)
+        self.assertEqual([item.history_type for item in uut], ["+", "+"])
+        # remember historical records come back in reverse chronological order:
+        self.assertEqual([item.rank for item in uut], [84, 42])
+
+        # It's a regular query so you can filter it further
+        uut2 = uut.filter(rank__gte=50)
+        self.assertEqual(len(list(uut2)), 1)
+        self.assertEqual(uut2[0].rank, 84)
+
+        # `as_instances` lets us convert a historical queryset to return instances
+        # instead of historical records, and it's a queryset so you can keep filtering
+        uut = uut.as_instances().order_by("rank")
+        self.assertEqual(len(list(uut)), 2)
+        self.assertEqual(list(uut), [document1, document2])
+
+        # prove that HistoryManager.as_of is the same as the newer filter methods
+        # (internally, it uses them, so it should be!)
+        self.assertEqual(
+            list(RankedDocument.history.as_of(t1)),
+            list(RankedDocument.history.all().as_of(t1).as_instances()),
+        )
+
+        document1.delete()
+        t2 = datetime.now()
+
+        # if we use queryset based as_of we can see the mod and the deletion
+        uut = RankedDocument.history.all().as_of(t2)
+        self.assertEqual(len(list(uut)), 2)
+        self.assertEqual(list(uut)[0].history_type, "-")
+        self.assertEqual(list(uut)[1].history_type, "~")
+
+        # however if we then use as_instances() on it, we do not see deleted instances
+        uut = uut.as_instances()
+        self.assertEqual(list(uut), [document2])
+
+        # as_instances is idempotent
+        uut = uut.as_instances()
+        self.assertEqual(list(uut), [document2])
 
 
 class BulkHistoryCreateTestCase(TestCase):

@@ -4,7 +4,10 @@ Changes
 Unreleased
 ----------
 
- - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Added queryset-based filtering with ``as_of`` (gh-397)
+- Added option to return historical records or instances with querysets (gh-397)
+- Added ``pk`` translation when queryset is in instance mode (gh-397)
 
 3.0.0 (2021-04-16)
 ------------------

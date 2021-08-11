@@ -229,6 +229,7 @@ class Document(models.Model):
     changed_by = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True
     )
+
     history = HistoricalRecords()
 
     @property
@@ -245,6 +246,12 @@ class Paper(Document):
     @Document._history_user.setter
     def _history_user(self, value):
         self.changed_by = value
+
+
+class RankedDocument(Document):
+    rank = models.IntegerField(default=50)
+
+    history = HistoricalRecords()
 
 
 class Profile(User):
