@@ -17,6 +17,7 @@ from ..tests.models import (
     InheritTracking3,
     InheritTracking4,
     ModelWithCustomAttrForeignKey,
+    ModelWithCustomAttrOneToOneField,
     ModelWithHistoryInDifferentApp,
     Poll,
     Restaurant,
@@ -198,11 +199,19 @@ class TestTrackingInheritance(TestCase):
 
 
 class TestCustomAttrForeignKey(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/431 """
+    """https://github.com/jazzband/django-simple-history/issues/431"""
 
     def test_custom_attr(self):
         field = ModelWithCustomAttrForeignKey.history.model._meta.get_field("poll")
         self.assertEqual(field.attr_name, "custom_poll")
+
+
+class TestCustomAttrOneToOneField(TestCase):
+    """https://github.com/jazzband/django-simple-history/issues/870"""
+
+    def test_custom_attr(self):
+        field = ModelWithCustomAttrOneToOneField.history.model._meta.get_field("poll")
+        self.assertFalse(hasattr(field, "attr_name"))
 
 
 @override_settings(MIGRATION_MODULES={})
@@ -219,7 +228,7 @@ class TestMigrate(TestCase):
 
 
 class TestModelWithHistoryInDifferentApp(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/485 """
+    """https://github.com/jazzband/django-simple-history/issues/485"""
 
     def test__different_app(self):
         appLabel = ModelWithHistoryInDifferentApp.history.model._meta.app_label

@@ -5,6 +5,8 @@ Unreleased
 ----------
 
  - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+ - Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
+   additional arguments that don't exist on ``ForeignKey``. (gh-870)
 
 3.0.0 (2021-04-16)
 ------------------
