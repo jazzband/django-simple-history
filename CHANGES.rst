@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+ - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+
 3.0.0 (2021-04-16)
 ------------------
 

@@ -61,6 +61,7 @@ class HistoricalRecords:
     def __init__(
         self,
         verbose_name=None,
+        verbose_name_plural=None,
         bases=(models.Model,),
         user_related_name="+",
         table_name=None,
@@ -81,6 +82,7 @@ class HistoricalRecords:
         user_db_constraint=True,
     ):
         self.user_set_verbose_name = verbose_name
+        self.user_set_verbose_name_plural = verbose_name_plural
         self.user_related_name = user_related_name
         self.user_db_constraint = user_db_constraint
         self.table_name = table_name
@@ -220,7 +222,6 @@ class HistoricalRecords:
         attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
-
         # Set as the default then check for overrides
         name = self.get_history_model_name(model)
 
@@ -464,7 +465,12 @@ class HistoricalRecords:
             name = self.user_set_verbose_name
         else:
             name = format_lazy("historical {}", smart_str(model._meta.verbose_name))
+        if self.user_set_verbose_name_plural:
+            plural_name = self.user_set_verbose_name_plural
+        else:
+            plural_name = format_lazy("historical {}", smart_str(model._meta.verbose_name_plural))
         meta_fields["verbose_name"] = name
+        meta_fields["verbose_name_plural"] = plural_name
         if self.app:
             meta_fields["app_label"] = self.app
         return meta_fields
