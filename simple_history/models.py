@@ -585,6 +585,8 @@ class HistoricalObjectDescriptor:
         self.fields_included = fields_included
 
     def __get__(self, instance, owner):
+        if instance is None:
+            return self
         values = {f.attname: getattr(instance, f.attname) for f in self.fields_included}
         return self.model(**values)
 
