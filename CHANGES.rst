@@ -4,7 +4,8 @@ Changes
 Unreleased
 ----------
 
- - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed `make format` so it works by using tox (gh-859)
 
 3.0.0 (2021-04-16)
 ------------------
