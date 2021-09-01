@@ -1219,7 +1219,7 @@ class TestLatest(TestCase):
         self.write_history(
             [{"pk": 1, "history_date": yesterday}, {"pk": 2, "history_date": yesterday}]
         )
-        assert HistoricalPoll.objects.latest().pk == 1
+        assert HistoricalPoll.objects.latest().pk == 2
 
 
 class TestMissingOneToOne(TestCase):
