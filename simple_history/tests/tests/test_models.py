@@ -13,10 +13,17 @@ from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from simple_history import register
 from simple_history.exceptions import RelatedNameConflictError
-from simple_history.models import HistoricalRecords, ModelChange
+from simple_history.models import (
+    SIMPLE_HISTORY_REVERSE_ATTR_NAME,
+    HistoricalRecords,
+    ModelChange,
+    is_historic,
+    to_historic,
+)
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
@@ -93,6 +100,11 @@ from ..models import (
     State,
     Street,
     Temperature,
+    TestHistoricParticipanToHistoricOrganization,
+    TestHistoricParticipantToOrganization,
+    TestOrganization,
+    TestOrganizationWithHistory,
+    TestParticipantToHistoricOrganization,
     UnicodeVerboseName,
     UnicodeVerboseNamePlural,
     UserTextFieldChangeReasonModel,
@@ -370,6 +382,16 @@ class HistoricalRecordsTest(TestCase):
                 "id": pizza_place.id,
                 "history_type": "~",
             },
+        )
+
+    def test_reverse_historical(self):
+        """Tests how we can go from instance to historical record."""
+        document = Document.objects.create()
+        historic = document.history.all()[0]
+        instance = historic.instance
+        self.assertEqual(
+            getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME).history_date,
+            historic.history_date,
         )
 
     def test_specify_history_user(self):
@@ -1856,3 +1878,137 @@ class ModelWithSingleNoDBIndexUniqueTest(TestCase):
         # keeps index
         self.assertTrue(self.model._meta.get_field("name_keeps_index").db_index)
         self.assertTrue(self.history_model._meta.get_field("name_keeps_index").db_index)
+
+
+class HistoricForeignKeyTest(TestCase):
+    """
+    Tests chasing foreign keys across time points naturally with
+    HistoricForeignKey.
+    """
+
+    def test_non_historic_to_historic(self):
+        """
+        Non-historic table foreign key to historic table.
+
+        In this case it should simply behave like ForeignKey because
+        the origin model (this one) cannot be historic, so foreign key
+        lookups are always "current".
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+        part = TestParticipantToHistoricOrganization.objects.create(
+            name="part", organization=org
+        )
+        before_mod = timezone.now()
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participants.count(), 1)
+        self.assertEqual(org.participants.all()[0], part)
+
+        historg = TestOrganizationWithHistory.history.as_of(before_mod).get(
+            name="original"
+        )
+        self.assertEqual(historg.participants.count(), 1)
+        self.assertEqual(historg.participants.all()[0], part)
+
+        self.assertEqual(org.history.count(), 1)
+        org.name = "modified"
+        org.save()
+        self.assertEqual(org.history.count(), 2)
+
+        # drop internal caches, re-select
+        part = TestParticipantToHistoricOrganization.objects.get(name="part")
+        self.assertEqual(part.organization.name, "modified")
+
+    def test_historic_to_non_historic(self):
+        """
+        Historic table foreign key to non-historic table.
+
+        In this case it should simply behave like ForeignKey because
+        the origin model (this one) can be historic but the target model
+        is not, so foreign key lookups are always "current".
+        """
+        org = TestOrganization.objects.create(name="org")
+        part = TestHistoricParticipantToOrganization.objects.create(
+            name="original", organization=org
+        )
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participants.count(), 1)
+        self.assertEqual(org.participants.all()[0], part)
+
+        histpart = TestHistoricParticipantToOrganization.objects.get(name="original")
+        self.assertEqual(histpart.organization.id, org.id)
+
+    def test_historic_to_historic(self):
+        """
+        Historic table foreign key to historic table.
+
+        In this case as_of queries on the origin model (this one)
+        or on the target model (the other one) will traverse the
+        foreign key relationship honoring the timepoint of the
+        original query.  This only happens when both tables involved
+        are historic.
+
+        At t1 we have one org, one participant.
+        At t2 we have one org, two participants, however the org's name has changed.
+        At t3 we have one org, and one participant has left.
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+        p1 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p1", organization=org
+        )
+        t1_one_participant = timezone.now()
+        p2 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p2", organization=org
+        )
+        org.name = "modified"
+        org.save()
+        t2_two_participants = timezone.now()
+        p1.delete()
+        t3_one_participant = timezone.now()
+
+        # forward relationships - see how natural chasing timepoint relations is
+        p1t1 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t1_one_participant
+        ).get(name="p1")
+        self.assertEqual(p1t1.organization, org)
+        self.assertEqual(p1t1.organization.name, "original")
+        p1t2 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t2_two_participants
+        ).get(name="p1")
+        self.assertEqual(p1t2.organization, org)
+        self.assertEqual(p1t2.organization.name, "modified")
+        p2t2 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t2_two_participants
+        ).get(name="p2")
+        self.assertEqual(p2t2.organization, org)
+        self.assertEqual(p2t2.organization.name, "modified")
+        p2t3 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t3_one_participant
+        ).get(name="p2")
+        self.assertEqual(p2t3.organization, org)
+        self.assertEqual(p2t3.organization.name, "modified")
+
+        # reverse relationships
+        # at t1
+        ot1 = TestOrganizationWithHistory.history.as_of(t1_one_participant).all()[0]
+        self.assertEqual(ot1.historic_participants.count(), 1)
+        self.assertEqual(ot1.historic_participants.all()[0].name, p1.name)
+        # at t2
+        ot2 = TestOrganizationWithHistory.history.as_of(t2_two_participants).all()[0]
+        self.assertEqual(ot2.historic_participants.count(), 2)
+        self.assertIn(p1.name, [item.name for item in ot2.historic_participants.all()])
+        self.assertIn(p2.name, [item.name for item in ot2.historic_participants.all()])
+        # at t3
+        ot3 = TestOrganizationWithHistory.history.as_of(t3_one_participant).all()[0]
+        self.assertEqual(ot3.historic_participants.count(), 1)
+        self.assertEqual(ot3.historic_participants.all()[0].name, p2.name)
+        # current
+        self.assertEqual(org.historic_participants.count(), 1)
+        self.assertEqual(org.historic_participants.all()[0].name, p2.name)
+
+        self.assertTrue(is_historic(ot1))
+        self.assertFalse(is_historic(org))
+
+        self.assertIsInstance(
+            to_historic(ot1), TestOrganizationWithHistory.history.model
+        )
+        self.assertIsNone(to_historic(org))
