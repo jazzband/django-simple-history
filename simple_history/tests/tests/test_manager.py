@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, override_settings, skipUnlessDBFeature
 
+from simple_history.manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME
+
 from ..models import Document, Poll, RankedDocument
 
 User = get_user_model()
@@ -69,12 +71,23 @@ class AsOfTest(TestCase):
 
 class AsOfAdditionalTestCase(TestCase):
     def test_create_and_delete(self):
-        now = datetime.now()
         document = Document.objects.create()
+        now = datetime.now()
         document.delete()
-        for doc_change in Document.history.all():
-            doc_change.history_date = now
-            doc_change.save()
+
+        docs_as_of_now = Document.history.as_of(now)
+        doc = docs_as_of_now[0]
+        # as_of queries inject a property allowing callers
+        # to go from instance to historical instance
+        historic = getattr(doc, SIMPLE_HISTORY_REVERSE_ATTR_NAME)
+        self.assertIsNotNone(historic)
+        # as_of queries inject the time point of the original
+        # query into the historic record so callers can do magical
+        # things like chase historic foreign key relationships
+        # by patching forward and reverse one-to-one relationship
+        # processing (see issue 880)
+        self.assertEqual(historic._as_of, now)
+
         docs_as_of_tmw = Document.history.as_of(now + timedelta(days=1))
         with self.assertNumQueries(1):
             self.assertFalse(list(docs_as_of_tmw))
@@ -121,6 +134,12 @@ class AsOfAdditionalTestCase(TestCase):
         self.assertEqual(queryset.filter(rank__gte=75).count(), 1)
         ids = {item["id"] for item in queryset.values("id")}
         self.assertEqual(ids, {document1.id, document2.id})
+
+        # these records are historic
+        record = queryset[0]
+        historic = getattr(record, SIMPLE_HISTORY_REVERSE_ATTR_NAME)
+        self.assertIsInstance(historic, RankedDocument.history.model)
+        self.assertEqual(historic._as_of, t1)
 
         # at t2 we have one record left
         queryset = RankedDocument.history.as_of(t2)

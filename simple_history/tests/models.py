@@ -4,10 +4,12 @@ import uuid
 from django.apps import apps
 from django.conf import settings
 from django.db import models
+from django.db.models.deletion import CASCADE
+from django.db.models.fields.related import ForeignKey
 from django.urls import reverse
 
 from simple_history import register
-from simple_history.models import HistoricalRecords
+from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from .custom_user.models import CustomUser as User
 from .external.models import AbstractExternal, AbstractExternal2, AbstractExternal3
@@ -788,3 +790,67 @@ class ModelWithMultipleNoDBIndex(models.Model):
         "Library", on_delete=models.CASCADE, null=True, related_name="+"
     )
     history = HistoricalRecords(no_db_index=["name", "fk", "other"])
+
+
+class TestOrganization(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+
+
+class TestOrganizationWithHistory(models.Model):
+    name = models.CharField(max_length=15, unique=True)
+    history = HistoricalRecords()
+
+
+class TestParticipantToHistoricOrganization(models.Model):
+    """
+    Non-historic table foreign key to historic table.
+
+    In this case it should simply behave like ForeignKey because
+    the origin model (this one) cannot be historic, so foreign key
+    lookups are always "current".
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricForeignKey(
+        TestOrganizationWithHistory, on_delete=CASCADE, related_name="participants"
+    )
+
+
+class TestHistoricParticipantToOrganization(models.Model):
+    """
+    Historic table foreign key to non-historic table.
+
+    In this case it should simply behave like ForeignKey because
+    the origin model (this one) can be historic but the target model
+    is not, so foreign key lookups are always "current".
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricForeignKey(
+        TestOrganization, on_delete=CASCADE, related_name="participants"
+    )
+    history = HistoricalRecords()
+
+
+class TestHistoricParticipanToHistoricOrganization(models.Model):
+    """
+    Historic table foreign key to historic table.
+
+    In this case as_of queries on the origin model (this one)
+    or on the target model (the other one) will traverse the
+    foreign key relationship honoring the timepoint of the
+    original query.  This only happens when both tables involved
+    are historic.
+
+    NOTE: related_name has to be different than the one used in
+          TestParticipantToHistoricOrganization as they are
+          sharing the same target table.
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricForeignKey(
+        TestOrganizationWithHistory,
+        on_delete=CASCADE,
+        related_name="historic_participants",
+    )
+    history = HistoricalRecords()
