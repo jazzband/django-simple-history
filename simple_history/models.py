@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import ManyToManyField, Q
+from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -399,9 +399,9 @@ class HistoricalRecords:
             """
             Get the next history record for the instance. `None` if last.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_from_history(self)
             return (
-                history.filter(Q(history_date__gt=self.history_date))
+                history.filter(history_date__gt=self.history_date)
                 .order_by("history_date")
                 .first()
             )
@@ -410,9 +410,9 @@ class HistoricalRecords:
             """
             Get the previous history record for the instance. `None` if first.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_from_history(self)
             return (
-                history.filter(Q(history_date__lt=self.history_date))
+                history.filter(history_date__lt=self.history_date)
                 .order_by("history_date")
                 .last()
             )

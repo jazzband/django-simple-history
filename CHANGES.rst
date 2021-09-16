@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Fixed ``prev_record`` and ``next_record`` performance when using ``excluded_fields`` (gh-791)
 - Fixed `update_change_reason` in pk (gh-806)
 - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
 - Fixed `make format` so it works by using tox (gh-859)

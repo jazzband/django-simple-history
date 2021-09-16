@@ -690,9 +690,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         third_record = self.poll.history.filter(question="eh?").get()
         fourth_record = self.poll.history.filter(question="one more?").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
-        self.assertRecordsMatch(third_record.prev_record, second_record)
-        self.assertRecordsMatch(fourth_record.prev_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.prev_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(fourth_record.prev_record, third_record)
 
     def test_get_prev_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
@@ -705,14 +708,26 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         first_record = self.poll.history.filter(question="what's up?").get()
         self.assertIsNone(first_record.prev_record)
 
-    def get_prev_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_prev_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
+        self.assertEqual(second_record.prev_record, first_record)
+
+    def test_get_prev_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
 
     def test_get_next_record(self):
         self.poll.question = "ask questions?"
@@ -727,9 +742,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         fourth_record = self.poll.history.filter(question="one more?").get()
         self.assertIsNone(fourth_record.next_record)
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
-        self.assertRecordsMatch(second_record.next_record, third_record)
-        self.assertRecordsMatch(third_record.next_record, fourth_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.next_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.next_record, fourth_record)
 
     def test_get_next_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
@@ -742,14 +760,26 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         recent_record = self.poll.history.filter(question="ask questions?").get()
         self.assertIsNone(recent_record.next_record)
 
-    def get_next_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_next_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
+        self.assertEqual(first_record.next_record, second_record)
+
+    def test_get_next_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
 
 
 class CreateHistoryModelTests(unittest.TestCase):
