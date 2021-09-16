@@ -49,12 +49,14 @@ Authors
 - Hamish Downer
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
+- Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
+- Jim King (`jeking3 <https://github.com/jeking3>`_)
 - Joao Junior (`joaojunior <https://github.com/joaojunior>`_)
 - Joao Pedro Francese
 - `jofusa <https://github.com/jofusa>`_
@@ -92,6 +94,7 @@ Authors
 - Rajesh Pappula
 - Ray Logel
 - Raynald de Lahondes
+- Renaud Perrin (`leminaw <https://github.com/leminaw>`_)
 - Roberto Aguilar
 - Rod Xavier Bondoc
 - Ross Lote
