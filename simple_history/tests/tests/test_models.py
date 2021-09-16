@@ -1219,7 +1219,7 @@ class TestOrderWrtField(TestCase):
 
 
 class TestLatest(TestCase):
-    """"Test behavior of `latest()` without any field parameters"""
+    """Test behavior of `latest()` without any field parameters"""
 
     def setUp(self):
         poll = Poll.objects.create(question="Does `latest()` work?", pub_date=yesterday)
@@ -1249,7 +1249,7 @@ class TestLatest(TestCase):
         self.write_history(
             [{"pk": 1, "history_date": yesterday}, {"pk": 2, "history_date": yesterday}]
         )
-        assert HistoricalPoll.objects.latest().pk == 1
+        assert HistoricalPoll.objects.latest().pk == 2
 
 
 class TestMissingOneToOne(TestCase):

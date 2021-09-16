@@ -458,7 +458,7 @@ class HistoricalRecords:
         """
         meta_fields = {
             "ordering": ("-history_date", "-history_id"),
-            "get_latest_by": "history_date",
+            "get_latest_by": ("history_date", "history_id"),
         }
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
@@ -579,6 +579,8 @@ class HistoricalObjectDescriptor:
         self.fields_included = fields_included
 
     def __get__(self, instance, owner):
+        if instance is None:
+            return self
         values = {f.attname: getattr(instance, f.attname) for f in self.fields_included}
         return self.model(**values)
 

@@ -3,6 +3,22 @@ Changes
 
 Unreleased
 ----------
+
+- ``prev_record`` and ``next_record`` speed improvements when using ``excluded_fields`` (gh-791)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed `make format` so it works by using tox (gh-859)
+- Fixed bug where latest() is not idempotent for identical ``history_date`` records (gh-861)
+
+3.0.0 (2021-04-16)
+------------------
+
+Breaking changes:
+
+- Removed support for Django 3.0
+- Removed `changeReason` in favor of `_change_reason` (see 2.10.0)
+
+Full list of changes:
+
 - Removed support for Django versions prior to 2.2 (gh-652)
 - Migrate from TravisCI to Github Actions (gh-739)
 - Add Python 3.9 support (gh-745)
@@ -10,7 +26,11 @@ Unreleased
 - Use ``asgiref`` when available instead of thread locals (gh-747)
 - Sort imports with isort (gh-751)
 - Queryset ``history.as_of`` speed improvements by calculating in the DB (gh-758)
-- ``prev_record`` and ``next_record`` speed improvements when using ``excluded_fields`` (gh-791)
+- Increase `black` and `isort` python version to 3.6 (gh-817)
+- Remove Django 3.0 support (gh-817)
+- Add Django 3.2 support (gh-817)
+- Improve French translations (gh-811)
+- Remove support for changeReason (gh-819)
 
 2.12.0 (2020-10-14)
 -------------------
