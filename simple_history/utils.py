@@ -11,7 +11,7 @@ from simple_history.exceptions import AlternativeManagerError, NotHistoricalMode
 def update_change_reason(instance, reason):
     attrs = {}
     model = type(instance)
-    manager = instance if instance.id is not None else model
+    manager = instance if instance.pk is not None else model
     history = get_history_manager_for_model(manager)
     history_fields = [field.attname for field in history.model._meta.fields]
     for field in instance._meta.fields:
