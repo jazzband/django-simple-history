@@ -410,12 +410,12 @@ class HistoricalRecords:
             """
             Get the difference between this and the next record. `None` of no next record.
             """
-            
+
             next_record = self.get_next_record()
-            
+
             if next_record is not None:
                 return self.diff_against(previous_record)
-            
+
             return None
 
         def get_prev_record(self):
@@ -432,13 +432,15 @@ class HistoricalRecords:
         def get_prev_record_diff(self):
             """
             Get the difference between this and the previous record. `None` if no previous record.
+
+            The diff should be based on the previous record, since the diff uses `old_record` and `new_record` semantics.
             """
-            
+
             previous_record = self.get_prev_record()
-            
+
             if previous_record is not None:
-                return self.diff_against(previous_record)
-            
+                return previous_record.diff_against(self)
+
             return None
 
         def get_default_history_user(instance):
