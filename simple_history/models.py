@@ -608,11 +608,8 @@ class HistoricalChanges:
         current_values = model_to_dict(self, fields=fields)
 
         for field in fields:
-            try:
-                old_value = old_values[field]
-                current_value = current_values[field]
-            except KeyError:
-                continue
+            old_value = old_values[field]
+            current_value = current_values[field]
 
             if old_value != current_value:
                 changes.append(ModelChange(field, old_value, current_value))

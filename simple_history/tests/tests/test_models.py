@@ -687,6 +687,18 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(len(delta.changes), 1)
 
+    def test_history_with_unknown_field(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertRaises(KeyError):
+            with self.assertNumQueries(0):
+                new_record.diff_against(old_record, included_fields=["unknown_field"])
+
+        with self.assertNumQueries(0):
+            new_record.diff_against(old_record, excluded_fields=["unknown_field"])
+
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
     def assertRecordsMatch(self, record_a, record_b):
