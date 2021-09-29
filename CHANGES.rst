@@ -22,6 +22,7 @@ Full list of changes:
 - Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
 - Added Czech translations (gh-885)
 - Added pre-commit for better commit quality (gh-896)
+- Added ability to break into debugger on unit test failure (gh-890)
 
 3.0.0 (2021-04-16)
 ------------------
