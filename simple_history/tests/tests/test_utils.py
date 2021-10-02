@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -76,6 +76,13 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 5)
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_bulk_create_history_with_disabled_setting(self):
+        bulk_create_with_history(self.data, Poll)
+
+        self.assertEqual(Poll.objects.count(), 5)
+        self.assertEqual(Poll.history.count(), 0)
 
     def test_bulk_create_history_alternative_manager(self):
         bulk_create_with_history(
@@ -290,6 +297,21 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.objects.get(id=4).question, "Updated question")
         self.assertEqual(Poll.history.count(), 10)
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_bulk_update_history(self):
+        self.assertEqual(Poll.history.count(), 5)
+        # because setup called with enabled settings
+        bulk_update_with_history(
+            self.data,
+            Poll,
+            fields=["question"],
+        )
+
+        self.assertEqual(Poll.objects.count(), 5)
+        self.assertEqual(Poll.objects.get(id=4).question, "Updated question")
+        self.assertEqual(Poll.history.count(), 5)
+        self.assertEqual(Poll.history.filter(history_type="~").count(), 0)
 
     def test_bulk_update_history_with_default_user(self):
         user = User.objects.create_user("tester", "tester@example.com")
