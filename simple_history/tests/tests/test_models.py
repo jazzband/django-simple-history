@@ -267,6 +267,16 @@ class HistoricalRecordsTest(TestCase):
             },
         )
 
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_save_with_disabled_history(self):
+        anthony = Person.objects.create(name="Anthony Gillard")
+        anthony.name = "something else"
+        anthony.save()
+        self.assertEqual(Person.history.count(), 0)
+        anthony.delete()
+        self.assertEqual(Person.history.count(), 0)
+
+
     def test_save_without_historical_record_for_registered_model(self):
         model = ExternalModelSpecifiedWithAppParam.objects.create(
             name="registered model"

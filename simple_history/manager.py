@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import connection, models
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
@@ -137,6 +138,8 @@ class HistoryManager(models.Manager):
         If called by bulk_update_with_history, use the update boolean and
         save the history_type accordingly.
         """
+        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+            return
 
         history_type = "+"
         if update:

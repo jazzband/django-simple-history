@@ -117,6 +117,7 @@ Authors
 - David Smith (`smithdc1 <https://github.com/smithdc1>`_)
 - Shi Han Ng (`shihanng <https://github.com/shihanng>`_)
 - `ddusi <https://github.com/ddusi>`_
+- `DanialErfanian <https://github.com/DanialErfanian>`_
 
 Background
 ==========

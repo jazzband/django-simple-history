@@ -145,6 +145,12 @@ If you want to save a model without a historical record, you can use the followi
     poll = Poll(question='something')
     poll.save_without_historical_record()
 
+Or disable history records for all models by putting following lines in your ``settings.py`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_ENABLED = False
+
 
 Filtering data using a relationship to the model
 ------------------------------------------------
