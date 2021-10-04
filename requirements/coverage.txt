@@ -1,2 +1,2 @@
-coverage==5.5
+coverage==6.0
 toml==0.10.2
