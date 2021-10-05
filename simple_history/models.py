@@ -79,6 +79,7 @@ class HistoricalRecords:
         related_name=None,
         use_base_model_db=False,
         user_db_constraint=True,
+        ignore_saving_historical_record_on_delete=False,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -97,6 +98,9 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
+        self.ignore_saving_historical_record_on_delete = (
+            ignore_saving_historical_record_on_delete
+        )
 
         if excluded_fields is None:
             excluded_fields = []
@@ -502,6 +506,8 @@ class HistoricalRecords:
         if self.cascade_delete_history:
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()
+        elif getattr(self, "ignore_saving_historical_record_on_delete", False):
+            return
         else:
             self.create_historical_record(instance, "-", using=using)
 

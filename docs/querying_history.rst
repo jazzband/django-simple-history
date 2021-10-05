@@ -152,6 +152,20 @@ Or disable history records for all models by putting following lines in your ``s
     SIMPLE_HISTORY_ENABLED = False
 
 
+Delete model without saving historical record
+---------------------------------------------
+
+If you have a model that will cause a large number of cascading deletions and 
+you don't wish to save history instances due to performance issues, you can
+set ``ignore_saving_historical_record_on_delete`` to ``True`` on ``HistoricalRecord``
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        history = HistoricalRecords(ignore_saving_historical_record_on_delete=True)
+
+
 Filtering data using a relationship to the model
 ------------------------------------------------
 
