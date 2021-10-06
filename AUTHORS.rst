@@ -51,11 +51,13 @@ Authors
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
+- Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
+- Jim King (`jeking3 <https://github.com/jeking3>`_)
 - Joao Junior (`joaojunior <https://github.com/joaojunior>`_)
 - Joao Pedro Francese
 - `jofusa <https://github.com/jofusa>`_
@@ -115,6 +117,8 @@ Authors
 - `Alex Todorov <https://github.com/atodorov>`_
 - David Smith (`smithdc1 <https://github.com/smithdc1>`_)
 - Shi Han Ng (`shihanng <https://github.com/shihanng>`_)
+- `ddusi <https://github.com/ddusi>`_
+- `DanialErfanian <https://github.com/DanialErfanian>`_
 
 Background
 ==========

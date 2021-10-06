@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 
 import django
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
@@ -265,6 +266,16 @@ class HistoricalRecordsTest(TestCase):
                 "history_type": "~",
             },
         )
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_save_with_disabled_history(self):
+        anthony = Person.objects.create(name="Anthony Gillard")
+        anthony.name = "something else"
+        anthony.save()
+        self.assertEqual(Person.history.count(), 0)
+        anthony.delete()
+        self.assertEqual(Person.history.count(), 0)
+
 
     def test_save_without_historical_record_for_registered_model(self):
         model = ExternalModelSpecifiedWithAppParam.objects.create(
@@ -623,7 +634,8 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record)
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         expected_change = ModelChange("question", "what's up?", "what's up, man")
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(delta.old_record, old_record)
@@ -635,7 +647,8 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record)
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         self.assertNotIn("pub_date", delta.changed_fields)
 
     def test_history_diff_includes_changed_fields_of_base_model(self):
@@ -644,7 +657,8 @@ class HistoricalRecordsTest(TestCase):
         r.name = "DonnutsKing"
         r.save()
         new_record, old_record = r.history.all()
-        delta = new_record.diff_against(old_record)
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         expected_change = ModelChange("name", "McDonna", "DonnutsKing")
         self.assertEqual(delta.changed_fields, ["name"])
         self.assertEqual(delta.old_record, old_record)
@@ -664,9 +678,37 @@ class HistoricalRecordsTest(TestCase):
         p.question = "what's up, man?"
         p.save()
         new_record, old_record = p.history.all()
-        delta = new_record.diff_against(old_record, excluded_fields=("question",))
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, excluded_fields=("question",))
         self.assertEqual(delta.changed_fields, [])
         self.assertEqual(delta.changes, [])
+
+    def test_history_diff_with_included_fields(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, included_fields=[])
+        self.assertEqual(delta.changed_fields, [])
+        self.assertEqual(delta.changes, [])
+
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record, included_fields=["question"])
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(len(delta.changes), 1)
+
+    def test_history_with_unknown_field(self):
+        p = Poll.objects.create(question="what's up?", pub_date=today)
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertRaises(KeyError):
+            with self.assertNumQueries(0):
+                new_record.diff_against(old_record, included_fields=["unknown_field"])
+
+        with self.assertNumQueries(0):
+            new_record.diff_against(old_record, excluded_fields=["unknown_field"])
 
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
@@ -690,9 +732,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         third_record = self.poll.history.filter(question="eh?").get()
         fourth_record = self.poll.history.filter(question="one more?").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
-        self.assertRecordsMatch(third_record.prev_record, second_record)
-        self.assertRecordsMatch(fourth_record.prev_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.prev_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(fourth_record.prev_record, third_record)
 
     def test_get_prev_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
@@ -705,14 +750,26 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         first_record = self.poll.history.filter(question="what's up?").get()
         self.assertIsNone(first_record.prev_record)
 
-    def get_prev_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_prev_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(second_record.prev_record, first_record)
+        self.assertEqual(second_record.prev_record, first_record)
+
+    def test_get_prev_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.prev_record, first_record)
 
     def test_get_next_record(self):
         self.poll.question = "ask questions?"
@@ -727,9 +784,12 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         fourth_record = self.poll.history.filter(question="one more?").get()
         self.assertIsNone(fourth_record.next_record)
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
-        self.assertRecordsMatch(second_record.next_record, third_record)
-        self.assertRecordsMatch(third_record.next_record, fourth_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(second_record.next_record, third_record)
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(third_record.next_record, fourth_record)
 
     def test_get_next_record_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
@@ -742,14 +802,26 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
         recent_record = self.poll.history.filter(question="ask questions?").get()
         self.assertIsNone(recent_record.next_record)
 
-    def get_next_record_with_custom_manager_name(self):
-        instance = CustomManagerNameModel(name="Test name 1")
-        instance.save()
+    def test_get_next_record_with_custom_manager_name(self):
+        instance = CustomManagerNameModel.objects.create(name="Test name 1")
         instance.name = "Test name 2"
-        first_record = instance.log.filter(name="Test name").get()
+        instance.save()
+        first_record = instance.log.filter(name="Test name 1").get()
         second_record = instance.log.filter(name="Test name 2").get()
 
-        self.assertRecordsMatch(first_record.next_record, second_record)
+        self.assertEqual(first_record.next_record, second_record)
+
+    def test_get_next_record_with_excluded_field(self):
+        instance = PollWithExcludeFields.objects.create(
+            question="what's up?", pub_date=today
+        )
+        instance.question = "ask questions?"
+        instance.save()
+        first_record = instance.history.filter(question="what's up?").get()
+        second_record = instance.history.filter(question="ask questions?").get()
+
+        with self.assertNumQueries(1):
+            self.assertRecordsMatch(first_record.next_record, second_record)
 
 
 class CreateHistoryModelTests(unittest.TestCase):
@@ -976,6 +1048,25 @@ class HistoryManagerTest(TestCase):
         poll.save()
         poll.delete()
         self.assertRaises(Poll.DoesNotExist, poll.history.most_recent)
+
+    def test_date_indexing_options(self):
+        records = HistoricalRecords()
+        delattr(settings, "SIMPLE_HISTORY_DATE_INDEX")
+        self.assertTrue(records._date_indexing)
+        settings.SIMPLE_HISTORY_DATE_INDEX = False
+        self.assertFalse(records._date_indexing)
+        settings.SIMPLE_HISTORY_DATE_INDEX = "Composite"
+        self.assertEqual(records._date_indexing, "composite")
+        settings.SIMPLE_HISTORY_DATE_INDEX = "foo"
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        settings.SIMPLE_HISTORY_DATE_INDEX = 42
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        settings.SIMPLE_HISTORY_DATE_INDEX = None
+        with self.assertRaises(ImproperlyConfigured):
+            records._date_indexing
+        delattr(settings, "SIMPLE_HISTORY_DATE_INDEX")
 
     def test_as_of(self):
         poll = Poll.objects.create(question="what's up?", pub_date=today)
@@ -1219,7 +1310,7 @@ class TestLatest(TestCase):
         self.write_history(
             [{"pk": 1, "history_date": yesterday}, {"pk": 2, "history_date": yesterday}]
         )
-        assert HistoricalPoll.objects.latest().pk == 1
+        assert HistoricalPoll.objects.latest().pk == 2
 
 
 class TestMissingOneToOne(TestCase):

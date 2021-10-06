@@ -1,8 +1,12 @@
+from django.conf import settings
 from django.db import connection, models
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 
-from simple_history.utils import get_change_reason_from_object
+from simple_history.utils import (
+    get_app_model_primary_key_name,
+    get_change_reason_from_object,
+)
 
 
 class HistoryDescriptor:
@@ -29,10 +33,7 @@ class HistoryManager(models.Manager):
         if self.instance is None:
             return qs
 
-        if isinstance(self.instance._meta.pk, models.ForeignKey):
-            key_name = self.instance._meta.pk.name + "_id"
-        else:
-            key_name = self.instance._meta.pk.name
+        key_name = get_app_model_primary_key_name(self.instance)
         return self.get_super_queryset().filter(**{key_name: self.instance.pk})
 
     def most_recent(self):
@@ -137,6 +138,8 @@ class HistoryManager(models.Manager):
         If called by bulk_update_with_history, use the update boolean and
         save the history_type accordingly.
         """
+        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+            return
 
         history_type = "+"
         if update:

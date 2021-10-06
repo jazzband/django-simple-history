@@ -4,9 +4,23 @@ Changes
 Unreleased
 ----------
 
- - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
- - Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
-   additional arguments that don't exist on ``ForeignKey``. (gh-870)
+Upgrade Implications:
+
+- Run `makemigrations` after upgrading to realize the benefit of indexing changes.
+
+Full list of changes:
+
+- Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
+- Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
+  additional arguments that don't exist on ``ForeignKey``. (gh-870)
+- Fixed ``prev_record`` and ``next_record`` performance when using ``excluded_fields`` (gh-791)
+- Fixed `update_change_reason` in pk (gh-806)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed `make format` so it works by using tox (gh-859)
+- Fixed bug where latest() is not idempotent for identical ``history_date`` records (gh-861)
+- Support ``included_fields`` for ``history.diff_against`` (gh-776)
+- Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
+- Added Czech translations (gh-885)
 
 3.0.0 (2021-04-16)
 ------------------
