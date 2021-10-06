@@ -119,6 +119,28 @@ class ModelWithCustomAttrForeignKey(models.Model):
     history = HistoricalRecords()
 
 
+class CustomAttrNameOneToOneField(models.OneToOneField):
+    def __init__(self, *args, **kwargs):
+        self.attr_name = kwargs.pop("attr_name", None)
+        super(CustomAttrNameOneToOneField, self).__init__(*args, **kwargs)
+
+    def get_attname(self):
+        return self.attr_name or super(CustomAttrNameOneToOneField, self).get_attname()
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(
+            CustomAttrNameOneToOneField, self
+        ).deconstruct()
+        if self.attr_name:
+            kwargs["attr_name"] = self.attr_name
+        return name, path, args, kwargs
+
+
+class ModelWithCustomAttrOneToOneField(models.Model):
+    poll = CustomAttrNameOneToOneField(Poll, models.CASCADE, attr_name="custom_poll")
+    history = HistoricalRecords(excluded_field_kwargs={"poll": set(["attr_name"])})
+
+
 class Temperature(models.Model):
     location = models.CharField(max_length=200)
     temperature = models.IntegerField()

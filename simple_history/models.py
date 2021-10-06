@@ -79,6 +79,7 @@ class HistoricalRecords:
         related_name=None,
         use_base_model_db=False,
         user_db_constraint=True,
+        excluded_field_kwargs=None,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_related_name = user_related_name
@@ -101,6 +102,10 @@ class HistoricalRecords:
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
+
+        if excluded_field_kwargs is None:
+            excluded_field_kwargs = {}
+        self.excluded_field_kwargs = excluded_field_kwargs
         try:
             if isinstance(bases, str):
                 raise TypeError
@@ -235,6 +240,12 @@ class HistoricalRecords:
                 fields.append(field)
         return fields
 
+    def field_excluded_kwargs(self, field):
+        """
+        Find the excluded kwargs for a given field.
+        """
+        return self.excluded_field_kwargs.get(field.name, set())
+
     def copy_fields(self, model):
         """
         Creates copies of the model's original fields, returning
@@ -261,6 +272,12 @@ class HistoricalRecords:
                     FieldType = models.ForeignKey
                 else:
                     FieldType = type(old_field)
+
+                # Remove any excluded kwargs for the field.
+                # This is useful when a custom OneToOneField is being used that
+                # has a different set of arguments than ForeignKey
+                for exclude_arg in self.field_excluded_kwargs(old_field):
+                    field_args.pop(exclude_arg, None)
 
                 # If field_args['to'] is 'self' then we have a case where the object
                 # has a foreign key to itself. If we pass the historical record's

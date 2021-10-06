@@ -254,3 +254,25 @@ Working with BitBucket Pipelines
 
 When using BitBucket Pipelines to test your Django project with the
 django-simple-history middleware, you will run into an error relating to missing migrations relating to the historic User model from the auth app. This is because the migration file is not held within either your project or django-simple-history.  In order to pypass the error you need to add a ```python manage.py makemigrations auth``` step into your YML file prior to running the tests.
+
+
+Using custom OneToOneFields
+---------------------------
+
+If you are using a custom OneToOneField that has additional arguments and receiving
+the the following ``TypeError``::
+
+..
+    TypeError: __init__() got an unexpected keyword argument
+
+This is because Django Simple History coerces ``OneToOneField`` into ``ForeignKey``
+on the historical model. You can work around this by excluded those additional
+arguments using ``excluded_field_kwargs`` as follows:
+
+.. code-block:: python
+
+    class Poll(models.Model):
+        organizer = CustomOneToOneField(Organizer, ..., custom_argument="some_value")
+        history = HistoricalRecords(
+            excluded_field_kwargs={"organizer": set(["custom_argument"])}
+        )

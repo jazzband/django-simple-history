@@ -11,6 +11,8 @@ Upgrade Implications:
 Full list of changes:
 
 - Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
+- Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
+  additional arguments that don't exist on ``ForeignKey``. (gh-870)
 - Fixed ``prev_record`` and ``next_record`` performance when using ``excluded_fields`` (gh-791)
 - Fixed `update_change_reason` in pk (gh-806)
 - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
