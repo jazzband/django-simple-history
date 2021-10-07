@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         (
             "migration_test_app",
-            "0002_historicalmodelwithcustomattrforeignkey_modelwithcustomattrforeignkey",
+            "0004_history_date_indexing",
         ),
     ]
 
