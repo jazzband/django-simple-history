@@ -671,9 +671,9 @@ class CustomManagerNameModel(models.Model):
     log = HistoricalRecords()
 
 
-"""
-Following classes test the "custom_model_name" option
-"""
+#
+# Following classes test the "custom_model_name" option
+#
 
 
 class OverrideModelNameAsString(models.Model):
