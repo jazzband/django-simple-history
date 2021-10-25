@@ -276,7 +276,6 @@ class HistoricalRecordsTest(TestCase):
         anthony.delete()
         self.assertEqual(Person.history.count(), 0)
 
-
     def test_save_without_historical_record_for_registered_model(self):
         model = ExternalModelSpecifiedWithAppParam.objects.create(
             name="registered model"
@@ -1276,7 +1275,7 @@ class TestOrderWrtField(TestCase):
             if name == "_order":
                 found = True
                 self.assertEqual(type(field), models.IntegerField)
-        assert found, "_order not in fields " + repr(model_state.fields)
+        self.assertTrue(found, "_order not in fields " + repr(model_state.fields))
 
 
 class TestLatest(TestCase):
@@ -1298,19 +1297,19 @@ class TestLatest(TestCase):
         self.write_history(
             [{"pk": 1, "history_date": yesterday}, {"pk": 2, "history_date": today}]
         )
-        assert HistoricalPoll.objects.latest().pk == 2
+        self.assertEqual(HistoricalPoll.objects.latest().pk, 2)
 
     def test_jumbled(self):
         self.write_history(
             [{"pk": 1, "history_date": today}, {"pk": 2, "history_date": yesterday}]
         )
-        assert HistoricalPoll.objects.latest().pk == 1
+        self.assertEqual(HistoricalPoll.objects.latest().pk, 1)
 
     def test_sameinstant(self):
         self.write_history(
             [{"pk": 1, "history_date": yesterday}, {"pk": 2, "history_date": yesterday}]
         )
-        assert HistoricalPoll.objects.latest().pk == 2
+        self.assertEqual(HistoricalPoll.objects.latest().pk, 2)
 
 
 class TestMissingOneToOne(TestCase):
@@ -1645,7 +1644,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
     databases = {"default", "other"}
 
     def setUp(self):
-        self.user = get_user_model().objects.create(
+        self.user = get_user_model().objects.create(  # nosec
             username="username", email="username@test.com", password="top_secret"
         )
 
@@ -1686,10 +1685,10 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
 
 class RelatedNameTest(TestCase):
     def setUp(self):
-        self.user_one = get_user_model().objects.create(
+        self.user_one = get_user_model().objects.create(  # nosec
             username="username_one", email="first@user.com", password="top_secret"
         )
-        self.user_two = get_user_model().objects.create(
+        self.user_two = get_user_model().objects.create(  # nosec
             username="username_two", email="second@user.com", password="top_secret"
         )
 

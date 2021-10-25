@@ -299,7 +299,7 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
-    def test_bulk_update_history(self):
+    def test_bulk_update_history_without_history_enabled(self):
         self.assertEqual(Poll.history.count(), 5)
         # because setup called with enabled settings
         bulk_update_with_history(

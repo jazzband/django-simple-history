@@ -75,9 +75,13 @@ We make use of `black`_ for code formatting.
 
 .. _black: https://black.readthedocs.io/en/stable/installation_and_usage.html
 
-Once it is installed you can make sure the code is properly formatted by running::
+You can install and run it along with other linters through pre-commit:
 
-    make format
+    pre-commit install
+    pre-commit run
+
+Once you install pre-commit it will sanity check any commit you make.
+Additionally, the CI process runs this check as well.
 
 Translations
 ------------

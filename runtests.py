@@ -99,7 +99,7 @@ DATABASE_NAME_TO_DATABASE_SETTINGS = {
 }
 
 
-DEFAULT_SETTINGS = dict(
+DEFAULT_SETTINGS = dict(  # nosec
     SECRET_KEY="not a secret",
     ALLOWED_HOSTS=["localhost"],
     AUTH_USER_MODEL="custom_user.CustomUser",

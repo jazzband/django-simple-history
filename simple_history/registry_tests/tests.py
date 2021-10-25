@@ -51,7 +51,7 @@ class RegisterTest(TestCase):
 
         self.assertRaises(AttributeError, get_history, User)
         self.assertEqual(len(User.histories.all()), 0)
-        user = User.objects.create(username="bob", password="pass")
+        user = User.objects.create(username="bob", password="pass")  # nosec
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
 
@@ -80,11 +80,11 @@ class RegisterTest(TestCase):
 class TestUserAccessor(unittest.TestCase):
     def test_accessor_default(self):
         register(UserAccessorDefault)
-        assert not hasattr(User, "historicaluseraccessordefault_set")
+        self.assertFalse(hasattr(User, "historicaluseraccessordefault_set"))
 
     def test_accessor_override(self):
         register(UserAccessorOverride, user_related_name="my_history_model_accessor")
-        assert hasattr(User, "my_history_model_accessor")
+        self.assertTrue(hasattr(User, "my_history_model_accessor"))
 
 
 class TestInheritedModule(TestCase):
