@@ -1,3 +1,4 @@
+---
 version: "2"         # required to adjust maintainability checks
 checks:
   argument-count:
@@ -26,10 +27,10 @@ checks:
       threshold: 4
   similar-code:
     config:
-      threshold: 50 # language-specific defaults. an override will affect all languages.
+      threshold: 50  # language-specific defaults. an override will affect all languages.
   identical-code:
     config:
-      threshold: # language-specific defaults. an override will affect all languages.
+      threshold:  # language-specific defaults. an override will affect all languages.
 plugins:
   bandit:
     enabled: true

@@ -111,7 +111,7 @@ class BulkHistoryCreateTestCase(TestCase):
         self.assertEqual(Poll.history.count(), 4)
 
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
-    def test_simple_bulk_history_create(self):
+    def test_simple_bulk_history_create_without_history_enabled(self):
         Poll.history.bulk_history_create(self.data)
         self.assertEqual(Poll.history.count(), 0)
 
