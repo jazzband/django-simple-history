@@ -842,7 +842,6 @@ class GetPrevRecordAndNextRecordDiffsTestCase(TestCase):
         self.assertEqual(delta.new_record, second_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
 
-
     def test_get_prev_record_diff_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
         record = self.poll.history.get()
@@ -861,8 +860,8 @@ class GetPrevRecordAndNextRecordDiffsTestCase(TestCase):
         first_record, second_record = self.poll.history.all()
         delta = first_record.next_record_diff()
 
-        expected_change = ModelChange("question", "ask questions?",  "what's up?")
-        self.assertEqual(1,2)
+        expected_change = ModelChange("question", "ask questions?", "what's up?")
+        self.assertEqual(1, 2)
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(delta.old_record, first_record)
         self.assertEqual(delta.new_record, second_record)
@@ -899,7 +898,6 @@ class GetPrevRecordAndNextRecordDiffsTestCase(TestCase):
         self.assertEqual(delta.new_record, second_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
 
-
     def test_get_prev_record_diff_none_if_only(self):
         self.assertEqual(self.poll.history.count(), 1)
         record = self.poll.history.get()
@@ -918,8 +916,8 @@ class GetPrevRecordAndNextRecordDiffsTestCase(TestCase):
         first_record, second_record = self.poll.history.all()
         delta = first_record.next_record_diff()
 
-        expected_change = ModelChange("question", "ask questions?",  "what's up?")
-        self.assertEqual(1,2)
+        expected_change = ModelChange("question", "ask questions?", "what's up?")
+        self.assertEqual(1, 2)
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(delta.old_record, first_record)
         self.assertEqual(delta.new_record, second_record)
