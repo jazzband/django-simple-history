@@ -425,8 +425,8 @@ class HistoricalRecords:
 
         def get_next_record_diff(self):
             """
-            Get the difference between this and the next record. 
-            
+            Get the difference between this and the next record.
+
             Return the diff or `None` of no next record.
             """
 
@@ -450,9 +450,9 @@ class HistoricalRecords:
 
         def get_prev_record_diff(self):
             """
-            Get the difference between this and the previous record. 
-            
-            The diff should be based on the previous record, 
+            Get the difference between this and the previous record.
+
+            The diff should be based on the previous record,
             since the diff uses `old_record` and `new_record` semantics.
 
             Return the diff or `None` if no previous record.
