@@ -23,6 +23,7 @@ Full list of changes:
 - Added Czech translations (gh-885)
 - Added pre-commit for better commit quality (gh-896)
 - Added ability to break into debugger on unit test failure (gh-890)
+- Russian translations update (gh-897)
 
 3.0.0 (2021-04-16)
 ------------------
