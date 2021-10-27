@@ -90,7 +90,7 @@ Indexed ``history_date``
 ------------------------
 
 Many queries use ``history_date`` as a filter.  The as_of queries combine this with the
-original model's promary key to extract point-in-time snapshots of history.  By default
+original model's primary key to extract point-in-time snapshots of history.  By default
 the ``history_date`` field is indexed.  You can control this behavior using settings.py.
 
 .. code-block:: python
