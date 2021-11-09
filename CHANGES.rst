@@ -24,6 +24,7 @@ Full list of changes:
 - Added pre-commit for better commit quality (gh-896)
 - Added ability to break into debugger on unit test failure (gh-890)
 - Russian translations update (gh-897)
+- Add Python 3.10 to test matrix (gh-899)
 
 3.0.0 (2021-04-16)
 ------------------
