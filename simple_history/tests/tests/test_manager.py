@@ -3,7 +3,7 @@ from operator import attrgetter
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.test import TestCase, skipUnlessDBFeature, override_settings
+from django.test import TestCase, override_settings, skipUnlessDBFeature
 
 from ..models import Document, Poll
 
