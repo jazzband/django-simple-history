@@ -25,6 +25,14 @@ class Poll(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class PollWithNonEditableField(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    modified = models.DateTimeField(auto_now=True, editable=False)
+
+    history = HistoricalRecords()
+
+
 class PollWithUniqueQuestion(models.Model):
     question = models.CharField(max_length=200, unique=True)
     pub_date = models.DateTimeField("date published")

@@ -78,6 +78,7 @@ from ..models import (
     Place,
     Poll,
     PollInfo,
+    PollWithNonEditableField,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
     PollWithExcludeFields,
@@ -694,6 +695,18 @@ class HistoricalRecordsTest(TestCase):
 
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record, included_fields=["question"])
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(len(delta.changes), 1)
+
+    def test_history_diff_with_non_editable_field(self):
+        p = PollWithNonEditableField.objects.create(
+            question="what's up?", pub_date=today
+        )
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(len(delta.changes), 1)
 
