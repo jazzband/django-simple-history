@@ -82,6 +82,7 @@ Authors
 - Martin Bachwerk
 - Marty Alchin
 - Matheus Cansian (`mscansian <https://github.com/mscansian>`_)
+- Matthew Somerville (`dracos <https://github.com/dracos>`_)
 - Mauricio de Abreu Antunes
 - Maxim Zemskov (`MaximZemskov <https://github.com/MaximZemskov>`_)
 - Micah Denbraver
