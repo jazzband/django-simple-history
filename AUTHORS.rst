@@ -33,6 +33,7 @@ Authors
 - Daniil Skrobov (`yetanotherape <https://github.com/yetanotherape>`_)
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
+- David Smith
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos

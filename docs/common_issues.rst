@@ -262,7 +262,8 @@ Using custom OneToOneFields
 If you are using a custom OneToOneField that has additional arguments and receiving
 the the following ``TypeError``::
 
-..
+.. code=block:: python
+
     TypeError: __init__() got an unexpected keyword argument
 
 This is because Django Simple History coerces ``OneToOneField`` into ``ForeignKey``
