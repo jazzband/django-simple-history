@@ -8,7 +8,7 @@ repos:
           - "-x *test*.py"
 
   - repo: https://github.com/psf/black
-    rev: 21.11b1
+    rev: 21.12b0
     hooks:
       - id: black
         language_version: python3.8
