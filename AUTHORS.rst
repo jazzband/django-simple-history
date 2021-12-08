@@ -33,6 +33,7 @@ Authors
 - Daniil Skrobov (`yetanotherape <https://github.com/yetanotherape>`_)
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
+- David Smith
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
@@ -50,12 +51,15 @@ Authors
 - Hans de Jong (`sult <https://github.com/sult>`_)
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
+- Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
+- Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
+- Jim King (`jeking3 <https://github.com/jeking3>`_)
 - Joao Junior (`joaojunior <https://github.com/joaojunior>`_)
 - Joao Pedro Francese
 - `jofusa <https://github.com/jofusa>`_
@@ -105,6 +109,7 @@ Authors
 - Stefan Borer (`sbor23 <https://github.com/sbor23>`_)
 - Steven Buss (`sbuss <https://github.com/sbuss>`_)
 - Steven Klass
+- Tim Schilling (`tim-schilling <https://github.com/tim-schilling>`_)
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
@@ -114,6 +119,8 @@ Authors
 - `Alex Todorov <https://github.com/atodorov>`_
 - David Smith (`smithdc1 <https://github.com/smithdc1>`_)
 - Shi Han Ng (`shihanng <https://github.com/shihanng>`_)
+- `ddusi <https://github.com/ddusi>`_
+- `DanialErfanian <https://github.com/DanialErfanian>`_
 
 Background
 ==========

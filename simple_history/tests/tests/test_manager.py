@@ -3,7 +3,7 @@ from operator import attrgetter
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.test import TestCase, skipUnlessDBFeature
+from django.test import TestCase, override_settings, skipUnlessDBFeature
 
 from ..models import Document, Poll
 
@@ -109,6 +109,11 @@ class BulkHistoryCreateTestCase(TestCase):
         created = Poll.history.bulk_create([])
         self.assertEqual(created, [])
         self.assertEqual(Poll.history.count(), 4)
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_simple_bulk_history_create_without_history_enabled(self):
+        Poll.history.bulk_history_create(self.data)
+        self.assertEqual(Poll.history.count(), 0)
 
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:

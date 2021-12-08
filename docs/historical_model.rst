@@ -26,7 +26,7 @@ The example below uses a ``UUIDField`` instead of an ``AutoField``:
 
 
 Since using a ``UUIDField`` for the ``history_id`` is a common use case, there is a
-``SIMPLE_HISTORY_HISTORY_ID_USE_UUID`` setting that will set all ``history_id``s to UUIDs.
+``SIMPLE_HISTORY_HISTORY_ID_USE_UUID`` setting that will set all instances of ``history_id`` to UUIDs.
 Set this with the following line in your ``settings.py`` file:
 
 
@@ -84,6 +84,26 @@ model, will work too.
     my_poll = Poll(question="what's up?")
     my_poll._history_date = datetime.now()
     my_poll.save()
+
+
+Indexed ``history_date``
+------------------------
+
+Many queries use ``history_date`` as a filter.  The as_of queries combine this with the
+original model's primary key to extract point-in-time snapshots of history.  By default
+the ``history_date`` field is indexed.  You can control this behavior using settings.py.
+
+.. code-block:: python
+
+    # disable indexing on history_date
+    SIMPLE_HISTORY_DATE_INDEX = False
+
+    # enable indexing on history_date (default setting)
+    SIMPLE_HISTORY_DATE_INDEX = True
+
+    # enable composite indexing on history_date and model pk (to improve as_of queries)
+    # the string is case-insensitive
+    SIMPLE_HISTORY_DATE_INDEX = "Composite"
 
 
 Custom history table name

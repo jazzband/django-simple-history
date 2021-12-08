@@ -2,7 +2,7 @@ import warnings
 
 import django
 from django.db import transaction
-from django.db.models import ManyToManyField
+from django.db.models import ForeignKey, ManyToManyField
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -11,7 +11,7 @@ from simple_history.exceptions import AlternativeManagerError, NotHistoricalMode
 def update_change_reason(instance, reason):
     attrs = {}
     model = type(instance)
-    manager = instance if instance.id is not None else model
+    manager = instance if instance.pk is not None else model
     history = get_history_manager_for_model(manager)
     history_fields = [field.attname for field in history.model._meta.fields]
     for field in instance._meta.fields:
@@ -40,9 +40,26 @@ def get_history_manager_for_model(model):
     return getattr(model, manager_name)
 
 
+def get_history_manager_from_history(history_instance):
+    """
+    Return the history manager, based on an existing history instance.
+    """
+    key_name = get_app_model_primary_key_name(history_instance.instance_type)
+    return get_history_manager_for_model(history_instance.instance_type).filter(
+        **{key_name: getattr(history_instance, key_name)}
+    )
+
+
 def get_history_model_for_model(model):
     """Return the history model for a given app model."""
     return get_history_manager_for_model(model).model
+
+
+def get_app_model_primary_key_name(model):
+    """Return the primary key name for a given app model."""
+    if isinstance(model._meta.pk, ForeignKey):
+        return model._meta.pk.name + "_id"
+    return model._meta.pk.name
 
 
 def bulk_create_with_history(

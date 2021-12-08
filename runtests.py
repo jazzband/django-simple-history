@@ -99,7 +99,7 @@ DATABASE_NAME_TO_DATABASE_SETTINGS = {
 }
 
 
-DEFAULT_SETTINGS = dict(
+DEFAULT_SETTINGS = dict(  # nosec
     SECRET_KEY="not a secret",
     ALLOWED_HOSTS=["localhost"],
     AUTH_USER_MODEL="custom_user.CustomUser",
@@ -147,8 +147,10 @@ DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
 def main():
     parser = ArgumentParser(description="Run package tests.")
-    parser.add_argument("--tag", action="append", nargs="?")
     parser.add_argument("--database", action="store", nargs="?", default="sqlite3")
+    parser.add_argument("--failfast", action="store_true")
+    parser.add_argument("--pdb", action="store_true")
+    parser.add_argument("--tag", action="append", nargs="?")
     namespace = parser.parse_args()
     db_settings = DATABASE_NAME_TO_DATABASE_SETTINGS[namespace.database]
     if not settings.configured:
@@ -157,12 +159,12 @@ def main():
     django.setup()
 
     tags = namespace.tag
-    failures = DiscoverRunner(failfast=False, tags=tags).run_tests(
-        ["simple_history.tests"]
-    )
-    failures |= DiscoverRunner(failfast=False, tags=tags).run_tests(
-        ["simple_history.registry_tests"]
-    )
+    failures = DiscoverRunner(
+        failfast=bool(namespace.failfast), pdb=bool(namespace.pdb), tags=tags
+    ).run_tests(["simple_history.tests"])
+    failures |= DiscoverRunner(
+        failfast=bool(namespace.failfast), pdb=bool(namespace.pdb), tags=tags
+    ).run_tests(["simple_history.registry_tests"])
     sys.exit(failures)
 
 

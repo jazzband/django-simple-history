@@ -38,15 +38,13 @@ running tests::
 This will install:
 
 - `tox`_: used for running the tests against all supported versions of Django
-  and Python
+  and Python as well as running tasks like lint, format, docs
 - `coverage`_: used for analyzing test coverage for tests
-- `Sphinx`_: used for generating documentation
 
 If not using a virtualenv, the command should be prepended with ``sudo``.
 
 .. _tox: http://testrun.org/tox/latest//
 .. _coverage: http://nedbatchelder.com/code/coverage/
-.. _sphinx: http://sphinx-doc.org/
 
 Documentation
 -------------
@@ -77,9 +75,13 @@ We make use of `black`_ for code formatting.
 
 .. _black: https://black.readthedocs.io/en/stable/installation_and_usage.html
 
-Once it is installed you can make sure the code is properly formatted by running::
+You can install and run it along with other linters through pre-commit:
 
-    make format
+    pre-commit install
+    pre-commit run
+
+Once you install pre-commit it will sanity check any commit you make.
+Additionally, the CI process runs this check as well.
 
 Translations
 ------------

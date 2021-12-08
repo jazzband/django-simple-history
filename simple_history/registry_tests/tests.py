@@ -17,6 +17,7 @@ from ..tests.models import (
     InheritTracking3,
     InheritTracking4,
     ModelWithCustomAttrForeignKey,
+    ModelWithCustomAttrOneToOneField,
     ModelWithHistoryInDifferentApp,
     Poll,
     Restaurant,
@@ -50,7 +51,7 @@ class RegisterTest(TestCase):
 
         self.assertRaises(AttributeError, get_history, User)
         self.assertEqual(len(User.histories.all()), 0)
-        user = User.objects.create(username="bob", password="pass")
+        user = User.objects.create(username="bob", password="pass")  # nosec
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
 
@@ -79,11 +80,11 @@ class RegisterTest(TestCase):
 class TestUserAccessor(unittest.TestCase):
     def test_accessor_default(self):
         register(UserAccessorDefault)
-        assert not hasattr(User, "historicaluseraccessordefault_set")
+        self.assertFalse(hasattr(User, "historicaluseraccessordefault_set"))
 
     def test_accessor_override(self):
         register(UserAccessorOverride, user_related_name="my_history_model_accessor")
-        assert hasattr(User, "my_history_model_accessor")
+        self.assertTrue(hasattr(User, "my_history_model_accessor"))
 
 
 class TestInheritedModule(TestCase):
@@ -198,11 +199,19 @@ class TestTrackingInheritance(TestCase):
 
 
 class TestCustomAttrForeignKey(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/431 """
+    """https://github.com/jazzband/django-simple-history/issues/431"""
 
     def test_custom_attr(self):
         field = ModelWithCustomAttrForeignKey.history.model._meta.get_field("poll")
         self.assertEqual(field.attr_name, "custom_poll")
+
+
+class TestCustomAttrOneToOneField(TestCase):
+    """https://github.com/jazzband/django-simple-history/issues/870"""
+
+    def test_custom_attr(self):
+        field = ModelWithCustomAttrOneToOneField.history.model._meta.get_field("poll")
+        self.assertFalse(hasattr(field, "attr_name"))
 
 
 @override_settings(MIGRATION_MODULES={})
@@ -219,7 +228,7 @@ class TestMigrate(TestCase):
 
 
 class TestModelWithHistoryInDifferentApp(TestCase):
-    """ https://github.com/jazzband/django-simple-history/issues/485 """
+    """https://github.com/jazzband/django-simple-history/issues/485"""
 
     def test__different_app(self):
         appLabel = ModelWithHistoryInDifferentApp.history.model._meta.app_label
