@@ -1814,9 +1814,9 @@ class ModelWithSingleNoDBIndexUniqueTest(TestCase):
 
     def test_unique_field_index(self):
         # Ending up with deferred fields (dont know why), using work around
-        self.assertTrue(self.model._meta.get_field('name').db_index)
-        self.assertFalse(self.history_model._meta.get_field('name').db_index)
+        self.assertTrue(self.model._meta.get_field("name").db_index)
+        self.assertFalse(self.history_model._meta.get_field("name").db_index)
 
         # keeps index
-        self.assertTrue(self.model._meta.get_field('name_keeps_index').db_index)
-        self.assertTrue(self.history_model._meta.get_field('name_keeps_index').db_index)
+        self.assertTrue(self.model._meta.get_field("name_keeps_index").db_index)
+        self.assertTrue(self.history_model._meta.get_field("name_keeps_index").db_index)
