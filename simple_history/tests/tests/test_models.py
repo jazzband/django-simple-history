@@ -2009,7 +2009,9 @@ class ManyToManyTest(TestCase):
         add_record, create_record = self.poll.history.all()
 
         delta = add_record.diff_against(create_record)
-        expected_change = ModelChange("places", [], [(1, 1, 2, 1, 1)])
+        expected_change = ModelChange(
+            "places", [], [{"pollwithmanytomany": 1, "place": 1}]
+        )
         self.assertEqual(delta.changed_fields, ["places"])
         self.assertEqual(delta.old_record, create_record)
         self.assertEqual(delta.new_record, add_record)
@@ -2027,7 +2029,9 @@ class ManyToManyTest(TestCase):
 
         # Second and third should have the same diffs as first and second, but with
         # old and new reversed
-        expected_change = ModelChange("places", [(1, 1, 2, 1, 1)], [])
+        expected_change = ModelChange(
+            "places", [{"place": 1, "pollwithmanytomany": 1}], []
+        )
         delta = del_record.diff_against(add_record)
         self.assertEqual(delta.changed_fields, ["places"])
         self.assertEqual(delta.old_record, add_record)

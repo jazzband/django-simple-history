@@ -901,9 +901,29 @@ class HistoricalChanges:
                 changes.append(ModelChange(field, old_value, current_value))
                 changed_fields.append(field)
 
+        # Separately compare m2m fields:
         for field in old_history._history_m2m_fields:
-            old_rows = list(getattr(old_history, field.name).values_list())
-            new_rows = list(getattr(self, field.name).values_list())
+            # First retrieve a single item to get the field names from:
+            reference_history_m2m_item = (
+                getattr(old_history, field.name).first()
+                or getattr(self, field.name).first()
+            )
+            history_field_names = []
+            if reference_history_m2m_item:
+                # Create a list of field names to compare against.
+                # The list is generated without the primary key of the intermediate
+                # table, the foreign key to the history record, and the actual 'history'
+                # field, to avoid false positives while diffing.
+                history_field_names = [
+                    f.name
+                    for f in reference_history_m2m_item._meta.fields
+                    if f.editable and f.name not in ["id", "m2m_history_id", "history"]
+                ]
+
+            old_rows = list(
+                getattr(old_history, field.name).values(*history_field_names)
+            )
+            new_rows = list(getattr(self, field.name).values(*history_field_names))
 
             if old_rows != new_rows:
                 change = ModelChange(field.name, old_rows, new_rows)
