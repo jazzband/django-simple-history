@@ -21,7 +21,7 @@ repos:
           - "--config=tox.ini"
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: requirements-txt-fixer
         files: requirements/.*\.txt$
