@@ -6,7 +6,7 @@ from io import StringIO
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core import management
-from django.test import TestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings
 
 from simple_history import exceptions, register
 
@@ -215,7 +215,7 @@ class TestCustomAttrOneToOneField(TestCase):
 
 
 @override_settings(MIGRATION_MODULES={})
-class TestMigrate(TestCase):
+class TestMigrate(TransactionTestCase):
     def test_makemigration_command(self):
         management.call_command(
             "makemigrations", "migration_test_app", stdout=StringIO()
