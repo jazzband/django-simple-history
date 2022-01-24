@@ -1,3 +1,3 @@
 -r ./coverage.txt
 tox==3.24.5
-tox-gh-actions==2.8.1
+tox-gh-actions==2.9.1
