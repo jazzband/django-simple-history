@@ -86,6 +86,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements/tox.txt
 
+      - name: Check documentation build
+        if: "startsWith('4.0.', matrix.django-version) && startsWith('3.9.', matrix.python-version)"
+        run: |
+          tox -e docs
+
       - name: Tox tests
         run: |
           tox -v
