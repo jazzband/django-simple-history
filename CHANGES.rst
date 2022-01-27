@@ -27,6 +27,7 @@ Full list of changes:
 - Russian translations update (gh-897)
 - Add Python 3.10 to test matrix (gh-899)
 - Added support for Django 4.0 (gh-898)
+- Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946).
 
 3.0.0 (2021-04-16)
 ------------------
