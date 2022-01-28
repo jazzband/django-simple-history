@@ -503,7 +503,9 @@ class HistoricalRecords:
         if self.user_set_verbose_name_plural:
             plural_name = self.user_set_verbose_name_plural
         else:
-            plural_name = format_lazy("historical {}", smart_str(model._meta.verbose_name_plural))
+            plural_name = format_lazy(
+                "historical {}", smart_str(model._meta.verbose_name_plural)
+            )
         meta_fields["verbose_name"] = name
         meta_fields["verbose_name_plural"] = plural_name
         if self.app:
