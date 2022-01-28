@@ -91,6 +91,7 @@ from ..models import (
     Street,
     Temperature,
     UnicodeVerboseName,
+    UnicodeVerboseNamePlural,
     UserTextFieldChangeReasonModel,
     UUIDDefaultModel,
     UUIDModel,
@@ -508,6 +509,28 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         self.assertEqual(
             "historical quiet please", library.history.get()._meta.verbose_name
+        )
+
+    def test_unicode_verbose_name_plural(self):
+        instance = UnicodeVerboseNamePlural()
+        instance.save()
+        self.assertEqual(
+            "historical \u570b", instance.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_user_can_set_verbose_name_plural(self):
+        b = Book(isbn="54321")
+        b.save()
+        self.assertEqual(
+            "dead trees plural", b.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_historical_verbose_name_plural_follows_model_verbose_name_plural(self):
+        library = Library()
+        library.save()
+        self.assertEqual(
+            "historical quiet please plural",
+            library.history.get()._meta.verbose_name_plural
         )
 
     def test_foreignkey_primarykey(self):
