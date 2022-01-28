@@ -530,7 +530,7 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         self.assertEqual(
             "historical quiet please plural",
-            library.history.get()._meta.verbose_name_plural
+            library.history.get()._meta.verbose_name_plural,
         )
 
     def test_foreignkey_primarykey(self):
