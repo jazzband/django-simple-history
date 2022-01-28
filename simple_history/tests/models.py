@@ -291,7 +291,9 @@ class State(models.Model):
 
 class Book(models.Model):
     isbn = models.CharField(max_length=15, primary_key=True)
-    history = HistoricalRecords(verbose_name="dead trees")
+    history = HistoricalRecords(
+        verbose_name="dead trees", verbose_name_plural="dead trees plural"
+    )
 
 
 class HardbackBook(Book):
@@ -308,6 +310,7 @@ class Library(models.Model):
 
     class Meta:
         verbose_name = "quiet please"
+        verbose_name_plural = "quiet please plural"
 
 
 class BaseModel(models.Model):
@@ -375,6 +378,14 @@ class UnicodeVerboseName(models.Model):
 
     class Meta:
         verbose_name = "\u570b"
+
+
+class UnicodeVerboseNamePlural(models.Model):
+    name = models.CharField(max_length=100)
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name_plural = "\u570b"
 
 
 class CustomFKError(models.Model):
