@@ -4,7 +4,30 @@ Changes
 Unreleased
 ----------
 
- - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+Upgrade Implications:
+
+- Run `makemigrations` after upgrading to realize the benefit of indexing changes.
+
+Full list of changes:
+
+- Added queryset-based filtering with ``as_of`` (gh-397)
+- Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
+- Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
+  additional arguments that don't exist on ``ForeignKey``. (gh-870)
+- Fixed ``prev_record`` and ``next_record`` performance when using ``excluded_fields`` (gh-791)
+- Fixed `update_change_reason` in pk (gh-806)
+- Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
+- Fixed `make format` so it works by using tox (gh-859)
+- Fixed bug where latest() is not idempotent for identical ``history_date`` records (gh-861)
+- Support ``included_fields`` for ``history.diff_against`` (gh-776)
+- Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
+- Added Czech translations (gh-885)
+- Added pre-commit for better commit quality (gh-896)
+- Added ability to break into debugger on unit test failure (gh-890)
+- Russian translations update (gh-897)
+- Add Python 3.10 to test matrix (gh-899)
+- Added support for Django 4.0 (gh-898)
+- Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946).
 
 3.0.0 (2021-04-16)
 ------------------

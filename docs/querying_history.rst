@@ -98,16 +98,44 @@ This will change the ``poll`` instance to have the data from the
 as_of
 -----
 
-This method will return an instance of the model as it would have existed at
-the provided date and time.
+The HistoryManager allows you to query a point in time for the latest historical
+records or instances.  When called on an instance's history manager, the ``as_of``
+method will return the instance from the specified point in time, if the instance
+existed at that time, or raise DoesNotExist.  When called on a model's history
+manager, the ``as_of`` method will return instances from a specific date and time
+that you specify, returning a queryset that you can use to further filter the result.
 
 .. code-block:: pycon
 
-    >>> from datetime import datetime
-    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 4, 0))
-    <Poll: Poll object as of 2010-10-25 18:03:29.855689>
-    >>> poll.history.as_of(datetime(2010, 10, 25, 18, 5, 0))
-    <Poll: Poll object as of 2010-10-25 18:04:13.814128>
+    >>> t0 = datetime.now()
+    >>> document1 = RankedDocument.objects.create(rank=42)
+    >>> document2 = RankedDocument.objects.create(rank=84)
+    >>> t1 = datetime.now()
+
+    >>> RankedDocument.history.as_of(t1)
+    <HistoricalQuerySet [
+        <RankedDocument: RankedDocument object (1)>,
+        <RankedDocument: RankedDocument object (2)>
+    ]>
+
+    >>> RankedDocument.history.as_of(t1).filter(rank__lte=50)
+    <HistoricalQuerySet [
+        <RankedDocument: RankedDocument object (1)>
+    ]>
+
+``as_of`` is a convenience: the following two queries are identical.
+
+.. code-block:: pycon
+
+    RankedDocument.history.as_of(t1)
+    RankedDocument.history.filter(history_date__lte=t1).latest_of_each().as_instances()
+
+If you filter by `pk` the behavior depends on whether the queryset is
+returning instances or historical records.  When the queryset is returning
+instances, `pk` is mapped to the original model's primary key field.
+When the queryset is returning historical records, `pk` refers to the
+`history_id` primary key.
+
 
 most_recent
 -----------
@@ -144,6 +172,12 @@ If you want to save a model without a historical record, you can use the followi
 
     poll = Poll(question='something')
     poll.save_without_historical_record()
+
+Or disable history records for all models by putting following lines in your ``settings.py`` file:
+
+.. code-block:: python
+
+    SIMPLE_HISTORY_ENABLED = False
 
 
 Filtering data using a relationship to the model

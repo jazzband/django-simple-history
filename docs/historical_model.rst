@@ -86,6 +86,26 @@ model, will work too.
     my_poll.save()
 
 
+Indexed ``history_date``
+------------------------
+
+Many queries use ``history_date`` as a filter.  The as_of queries combine this with the
+original model's primary key to extract point-in-time snapshots of history.  By default
+the ``history_date`` field is indexed.  You can control this behavior using settings.py.
+
+.. code-block:: python
+
+    # disable indexing on history_date
+    SIMPLE_HISTORY_DATE_INDEX = False
+
+    # enable indexing on history_date (default setting)
+    SIMPLE_HISTORY_DATE_INDEX = True
+
+    # enable composite indexing on history_date and model pk (to improve as_of queries)
+    # the string is case-insensitive
+    SIMPLE_HISTORY_DATE_INDEX = "Composite"
+
+
 Custom history table name
 -------------------------
 

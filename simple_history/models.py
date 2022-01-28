@@ -7,9 +7,9 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
-from django.db.models import ManyToManyField, Q
+from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -80,6 +80,7 @@ class HistoricalRecords:
         related_name=None,
         use_base_model_db=False,
         user_db_constraint=True,
+        excluded_field_kwargs=None,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_set_verbose_name_plural = verbose_name_plural
@@ -103,6 +104,10 @@ class HistoricalRecords:
         if excluded_fields is None:
             excluded_fields = []
         self.excluded_fields = excluded_fields
+
+        if excluded_field_kwargs is None:
+            excluded_field_kwargs = {}
+        self.excluded_field_kwargs = excluded_field_kwargs
         try:
             if isinstance(bases, str):
                 raise TypeError
@@ -237,6 +242,12 @@ class HistoricalRecords:
                 fields.append(field)
         return fields
 
+    def field_excluded_kwargs(self, field):
+        """
+        Find the excluded kwargs for a given field.
+        """
+        return self.excluded_field_kwargs.get(field.name, set())
+
     def copy_fields(self, model):
         """
         Creates copies of the model's original fields, returning
@@ -263,6 +274,12 @@ class HistoricalRecords:
                     FieldType = models.ForeignKey
                 else:
                     FieldType = type(old_field)
+
+                # Remove any excluded kwargs for the field.
+                # This is useful when a custom OneToOneField is being used that
+                # has a different set of arguments than ForeignKey
+                for exclude_arg in self.field_excluded_kwargs(old_field):
+                    field_args.pop(exclude_arg, None)
 
                 # If field_args['to'] is 'self' then we have a case where the object
                 # has a foreign key to itself. If we pass the historical record's
@@ -401,9 +418,9 @@ class HistoricalRecords:
             """
             Get the next history record for the instance. `None` if last.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_from_history(self)
             return (
-                history.filter(Q(history_date__gt=self.history_date))
+                history.filter(history_date__gt=self.history_date)
                 .order_by("history_date")
                 .first()
             )
@@ -412,9 +429,9 @@ class HistoricalRecords:
             """
             Get the previous history record for the instance. `None` if first.
             """
-            history = utils.get_history_manager_for_model(self.instance)
+            history = utils.get_history_manager_from_history(self)
             return (
-                history.filter(Q(history_date__lt=self.history_date))
+                history.filter(history_date__lt=self.history_date)
                 .order_by("history_date")
                 .last()
             )
@@ -428,7 +445,7 @@ class HistoricalRecords:
 
         extra_fields = {
             "history_id": self._get_history_id_field(),
-            "history_date": models.DateTimeField(),
+            "history_date": models.DateTimeField(db_index=self._date_indexing is True),
             "history_change_reason": self._get_history_change_reason_field(),
             "history_type": models.CharField(
                 max_length=1,
@@ -453,6 +470,23 @@ class HistoricalRecords:
 
         return extra_fields
 
+    @property
+    def _date_indexing(self):
+        """False, True, or 'composite'; default is True"""
+        result = getattr(settings, "SIMPLE_HISTORY_DATE_INDEX", True)
+        valid = True
+        if isinstance(result, str):
+            result = result.lower()
+            if result not in ("composite",):
+                valid = False
+        elif not isinstance(result, bool):
+            valid = False
+        if not valid:
+            raise ImproperlyConfigured(
+                "SIMPLE_HISTORY_DATE_INDEX must be one of (False, True, 'Composite')"
+            )
+        return result
+
     def get_meta_options(self, model):
         """
         Returns a dictionary of fields that will be added to
@@ -460,7 +494,7 @@ class HistoricalRecords:
         """
         meta_fields = {
             "ordering": ("-history_date", "-history_id"),
-            "get_latest_by": "history_date",
+            "get_latest_by": ("history_date", "history_id"),
         }
         if self.user_set_verbose_name:
             name = self.user_set_verbose_name
@@ -474,15 +508,21 @@ class HistoricalRecords:
         meta_fields["verbose_name_plural"] = plural_name
         if self.app:
             meta_fields["app_label"] = self.app
+        if self._date_indexing == "composite":
+            meta_fields["index_together"] = (("history_date", model._meta.pk.attname),)
         return meta_fields
 
     def post_save(self, instance, created, using=None, **kwargs):
+        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+            return
         if not created and hasattr(instance, "skip_history_when_saving"):
             return
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
 
     def post_delete(self, instance, using=None, **kwargs):
+        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+            return
         if self.cascade_delete_history:
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()
@@ -593,7 +633,7 @@ class HistoricalObjectDescriptor:
 
 
 class HistoricalChanges:
-    def diff_against(self, old_history, excluded_fields=None):
+    def diff_against(self, old_history, excluded_fields=None, included_fields=None):
         if not isinstance(old_history, type(self)):
             raise TypeError(
                 ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
@@ -601,20 +641,26 @@ class HistoricalChanges:
                 )
             )
         if excluded_fields is None:
-            excluded_fields = []
+            excluded_fields = set()
+
+        if included_fields is None:
+            included_fields = {f.name for f in old_history.instance_type._meta.fields}
+
+        fields = set(included_fields).difference(excluded_fields)
+
         changes = []
         changed_fields = []
-        old_values = model_to_dict(old_history.instance)
-        current_values = model_to_dict(self.instance)
-        for field, new_value in current_values.items():
-            if field in excluded_fields:
-                continue
-            if field in old_values:
-                old_value = old_values[field]
-                if old_value != new_value:
-                    change = ModelChange(field, old_value, new_value)
-                    changes.append(change)
-                    changed_fields.append(field)
+
+        old_values = model_to_dict(old_history, fields=fields)
+        current_values = model_to_dict(self, fields=fields)
+
+        for field in fields:
+            old_value = old_values[field]
+            current_value = current_values[field]
+
+            if old_value != current_value:
+                changes.append(ModelChange(field, old_value, current_value))
+                changed_fields.append(field)
 
         return ModelDelta(changes, changed_fields, old_history, self)
 

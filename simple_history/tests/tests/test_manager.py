@@ -3,9 +3,9 @@ from operator import attrgetter
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.test import TestCase, skipUnlessDBFeature
+from django.test import TestCase, override_settings, skipUnlessDBFeature
 
-from ..models import Document, Poll
+from ..models import Document, Poll, RankedDocument
 
 User = get_user_model()
 
@@ -76,13 +76,98 @@ class AsOfAdditionalTestCase(TestCase):
             doc_change.history_date = now
             doc_change.save()
         docs_as_of_tmw = Document.history.as_of(now + timedelta(days=1))
-        self.assertFalse(list(docs_as_of_tmw))
+        with self.assertNumQueries(1):
+            self.assertFalse(list(docs_as_of_tmw))
 
     def test_multiple(self):
         document1 = Document.objects.create()
         document2 = Document.objects.create()
         historical = Document.history.as_of(datetime.now() + timedelta(days=1))
-        self.assertEqual(list(historical), [document1, document2])
+        # history, even converted to objects, is kept in reverse chronological order
+        # because sorting it based on the original table's meta ordering is not possible
+        # when the ordering leverages foreign key relationships
+        with self.assertNumQueries(1):
+            self.assertEqual(list(historical), [document2, document1])
+
+    def test_filter_pk_as_instance(self):
+        # when a queryset is returning historical documents, `pk` queries
+        # reference the history_id; however when a queryset is returning
+        # instances, `pk' queries reference the original table's primary key
+        document1 = RankedDocument.objects.create(id=101, rank=42)
+        RankedDocument.objects.create(id=102, rank=84)
+        self.assertFalse(RankedDocument.history.filter(pk=document1.id))
+        self.assertTrue(
+            RankedDocument.history.all().as_instances().filter(pk=document1.id)
+        )
+
+    def test_as_of(self):
+        """Demonstrates how as_of works now that it returns a QuerySet."""
+        t0 = datetime.now()
+        document1 = RankedDocument.objects.create(rank=42)
+        document2 = RankedDocument.objects.create(rank=84)
+        t1 = datetime.now()
+        document2.rank = 51
+        document2.save()
+        document1.delete()
+        t2 = datetime.now()
+
+        # nothing exists at t0
+        queryset = RankedDocument.history.as_of(t0)
+        self.assertEqual(queryset.count(), 0)
+
+        # at t1, two records exist
+        queryset = RankedDocument.history.as_of(t1)
+        self.assertEqual(queryset.count(), 2)
+        self.assertEqual(queryset.filter(rank__gte=75).count(), 1)
+        ids = set([item["id"] for item in queryset.values("id")])
+        self.assertEqual(ids, {document1.id, document2.id})
+
+        # at t2 we have one record left
+        queryset = RankedDocument.history.as_of(t2)
+        self.assertEqual(queryset.count(), 1)
+        self.assertEqual(queryset.filter(rank__gte=75).count(), 0)
+
+    def test_historical_query_set(self):
+        """
+        Demonstrates how the HistoricalQuerySet works to provide as_of functionality.
+        """
+        document1 = RankedDocument.objects.create(rank=42)
+        document2 = RankedDocument.objects.create(rank=84)
+        document2.rank = 51
+        document2.save()
+        document1.delete()
+        t2 = datetime.now()
+
+        # look for historical records, get back a queryset
+        with self.assertNumQueries(1):
+            queryset = RankedDocument.history.filter(history_date__lte=t2)
+            self.assertEqual(queryset.count(), 4)
+
+        # only want the most recend records (provided by HistoricalQuerySet)
+        self.assertEqual(queryset.latest_of_each().count(), 2)
+
+        # want to see the instances as of that time?
+        self.assertEqual(queryset.latest_of_each().as_instances().count(), 1)
+
+        # these new methods are idempotent
+        self.assertEqual(
+            queryset.latest_of_each()
+            .latest_of_each()
+            .as_instances()
+            .as_instances()
+            .count(),
+            1,
+        )
+
+        # that was all the same as calling as_of!
+        self.assertEqual(
+            set(
+                RankedDocument.history.filter(history_date__lte=t2)
+                .latest_of_each()
+                .as_instances()
+            ),
+            set(RankedDocument.history.as_of(t2)),
+        )
 
 
 class BulkHistoryCreateTestCase(TestCase):
@@ -109,6 +194,11 @@ class BulkHistoryCreateTestCase(TestCase):
         created = Poll.history.bulk_create([])
         self.assertEqual(created, [])
         self.assertEqual(Poll.history.count(), 4)
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_simple_bulk_history_create_without_history_enabled(self):
+        Poll.history.bulk_history_create(self.data)
+        self.assertEqual(Poll.history.count(), 0)
 
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:

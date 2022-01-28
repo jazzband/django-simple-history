@@ -28,7 +28,7 @@
 ## Checklist:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] I have run the `make format` command to format my code
+- [ ] I have run the `pre-commit run` command to format and lint.
 - [ ] My change requires a change to the documentation.
 - [ ] I have updated the documentation accordingly.
 - [ ] I have read the **CONTRIBUTING** document.

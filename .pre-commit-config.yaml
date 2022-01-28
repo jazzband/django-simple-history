@@ -1,0 +1,42 @@
+---
+repos:
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.1
+    hooks:
+      - id: bandit
+        args:
+          - "-x *test*.py"
+
+  - repo: https://github.com/psf/black
+    rev: 21.12b0
+    hooks:
+      - id: black
+        language_version: python3.8
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        args:
+          - "--config=tox.ini"
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: requirements-txt-fixer
+        files: requirements/.*\.txt$
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: fix-byte-order-marker
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: detect-private-key
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.26.3
+    hooks:
+      - id: yamllint
+        args:
+          - "--strict"
