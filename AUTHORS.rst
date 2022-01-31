@@ -14,6 +14,7 @@ Authors
 - Adnan Umer (`uadnan <https://github.com/uadnan>`_)
 - Aleksey Kladov
 - Alexander Anikeev
+- `Amartis <https://github.com/amartis>`_
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
