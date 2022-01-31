@@ -493,7 +493,7 @@ class HistoricalRecords:
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
-        history_change_reason = get_change_reason_from_object(instance)
+        history_change_reason = self.get_change_reason_for_object(instance)
         manager = getattr(instance, self.manager_name)
 
         attrs = {}
