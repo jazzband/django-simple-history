@@ -29,6 +29,7 @@ Full list of changes:
 - Added support for Django 4.0 (gh-898)
 - Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946).
 - Fix bug with ``history.diff_against`` with non-editable fields (gh-923)
+- Dropped support for Django 3.1 (gh-952)
 
 3.0.0 (2021-04-16)
 ------------------
