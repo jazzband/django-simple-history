@@ -324,10 +324,10 @@ class HistoricalRecordsTest(TestCase):
     def test_file_field(self):
         filename = str(uuid.uuid4())
         model = FileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_file_field_with_char_field_setting(self):
@@ -338,10 +338,10 @@ class HistoricalRecordsTest(TestCase):
         # file field works the same as test_file_field()
         filename = str(uuid.uuid4())
         model = CharFieldFileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_inheritance(self):
@@ -912,7 +912,7 @@ class CustomModelNameTests(unittest.TestCase):
         self.verify_custom_model_name_feature(
             OverrideModelNameAsString(),
             expected_cls_name,
-            "tests_{}".format(expected_cls_name.lower()),
+            f"tests_{expected_cls_name.lower()}",
         )
 
     def test_register_history_model_with_custom_model_name_override(self):
@@ -924,7 +924,7 @@ class CustomModelNameTests(unittest.TestCase):
         cls = OverrideModelNameRegisterMethod1()
         expected_cls_name = "MyOverrideModelNameRegisterMethod1"
         self.verify_custom_model_name_feature(
-            cls, expected_cls_name, "tests_{}".format(expected_cls_name.lower())
+            cls, expected_cls_name, f"tests_{expected_cls_name.lower()}"
         )
 
         from simple_history import register
@@ -934,14 +934,14 @@ class CustomModelNameTests(unittest.TestCase):
         try:
             register(
                 OverrideModelNameRegisterMethod2,
-                custom_model_name=lambda x: "{}".format(x),
+                custom_model_name=lambda x: f"{x}",
             )
         except ValueError:
             self.assertRaises(ValueError)
 
     def test_register_history_model_with_custom_model_name_from_abstract_model(self):
         cls = OverrideModelNameUsingBaseModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -950,7 +950,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel1
 
         cls = OverrideModelNameUsingExternalModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -958,7 +958,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel2
 
         cls = OverrideModelNameUsingExternalModel2
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "external_" + expected_cls_name.lower()
         )

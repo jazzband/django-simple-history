@@ -105,7 +105,7 @@ class TestTrackingInheritance(TestCase):
     def test_tracked_abstract_base(self):
         self.assertEqual(
             sorted(
-                [f.attname for f in TrackedWithAbstractBase.history.model._meta.fields]
+                f.attname for f in TrackedWithAbstractBase.history.model._meta.fields
             ),
             sorted(
                 [

@@ -20,7 +20,7 @@ class HistoricalQuerySet(QuerySet):
     """
 
     def __init__(self, *args, **kwargs):
-        super(HistoricalQuerySet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._as_instances = False
         self._pk_attr = self.model.instance_type._meta.pk.attname
 
@@ -120,12 +120,12 @@ class HistoryDescriptor:
 
 class HistoryManager(models.Manager):
     def __init__(self, model, instance=None):
-        super(HistoryManager, self).__init__()
+        super().__init__()
         self.model = model
         self.instance = instance
 
     def get_super_queryset(self):
-        return super(HistoryManager, self).get_queryset()
+        return super().get_queryset()
 
     def get_queryset(self):
         qs = self.get_super_queryset()

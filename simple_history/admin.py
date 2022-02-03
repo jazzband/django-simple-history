@@ -22,7 +22,7 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 class SimpleHistoryAdmin(admin.ModelAdmin):
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
-        urls = super(SimpleHistoryAdmin, self).get_urls()
+        urls = super().get_urls()
         admin_site = self.admin_site
         opts = self.model._meta
         info = opts.app_label, opts.model_name
@@ -71,7 +71,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         content_type = self.content_type_model_cls.objects.get_by_natural_key(
             *USER_NATURAL_KEY
         )
-        admin_user_view = "admin:%s_%s_change" % (
+        admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
         )
@@ -118,12 +118,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             }
 
             self.message_user(
-                request, "%s - %s" % (msg, _("You may edit it again below"))
+                request, "{} - {}".format(msg, _("You may edit it again below"))
             )
 
             return http.HttpResponseRedirect(request.path)
         else:
-            return super(SimpleHistoryAdmin, self).response_change(request, obj)
+            return super().response_change(request, obj)
 
     def history_form_view(self, request, object_id, version_id, extra_context=None):
         request.current_app = self.admin_site.name
@@ -238,7 +238,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
         obj._history_user = request.user
-        super(SimpleHistoryAdmin, self).save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
 
     @property
     def content_type_model_cls(self):

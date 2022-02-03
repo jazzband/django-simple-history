@@ -119,7 +119,7 @@ class AsOfAdditionalTestCase(TestCase):
         queryset = RankedDocument.history.as_of(t1)
         self.assertEqual(queryset.count(), 2)
         self.assertEqual(queryset.filter(rank__gte=75).count(), 1)
-        ids = set([item["id"] for item in queryset.values("id")])
+        ids = {item["id"] for item in queryset.values("id")}
         self.assertEqual(ids, {document1.id, document2.id})
 
         # at t2 we have one record left

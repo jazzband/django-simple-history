@@ -48,7 +48,7 @@ def get_history_url(obj, history_index=None, site="admin"):
         )
     else:
         return reverse(
-            "{site}:{app}_{model}_history".format(site=site, app=app, model=model),
+            f"{site}:{app}_{model}_history",
             args=[quote(obj.pk)],
         )
 
@@ -468,7 +468,7 @@ class AdminSiteTest(TestCase):
             "original_opts": ANY,
             "changelist_url": "/admin/tests/poll/",
             "change_url": ANY,
-            "history_url": "/admin/tests/poll/{}/history/".format(poll.id),
+            "history_url": f"/admin/tests/poll/{poll.id}/history/",
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
@@ -522,7 +522,7 @@ class AdminSiteTest(TestCase):
             "original_opts": ANY,
             "changelist_url": "/admin/tests/poll/",
             "change_url": ANY,
-            "history_url": "/admin/tests/poll/{pk}/history/".format(pk=poll.pk),
+            "history_url": f"/admin/tests/poll/{poll.pk}/history/",
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
@@ -576,7 +576,7 @@ class AdminSiteTest(TestCase):
             "original_opts": ANY,
             "changelist_url": "/admin/tests/poll/",
             "change_url": ANY,
-            "history_url": "/admin/tests/poll/{}/history/".format(poll.id),
+            "history_url": f"/admin/tests/poll/{poll.id}/history/",
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
@@ -690,7 +690,7 @@ class AdminSiteTest(TestCase):
             "original_opts": ANY,
             "changelist_url": "/admin/tests/poll/",
             "change_url": ANY,
-            "history_url": "/admin/tests/poll/{}/history/".format(poll.id),
+            "history_url": f"/admin/tests/poll/{poll.id}/history/",
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
