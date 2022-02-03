@@ -19,13 +19,13 @@ class Yar(models.Model):
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
-        super(CustomAttrNameForeignKey, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_attname(self):
-        return self.attr_name or super(CustomAttrNameForeignKey, self).get_attname()
+        return self.attr_name or super().get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(CustomAttrNameForeignKey, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
@@ -41,15 +41,13 @@ class ModelWithCustomAttrForeignKey(models.Model):
 class CustomAttrNameOneToOneField(models.OneToOneField):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
-        super(CustomAttrNameOneToOneField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_attname(self):
-        return self.attr_name or super(CustomAttrNameOneToOneField, self).get_attname()
+        return self.attr_name or super().get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            CustomAttrNameOneToOneField, self
-        ).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
@@ -59,6 +57,4 @@ class ModelWithCustomAttrOneToOneField(models.Model):
     what_i_mean = CustomAttrNameOneToOneField(
         WhatIMean, models.CASCADE, attr_name="custom_attr_name"
     )
-    history = HistoricalRecords(
-        excluded_field_kwargs={"what_i_mean": set(["attr_name"])}
-    )
+    history = HistoricalRecords(excluded_field_kwargs={"what_i_mean": {"attr_name"}})

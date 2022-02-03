@@ -177,7 +177,7 @@ class HistoricalRecords:
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
-            return "Historical{}".format(model._meta.object_name)
+            return f"Historical{model._meta.object_name}"
         # Must be trying to use a custom history model name
         if callable(self.custom_model_name):
             name = self.custom_model_name(model._meta.object_name)
@@ -224,7 +224,7 @@ class HistoricalRecords:
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
-        attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
+        attrs.update(Meta=type("Meta", (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
 
@@ -386,7 +386,7 @@ class HistoricalRecords:
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
             return reverse(
-                "%s:%s_%s_simple_history" % (admin.site.name, app_label, model_name),
+                f"{admin.site.name}:{app_label}_{model_name}_simple_history",
                 args=[getattr(self, opts.pk.attname), self.history_id],
             )
 
