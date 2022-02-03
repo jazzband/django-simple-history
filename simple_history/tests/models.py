@@ -77,7 +77,7 @@ class PollWithExcludedFKField(models.Model):
 
 class AlternativePollManager(models.Manager):
     def get_queryset(self):
-        return super(AlternativePollManager, self).get_queryset().exclude(id=1)
+        return super().get_queryset().exclude(id=1)
 
 
 class PollWithAlternativeManager(models.Model):
@@ -110,13 +110,13 @@ class PollWithHistoricalIPAddress(models.Model):
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
-        super(CustomAttrNameForeignKey, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_attname(self):
-        return self.attr_name or super(CustomAttrNameForeignKey, self).get_attname()
+        return self.attr_name or super().get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(CustomAttrNameForeignKey, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
@@ -130,15 +130,13 @@ class ModelWithCustomAttrForeignKey(models.Model):
 class CustomAttrNameOneToOneField(models.OneToOneField):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
-        super(CustomAttrNameOneToOneField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_attname(self):
-        return self.attr_name or super(CustomAttrNameOneToOneField, self).get_attname()
+        return self.attr_name or super().get_attname()
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            CustomAttrNameOneToOneField, self
-        ).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         if self.attr_name:
             kwargs["attr_name"] = self.attr_name
         return name, path, args, kwargs
@@ -146,7 +144,7 @@ class CustomAttrNameOneToOneField(models.OneToOneField):
 
 class ModelWithCustomAttrOneToOneField(models.Model):
     poll = CustomAttrNameOneToOneField(Poll, models.CASCADE, attr_name="custom_poll")
-    history = HistoricalRecords(excluded_field_kwargs={"poll": set(["attr_name"])})
+    history = HistoricalRecords(excluded_field_kwargs={"poll": {"attr_name"}})
 
 
 class Temperature(models.Model):
@@ -197,15 +195,13 @@ class Voter(models.Model):
 class HistoricalRecordsVerbose(HistoricalRecords):
     def get_extra_fields(self, model, fields):
         def verbose_str(self):
-            return "%s changed by %s as of %s" % (
+            return "{} changed by {} as of {}".format(
                 self.history_object,
                 self.history_user,
                 self.history_date,
             )
 
-        extra_fields = super(HistoricalRecordsVerbose, self).get_extra_fields(
-            model, fields
-        )
+        extra_fields = super().get_extra_fields(model, fields)
         extra_fields["__str__"] = verbose_str
         return extra_fields
 
@@ -232,7 +228,7 @@ class Person(models.Model):
         if hasattr(self, "skip_history_when_saving"):
             raise RuntimeError("error while saving")
         else:
-            super(Person, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
 
 class FileModel(models.Model):
@@ -709,13 +705,11 @@ class OverrideModelNameAsString(models.Model):
 
 class OverrideModelNameAsCallable(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    history = HistoricalRecords(custom_model_name=lambda x: "Audit{}".format(x))
+    history = HistoricalRecords(custom_model_name=lambda x: f"Audit{x}")
 
 
 class AbstractModelCallable1(models.Model):
-    history = HistoricalRecords(
-        inherit=True, custom_model_name=lambda x: "Audit{}".format(x)
-    )
+    history = HistoricalRecords(inherit=True, custom_model_name=lambda x: f"Audit{x}")
 
     class Meta:
         abstract = True
