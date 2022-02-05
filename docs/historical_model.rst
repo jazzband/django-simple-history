@@ -307,8 +307,8 @@ Change Reason
 Change reason is a message to explain why the change was made in the instance. It is stored in the
 field ``history_change_reason`` and its default value is ``None``.
 
-By default, the django-simple-history gets the change reason in the field ``_change_reason`` of the instance. Also, is possible to pass
-the ``_change_reason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+By default, the django-simple-history gets the change reason in the field ``_change_reason`` of the instance. Also, it is possible to pass
+the ``_change_reason`` explicitly. For this, after a save or delete in an instance, it is necessary to call the
 function ``utils.update_change_reason``. The first argument of this function is the instance and the second
 is the message that represents the change reason.
 
