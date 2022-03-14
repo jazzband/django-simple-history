@@ -80,6 +80,7 @@ class HistoricalRecords:
         related_name=None,
         use_base_model_db=False,
         user_db_constraint=True,
+        no_db_index=list(),
         excluded_field_kwargs=None,
     ):
         self.user_set_verbose_name = verbose_name
@@ -100,6 +101,10 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
+
+        if isinstance(no_db_index, str):
+            no_db_index = [no_db_index]
+        self.no_db_index = no_db_index
 
         if excluded_fields is None:
             excluded_fields = []
@@ -305,6 +310,11 @@ class HistoricalRecords:
                 field.name = old_field.name
             else:
                 transform_field(field)
+
+            # drop db index
+            if field.name in self.no_db_index:
+                field.db_index = False
+
             fields[field.name] = field
         return fields
 
