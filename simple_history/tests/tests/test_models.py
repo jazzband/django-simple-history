@@ -70,6 +70,8 @@ from ..models import (
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
+    ModelWithMultipleNoDBIndex,
+    ModelWithSingleNoDBIndexUnique,
     MultiOneToOne,
     MyOverrideModelNameRegisterMethod1,
     OverrideModelNameAsCallable,
@@ -1822,3 +1824,35 @@ class SaveHistoryInSeparateDatabaseTestCase(TestCase):
         self.assertEqual(
             0, ModelWithHistoryInDifferentDb.objects.using("other").count()
         )
+
+
+class ModelWithMultipleNoDBIndexTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithMultipleNoDBIndex
+        self.history_model = self.model.history.model
+
+    def test_field_indices(self):
+        for field in ["name", "fk"]:
+            # dropped index
+            self.assertTrue(self.model._meta.get_field(field).db_index)
+            self.assertFalse(self.history_model._meta.get_field(field).db_index)
+
+            # keeps index
+            keeps_index = "%s_keeps_index" % field
+            self.assertTrue(self.model._meta.get_field(keeps_index).db_index)
+            self.assertTrue(self.history_model._meta.get_field(keeps_index).db_index)
+
+
+class ModelWithSingleNoDBIndexUniqueTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithSingleNoDBIndexUnique
+        self.history_model = self.model.history.model
+
+    def test_unique_field_index(self):
+        # Ending up with deferred fields (dont know why), using work around
+        self.assertTrue(self.model._meta.get_field("name").db_index)
+        self.assertFalse(self.history_model._meta.get_field("name").db_index)
+
+        # keeps index
+        self.assertTrue(self.model._meta.get_field("name_keeps_index").db_index)
+        self.assertTrue(self.history_model._meta.get_field("name_keeps_index").db_index)

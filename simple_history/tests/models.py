@@ -770,3 +770,21 @@ class ModelWithExcludedManyToMany(models.Model):
     name = models.CharField(max_length=15, unique=True)
     other = models.ManyToManyField(ManyToManyModelOther)
     history = HistoricalRecords(excluded_fields=["other"])
+
+
+class ModelWithSingleNoDBIndexUnique(models.Model):
+    name = models.CharField(max_length=15, unique=True, db_index=True)
+    name_keeps_index = models.CharField(max_length=15, unique=True, db_index=True)
+    history = HistoricalRecords(no_db_index="name")
+
+
+class ModelWithMultipleNoDBIndex(models.Model):
+    name = models.CharField(max_length=15, db_index=True)
+    name_keeps_index = models.CharField(max_length=15, db_index=True)
+    fk = models.ForeignKey(
+        "Library", on_delete=models.CASCADE, null=True, related_name="+"
+    )
+    fk_keeps_index = models.ForeignKey(
+        "Library", on_delete=models.CASCADE, null=True, related_name="+"
+    )
+    history = HistoricalRecords(no_db_index=["name", "fk", "other"])

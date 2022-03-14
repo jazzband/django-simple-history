@@ -48,6 +48,7 @@ Authors
 - Grzegorz Bialy
 - Guillermo Eijo (`guilleijo <https://github.com/guilleijo>`_)
 - Hamish Downer
+- Hans de Jong (`sult <https://github.com/sult>`_)
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
