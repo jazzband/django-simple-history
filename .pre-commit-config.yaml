@@ -1,14 +1,14 @@
 ---
 repos:
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.1
+    rev: 1.7.4
     hooks:
       - id: bandit
         args:
           - "-x *test*.py"
 
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.1.0
     hooks:
       - id: black
         language_version: python3.8
@@ -20,8 +20,13 @@ repos:
         args:
           - "--config=tox.ini"
 
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: requirements-txt-fixer
         files: requirements/.*\.txt$

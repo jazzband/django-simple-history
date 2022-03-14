@@ -67,7 +67,7 @@ class Command(populate_history.Command):
             if stop_date:
                 m_qs = m_qs.filter(history_date__gte=stop_date)
             found = m_qs.count()
-            self.log("{0} has {1} historical entries".format(model, found), 2)
+            self.log(f"{model} has {found} historical entries", 2)
             if not found:
                 continue
 

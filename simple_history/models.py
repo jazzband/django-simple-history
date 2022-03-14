@@ -61,6 +61,7 @@ class HistoricalRecords:
     def __init__(
         self,
         verbose_name=None,
+        verbose_name_plural=None,
         bases=(models.Model,),
         user_related_name="+",
         table_name=None,
@@ -83,6 +84,7 @@ class HistoricalRecords:
         excluded_field_kwargs=None,
     ):
         self.user_set_verbose_name = verbose_name
+        self.user_set_verbose_name_plural = verbose_name_plural
         self.user_related_name = user_related_name
         self.user_db_constraint = user_db_constraint
         self.table_name = table_name
@@ -180,7 +182,7 @@ class HistoricalRecords:
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
-            return "Historical{}".format(model._meta.object_name)
+            return f"Historical{model._meta.object_name}"
         # Must be trying to use a custom history model name
         if callable(self.custom_model_name):
             name = self.custom_model_name(model._meta.object_name)
@@ -227,7 +229,7 @@ class HistoricalRecords:
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
-        attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
+        attrs.update(Meta=type("Meta", (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
 
@@ -394,7 +396,7 @@ class HistoricalRecords:
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
             return reverse(
-                "%s:%s_%s_simple_history" % (admin.site.name, app_label, model_name),
+                f"{admin.site.name}:{app_label}_{model_name}_simple_history",
                 args=[getattr(self, opts.pk.attname), self.history_id],
             )
 
@@ -508,7 +510,14 @@ class HistoricalRecords:
             name = self.user_set_verbose_name
         else:
             name = format_lazy("historical {}", smart_str(model._meta.verbose_name))
+        if self.user_set_verbose_name_plural:
+            plural_name = self.user_set_verbose_name_plural
+        else:
+            plural_name = format_lazy(
+                "historical {}", smart_str(model._meta.verbose_name_plural)
+            )
         meta_fields["verbose_name"] = name
+        meta_fields["verbose_name_plural"] = plural_name
         if self.app:
             meta_fields["app_label"] = self.app
         if self._date_indexing == "composite":
@@ -647,7 +656,9 @@ class HistoricalChanges:
             excluded_fields = set()
 
         if included_fields is None:
-            included_fields = {f.name for f in old_history.instance_type._meta.fields}
+            included_fields = {
+                f.name for f in old_history.instance_type._meta.fields if f.editable
+            }
 
         fields = set(included_fields).difference(excluded_fields)
 

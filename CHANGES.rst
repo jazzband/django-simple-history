@@ -10,6 +10,7 @@ Upgrade Implications:
 
 Full list of changes:
 
+- Added queryset-based filtering with ``as_of`` (gh-397)
 - Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
 - Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
   additional arguments that don't exist on ``ForeignKey``. (gh-870)
@@ -26,6 +27,9 @@ Full list of changes:
 - Russian translations update (gh-897)
 - Add Python 3.10 to test matrix (gh-899)
 - Added support for Django 4.0 (gh-898)
+- Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946).
+- Fix bug with ``history.diff_against`` with non-editable fields (gh-923)
+- Dropped support for Django 3.1 (gh-952)
 - RecordModels now support a ``no_db_index`` setting, to drop indices in historical models, default stays the same (gh-720)
 
 3.0.0 (2021-04-16)

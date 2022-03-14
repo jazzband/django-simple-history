@@ -84,6 +84,7 @@ from ..models import (
     PollWithExcludedFKField,
     PollWithExcludeFields,
     PollWithHistoricalIPAddress,
+    PollWithNonEditableField,
     Province,
     Restaurant,
     SelfFK,
@@ -93,6 +94,7 @@ from ..models import (
     Street,
     Temperature,
     UnicodeVerboseName,
+    UnicodeVerboseNamePlural,
     UserTextFieldChangeReasonModel,
     UUIDDefaultModel,
     UUIDModel,
@@ -324,10 +326,10 @@ class HistoricalRecordsTest(TestCase):
     def test_file_field(self):
         filename = str(uuid.uuid4())
         model = FileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_file_field_with_char_field_setting(self):
@@ -338,10 +340,10 @@ class HistoricalRecordsTest(TestCase):
         # file field works the same as test_file_field()
         filename = str(uuid.uuid4())
         model = CharFieldFileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_inheritance(self):
@@ -510,6 +512,28 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         self.assertEqual(
             "historical quiet please", library.history.get()._meta.verbose_name
+        )
+
+    def test_unicode_verbose_name_plural(self):
+        instance = UnicodeVerboseNamePlural()
+        instance.save()
+        self.assertEqual(
+            "historical \u570b", instance.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_user_can_set_verbose_name_plural(self):
+        b = Book(isbn="54321")
+        b.save()
+        self.assertEqual(
+            "dead trees plural", b.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_historical_verbose_name_plural_follows_model_verbose_name_plural(self):
+        library = Library()
+        library.save()
+        self.assertEqual(
+            "historical quiet please plural",
+            library.history.get()._meta.verbose_name_plural,
         )
 
     def test_foreignkey_primarykey(self):
@@ -699,6 +723,18 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(len(delta.changes), 1)
 
+    def test_history_diff_with_non_editable_field(self):
+        p = PollWithNonEditableField.objects.create(
+            question="what's up?", pub_date=today
+        )
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(len(delta.changes), 1)
+
     def test_history_with_unknown_field(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         p.question = "what's up, man?"
@@ -878,7 +914,7 @@ class CustomModelNameTests(unittest.TestCase):
         self.verify_custom_model_name_feature(
             OverrideModelNameAsString(),
             expected_cls_name,
-            "tests_{}".format(expected_cls_name.lower()),
+            f"tests_{expected_cls_name.lower()}",
         )
 
     def test_register_history_model_with_custom_model_name_override(self):
@@ -890,7 +926,7 @@ class CustomModelNameTests(unittest.TestCase):
         cls = OverrideModelNameRegisterMethod1()
         expected_cls_name = "MyOverrideModelNameRegisterMethod1"
         self.verify_custom_model_name_feature(
-            cls, expected_cls_name, "tests_{}".format(expected_cls_name.lower())
+            cls, expected_cls_name, f"tests_{expected_cls_name.lower()}"
         )
 
         from simple_history import register
@@ -900,14 +936,14 @@ class CustomModelNameTests(unittest.TestCase):
         try:
             register(
                 OverrideModelNameRegisterMethod2,
-                custom_model_name=lambda x: "{}".format(x),
+                custom_model_name=lambda x: f"{x}",
             )
         except ValueError:
             self.assertRaises(ValueError)
 
     def test_register_history_model_with_custom_model_name_from_abstract_model(self):
         cls = OverrideModelNameUsingBaseModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -916,7 +952,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel1
 
         cls = OverrideModelNameUsingExternalModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -924,7 +960,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel2
 
         cls = OverrideModelNameUsingExternalModel2
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "external_" + expected_cls_name.lower()
         )

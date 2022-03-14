@@ -83,6 +83,7 @@ Authors
 - Martin Bachwerk
 - Marty Alchin
 - Matheus Cansian (`mscansian <https://github.com/mscansian>`_)
+- Matthew Somerville (`dracos <https://github.com/dracos>`_)
 - Mauricio de Abreu Antunes
 - Maxim Zemskov (`MaximZemskov <https://github.com/MaximZemskov>`_)
 - Micah Denbraver
@@ -121,6 +122,7 @@ Authors
 - Shi Han Ng (`shihanng <https://github.com/shihanng>`_)
 - `ddusi <https://github.com/ddusi>`_
 - `DanialErfanian <https://github.com/DanialErfanian>`_
+- `Sridhar Marella <https://github.com/sridhar562345>`_
 
 Background
 ==========
