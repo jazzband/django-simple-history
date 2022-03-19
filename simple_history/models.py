@@ -555,7 +555,7 @@ class HistoricalRecords:
     def get_change_reason_for_object(self, instance, history_type, using):
         """
         Get change reason for object.
-        Customize this method to automatically fill change reason from context. 
+        Customize this method to automatically fill change reason from context.
         """
         return get_change_reason_from_object(instance)
 
@@ -563,7 +563,9 @@ class HistoricalRecords:
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
-        history_change_reason = self.get_change_reason_for_object(instance, history_type, using)
+        history_change_reason = self.get_change_reason_for_object(
+            instance, history_type, using
+        )
         manager = getattr(instance, self.manager_name)
 
         attrs = {}
