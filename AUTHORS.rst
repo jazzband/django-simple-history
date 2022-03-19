@@ -15,6 +15,7 @@ Authors
 - Aleksey Kladov
 - Alexander Anikeev
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
+- Amartis Gladius (`Amartis <https://github.com/amartis>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
 - `bradford281 <https://github.com/bradford281>`_
