@@ -552,11 +552,18 @@ class HistoricalRecords:
         else:
             self.create_historical_record(instance, "-", using=using)
 
+    def get_change_reason_for_object(self, instance, history_type, using):
+        """
+        Get change reason for object.
+        Customize this method to automatically fill change reason from context. 
+        """
+        return get_change_reason_from_object(instance)
+
     def create_historical_record(self, instance, history_type, using=None):
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
-        history_change_reason = get_change_reason_from_object(instance)
+        history_change_reason = self.get_change_reason_for_object(instance, history_type, using)
         manager = getattr(instance, self.manager_name)
 
         attrs = {}
