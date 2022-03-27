@@ -15,6 +15,7 @@ Authors
 - Aleksey Kladov
 - Alexander Anikeev
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
+- Amartis Gladius (`Amartis <https://github.com/amartis>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
 - `bradford281 <https://github.com/bradford281>`_
@@ -48,6 +49,7 @@ Authors
 - Grzegorz Bialy
 - Guillermo Eijo (`guilleijo <https://github.com/guilleijo>`_)
 - Hamish Downer
+- Hans de Jong (`sult <https://github.com/sult>`_)
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
@@ -82,6 +84,7 @@ Authors
 - Martin Bachwerk
 - Marty Alchin
 - Matheus Cansian (`mscansian <https://github.com/mscansian>`_)
+- Matthew Somerville (`dracos <https://github.com/dracos>`_)
 - Mauricio de Abreu Antunes
 - Maxim Zemskov (`MaximZemskov <https://github.com/MaximZemskov>`_)
 - Micah Denbraver
@@ -120,6 +123,7 @@ Authors
 - Shi Han Ng (`shihanng <https://github.com/shihanng>`_)
 - `ddusi <https://github.com/ddusi>`_
 - `DanialErfanian <https://github.com/DanialErfanian>`_
+- `Sridhar Marella <https://github.com/sridhar562345>`_
 
 Background
 ==========

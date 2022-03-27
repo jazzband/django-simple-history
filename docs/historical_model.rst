@@ -307,8 +307,8 @@ Change Reason
 Change reason is a message to explain why the change was made in the instance. It is stored in the
 field ``history_change_reason`` and its default value is ``None``.
 
-By default, the django-simple-history gets the change reason in the field ``_change_reason`` of the instance. Also, is possible to pass
-the ``_change_reason`` explicitly. For this, after a save or delete in an instance, is necessary call the
+By default, the django-simple-history gets the change reason in the field ``_change_reason`` of the instance. Also, it is possible to pass
+the ``_change_reason`` explicitly. For this, after a save or delete in an instance, it is necessary to call the
 function ``utils.update_change_reason``. The first argument of this function is the instance and the second
 is the message that represents the change reason.
 
@@ -419,3 +419,31 @@ compatibility; it is more correct for a ``FileField`` to be converted to a
 
     SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 
+
+Drop Database Indices
+--------------------------------
+
+It is possible to use the parameter ``no_db_index`` to choose which fields
+that will not create a database index.
+
+For example, if you have the model:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200, db_index=True)
+
+
+
+And you don't want to create database index for ``question``, it is necessary to update the model to:
+
+.. code-block:: python
+
+    class PollWithExcludeFields(models.Model):
+        question = models.CharField(max_length=200, db_index=True)
+
+        history = HistoricalRecords(no_db_index=['question'])
+
+
+By default, django-simple-history keeps all indices. and even forces them on unique fields and relations.
+WARNING: This will drop performance on historical lookups

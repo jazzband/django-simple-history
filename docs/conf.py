@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # django-simple-history documentation build configuration file, created by
 # sphinx-quickstart on Sun May  5 16:10:02 2013.

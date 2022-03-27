@@ -137,6 +137,31 @@ When the queryset is returning historical records, `pk` refers to the
 `history_id` primary key.
 
 
+is_historic and to_historic
+---------------------------
+
+If you use `as_of` to query history, the resulting instance will have an
+attribute named `_history` added to it.  This property will contain the
+historical model record that the instance was derived from.  Calling
+is_historic is an easy way to check if an instance was derived from a
+historic timepoint (even if it is the most recent version).
+
+You can use `to_historic` to return the historical model that was used
+to furnish the instance at hand, if it is actually historic.
+
+
+HistoricForeignKey
+------------------
+
+If you have two historic tables linked by foreign key, you can change it
+to use a HistoricForeignKey so that chasing relations from an `as_of`
+acquired instance (at a specific timepoint) will honor that timepoint
+when accessing the related object(s).  This works for both forward and
+reverse relationships.
+
+See the `HistoricForeignKeyTest` code and models for an example.
+
+
 most_recent
 -----------
 

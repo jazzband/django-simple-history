@@ -13,10 +13,17 @@ from django.db import IntegrityError, models
 from django.db.models.fields.proxy import OrderWrt
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from simple_history import register
 from simple_history.exceptions import RelatedNameConflictError
-from simple_history.models import HistoricalRecords, ModelChange
+from simple_history.models import (
+    SIMPLE_HISTORY_REVERSE_ATTR_NAME,
+    HistoricalRecords,
+    ModelChange,
+    is_historic,
+    to_historic,
+)
 from simple_history.signals import pre_create_historical_record
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
@@ -70,6 +77,8 @@ from ..models import (
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
     ModelWithHistoryUsingBaseModelDb,
+    ModelWithMultipleNoDBIndex,
+    ModelWithSingleNoDBIndexUnique,
     MultiOneToOne,
     MyOverrideModelNameRegisterMethod1,
     OverrideModelNameAsCallable,
@@ -82,6 +91,7 @@ from ..models import (
     PollWithExcludedFKField,
     PollWithExcludeFields,
     PollWithHistoricalIPAddress,
+    PollWithNonEditableField,
     Province,
     Restaurant,
     SelfFK,
@@ -90,7 +100,13 @@ from ..models import (
     State,
     Street,
     Temperature,
+    TestHistoricParticipanToHistoricOrganization,
+    TestHistoricParticipantToOrganization,
+    TestOrganization,
+    TestOrganizationWithHistory,
+    TestParticipantToHistoricOrganization,
     UnicodeVerboseName,
+    UnicodeVerboseNamePlural,
     UserTextFieldChangeReasonModel,
     UUIDDefaultModel,
     UUIDModel,
@@ -322,10 +338,10 @@ class HistoricalRecordsTest(TestCase):
     def test_file_field(self):
         filename = str(uuid.uuid4())
         model = FileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_file_field_with_char_field_setting(self):
@@ -336,10 +352,10 @@ class HistoricalRecordsTest(TestCase):
         # file field works the same as test_file_field()
         filename = str(uuid.uuid4())
         model = CharFieldFileModel.objects.create(file=get_fake_file(filename))
-        self.assertEqual(model.file.name, "files/{}".format(filename))
+        self.assertEqual(model.file.name, f"files/{filename}")
         model.file.delete()
         update_record, create_record = model.history.all()
-        self.assertEqual(create_record.file, "files/{}".format(filename))
+        self.assertEqual(create_record.file, f"files/{filename}")
         self.assertEqual(update_record.file, "")
 
     def test_inheritance(self):
@@ -366,6 +382,16 @@ class HistoricalRecordsTest(TestCase):
                 "id": pizza_place.id,
                 "history_type": "~",
             },
+        )
+
+    def test_reverse_historical(self):
+        """Tests how we can go from instance to historical record."""
+        document = Document.objects.create()
+        historic = document.history.all()[0]
+        instance = historic.instance
+        self.assertEqual(
+            getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME).history_date,
+            historic.history_date,
         )
 
     def test_specify_history_user(self):
@@ -508,6 +534,28 @@ class HistoricalRecordsTest(TestCase):
         library.save()
         self.assertEqual(
             "historical quiet please", library.history.get()._meta.verbose_name
+        )
+
+    def test_unicode_verbose_name_plural(self):
+        instance = UnicodeVerboseNamePlural()
+        instance.save()
+        self.assertEqual(
+            "historical \u570b", instance.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_user_can_set_verbose_name_plural(self):
+        b = Book(isbn="54321")
+        b.save()
+        self.assertEqual(
+            "dead trees plural", b.history.all()[0]._meta.verbose_name_plural
+        )
+
+    def test_historical_verbose_name_plural_follows_model_verbose_name_plural(self):
+        library = Library()
+        library.save()
+        self.assertEqual(
+            "historical quiet please plural",
+            library.history.get()._meta.verbose_name_plural,
         )
 
     def test_foreignkey_primarykey(self):
@@ -697,6 +745,18 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.changed_fields, ["question"])
         self.assertEqual(len(delta.changes), 1)
 
+    def test_history_diff_with_non_editable_field(self):
+        p = PollWithNonEditableField.objects.create(
+            question="what's up?", pub_date=today
+        )
+        p.question = "what's up, man?"
+        p.save()
+        new_record, old_record = p.history.all()
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(len(delta.changes), 1)
+
     def test_history_with_unknown_field(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         p.question = "what's up, man?"
@@ -876,7 +936,7 @@ class CustomModelNameTests(unittest.TestCase):
         self.verify_custom_model_name_feature(
             OverrideModelNameAsString(),
             expected_cls_name,
-            "tests_{}".format(expected_cls_name.lower()),
+            f"tests_{expected_cls_name.lower()}",
         )
 
     def test_register_history_model_with_custom_model_name_override(self):
@@ -888,7 +948,7 @@ class CustomModelNameTests(unittest.TestCase):
         cls = OverrideModelNameRegisterMethod1()
         expected_cls_name = "MyOverrideModelNameRegisterMethod1"
         self.verify_custom_model_name_feature(
-            cls, expected_cls_name, "tests_{}".format(expected_cls_name.lower())
+            cls, expected_cls_name, f"tests_{expected_cls_name.lower()}"
         )
 
         from simple_history import register
@@ -898,14 +958,14 @@ class CustomModelNameTests(unittest.TestCase):
         try:
             register(
                 OverrideModelNameRegisterMethod2,
-                custom_model_name=lambda x: "{}".format(x),
+                custom_model_name=lambda x: f"{x}",
             )
         except ValueError:
             self.assertRaises(ValueError)
 
     def test_register_history_model_with_custom_model_name_from_abstract_model(self):
         cls = OverrideModelNameUsingBaseModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -914,7 +974,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel1
 
         cls = OverrideModelNameUsingExternalModel1
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "tests_" + expected_cls_name.lower()
         )
@@ -922,7 +982,7 @@ class CustomModelNameTests(unittest.TestCase):
         from ..models import OverrideModelNameUsingExternalModel2
 
         cls = OverrideModelNameUsingExternalModel2
-        expected_cls_name = "Audit{}".format(cls.__name__)
+        expected_cls_name = f"Audit{cls.__name__}"
         self.verify_custom_model_name_feature(
             cls, expected_cls_name, "external_" + expected_cls_name.lower()
         )
@@ -1786,3 +1846,169 @@ class SaveHistoryInSeparateDatabaseTestCase(TestCase):
         self.assertEqual(
             0, ModelWithHistoryInDifferentDb.objects.using("other").count()
         )
+
+
+class ModelWithMultipleNoDBIndexTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithMultipleNoDBIndex
+        self.history_model = self.model.history.model
+
+    def test_field_indices(self):
+        for field in ["name", "fk"]:
+            # dropped index
+            self.assertTrue(self.model._meta.get_field(field).db_index)
+            self.assertFalse(self.history_model._meta.get_field(field).db_index)
+
+            # keeps index
+            keeps_index = "%s_keeps_index" % field
+            self.assertTrue(self.model._meta.get_field(keeps_index).db_index)
+            self.assertTrue(self.history_model._meta.get_field(keeps_index).db_index)
+
+
+class ModelWithSingleNoDBIndexUniqueTest(TestCase):
+    def setUp(self):
+        self.model = ModelWithSingleNoDBIndexUnique
+        self.history_model = self.model.history.model
+
+    def test_unique_field_index(self):
+        # Ending up with deferred fields (dont know why), using work around
+        self.assertTrue(self.model._meta.get_field("name").db_index)
+        self.assertFalse(self.history_model._meta.get_field("name").db_index)
+
+        # keeps index
+        self.assertTrue(self.model._meta.get_field("name_keeps_index").db_index)
+        self.assertTrue(self.history_model._meta.get_field("name_keeps_index").db_index)
+
+
+class HistoricForeignKeyTest(TestCase):
+    """
+    Tests chasing foreign keys across time points naturally with
+    HistoricForeignKey.
+    """
+
+    def test_non_historic_to_historic(self):
+        """
+        Non-historic table foreign key to historic table.
+
+        In this case it should simply behave like ForeignKey because
+        the origin model (this one) cannot be historic, so foreign key
+        lookups are always "current".
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+        part = TestParticipantToHistoricOrganization.objects.create(
+            name="part", organization=org
+        )
+        before_mod = timezone.now()
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participants.count(), 1)
+        self.assertEqual(org.participants.all()[0], part)
+
+        historg = TestOrganizationWithHistory.history.as_of(before_mod).get(
+            name="original"
+        )
+        self.assertEqual(historg.participants.count(), 1)
+        self.assertEqual(historg.participants.all()[0], part)
+
+        self.assertEqual(org.history.count(), 1)
+        org.name = "modified"
+        org.save()
+        self.assertEqual(org.history.count(), 2)
+
+        # drop internal caches, re-select
+        part = TestParticipantToHistoricOrganization.objects.get(name="part")
+        self.assertEqual(part.organization.name, "modified")
+
+    def test_historic_to_non_historic(self):
+        """
+        Historic table foreign key to non-historic table.
+
+        In this case it should simply behave like ForeignKey because
+        the origin model (this one) can be historic but the target model
+        is not, so foreign key lookups are always "current".
+        """
+        org = TestOrganization.objects.create(name="org")
+        part = TestHistoricParticipantToOrganization.objects.create(
+            name="original", organization=org
+        )
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participants.count(), 1)
+        self.assertEqual(org.participants.all()[0], part)
+
+        histpart = TestHistoricParticipantToOrganization.objects.get(name="original")
+        self.assertEqual(histpart.organization.id, org.id)
+
+    def test_historic_to_historic(self):
+        """
+        Historic table foreign key to historic table.
+
+        In this case as_of queries on the origin model (this one)
+        or on the target model (the other one) will traverse the
+        foreign key relationship honoring the timepoint of the
+        original query.  This only happens when both tables involved
+        are historic.
+
+        At t1 we have one org, one participant.
+        At t2 we have one org, two participants, however the org's name has changed.
+        At t3 we have one org, and one participant has left.
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+        p1 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p1", organization=org
+        )
+        t1_one_participant = timezone.now()
+        p2 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p2", organization=org
+        )
+        org.name = "modified"
+        org.save()
+        t2_two_participants = timezone.now()
+        p1.delete()
+        t3_one_participant = timezone.now()
+
+        # forward relationships - see how natural chasing timepoint relations is
+        p1t1 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t1_one_participant
+        ).get(name="p1")
+        self.assertEqual(p1t1.organization, org)
+        self.assertEqual(p1t1.organization.name, "original")
+        p1t2 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t2_two_participants
+        ).get(name="p1")
+        self.assertEqual(p1t2.organization, org)
+        self.assertEqual(p1t2.organization.name, "modified")
+        p2t2 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t2_two_participants
+        ).get(name="p2")
+        self.assertEqual(p2t2.organization, org)
+        self.assertEqual(p2t2.organization.name, "modified")
+        p2t3 = TestHistoricParticipanToHistoricOrganization.history.as_of(
+            t3_one_participant
+        ).get(name="p2")
+        self.assertEqual(p2t3.organization, org)
+        self.assertEqual(p2t3.organization.name, "modified")
+
+        # reverse relationships
+        # at t1
+        ot1 = TestOrganizationWithHistory.history.as_of(t1_one_participant).all()[0]
+        self.assertEqual(ot1.historic_participants.count(), 1)
+        self.assertEqual(ot1.historic_participants.all()[0].name, p1.name)
+        # at t2
+        ot2 = TestOrganizationWithHistory.history.as_of(t2_two_participants).all()[0]
+        self.assertEqual(ot2.historic_participants.count(), 2)
+        self.assertIn(p1.name, [item.name for item in ot2.historic_participants.all()])
+        self.assertIn(p2.name, [item.name for item in ot2.historic_participants.all()])
+        # at t3
+        ot3 = TestOrganizationWithHistory.history.as_of(t3_one_participant).all()[0]
+        self.assertEqual(ot3.historic_participants.count(), 1)
+        self.assertEqual(ot3.historic_participants.all()[0].name, p2.name)
+        # current
+        self.assertEqual(org.historic_participants.count(), 1)
+        self.assertEqual(org.historic_participants.all()[0].name, p2.name)
+
+        self.assertTrue(is_historic(ot1))
+        self.assertFalse(is_historic(org))
+
+        self.assertIsInstance(
+            to_historic(ot1), TestOrganizationWithHistory.history.model
+        )
+        self.assertIsNone(to_historic(org))

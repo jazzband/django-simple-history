@@ -8,6 +8,10 @@ from simple_history.utils import (
     get_change_reason_from_object,
 )
 
+# when converting a historical record to an instance, this attribute is added
+# to the instance so that code can reverse the instance to its historical record
+SIMPLE_HISTORY_REVERSE_ATTR_NAME = "_history"
+
 
 class HistoricalQuerySet(QuerySet):
     """
@@ -20,8 +24,9 @@ class HistoricalQuerySet(QuerySet):
     """
 
     def __init__(self, *args, **kwargs):
-        super(HistoricalQuerySet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._as_instances = False
+        self._as_of = None
         self._pk_attr = self.model.instance_type._meta.pk.attname
 
     def as_instances(self):
@@ -89,6 +94,7 @@ class HistoricalQuerySet(QuerySet):
     def _clone(self):
         c = super()._clone()
         c._as_instances = self._as_instances
+        c._as_of = self._as_of
         c._pk_attr = self._pk_attr
         return c
 
@@ -108,6 +114,9 @@ class HistoricalQuerySet(QuerySet):
             and isinstance(self._result_cache[0], self.model)
         ):
             self._result_cache = [item.instance for item in self._result_cache]
+            for item in self._result_cache:
+                historic = getattr(item, SIMPLE_HISTORY_REVERSE_ATTR_NAME)
+                setattr(historic, "_as_of", self._as_of)
 
 
 class HistoryDescriptor:
@@ -120,12 +129,12 @@ class HistoryDescriptor:
 
 class HistoryManager(models.Manager):
     def __init__(self, model, instance=None):
-        super(HistoryManager, self).__init__()
+        super().__init__()
         self.model = model
         self.instance = instance
 
     def get_super_queryset(self):
-        return super(HistoryManager, self).get_queryset()
+        return super().get_queryset()
 
     def get_queryset(self):
         qs = self.get_super_queryset()
@@ -195,6 +204,8 @@ class HistoryManager(models.Manager):
         """
         queryset = self.get_queryset().filter(history_date__lte=date)
         if not self.instance:
+            if isinstance(queryset, HistoricalQuerySet):
+                queryset._as_of = date
             queryset = queryset.latest_of_each().as_instances()
             return queryset
 
@@ -209,7 +220,10 @@ class HistoryManager(models.Manager):
             raise self.instance.DoesNotExist(
                 "%s had already been deleted." % self.instance._meta.object_name
             )
-        return history_obj.instance
+        result = history_obj.instance
+        historic = getattr(result, SIMPLE_HISTORY_REVERSE_ATTR_NAME)
+        setattr(historic, "_as_of", date)
+        return result
 
     def bulk_history_create(
         self,

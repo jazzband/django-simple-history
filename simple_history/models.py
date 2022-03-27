@@ -11,17 +11,25 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
+from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related_descriptors import (
+    ForwardManyToOneDescriptor,
+    ReverseManyToOneDescriptor,
+    create_reverse_many_to_one_manager,
+)
+from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import smart_str
+from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
 from simple_history import utils
 
 from . import exceptions
-from .manager import HistoryDescriptor
+from .manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME, HistoryDescriptor
 from .signals import post_create_historical_record, pre_create_historical_record
 from .utils import get_change_reason_from_object
 
@@ -61,6 +69,7 @@ class HistoricalRecords:
     def __init__(
         self,
         verbose_name=None,
+        verbose_name_plural=None,
         bases=(models.Model,),
         user_related_name="+",
         table_name=None,
@@ -79,9 +88,11 @@ class HistoricalRecords:
         related_name=None,
         use_base_model_db=False,
         user_db_constraint=True,
+        no_db_index=list(),
         excluded_field_kwargs=None,
     ):
         self.user_set_verbose_name = verbose_name
+        self.user_set_verbose_name_plural = verbose_name_plural
         self.user_related_name = user_related_name
         self.user_db_constraint = user_db_constraint
         self.table_name = table_name
@@ -98,6 +109,10 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
+
+        if isinstance(no_db_index, str):
+            no_db_index = [no_db_index]
+        self.no_db_index = no_db_index
 
         if excluded_fields is None:
             excluded_fields = []
@@ -175,7 +190,7 @@ class HistoricalRecords:
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
-            return "Historical{}".format(model._meta.object_name)
+            return f"Historical{model._meta.object_name}"
         # Must be trying to use a custom history model name
         if callable(self.custom_model_name):
             name = self.custom_model_name(model._meta.object_name)
@@ -222,7 +237,7 @@ class HistoricalRecords:
         attrs.update(fields)
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
-        attrs.update(Meta=type(str("Meta"), (), self.get_meta_options(model)))
+        attrs.update(Meta=type("Meta", (), self.get_meta_options(model)))
         if self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
 
@@ -303,6 +318,11 @@ class HistoricalRecords:
                 field.name = old_field.name
             else:
                 transform_field(field)
+
+            # drop db index
+            if field.name in self.no_db_index:
+                field.db_index = False
+
             fields[field.name] = field
         return fields
 
@@ -384,7 +404,7 @@ class HistoricalRecords:
             opts = model._meta
             app_label, model_name = opts.app_label, opts.model_name
             return reverse(
-                "%s:%s_%s_simple_history" % (admin.site.name, app_label, model_name),
+                f"{admin.site.name}:{app_label}_{model_name}_simple_history",
                 args=[getattr(self, opts.pk.attname), self.history_id],
             )
 
@@ -410,7 +430,10 @@ class HistoricalRecords:
                     pass
                 else:
                     attrs.update(values)
-            return model(**attrs)
+            result = model(**attrs)
+            # this is the only way external code could know an instance is historical
+            setattr(result, SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)
+            return result
 
         def get_next_record(self):
             """
@@ -498,7 +521,14 @@ class HistoricalRecords:
             name = self.user_set_verbose_name
         else:
             name = format_lazy("historical {}", smart_str(model._meta.verbose_name))
+        if self.user_set_verbose_name_plural:
+            plural_name = self.user_set_verbose_name_plural
+        else:
+            plural_name = format_lazy(
+                "historical {}", smart_str(model._meta.verbose_name_plural)
+            )
         meta_fields["verbose_name"] = name
+        meta_fields["verbose_name_plural"] = plural_name
         if self.app:
             meta_fields["app_label"] = self.app
         if self._date_indexing == "composite":
@@ -522,11 +552,20 @@ class HistoricalRecords:
         else:
             self.create_historical_record(instance, "-", using=using)
 
+    def get_change_reason_for_object(self, instance, history_type, using):
+        """
+        Get change reason for object.
+        Customize this method to automatically fill change reason from context.
+        """
+        return get_change_reason_from_object(instance)
+
     def create_historical_record(self, instance, history_type, using=None):
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)
-        history_change_reason = get_change_reason_from_object(instance)
+        history_change_reason = self.get_change_reason_for_object(
+            instance, history_type, using
+        )
         manager = getattr(instance, self.manager_name)
 
         attrs = {}
@@ -613,6 +652,108 @@ def transform_field(field):
         field.serialize = True
 
 
+class HistoricForwardManyToOneDescriptor(ForwardManyToOneDescriptor):
+    """
+    Overrides get_queryset to provide historic query support, should the
+    instance be historic (and therefore was generated by a timepoint query)
+    and the other side of the relation also uses a history manager.
+    """
+
+    def get_queryset(self, **hints) -> QuerySet:
+        instance = hints.get("instance")
+        if instance:
+            history = getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
+            histmgr = getattr(
+                self.field.remote_field.model,
+                getattr(
+                    self.field.remote_field.model._meta,
+                    "simple_history_manager_attribute",
+                    "_notthere",
+                ),
+                None,
+            )
+            if history and histmgr:
+                return histmgr.as_of(history._as_of)
+        return super().get_queryset(**hints)
+
+
+class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
+    """
+    Overrides get_queryset to provide historic query support, should the
+    instance be historic (and therefore was generated by a timepoint query)
+    and the other side of the relation also uses a history manager.
+    """
+
+    @cached_property
+    def related_manager_cls(self):
+        related_model = self.rel.related_model
+
+        class HistoricRelationModelManager(related_model._default_manager.__class__):
+            def get_queryset(self):
+                try:
+                    return self.instance._prefetched_objects_cache[
+                        self.field.remote_field.get_cache_name()
+                    ]
+                except (AttributeError, KeyError):
+                    history = getattr(
+                        self.instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None
+                    )
+                    histmgr = getattr(
+                        self.model,
+                        getattr(
+                            self.model._meta,
+                            "simple_history_manager_attribute",
+                            "_notthere",
+                        ),
+                        None,
+                    )
+                    if history and histmgr:
+                        queryset = histmgr.as_of(history._as_of)
+                    else:
+                        queryset = super().get_queryset()
+                    return self._apply_rel_filters(queryset)
+
+        return create_reverse_many_to_one_manager(
+            HistoricRelationModelManager, self.rel
+        )
+
+
+class HistoricForeignKey(ForeignKey):
+    """
+    Allows foreign keys to work properly from a historic instance.
+
+    If you use as_of queries to extract historical instances from
+    a model, and you have other models that are related by foreign
+    key and also historic, changing them to a HistoricForeignKey
+    field type will allow you to naturally cross the relationship
+    boundary at the same point in time as the origin instance.
+
+    A historic instance maintains an attribute ("_historic") when
+    it is historic, holding the historic record instance and the
+    timepoint used to query it ("_as_of").  HistoricForeignKey
+    looks for this and uses an as_of query against the related
+    object so the relationship is assessed at the same timepoint.
+    """
+
+    forward_related_accessor_class = HistoricForwardManyToOneDescriptor
+    related_accessor_class = HistoricReverseManyToOneDescriptor
+
+
+def is_historic(instance):
+    """
+    Returns True if the instance was acquired with an as_of timepoint.
+    """
+    return to_historic(instance) is not None
+
+
+def to_historic(instance):
+    """
+    Returns a historic model instance if the instance was acquired with
+    an as_of timepoint, or None.
+    """
+    return getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
+
+
 class HistoricalObjectDescriptor:
     def __init__(self, model, fields_included):
         self.model = model
@@ -637,7 +778,9 @@ class HistoricalChanges:
             excluded_fields = set()
 
         if included_fields is None:
-            included_fields = {f.name for f in old_history.instance_type._meta.fields}
+            included_fields = {
+                f.name for f in old_history.instance_type._meta.fields if f.editable
+            }
 
         fields = set(included_fields).difference(excluded_fields)
 
