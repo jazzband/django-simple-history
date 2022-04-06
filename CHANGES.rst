@@ -33,6 +33,7 @@ Full list of changes:
 - Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946)
 - RecordModels now support a ``no_db_index`` setting, to drop indices in historical models, default stays the same (gh-720)
 - Support change reason formula feature. Change reason formula can be defined by overriding ``get_change_reason_for_object`` method after subclassing ``HistoricalRecords``
+- Dropped support for Django 2.2 (gh-968)
 
 3.0.0 (2021-04-16)
 ------------------

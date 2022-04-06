@@ -23,7 +23,6 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "Environment :: Web Environment",
             "Intended Audience :: Developers",
             "Framework :: Django",
-            "Framework :: Django :: 2.2",
             "Framework :: Django :: 3.2",
             "Framework :: Django :: 4.0",
             "Programming Language :: Python",
