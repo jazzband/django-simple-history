@@ -133,11 +133,12 @@ def bulk_create_with_history(
                 obj_when_list.append(When(**attributes, then=i))
             obj_list = (
                 list(
-                    model_manager
-                    .filter(cumulative_filter)
-                    .order_by(Case(*obj_when_list))
+                    model_manager.filter(cumulative_filter).order_by(
+                        Case(*obj_when_list)
+                    )
                 )
-                if objs_with_id else []
+                if objs_with_id
+                else []
             )
             history_manager.bulk_history_create(
                 obj_list,
