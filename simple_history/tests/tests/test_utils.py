@@ -74,8 +74,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     @tag('only')
     def test_bulk_create_history(self):
-        with self.assertNumQueries(3):
-            bulk_create_with_history(self.data, Poll)
+        bulk_create_with_history(self.data, Poll)
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 5)
@@ -239,17 +238,23 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Poll.history.count(), 0)
 
+    @tag('only')
     @patch("simple_history.utils.get_history_manager_for_model")
     def test_bulk_create_no_ids_return(self, hist_manager_mock):
-        objects = [Place(id=1, name="Place 1")]
+        objects = [Place(name="Place 1")]
+        with patch.object(Place._default_manager, "bulk_create", return_value=[Place(name="Place 1")]):
+
         model = Mock(
             _default_manager=Mock(
-                bulk_create=Mock(return_value=[Place(name="Place 1")]),
-                filter=Mock(return_value=objects),
+                bulk_create=Mock(),
+                filter=Mock(return_value=Mock(
+                    order_by=Mock(return_value=objects)
+                )),
             ),
             _meta=Mock(get_fields=Mock(return_value=[])),
         )
-        result = bulk_create_with_history(objects, model)
+        with self.assertNumQueries(2):
+            result = bulk_create_with_history(objects, model)
         self.assertEqual(result, objects)
         hist_manager_mock().bulk_history_create.assert_called_with(
             objects,
