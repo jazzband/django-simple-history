@@ -2,7 +2,7 @@ import warnings
 
 import django
 from django.db import transaction
-from django.db.models import ForeignKey, ManyToManyField
+from django.db.models import ForeignKey, ManyToManyField, Q
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -101,6 +101,7 @@ def bulk_create_with_history(
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
+        # TODO: In tests, once this is all sorted, make `bulk_create` return unaltered objects and see if that works
         # if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
         #     second_transaction_required = False
         #     history_manager.bulk_history_create(
@@ -113,6 +114,7 @@ def bulk_create_with_history(
     if second_transaction_required:
         obj_list = []
         with transaction.atomic(savepoint=False):
+            cumulative_filter = None
             for obj in objs_with_id:
                 attributes = dict(
                     filter(
@@ -120,7 +122,9 @@ def bulk_create_with_history(
                         model_to_dict(obj, exclude=exclude_fields).items(),
                     )
                 )
-                obj_list += model_manager.filter(**attributes)
+                q = Q(**attributes)
+                cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
+            print('hey', cumulative_filter)
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,
