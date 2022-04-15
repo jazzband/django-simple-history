@@ -101,17 +101,17 @@ def bulk_create_with_history(
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
-        print('aaa', objs_with_id.__class__)
-        # TODO: In tests, once this is all sorted, make `bulk_create` return unaltered objects and see if that works
-        # if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
-        #     second_transaction_required = False
-        #     history_manager.bulk_history_create(
-        #         objs_with_id,
-        #         batch_size=batch_size,
-        #         default_user=default_user,
-        #         default_change_reason=default_change_reason,
-        #         default_date=default_date,
-        #     )
+        print('aaa', objs_with_id[0].pk)
+        if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
+            second_transaction_required = False
+            history_manager.bulk_history_create(
+                objs_with_id,
+                batch_size=batch_size,
+                default_user=default_user,
+                default_change_reason=default_change_reason,
+                default_date=default_date,
+            )
+            print('ran here')
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
             # Generate a common query to avoid n+1 selections

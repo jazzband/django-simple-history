@@ -72,7 +72,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
             ),
         ]
 
-    @tag('only')
+    # @tag('only')
     def test_bulk_create_history(self):
         bulk_create_with_history(self.data, Poll)
 
@@ -190,18 +190,32 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     @tag('only')
     def test_bulk_create_history_with_no_ids_return(self):
-        objects = [Place(name="Place 1"), Place(name="Place 2"), Place(name="Place 3")]
+        objects = [
+            Poll(question="Question 1", pub_date=timezone.now()),
+            Poll(question="Question 2", pub_date=timezone.now()),
+            Poll(question="Question 3", pub_date=timezone.now()),
+            Poll(question="Question 4", pub_date=timezone.now()),
+            Poll(question="Question 5", pub_date=timezone.now()),
+        ]
 
-        _bulk_create = Place._default_manager.bulk_create
+        _bulk_create = Poll._default_manager.bulk_create
 
         def mock_bulk_create(*args, **kwargs):
             _bulk_create(*args, **kwargs)
-            return [Place(name="Place 1"), Place(name="Place 2"), Place(name="Place 3")]
+            return [
+                Poll(question="Question 1", pub_date=timezone.now()),
+                Poll(question="Question 2", pub_date=timezone.now()),
+                Poll(question="Question 3", pub_date=timezone.now()),
+                Poll(question="Question 4", pub_date=timezone.now()),
+                Poll(question="Question 5", pub_date=timezone.now()),
+            ]
 
-        with patch.object(Place._default_manager, "bulk_create", side_effect=mock_bulk_create):
-            with self.assertNumQueries(2):
-                result = bulk_create_with_history(objects, Place)
-                self.assertEqual(result, objects)
+        with patch.object(Poll._default_manager, "bulk_create",
+                          side_effect=mock_bulk_create):
+            with self.assertNumQueries(4):
+                result = bulk_create_with_history(objects, Poll)
+            self.assertEqual(result, objects)
+
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     def setUp(self):
