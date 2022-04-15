@@ -101,15 +101,15 @@ def bulk_create_with_history(
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
-        if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
-            second_transaction_required = False
-            history_manager.bulk_history_create(
-                objs_with_id,
-                batch_size=batch_size,
-                default_user=default_user,
-                default_change_reason=default_change_reason,
-                default_date=default_date,
-            )
+        # if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
+        #     second_transaction_required = False
+        #     history_manager.bulk_history_create(
+        #         objs_with_id,
+        #         batch_size=batch_size,
+        #         default_user=default_user,
+        #         default_change_reason=default_change_reason,
+        #         default_date=default_date,
+        #     )
     if second_transaction_required:
         obj_list = []
         with transaction.atomic(savepoint=False):
