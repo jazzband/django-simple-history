@@ -160,11 +160,9 @@ def main():
 
     tags = namespace.tag
     failures = DiscoverRunner(
-        debug_sql=True,
         failfast=bool(namespace.failfast), pdb=bool(namespace.pdb), tags=tags
     ).run_tests(["simple_history.tests"])
     failures |= DiscoverRunner(
-        debug_sql=True,
         failfast=bool(namespace.failfast), pdb=bool(namespace.pdb), tags=tags
     ).run_tests(["simple_history.registry_tests"])
     sys.exit(failures)

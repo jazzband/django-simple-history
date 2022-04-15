@@ -101,7 +101,6 @@ def bulk_create_with_history(
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
-        print('aaa', objs_with_id[0].pk)
         if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
             second_transaction_required = False
             history_manager.bulk_history_create(
