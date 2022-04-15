@@ -72,7 +72,8 @@ class BulkCreateWithHistoryTestCase(TestCase):
         ]
 
     def test_bulk_create_history(self):
-        bulk_create_with_history(self.data, Poll)
+        with self.assertNumQueries(3):
+            bulk_create_with_history(self.data, Poll)
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.count(), 5)
