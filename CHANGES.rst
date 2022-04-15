@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
+
 
 3.1.0 (2022-04-09)
 ------------------
