@@ -190,12 +190,13 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
     @tag('only')
     def test_bulk_create_history_with_no_ids_return(self):
+        pub_date = timezone.now()
         objects = [
-            Poll(question="Question 1", pub_date=timezone.now()),
-            Poll(question="Question 2", pub_date=timezone.now()),
-            Poll(question="Question 3", pub_date=timezone.now()),
-            Poll(question="Question 4", pub_date=timezone.now()),
-            Poll(question="Question 5", pub_date=timezone.now()),
+            Poll(question="Question 1", pub_date=pub_date),
+            Poll(question="Question 2", pub_date=pub_date),
+            Poll(question="Question 3", pub_date=pub_date),
+            Poll(question="Question 4", pub_date=pub_date),
+            Poll(question="Question 5", pub_date=pub_date),
         ]
 
         _bulk_create = Poll._default_manager.bulk_create
@@ -203,16 +204,16 @@ class BulkCreateWithHistoryTestCase(TestCase):
         def mock_bulk_create(*args, **kwargs):
             _bulk_create(*args, **kwargs)
             return [
-                Poll(question="Question 1", pub_date=timezone.now()),
-                Poll(question="Question 2", pub_date=timezone.now()),
-                Poll(question="Question 3", pub_date=timezone.now()),
-                Poll(question="Question 4", pub_date=timezone.now()),
-                Poll(question="Question 5", pub_date=timezone.now()),
+                Poll(question="Question 1", pub_date=pub_date),
+                Poll(question="Question 2", pub_date=pub_date),
+                Poll(question="Question 3", pub_date=pub_date),
+                Poll(question="Question 4", pub_date=pub_date),
+                Poll(question="Question 5", pub_date=pub_date),
             ]
 
         with patch.object(Poll._default_manager, "bulk_create",
                           side_effect=mock_bulk_create):
-            with self.assertNumQueries(4):
+            with self.assertNumQueries(3):
                 result = bulk_create_with_history(objects, Poll)
             self.assertEqual(result, objects)
 

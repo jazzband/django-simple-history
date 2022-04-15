@@ -111,7 +111,6 @@ def bulk_create_with_history(
                 default_change_reason=default_change_reason,
                 default_date=default_date,
             )
-            print('ran here')
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
             # Generate a common query to avoid n+1 selections
