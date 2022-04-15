@@ -2,7 +2,7 @@ import warnings
 
 import django
 from django.db import transaction
-from django.db.models import ForeignKey, ManyToManyField, Q
+from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -112,10 +112,10 @@ def bulk_create_with_history(
         #         default_date=default_date,
         #     )
     if second_transaction_required:
-        obj_list = []
         with transaction.atomic(savepoint=False):
             cumulative_filter = None
-            for obj in objs_with_id:
+            obj_when_list = []
+            for i, obj in enumerate(objs_with_id):
                 attributes = dict(
                     filter(
                         lambda x: x[1] is not None,
@@ -124,7 +124,17 @@ def bulk_create_with_history(
                 )
                 q = Q(**attributes)
                 cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
-            print('hey', cumulative_filter)
+                # https://stackoverflow.com/a/49625179/1960509
+                obj_when_list.append(When(**attributes, then=i))
+            obj_list = (
+                list(
+                    model_manager
+                    .filter(cumulative_filter)
+                    .order_by(Case(*obj_when_list))
+                    .all()
+                )
+                if objs_with_id else []
+            )
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,
