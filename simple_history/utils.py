@@ -112,6 +112,7 @@ def bulk_create_with_history(
             )
     if second_transaction_required:
         obj_list = []
+        return objs_with_id
         with transaction.atomic(savepoint=False):
             for obj in objs_with_id:
                 attributes = dict(
@@ -121,6 +122,7 @@ def bulk_create_with_history(
                     )
                 )
                 obj_list += model_manager.filter(**attributes)
+            print('wat', obj_list)
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,
