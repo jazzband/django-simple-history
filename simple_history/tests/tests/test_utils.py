@@ -214,7 +214,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
         with patch.object(
             Poll._default_manager, "bulk_create", side_effect=mock_bulk_create
         ):
-            with self.assertNumQueries(3):
+            with self.assertNumQueries(7):
                 result = bulk_create_with_history(objects, Poll)
             self.assertEqual(result, objects)
 
@@ -274,7 +274,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         model = Mock(
             _default_manager=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
-                filter=Mock(return_value=Mock(order_by=Mock(return_value=objects))),
+                filter=Mock(return_value=objects),
             ),
             _meta=Mock(get_fields=Mock(return_value=[])),
         )
