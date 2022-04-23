@@ -188,7 +188,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
         self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
         self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
-    @tag('only')
+    @tag("only")
     def test_bulk_create_history_with_no_ids_return(self):
         pub_date = timezone.now()
         objects = [
@@ -218,8 +218,8 @@ class BulkCreateWithHistoryTestCase(TestCase):
                 result = bulk_create_with_history(objects, Poll)
             self.assertNotEqual(result[0].id, None)
             self.assertEqual(
-                [poll.question for poll in result],
-                [poll.question for poll in objects])
+                [poll.question for poll in result], [poll.question for poll in objects]
+            )
 
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
