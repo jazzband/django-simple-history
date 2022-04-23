@@ -216,10 +216,10 @@ class BulkCreateWithHistoryTestCase(TestCase):
         ):
             with self.assertNumQueries(3):
                 result = bulk_create_with_history(objects, Poll)
-            self.assertNotEqual(result[0].id, None)
             self.assertEqual(
                 [poll.question for poll in result], [poll.question for poll in objects]
             )
+            self.assertNotEqual(result[0].id, None)
 
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
