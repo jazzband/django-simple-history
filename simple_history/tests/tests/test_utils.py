@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
-from django.test import tag
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
@@ -72,7 +71,6 @@ class BulkCreateWithHistoryTestCase(TestCase):
             ),
         ]
 
-    # @tag('only')
     def test_bulk_create_history(self):
         bulk_create_with_history(self.data, Poll)
 
@@ -188,7 +186,6 @@ class BulkCreateWithHistoryTestCase(TestCase):
         self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
         self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
-    @tag("only")
     def test_bulk_create_history_with_no_ids_return(self):
         pub_date = timezone.now()
         objects = [
