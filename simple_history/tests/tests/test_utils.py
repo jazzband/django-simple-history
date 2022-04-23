@@ -214,7 +214,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
         with patch.object(
             Poll._default_manager, "bulk_create", side_effect=mock_bulk_create
         ):
-            with self.assertNumQueries(7):
+            with self.assertNumQueries(3):
                 result = bulk_create_with_history(objects, Poll)
             self.assertNotEqual(result[0].id, None)
             self.assertEqual(
