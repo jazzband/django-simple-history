@@ -39,6 +39,7 @@ Authors
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
 - Erik van Widenfelt (`erikvw <https://github.com/erikvw>`_)
+- Fábio Capuano (`fabiocapsouza <https://github.com/fabiocapsouza`_)
 - Filipe Pina (@fopina)
 - Florian Eßer
 - François Martin (`martinfrancois <https://github.com/martinfrancois>`_)
