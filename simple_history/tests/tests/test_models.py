@@ -2012,3 +2012,16 @@ class HistoricForeignKeyTest(TestCase):
             to_historic(ot1), TestOrganizationWithHistory.history.model
         )
         self.assertIsNone(to_historic(org))
+
+        # test querying directly from the history table and converting
+        # to an instance, it should chase the foreign key properly
+        # in this case if _as_of is not present we use the history_date
+        # https://github.com/jazzband/django-simple-history/issues/983
+        pt1h = TestHistoricParticipanToHistoricOrganization.history.all()[0]
+        pt1i = pt1h.instance
+        self.assertEqual(pt1i.organization.name, "modified")
+        pt1h = TestHistoricParticipanToHistoricOrganization.history.all().order_by(
+            "history_date"
+        )[0]
+        pt1i = pt1h.instance
+        self.assertEqual(pt1i.organization.name, "original")

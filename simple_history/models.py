@@ -673,7 +673,7 @@ class HistoricForwardManyToOneDescriptor(ForwardManyToOneDescriptor):
                 None,
             )
             if history and histmgr:
-                return histmgr.as_of(history._as_of)
+                return histmgr.as_of(getattr(history, "_as_of", history.history_date))
         return super().get_queryset(**hints)
 
 
@@ -708,7 +708,9 @@ class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
                         None,
                     )
                     if history and histmgr:
-                        queryset = histmgr.as_of(history._as_of)
+                        queryset = histmgr.as_of(
+                            getattr(history, "_as_of", history.history_date)
+                        )
                     else:
                         queryset = super().get_queryset()
                     return self._apply_rel_filters(queryset)
