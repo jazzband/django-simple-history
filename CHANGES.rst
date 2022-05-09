@@ -5,6 +5,16 @@ Unreleased
 ----------
 
 - Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
+- Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
+
+3.1.1 (2022-04-23)
+------------------
+
+Full list of changes:
+
+- Fix py36 references in pyproject.toml (gh-960)
+- Fix local setup.py install versioning issue (gh-960)
+- Remove py2 universal wheel cfg - only py3 needed now (gh-960)
 
 
 3.1.0 (2022-04-09)
