@@ -260,7 +260,7 @@ Using custom OneToOneFields
 ---------------------------
 
 If you are using a custom OneToOneField that has additional arguments and receiving
-the the following ``TypeError``::
+the the following ``TypeError``:
 
 .. code=block:: python
 
