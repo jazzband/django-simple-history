@@ -3,6 +3,7 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.utils import quote, unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
@@ -285,38 +286,47 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         )
 
 
+class SimpleHistoryChangeList(ChangeList):
+    def apply_select_related(self, qs):
+        # Our qs is different if we use the history, so the normal select_related
+        # won't work and results in an empty QuerySet result.
+        history = self.params.get("entries", None) == "deleted_only"
+        if history:
+            return qs
+        return super().apply_select_related(qs)
+
+    def url_for_result(self, result) -> str:
+        history = self.params.get("entries", None) == "deleted_only"
+        route_type = "history" if history else "change"
+        route = f"{self.opts.app_label}_{self.opts.model_name}_{route_type}"
+        pk = getattr(result, self.pk_attname)
+        return reverse(
+            f"admin:{route}",
+            args=(quote(pk),),
+            current_app=self.model_admin.admin_site.name,
+        )
+
+
+class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
+    title = "Entries"
+    parameter_name = "entries"
+
+    def lookups(self, request, model_admin):
+       return (("deleted_only", "Only Deleted"),)
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.model.history.filter(history_type="-").distinct()
+        return queryset
+
+
 class SimpleHistoryWithDeletedAdmin(SimpleHistoryAdmin):
-    class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
-        title = "Entries"
-        parameter_name = "entries"
-
-        def lookups(self, request, model_admin):
-                return (("deleted_only", "Only Deleted"),)
-
-        def queryset(self, request, queryset):
-            if self.value():
-                return queryset.model.history.filter(history_type="-").distinct()
-            return queryset
-
     def get_changelist(self, request, **kwargs):
-        def url_from_result_maker(history=False):
-            def custom_url_for_result(self, result):
-                pk = getattr(result, self.pk_attname)
-                route_type = 'history' if history else 'change'
-                route = f'{self.opts.app_label}_{self.opts.model_name}_{route_type}'
-                return reverse(f'admin:{route}',
-                               args=(quote(pk),),
-                               current_app=self.model_admin.admin_site.name)
-            return custom_url_for_result
-
-        changelist = super().get_changelist(request, **kwargs)
-        if request.GET.get('entries', None) == 'deleted_only':
-            changelist.url_for_result = url_from_result_maker(history=True)
-        else:
-            changelist.url_for_result = url_from_result_maker(history=False)
-        return changelist
+        return SimpleHistoryChangeList
 
     def get_list_filter(self, request):
-        return [self.SimpleHistoryShowDeletedFilter] + [
+        # Doing it here will add it to every inherited class. Alternatively,
+        # add SimpleHistoryShowDeletedFilter to the list_filter and remove the below.
+        return [SimpleHistoryShowDeletedFilter] + [
             f for f in super().get_list_filter(request)
         ]
