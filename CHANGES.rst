@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Fixed a typo in the docs
 - Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
 
 3.1.1 (2022-04-23)
