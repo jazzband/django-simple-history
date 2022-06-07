@@ -1,6 +1,3 @@
-import warnings
-
-import django
 from django.db import transaction
 from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
 from django.forms.models import model_to_dict

@@ -52,7 +52,7 @@ You're able to set a custom ``history_date`` attribute for the historical
 record, by defining the property ``_history_date`` in your model. That's
 helpful if you want to add versions to your model, which happened before the
 current model version, e.g. when batch importing historical data. The content
-of the property ``_history_date`` has to be a datetime-object, but setting the
+of the property ``_history_date`` has to be a ``datetime``-object, but setting the
 value of the property to a ``DateTimeField``, which is already defined in the
 model, will work too.
 
