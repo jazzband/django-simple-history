@@ -113,6 +113,7 @@ Authors
 - Steven Buss (`sbuss <https://github.com/sbuss>`_)
 - Steven Klass
 - Tim Schilling (`tim-schilling <https://github.com/tim-schilling>`_)
+- Todd Wolfson (`twolfson <https://github.com/twolfson>`_)
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)
 - Trey Hunner (`treyhunner <https://github.com/treyhunner>`_)
 - Ulysses Vilela
