@@ -94,6 +94,7 @@ class HistoricalRecords:
         no_db_index=list(),
         excluded_field_kwargs=None,
         m2m_fields=(),
+        m2m_fields_model_field_name="_history_m2m_fields",
     ):
         self.user_set_verbose_name = verbose_name
         self.user_set_verbose_name_plural = verbose_name_plural
@@ -114,6 +115,7 @@ class HistoricalRecords:
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
         self.m2m_fields = m2m_fields
+        self.m2m_fields_model_field_name = m2m_fields_model_field_name
 
         if isinstance(no_db_index, str):
             no_db_index = [no_db_index]
@@ -189,7 +191,10 @@ class HistoricalRecords:
         # so the signal handlers can't use weak references.
         models.signals.post_save.connect(self.post_save, sender=sender, weak=False)
         models.signals.post_delete.connect(self.post_delete, sender=sender, weak=False)
-        for field in self.m2m_fields:
+
+        m2m_fields = self.get_m2m_fields_from_model(sender)
+
+        for field in m2m_fields:
             m2m_changed.connect(
                 partial(self.m2m_changed, attr=field.name),
                 sender=field.remote_field.through,
@@ -200,13 +205,12 @@ class HistoricalRecords:
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 
-        for field in self.m2m_fields:
+        for field in m2m_fields:
             m2m_model = self.create_history_m2m_model(
                 history_model, field.remote_field.through
             )
             self.m2m_models[field] = m2m_model
 
-            module = importlib.import_module(self.module)
             setattr(module, m2m_model.__name__, m2m_model)
 
             m2m_descriptor = HistoryDescriptor(m2m_model)
@@ -236,22 +240,11 @@ class HistoricalRecords:
 
     def create_history_m2m_model(self, model, through_model):
         attrs = {
-            "__module__": self.module,
+            "__module__": model.__module__,
             "__str__": lambda self: "{} as of {}".format(
                 self._meta.verbose_name, self.history.history_date
             ),
         }
-
-        app_module = "%s.models" % model._meta.app_label
-
-        if model.__module__ != self.module:
-            # registered under different app
-            attrs["__module__"] = self.module
-        elif app_module != self.module:
-            # Abuse an internal API because the app registry is loading.
-            app = apps.app_configs[model._meta.app_label]
-            models_module = app.name
-            attrs["__module__"] = models_module
 
         # Get the primary key to the history model this model will look up to
         attrs["m2m_history_id"] = self._get_history_id_field()
@@ -285,7 +278,7 @@ class HistoricalRecords:
         attrs = {
             "__module__": self.module,
             "_history_excluded_fields": self.excluded_fields,
-            "_history_m2m_fields": self.m2m_fields,
+            "_history_m2m_fields": self.get_m2m_fields_from_model(model),
         }
 
         app_module = "%s.models" % model._meta.app_label
@@ -637,7 +630,7 @@ class HistoricalRecords:
             self.create_historical_record(instance, "~")
 
     def create_historical_record_m2ms(self, history_instance, instance):
-        for field in self.m2m_fields:
+        for field in history_instance._history_m2m_fields:
             m2m_history_model = self.m2m_models[field]
             original_instance = history_instance.instance
             through_model = getattr(original_instance, field.name).through
@@ -720,6 +713,14 @@ class HistoricalRecords:
                 pass
 
         return self.get_user(instance=instance, request=request)
+
+    def get_m2m_fields_from_model(self, model):
+        m2m_fields = set(self.m2m_fields)
+        try:
+            m2m_fields.update(getattr(model, self.m2m_fields_model_field_name))
+        except AttributeError:
+            pass
+        return [getattr(model, field.name).field for field in m2m_fields]
 
 
 def transform_field(field):

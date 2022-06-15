@@ -87,6 +87,8 @@ from ..models import (
     Person,
     Place,
     Poll,
+    PollChildBookWithManyToMany,
+    PollChildRestaurantWithManyToMany,
     PollInfo,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
@@ -1733,6 +1735,58 @@ class SeveralManyToManyTest(TestCase):
 
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.books.all().count(), 0)
+        self.assertEqual(add.places.all().count(), 0)
+
+
+class InheritedManyToManyTest(TestCase):
+    def setUp(self):
+        self.model_book = PollChildBookWithManyToMany
+        self.model_rstr = PollChildRestaurantWithManyToMany
+        self.place = Place.objects.create(name="Home")
+        self.book = Book.objects.create(isbn="1234")
+        self.restaurant = Restaurant.objects.create(rating=1)
+        self.poll_book = self.model_book.objects.create(
+            question="what's up?", pub_date=today
+        )
+        self.poll_rstr = self.model_rstr.objects.create(
+            question="what's up?", pub_date=today
+        )
+
+    def test_separation(self):
+        self.assertEqual(self.poll_book.history.all().count(), 1)
+        self.poll_book.places.add(self.place)
+        self.poll_book.books.add(self.book)
+        self.assertEqual(self.poll_book.history.all().count(), 3)
+
+        self.assertEqual(self.poll_rstr.history.all().count(), 1)
+        self.poll_rstr.places.add(self.place)
+        self.poll_rstr.restaurants.add(self.restaurant)
+        self.assertEqual(self.poll_rstr.history.all().count(), 3)
+
+        book, place, add = self.poll_book.history.all()
+
+        self.assertEqual(book.books.all().count(), 1)
+        self.assertEqual(book.places.all().count(), 1)
+        self.assertEqual(book.books.first().book, self.book)
+
+        self.assertEqual(place.books.all().count(), 0)
+        self.assertEqual(place.places.all().count(), 1)
+        self.assertEqual(place.places.first().place, self.place)
+
+        self.assertEqual(add.books.all().count(), 0)
+        self.assertEqual(add.places.all().count(), 0)
+
+        restaurant, place, add = self.poll_rstr.history.all()
+
+        self.assertEqual(restaurant.restaurants.all().count(), 1)
+        self.assertEqual(restaurant.places.all().count(), 1)
+        self.assertEqual(restaurant.restaurants.first().restaurant, self.restaurant)
+
+        self.assertEqual(place.restaurants.all().count(), 0)
+        self.assertEqual(place.places.all().count(), 1)
+        self.assertEqual(place.places.first().place, self.place)
+
+        self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
 
 

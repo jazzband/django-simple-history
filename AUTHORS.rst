@@ -80,6 +80,7 @@ Authors
 - Klaas van Schelven
 - Kris Neuharth
 - Kyle Seever (`kseever <https://github.com/kseever>`_)
+- Léni Gauffier (`legau <https://github.com/legau>`_)
 - Leticia Portella
 - Lucas Wiman
 - Maciej "RooTer" Urbański

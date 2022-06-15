@@ -127,6 +127,32 @@ class PollWithSeveralManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[places, restaurants, books])
 
 
+class PollParentWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places],
+        inherit=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class PollChildBookWithManyToMany(PollParentWithManyToMany):
+    books = models.ManyToManyField("Book", related_name="books_poll_child")
+    _history_m2m_fields = [books]
+
+
+class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
+    restaurants = models.ManyToManyField(
+        "Restaurant", related_name="restaurants_poll_child"
+    )
+    _history_m2m_fields = [restaurants]
+
+
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
