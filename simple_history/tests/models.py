@@ -117,6 +117,27 @@ class PollWithManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[places])
 
 
+class HistoricalRecordsWithExtraFieldM2M(HistoricalRecords):
+    def get_extra_fields_m2m(self, model, through_model, fields):
+        extra_fields = super().get_extra_fields_m2m(model, through_model, fields)
+
+        def get_class_name(self):
+            return self.__class__.__name__
+
+        extra_fields["get_class_name"] = get_class_name
+        return extra_fields
+
+
+class PollWithManyToManyWithIPAddress(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecordsWithExtraFieldM2M(
+        m2m_fields=[places], m2m_bases=[IPAddressHistoricalModel]
+    )
+
+
 class PollWithSeveralManyToMany(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")

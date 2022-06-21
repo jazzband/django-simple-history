@@ -32,7 +32,12 @@ from simple_history import utils
 
 from . import exceptions
 from .manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME, HistoryDescriptor
-from .signals import post_create_historical_record, pre_create_historical_record
+from .signals import (
+    post_create_historical_m2m_records,
+    post_create_historical_record,
+    pre_create_historical_m2m_records,
+    pre_create_historical_record,
+)
 from .utils import get_change_reason_from_object
 
 try:
@@ -95,6 +100,7 @@ class HistoricalRecords:
         excluded_field_kwargs=None,
         m2m_fields=(),
         m2m_fields_model_field_name="_history_m2m_fields",
+        m2m_bases=(models.Model,),
     ):
         self.user_set_verbose_name = verbose_name
         self.user_set_verbose_name_plural = verbose_name_plural
@@ -134,6 +140,12 @@ class HistoricalRecords:
             self.bases = (HistoricalChanges,) + tuple(bases)
         except TypeError:
             raise TypeError("The `bases` option must be a list or a tuple.")
+        try:
+            if isinstance(m2m_bases, str):
+                raise TypeError
+            self.m2m_bases = (HistoricalChanges,) + tuple(m2m_bases)
+        except TypeError:
+            raise TypeError("The `m2m_bases` option must be a list or a tuple.")
 
     def contribute_to_class(self, cls, name):
         self.manager_name = name
@@ -239,35 +251,18 @@ class HistoricalRecords:
         )
 
     def create_history_m2m_model(self, model, through_model):
-        attrs = {
-            "__module__": model.__module__,
-            "__str__": lambda self: "{} as of {}".format(
-                self._meta.verbose_name, self.history.history_date
-            ),
-        }
-
-        # Get the primary key to the history model this model will look up to
-        attrs["m2m_history_id"] = self._get_history_id_field()
-        attrs["history"] = models.ForeignKey(
-            model,
-            db_constraint=False,
-            on_delete=models.DO_NOTHING,
-        )
-        attrs["instance_type"] = through_model
+        attrs = {}
 
         fields = self.copy_fields(through_model)
         attrs.update(fields)
+        attrs.update(self.get_extra_fields_m2m(model, through_model, fields))
 
         name = self.get_history_model_name(through_model)
         registered_models[through_model._meta.db_table] = through_model
-        meta_fields = {"verbose_name": name}
 
-        if self.app:
-            meta_fields["app_label"] = self.app
+        attrs.update(Meta=type("Meta", (), self.get_meta_options_m2m(through_model)))
 
-        attrs.update(Meta=type(str("Meta"), (), meta_fields))
-
-        m2m_history_model = type(str(name), (models.Model,), attrs)
+        m2m_history_model = type(str(name), self.m2m_bases, attrs)
 
         return m2m_history_model
 
@@ -458,6 +453,25 @@ class HistoricalRecords:
         else:
             return {}
 
+    def get_extra_fields_m2m(self, model, through_model, fields):
+        """Return dict of extra fields added to the m2m historical record model"""
+
+        extra_fields = {
+            "__module__": model.__module__,
+            "__str__": lambda self: "{} as of {}".format(
+                self._meta.verbose_name, self.history.history_date
+            ),
+            "history": models.ForeignKey(
+                model,
+                db_constraint=False,
+                on_delete=models.DO_NOTHING,
+            ),
+            "instance_type": through_model,
+            "m2m_history_id": self._get_history_id_field(),
+        }
+
+        return extra_fields
+
     def get_extra_fields(self, model, fields):
         """Return dict of extra fields added to the historical record model"""
 
@@ -570,6 +584,20 @@ class HistoricalRecords:
             )
         return result
 
+    def get_meta_options_m2m(self, through_model):
+        """
+        Returns a dictionary of fields that will be added to
+        the Meta inner class of the m2m historical record model.
+        """
+        name = self.get_history_model_name(through_model)
+
+        meta_fields = {"verbose_name": name}
+
+        if self.app:
+            meta_fields["app_label"] = self.app
+
+        return meta_fields
+
     def get_meta_options(self, model):
         """
         Returns a dictionary of fields that will be added to
@@ -650,7 +678,21 @@ class HistoricalRecords:
                     )
                 insert_rows.append(m2m_history_model(**insert_row))
 
-            m2m_history_model.objects.bulk_create(insert_rows)
+            pre_create_historical_m2m_records.send(
+                sender=m2m_history_model,
+                rows=insert_rows,
+                history_instance=history_instance,
+                instance=instance,
+                field=field,
+            )
+            created_rows = m2m_history_model.objects.bulk_create(insert_rows)
+            post_create_historical_m2m_records.send(
+                sender=m2m_history_model,
+                created_rows=created_rows,
+                history_instance=history_instance,
+                instance=instance,
+                field=field,
+            )
 
     def create_historical_record(self, instance, history_type, using=None):
         using = using if self.use_base_model_db else None

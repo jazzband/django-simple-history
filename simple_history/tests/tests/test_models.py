@@ -24,7 +24,10 @@ from simple_history.models import (
     is_historic,
     to_historic,
 )
-from simple_history.signals import pre_create_historical_record
+from simple_history.signals import (
+    pre_create_historical_m2m_records,
+    pre_create_historical_record,
+)
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
@@ -95,6 +98,7 @@ from ..models import (
     PollWithExcludeFields,
     PollWithHistoricalIPAddress,
     PollWithManyToMany,
+    PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
     PollWithSeveralManyToMany,
     Province,
@@ -1487,6 +1491,11 @@ def add_static_history_ip_address(sender, **kwargs):
     history_instance.ip_address = "192.168.0.1"
 
 
+def add_static_history_ip_address_on_m2m(sender, rows, **kwargs):
+    for row in rows:
+        row.ip_address = "192.168.0.1"
+
+
 class ExtraFieldsStaticIPAddressTestCase(TestCase):
     def setUp(self):
         pre_create_historical_record.connect(
@@ -1788,6 +1797,55 @@ class InheritedManyToManyTest(TestCase):
 
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
+
+
+class ManyToManyWithSignalsTest(TestCase):
+    def setUp(self):
+        self.model = PollWithManyToManyWithIPAddress
+        # self.historical_through_model = self.model.history.
+        self.places = (
+            Place.objects.create(name="London"),
+            Place.objects.create(name="Paris"),
+        )
+        self.poll = self.model.objects.create(question="what's up?", pub_date=today)
+        pre_create_historical_m2m_records.connect(
+            add_static_history_ip_address_on_m2m,
+            dispatch_uid="add_static_history_ip_address_on_m2m",
+        )
+
+    def tearDown(self):
+        pre_create_historical_m2m_records.disconnect(
+            add_static_history_ip_address_on_m2m,
+            dispatch_uid="add_static_history_ip_address_on_m2m",
+        )
+
+    def test_ip_address_added(self):
+        self.poll.places.add(*self.places)
+
+        places = self.poll.history.first().places
+        self.assertEqual(2, places.count())
+        for place in places.all():
+            self.assertEqual("192.168.0.1", place.ip_address)
+
+    def test_extra_field(self):
+        self.poll.places.add(*self.places)
+        m2m_record = self.poll.history.first().places.first()
+        self.assertEqual(
+            m2m_record.get_class_name(),
+            "HistoricalPollWithManyToManyWithIPAddress_places",
+        )
+
+    def test_diff(self):
+        self.poll.places.clear()
+        self.poll.places.add(*self.places)
+
+        new = self.poll.history.first()
+        old = new.prev_record
+
+        delta = new.diff_against(old)
+
+        self.assertEqual("places", delta.changes[0].field)
+        self.assertEqual(2, len(delta.changes[0].new))
 
 
 class ManyToManyTest(TestCase):
