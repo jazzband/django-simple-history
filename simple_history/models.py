@@ -923,12 +923,20 @@ class HistoricalChanges:
         if excluded_fields is None:
             excluded_fields = set()
 
+        included_m2m_fields = {field.name for field in old_history._history_m2m_fields}
         if included_fields is None:
             included_fields = {
                 f.name for f in old_history.instance_type._meta.fields if f.editable
             }
+        else:
+            included_m2m_fields = included_m2m_fields.intersection(included_fields)
 
-        fields = set(included_fields).difference(excluded_fields)
+        fields = (
+            set(included_fields)
+            .difference(included_m2m_fields)
+            .difference(excluded_fields)
+        )
+        m2m_fields = set(included_m2m_fields).difference(excluded_fields)
 
         changes = []
         changed_fields = []
@@ -945,11 +953,10 @@ class HistoricalChanges:
                 changed_fields.append(field)
 
         # Separately compare m2m fields:
-        for field in old_history._history_m2m_fields:
+        for field in m2m_fields:
             # First retrieve a single item to get the field names from:
             reference_history_m2m_item = (
-                getattr(old_history, field.name).first()
-                or getattr(self, field.name).first()
+                getattr(old_history, field).first() or getattr(self, field).first()
             )
             history_field_names = []
             if reference_history_m2m_item:
@@ -963,15 +970,13 @@ class HistoricalChanges:
                     if f.editable and f.name not in ["id", "m2m_history_id", "history"]
                 ]
 
-            old_rows = list(
-                getattr(old_history, field.name).values(*history_field_names)
-            )
-            new_rows = list(getattr(self, field.name).values(*history_field_names))
+            old_rows = list(getattr(old_history, field).values(*history_field_names))
+            new_rows = list(getattr(self, field).values(*history_field_names))
 
             if old_rows != new_rows:
-                change = ModelChange(field.name, old_rows, new_rows)
+                change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
-                changed_fields.append(field.name)
+                changed_fields.append(field)
 
         return ModelDelta(changes, changed_fields, old_history, self)
 

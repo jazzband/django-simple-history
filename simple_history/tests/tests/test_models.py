@@ -2126,6 +2126,17 @@ class ManyToManyTest(TestCase):
         self.assertListEqual(expected_change.new, delta.changes[0].new)
         self.assertListEqual(expected_change.old, delta.changes[0].old)
 
+        delta = add_record.diff_against(create_record, included_fields=["places"])
+        self.assertEqual(delta.changed_fields, ["places"])
+        self.assertEqual(delta.old_record, create_record)
+        self.assertEqual(delta.new_record, add_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
+
+        delta = add_record.diff_against(create_record, excluded_fields=["places"])
+        self.assertEqual(delta.changed_fields, [])
+        self.assertEqual(delta.old_record, create_record)
+        self.assertEqual(delta.new_record, add_record)
+
         self.poll.places.clear()
 
         # First and third records are effectively the same.
