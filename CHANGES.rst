@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Fixed typos in the docs
+- Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
+- Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
 
 3.1.1 (2022-04-23)
 ------------------

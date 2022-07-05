@@ -141,14 +141,14 @@ tables in your database:
 
 .. _above: `Track History`_
 
-The two extra tables with ``historical`` prepended to their names are tables created
+The two extra tables with ``historical`` prepend to their names are tables created
 by ``django-simple-history``. These tables store every change that you make to their
 respective base tables. Every time a create, update, or delete occurs on ``Choice`` or
 ``Poll`` a new row is created in the historical table for that model including all of
 the fields in the instance of the base model, as well as other metadata:
 
 - ``history_user``: the user that made the create/update/delete
-- ``history_date``: the datetime at which the create/update/delete occurred
+- ``history_date``: the ``datetime`` at which the create/update/delete occurred
 - ``history_change_reason``: the reason the create/update/delete occurred (null by default)
 - ``history_id``: the primary key for the historical table (note the base table's
   primary key is not unique on the historical table since there are multiple versions of it

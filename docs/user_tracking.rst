@@ -58,7 +58,7 @@ Admin integration requires that you use a ``_history_user.setter`` attribute wit
 your custom ``_history_user`` property (see :doc:`/admin`).
 
 Another option for identifying the change user is by providing a function via ``get_user``.
-If provided it will be called everytime that the ``history_user`` needs to be
+If provided it will be called every time that the ``history_user`` needs to be
 identified with the following key word arguments:
 
 * ``instance``:  The current instance being modified

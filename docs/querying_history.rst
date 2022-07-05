@@ -144,7 +144,7 @@ If you use `as_of` to query history, the resulting instance will have an
 attribute named `_history` added to it.  This property will contain the
 historical model record that the instance was derived from.  Calling
 is_historic is an easy way to check if an instance was derived from a
-historic timepoint (even if it is the most recent version).
+historic point in time (even if it is the most recent version).
 
 You can use `to_historic` to return the historical model that was used
 to furnish the instance at hand, if it is actually historic.
@@ -155,7 +155,7 @@ HistoricForeignKey
 
 If you have two historic tables linked by foreign key, you can change it
 to use a HistoricForeignKey so that chasing relations from an `as_of`
-acquired instance (at a specific timepoint) will honor that timepoint
+acquired instance (at a specific point in time) will honor that point in time
 when accessing the related object(s).  This works for both forward and
 reverse relationships.
 
@@ -219,7 +219,7 @@ To filter changes to the data, a relationship to the history can be established.
 
     Poll.objects.filter(history__history_user=4)
 
-You can also prefetch the objects with this relationship using somthing like this for example to prefetch order by history_date descending:
+You can also prefetch the objects with this relationship using something like this for example to prefetch order by history_date descending:
 
 .. code-block:: python
 

@@ -43,7 +43,7 @@ If you find yourself with a lot of old history you can schedule the
 
     $ python manage.py clean_old_history --auto
 
-You can use ``--auto`` to remove old historial entries
+You can use ``--auto`` to remove old historical entries
 with ``HistoricalRecords`` or enumerate specific models as args.
 You may also specify a  ``--days`` parameter, which indicates how many
 days of records you want to keep. The default it 30 days, meaning that
