@@ -570,7 +570,11 @@ class HistoricalRecords:
 
         attrs = {}
         for field in self.fields_included(instance):
-            attrs[field.attname] = getattr(instance, field.attname)
+            if field.attname == instance._meta.pk.attname and hasattr(instance, "id_hashid"):
+                hashid = getattr(instance, "id_hashid")
+                attrs[field.attname] = hashid.id
+            else:
+                attrs[field.attname] = getattr(instance, field.attname)
 
         relation_field = getattr(manager.model, "history_relation", None)
         if relation_field is not None:
