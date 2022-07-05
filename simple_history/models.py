@@ -570,7 +570,9 @@ class HistoricalRecords:
 
         attrs = {}
         for field in self.fields_included(instance):
-            if field.attname == instance._meta.pk.attname and hasattr(instance, "id_hashid"):
+            if field.attname == instance._meta.pk.attname and hasattr(
+                instance, "id_hashid"
+            ):
                 hashid = getattr(instance, "id_hashid")
                 attrs[field.attname] = hashid.id
             else:
