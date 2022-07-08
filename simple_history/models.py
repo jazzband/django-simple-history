@@ -400,7 +400,7 @@ class HistoricalRecords:
 
     def _get_history_id_field(self):
         if self.history_id_field:
-            history_id_field = self.history_id_field
+            history_id_field = self.history_id_field.clone()
             history_id_field.primary_key = True
             history_id_field.editable = False
         elif getattr(settings, "SIMPLE_HISTORY_HISTORY_ID_USE_UUID", False):

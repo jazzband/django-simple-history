@@ -117,6 +117,16 @@ class PollWithManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[places])
 
 
+class PollWithManyToManyCustomHistoryID(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places], history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
 class HistoricalRecordsWithExtraFieldM2M(HistoricalRecords):
     def get_extra_fields_m2m(self, model, through_model, fields):
         extra_fields = super().get_extra_fields_m2m(model, through_model, fields)

@@ -98,6 +98,7 @@ from ..models import (
     PollWithExcludeFields,
     PollWithHistoricalIPAddress,
     PollWithManyToMany,
+    PollWithManyToManyCustomHistoryID,
     PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
     PollWithSeveralManyToMany,
@@ -1846,6 +1847,14 @@ class ManyToManyWithSignalsTest(TestCase):
 
         self.assertEqual("places", delta.changes[0].field)
         self.assertEqual(2, len(delta.changes[0].new))
+
+
+class ManyToManyCustomIDTest(TestCase):
+    def setUp(self):
+        self.model = PollWithManyToManyCustomHistoryID
+        self.history_model = self.model.history.model
+        self.place = Place.objects.create(name="Home")
+        self.poll = self.model.objects.create(question="what's up?", pub_date=today)
 
 
 class ManyToManyTest(TestCase):
