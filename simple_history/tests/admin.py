@@ -21,6 +21,9 @@ class PersonAdmin(SimpleHistoryAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
+    def has_view_permission(self, request, obj=None):
+        return False
+
 
 class ChoiceAdmin(SimpleHistoryAdmin):
     history_list_display = ["votes"]

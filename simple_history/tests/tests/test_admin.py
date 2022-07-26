@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 
-import django
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.shortcuts import get_object_or_404
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
@@ -410,7 +411,7 @@ class AdminSiteTest(TestCase):
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
-        response = admin.response_change(request, poll)
+        admin.response_change(request, poll)
 
         with patch("simple_history.admin.admin.ModelAdmin.response_change") as m_admin:
             m_admin.return_value = "it was called"
@@ -472,9 +473,10 @@ class AdminSiteTest(TestCase):
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
+            "has_view_permission": admin.has_view_history_permission(request, poll),
+            "has_change_permission": admin.has_change_history_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
-            "revert_disabled": admin.revert_disabled,
+            "revert_disabled": admin.revert_disabled(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -526,9 +528,10 @@ class AdminSiteTest(TestCase):
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
+            "has_view_permission": admin.has_view_history_permission(request, poll),
+            "has_change_permission": admin.has_change_history_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
-            "revert_disabled": admin.revert_disabled,
+            "revert_disabled": admin.revert_disabled(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -580,9 +583,10 @@ class AdminSiteTest(TestCase):
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
+            "has_view_permission": admin.has_view_history_permission(request, poll),
+            "has_change_permission": admin.has_change_history_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
-            "revert_disabled": admin.revert_disabled,
+            "revert_disabled": admin.revert_disabled(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -636,9 +640,10 @@ class AdminSiteTest(TestCase):
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, obj),
+            "has_view_permission": admin.has_view_history_permission(request, obj),
+            "has_change_permission": admin.has_change_history_permission(request, obj),
             "has_delete_permission": admin.has_delete_permission(request, obj),
-            "revert_disabled": admin.revert_disabled,
+            "revert_disabled": admin.revert_disabled(request, obj),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -694,9 +699,10 @@ class AdminSiteTest(TestCase):
             "add": False,
             "change": True,
             "has_add_permission": admin.has_add_permission(request),
-            "has_change_permission": admin.has_change_permission(request, poll),
+            "has_view_permission": admin.has_view_history_permission(request, poll),
+            "has_change_permission": admin.has_change_history_permission(request, poll),
             "has_delete_permission": admin.has_delete_permission(request, poll),
-            "revert_disabled": admin.revert_disabled,
+            "revert_disabled": admin.revert_disabled(request, poll),
             "has_file_field": True,
             "has_absolute_url": False,
             "form_url": "",
@@ -730,8 +736,9 @@ class AdminSiteTest(TestCase):
         self.login()
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet))
-        self.assertContains(response, "View history: Sun")
+        self.assertNotContains(response, "Change history: Sun")
         self.assertNotContains(response, "Choose a date")
+        self.assertContains(response, "View history: Sun")
 
     def test_history_form_view__shows_revert_button_by_default(self):
         self.login()
@@ -755,6 +762,207 @@ class AdminSiteTest(TestCase):
         self.login()
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet, 0))
+        self.assertNotContains(response, "Revert")
         self.assertContains(response, "View Planet")
         self.assertContains(response, "View Sun")
-        self.assertNotContains(response, "Revert")
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    def test_history_view_with_view_only_permissions_and_norevert(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user.user_permissions.add(Permission.objects.get(codename="view_planet"))
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_historicalplanet")
+        )
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(200, response.status_code)
+        self.assertNotContains(response, "Change history: Sun")
+        self.assertNotContains(response, "Choose a date")
+        self.assertContains(response, "View history: Sun")
+
+    def test_history_view___view_only_permissions_and_revert_enabled(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="view_historicalplanet"),
+        )
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(200, response.status_code)
+        self.assertNotContains(response, "Change history: Sun")
+        self.assertNotContains(response, "Choose a date")
+        self.assertContains(response, "View history: Sun")
+
+    def test_history_view__view_change_permissions_and_revert_enabled(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+        )
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet))
+        self.assertEqual(200, response.status_code)
+        self.assertContains(response, "Change history: Sun")
+        self.assertContains(response, "Choose a date")
+        self.assertNotContains(response, "View history: Sun")
+
+    @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
+    def test_history_form_view__no_perms_enforce_history_permissions(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        response = self.client.get(get_history_url(planet, 0))
+        self.assertEqual(403, response.status_code)
+
+    @override_settings(
+        SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True,
+    )
+    def test_history_view__no_perms_enforce_history_permissions(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        resp = self.client.get(get_history_url(planet))
+        self.assertEqual(403, resp.status_code)
+
+    @override_settings(
+        SIMPLE_HISTORY_REVERT_DISABLED=False,
+        SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True,
+    )
+    def test_history_view__enforce_history_permissions_and_revert_enabled(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_historicalplanet"),
+        )
+        user = get_object_or_404(User, pk=user.id)
+        self.client.force_login(user)
+        planet = Planet.objects.create(star="Sun")
+        resp = self.client.get(get_history_url(planet))
+        self.assertEqual(200, resp.status_code)
+        self.assertNotContains(resp, "Change history: Sun")
+        self.assertNotContains(resp, "Choose a date")
+        self.assertContains(resp, "View history: Sun")
+
+    @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
+    def test_permission_combos__enforce_history_permissions(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+
+        def get_request(usr):
+            usr = get_object_or_404(User, pk=usr.id)  # refresh perms cache
+            req = RequestFactory().post("/")
+            req.session = "session"
+            req._messages = FallbackStorage(req)
+            req.user = usr
+            return req
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        # no perms
+        self.assertFalse(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change only -> view_historical is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertFalse(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change and historical change -> view_history is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertFalse(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change and historical view/change -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="view_historicalplanet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+
+        # has historical view only -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+
+    def test_permission_combos__default(self):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+
+        def get_request(usr):
+            usr = get_object_or_404(User, pk=usr.id)  # refresh perms cache
+            req = RequestFactory().post("/")
+            req.session = "session"
+            req._messages = FallbackStorage(req)
+            req.user = usr
+            return req
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        # no perms
+        self.assertFalse(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change only -> view_historical is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change and historical change -> view_history is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+
+        # has concrete view/change and historical view/change -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="view_historicalplanet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+
+        # has historical view only -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_historicalplanet"),
+        )
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+        self.assertFalse(admin.has_view_history_permission(get_request(user)))

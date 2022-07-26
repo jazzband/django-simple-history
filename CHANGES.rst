@@ -7,6 +7,9 @@ Unreleased
 - Fixed typos in the docs
 - Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
 - Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
+- add feature to evaluate ``history`` model permisions explicitly when
+  ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
+  in ``settings``.
 
 3.1.1 (2022-04-23)
 ------------------
