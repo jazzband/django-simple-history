@@ -1324,14 +1324,8 @@ class TestOrderWrtField(TestCase):
 
         model_state = state.ModelState.from_model(SeriesWork.history.model)
         found = False
-        # `fields` is a dict in Django 3.1
-        fields = None
-        if isinstance(model_state.fields, dict):
-            fields = model_state.fields.items()
-        else:
-            fields = model_state.fields
 
-        for name, field in fields:
+        for name, field in model_state.fields.items():
             if name == "_order":
                 found = True
                 self.assertEqual(type(field), models.IntegerField)
