@@ -112,8 +112,10 @@ def bulk_create_with_history(
             obj_when_list.append(When(**attributes, then=i))
             q = Q(**attributes)
             cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
-        existing_objs_ids = list(
-            model_manager.filter(cumulative_filter).values_list("pk", flat=True)
+        existing_objs_ids = (
+            list(model_manager.filter(cumulative_filter).values_list("pk", flat=True))
+            if cumulative_filter
+            else []
         )
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
