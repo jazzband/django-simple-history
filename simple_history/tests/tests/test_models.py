@@ -894,11 +894,20 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
 
 
 class CreateHistoryModelTests(unittest.TestCase):
+    @staticmethod
+    def create_history_model(model, inherited):
+        custom_model_name_prefix = "MockHistorical"
+        records = HistoricalRecords(
+            # Provide a custom history model name, to prevent name collisions
+            # with existing historical models
+            custom_model_name=lambda name: f"{custom_model_name_prefix}{name}",
+        )
+        records.module = model.__module__
+        return records.create_history_model(model, inherited)
+
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
-        records = HistoricalRecords()
-        records.module = AdminProfile.__module__
         try:
-            records.create_history_model(AdminProfile, False)
+            self.create_history_model(AdminProfile, False)
         except Exception:
             self.fail(
                 "SimpleHistory should handle foreign keys to one to one"
@@ -906,10 +915,8 @@ class CreateHistoryModelTests(unittest.TestCase):
             )
 
     def test_create_history_model_with_one_to_one_field_to_char_field(self):
-        records = HistoricalRecords()
-        records.module = Bookcase.__module__
         try:
-            records.create_history_model(Bookcase, False)
+            self.create_history_model(Bookcase, False)
         except Exception:
             self.fail(
                 "SimpleHistory should handle foreign keys to one to one"
@@ -917,10 +924,8 @@ class CreateHistoryModelTests(unittest.TestCase):
             )
 
     def test_create_history_model_with_multiple_one_to_ones(self):
-        records = HistoricalRecords()
-        records.module = MultiOneToOne.__module__
         try:
-            records.create_history_model(MultiOneToOne, False)
+            self.create_history_model(MultiOneToOne, False)
         except Exception:
             self.fail(
                 "SimpleHistory should handle foreign keys to one to one"
