@@ -928,9 +928,7 @@ class HistoricalChanges:
 
         included_m2m_fields = {field.name for field in old_history._history_m2m_fields}
         if included_fields is None:
-            included_fields = {
-                f.name for f in old_history.instance_type._meta.fields if f.editable
-            }
+            included_fields = {f.name for f in old_history.tracked_fields if f.editable}
         else:
             included_m2m_fields = included_m2m_fields.intersection(included_fields)
 
