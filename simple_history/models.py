@@ -71,6 +71,8 @@ def _history_user_setter(historical_instance, user):
 
 
 class HistoricalRecords:
+    DEFAULT_MODEL_NAME_PREFIX = "Historical"
+
     thread = context = LocalContext()  # retain thread for backwards compatibility
     m2m_models = {}
 
@@ -230,7 +232,7 @@ class HistoricalRecords:
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
-            return f"Historical{model._meta.object_name}"
+            return f"{self.DEFAULT_MODEL_NAME_PREFIX}{model._meta.object_name}"
         # Must be trying to use a custom history model name
         if callable(self.custom_model_name):
             name = self.custom_model_name(model._meta.object_name)

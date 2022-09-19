@@ -898,7 +898,7 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
 class CreateHistoryModelTests(unittest.TestCase):
     @staticmethod
     def create_history_model(model, inherited):
-        custom_model_name_prefix = "MockHistorical"
+        custom_model_name_prefix = f"Mock{HistoricalRecords.DEFAULT_MODEL_NAME_PREFIX}"
         records = HistoricalRecords(
             # Provide a custom history model name, to prevent name collisions
             # with existing historical models
@@ -912,7 +912,7 @@ class CreateHistoryModelTests(unittest.TestCase):
             from .. import models
 
             history_model = getattr(
-                models, f"Historical{model.__name__}"
+                models, f"{HistoricalRecords.DEFAULT_MODEL_NAME_PREFIX}{model.__name__}"
             )
             self.assertListEqual(
                 [field.name for field in history_model.tracked_fields],
