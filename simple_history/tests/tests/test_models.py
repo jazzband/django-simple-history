@@ -77,6 +77,7 @@ from ..models import (
     InheritedRestaurant,
     Library,
     ManyToManyModelOther,
+    ModelWithCustomAttrOneToOneField,
     ModelWithExcludedManyToMany,
     ModelWithFkToModelWithHistoryUsingBaseModelDb,
     ModelWithHistoryInDifferentDb,
@@ -93,6 +94,7 @@ from ..models import (
     PollChildBookWithManyToMany,
     PollChildRestaurantWithManyToMany,
     PollInfo,
+    PollWithAlternativeManager,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
     PollWithExcludeFields,
@@ -904,6 +906,51 @@ class CreateHistoryModelTests(unittest.TestCase):
         )
         records.module = model.__module__
         return records.create_history_model(model, inherited)
+
+    def test_create_history_model_has_expected_tracked_files_attr(self):
+        def assert_tracked_fields_equal(model, expected_field_names):
+            from .. import models
+
+            history_model = getattr(
+                models, f"Historical{model.__name__}"
+            )
+            self.assertListEqual(
+                [field.name for field in history_model.tracked_fields],
+                expected_field_names,
+            )
+
+        assert_tracked_fields_equal(
+            Poll,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            PollWithNonEditableField,
+            ["id", "question", "pub_date", "modified"],
+        )
+        assert_tracked_fields_equal(
+            PollWithExcludeFields,
+            ["id", "question", "place"],
+        )
+        assert_tracked_fields_equal(
+            PollWithExcludedFieldsWithDefaults,
+            ["id", "question"],
+        )
+        assert_tracked_fields_equal(
+            PollWithExcludedFKField,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            PollWithAlternativeManager,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            PollWithHistoricalIPAddress,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            ModelWithCustomAttrOneToOneField,
+            ["id", "poll"],
+        )
 
     def test_create_history_model_with_one_to_one_field_to_integer_field(self):
         try:

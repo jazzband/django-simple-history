@@ -274,6 +274,7 @@ class HistoricalRecords:
             "__module__": self.module,
             "_history_excluded_fields": self.excluded_fields,
             "_history_m2m_fields": self.get_m2m_fields_from_model(model),
+            "tracked_fields": self.fields_included(model),
         }
 
         app_module = "%s.models" % model._meta.app_label
