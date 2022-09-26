@@ -266,7 +266,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             opts_history = self.model.history.model._meta
             codename_view_history = get_permission_codename("view", opts_history)
             return request.user.has_perm(
-                "%s.%s" % (opts_history.app_label, codename_view_history)
+                f"{opts_history.app_label}.{codename_view_history}"
             )
         return self.has_view_permission(request, obj)
 
@@ -275,7 +275,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             opts_history = self.model.history.model._meta
             codename_change_history = get_permission_codename("change", opts_history)
             return request.user.has_perm(
-                "%s.%s" % (opts_history.app_label, codename_change_history)
+                f"{opts_history.app_label}.{codename_change_history}"
             )
         return self.has_change_permission(request, obj)
 
