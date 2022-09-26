@@ -104,8 +104,8 @@ history model in admin.
 
     user.user_permissions.clear()
     user.user_permissions.add(
-        Permission.objects.get(codename="view_planet"),
-        Permission.objects.get(codename="change_planet"),
+        Permission.objects.get(codename="view_poll"),
+        Permission.objects.get(codename="change_poll"),
     )
 
 The user below has view permission to the ``Poll`` model and the ``Poll`` history model
@@ -115,7 +115,7 @@ in admin.
 
     user.user_permissions.clear()
     user.user_permissions.add(
-        Permission.objects.get(codename="view_planet"),
+        Permission.objects.get(codename="view_poll"),
     )
 
 When ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``, permissions to
@@ -129,7 +129,7 @@ though they *have* view permission to the ``Poll`` model.
     # SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True in settings
     user.user_permissions.clear()
     user.user_permissions.add(
-        Permission.objects.get(codename="view_planet"),
+        Permission.objects.get(codename="view_poll"),
     )
 
 The user below has view permission to the ``Poll`` model and the ``Poll``
@@ -140,8 +140,8 @@ history model.
     # SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True in settings
     user.user_permissions.clear()
     user.user_permissions.add(
-        Permission.objects.get(codename="view_planet"),
-        Permission.objects.get(codename="view_historicalplanet"),
+        Permission.objects.get(codename="view_poll"),
+        Permission.objects.get(codename="view_historicalpoll"),
     )
 
 The user below has view permission to the ``Poll`` history model but will need to
@@ -153,5 +153,5 @@ the admin application index page nor the ``Poll`` changelist.
     # SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True in settings
     user.user_permissions.clear()
     user.user_permissions.add(
-        Permission.objects.get(codename="view_historicalplanet"),
+        Permission.objects.get(codename="view_historicalpoll"),
     )
