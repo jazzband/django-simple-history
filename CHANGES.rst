@@ -8,6 +8,7 @@ Unreleased
 - Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
 - Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
 - Add basic support for many-to-many fields (gh-399)
+- Added support for Django 4.1 (gh-1021)
 
 3.1.1 (2022-04-23)
 ------------------
