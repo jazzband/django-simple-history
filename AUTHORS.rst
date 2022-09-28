@@ -21,8 +21,9 @@ Authors
 - Bheesham Persaud (`bheesham <https://github.com/bheesham>`_)
 - `bradford281 <https://github.com/bradford281>`_
 - Brian Armstrong (`barm <https://github.com/barm>`_)
-- Buddy Lindsey, Jr.
 - Brian Dixon
+- Brian Mesick (`bmedx <https://github.com/bmedx>`_)
+- Buddy Lindsey, Jr.
 - Carlos San Emeterio (`Carlos-San-Emeterio <https://github.com/Carlos-San-Emeterio>`_)
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
 - Christopher Johns (`tyrantwave <https://github.com/tyrantwave>`_)
@@ -114,6 +115,7 @@ Authors
 - Stefan Borer (`sbor23 <https://github.com/sbor23>`_)
 - Steven Buss (`sbuss <https://github.com/sbuss>`_)
 - Steven Klass
+- Thijs Kramer (`thijskramer <https://github.com/thijskramer>`_)
 - Tim Schilling (`tim-schilling <https://github.com/tim-schilling>`_)
 - Todd Wolfson (`twolfson <https://github.com/twolfson>`_)
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)

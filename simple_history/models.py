@@ -2,6 +2,7 @@ import copy
 import importlib
 import uuid
 import warnings
+from functools import partial
 
 from django.apps import apps
 from django.conf import settings
@@ -18,6 +19,7 @@ from django.db.models.fields.related_descriptors import (
     create_reverse_many_to_one_manager,
 )
 from django.db.models.query import QuerySet
+from django.db.models.signals import m2m_changed
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
@@ -65,6 +67,7 @@ def _history_user_setter(historical_instance, user):
 
 class HistoricalRecords:
     thread = context = LocalContext()  # retain thread for backwards compatibility
+    m2m_models = {}
 
     def __init__(
         self,
@@ -90,6 +93,7 @@ class HistoricalRecords:
         user_db_constraint=True,
         no_db_index=list(),
         excluded_field_kwargs=None,
+        m2m_fields=(),
     ):
         self.user_set_verbose_name = verbose_name
         self.user_set_verbose_name_plural = verbose_name_plural
@@ -109,6 +113,7 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
+        self.m2m_fields = m2m_fields
 
         if isinstance(no_db_index, str):
             no_db_index = [no_db_index]
@@ -172,6 +177,7 @@ class HistoricalRecords:
                 )
             )
         history_model = self.create_history_model(sender, inherited)
+
         if inherited:
             # Make sure history model is in same module as concrete model
             module = importlib.import_module(history_model.__module__)
@@ -183,10 +189,28 @@ class HistoricalRecords:
         # so the signal handlers can't use weak references.
         models.signals.post_save.connect(self.post_save, sender=sender, weak=False)
         models.signals.post_delete.connect(self.post_delete, sender=sender, weak=False)
+        for field in self.m2m_fields:
+            m2m_changed.connect(
+                partial(self.m2m_changed, attr=field.name),
+                sender=field.remote_field.through,
+                weak=False,
+            )
 
         descriptor = HistoryDescriptor(history_model)
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
+
+        for field in self.m2m_fields:
+            m2m_model = self.create_history_m2m_model(
+                history_model, field.remote_field.through
+            )
+            self.m2m_models[field] = m2m_model
+
+            module = importlib.import_module(self.module)
+            setattr(module, m2m_model.__name__, m2m_model)
+
+            m2m_descriptor = HistoryDescriptor(m2m_model)
+            setattr(history_model, field.name, m2m_descriptor)
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
@@ -210,6 +234,50 @@ class HistoricalRecords:
             )
         )
 
+    def create_history_m2m_model(self, model, through_model):
+        attrs = {
+            "__module__": self.module,
+            "__str__": lambda self: "{} as of {}".format(
+                self._meta.verbose_name, self.history.history_date
+            ),
+        }
+
+        app_module = "%s.models" % model._meta.app_label
+
+        if model.__module__ != self.module:
+            # registered under different app
+            attrs["__module__"] = self.module
+        elif app_module != self.module:
+            # Abuse an internal API because the app registry is loading.
+            app = apps.app_configs[model._meta.app_label]
+            models_module = app.name
+            attrs["__module__"] = models_module
+
+        # Get the primary key to the history model this model will look up to
+        attrs["m2m_history_id"] = self._get_history_id_field()
+        attrs["history"] = models.ForeignKey(
+            model,
+            db_constraint=False,
+            on_delete=models.DO_NOTHING,
+        )
+        attrs["instance_type"] = through_model
+
+        fields = self.copy_fields(through_model)
+        attrs.update(fields)
+
+        name = self.get_history_model_name(through_model)
+        registered_models[through_model._meta.db_table] = through_model
+        meta_fields = {"verbose_name": name}
+
+        if self.app:
+            meta_fields["app_label"] = self.app
+
+        attrs.update(Meta=type(str("Meta"), (), meta_fields))
+
+        m2m_history_model = type(str(name), (models.Model,), attrs)
+
+        return m2m_history_model
+
     def create_history_model(self, model, inherited):
         """
         Creates a historical model to associate with the model provided.
@@ -217,6 +285,7 @@ class HistoricalRecords:
         attrs = {
             "__module__": self.module,
             "_history_excluded_fields": self.excluded_fields,
+            "_history_m2m_fields": self.m2m_fields,
         }
 
         app_module = "%s.models" % model._meta.app_label
@@ -559,6 +628,37 @@ class HistoricalRecords:
         """
         return get_change_reason_from_object(instance)
 
+    def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
+        if hasattr(instance, "skip_history_when_saving"):
+            return
+
+        if action in ("post_add", "post_remove", "post_clear"):
+            # It should be safe to ~ this since the row must exist to modify m2m on it
+            self.create_historical_record(instance, "~")
+
+    def create_historical_record_m2ms(self, history_instance, instance):
+        for field in self.m2m_fields:
+            m2m_history_model = self.m2m_models[field]
+            original_instance = history_instance.instance
+            through_model = getattr(original_instance, field.name).through
+
+            insert_rows = []
+
+            through_field_name = type(original_instance).__name__.lower()
+
+            rows = through_model.objects.filter(**{through_field_name: instance})
+
+            for row in rows:
+                insert_row = {"history": history_instance}
+
+                for through_model_field in through_model._meta.fields:
+                    insert_row[through_model_field.name] = getattr(
+                        row, through_model_field.name
+                    )
+                insert_rows.append(m2m_history_model(**insert_row))
+
+            m2m_history_model.objects.bulk_create(insert_rows)
+
     def create_historical_record(self, instance, history_type, using=None):
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
@@ -595,6 +695,7 @@ class HistoricalRecords:
         )
 
         history_instance.save(using=using)
+        self.create_historical_record_m2ms(history_instance, instance)
 
         post_create_historical_record.send(
             sender=manager.model,
@@ -799,6 +900,35 @@ class HistoricalChanges:
             if old_value != current_value:
                 changes.append(ModelChange(field, old_value, current_value))
                 changed_fields.append(field)
+
+        # Separately compare m2m fields:
+        for field in old_history._history_m2m_fields:
+            # First retrieve a single item to get the field names from:
+            reference_history_m2m_item = (
+                getattr(old_history, field.name).first()
+                or getattr(self, field.name).first()
+            )
+            history_field_names = []
+            if reference_history_m2m_item:
+                # Create a list of field names to compare against.
+                # The list is generated without the primary key of the intermediate
+                # table, the foreign key to the history record, and the actual 'history'
+                # field, to avoid false positives while diffing.
+                history_field_names = [
+                    f.name
+                    for f in reference_history_m2m_item._meta.fields
+                    if f.editable and f.name not in ["id", "m2m_history_id", "history"]
+                ]
+
+            old_rows = list(
+                getattr(old_history, field.name).values(*history_field_names)
+            )
+            new_rows = list(getattr(self, field.name).values(*history_field_names))
+
+            if old_rows != new_rows:
+                change = ModelChange(field.name, old_rows, new_rows)
+                changes.append(change)
+                changed_fields.append(field.name)
 
         return ModelDelta(changes, changed_fields, old_history, self)
 

@@ -447,3 +447,42 @@ And you don't want to create database index for ``question``, it is necessary to
 
 By default, django-simple-history keeps all indices. and even forces them on unique fields and relations.
 WARNING: This will drop performance on historical lookups
+
+Tracking many to many relationships
+-----------------------------------
+By default, many to many fields are ignored when tracking changes.
+If you want to track many to many relationships, you need to define them explicitly:
+
+.. code-block:: python
+
+    class Category(models.Model):
+        pass
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        categories = models.ManyToManyField(Category)
+        history = HistoricalRecords(many_to_many=[categories])
+
+This will create a historical intermediate model that tracks each relational change
+between `Poll` and `Category`.
+
+You will see the many to many changes when diffing between two historical records:
+
+.. code-block:: python
+
+    informal = Category(name="informal questions")
+    official = Category(name="official questions")
+    p = Poll.objects.create(question="what's up?")
+    p.save()
+    p.categories.add(informal, official)
+    p.categories.remove(informal)
+
+    last_record = p.history.latest()
+    previous_record = last_record.prev_record()
+    delta = last_record.diff_against(previous_record)
+
+    for change in delta.changes:
+        print("{} changed from {} to {}")
+
+    # Output:
+    # categories changed from [{'poll': 1, 'category': 1}, { 'poll': 1, 'category': 2}] to [{'poll': 1, 'category': 2}]
