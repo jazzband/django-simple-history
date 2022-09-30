@@ -272,7 +272,7 @@ class HistoricalRecords:
         if self.app:
             meta_fields["app_label"] = self.app
 
-        attrs.update(Meta=type(str("Meta"), (), meta_fields))
+        attrs.update(Meta=type("Meta", (), meta_fields))
 
         m2m_history_model = type(str(name), (models.Model,), attrs)
 
