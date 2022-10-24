@@ -24,7 +24,10 @@ from simple_history.models import (
     is_historic,
     to_historic,
 )
-from simple_history.signals import pre_create_historical_record
+from simple_history.signals import (
+    pre_create_historical_m2m_records,
+    pre_create_historical_record,
+)
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
@@ -87,12 +90,16 @@ from ..models import (
     Person,
     Place,
     Poll,
+    PollChildBookWithManyToMany,
+    PollChildRestaurantWithManyToMany,
     PollInfo,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
     PollWithExcludeFields,
     PollWithHistoricalIPAddress,
     PollWithManyToMany,
+    PollWithManyToManyCustomHistoryID,
+    PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
     PollWithSeveralManyToMany,
     Province,
@@ -1485,6 +1492,11 @@ def add_static_history_ip_address(sender, **kwargs):
     history_instance.ip_address = "192.168.0.1"
 
 
+def add_static_history_ip_address_on_m2m(sender, rows, **kwargs):
+    for row in rows:
+        row.ip_address = "192.168.0.1"
+
+
 class ExtraFieldsStaticIPAddressTestCase(TestCase):
     def setUp(self):
         pre_create_historical_record.connect(
@@ -1734,6 +1746,115 @@ class SeveralManyToManyTest(TestCase):
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.books.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
+
+
+class InheritedManyToManyTest(TestCase):
+    def setUp(self):
+        self.model_book = PollChildBookWithManyToMany
+        self.model_rstr = PollChildRestaurantWithManyToMany
+        self.place = Place.objects.create(name="Home")
+        self.book = Book.objects.create(isbn="1234")
+        self.restaurant = Restaurant.objects.create(rating=1)
+        self.poll_book = self.model_book.objects.create(
+            question="what's up?", pub_date=today
+        )
+        self.poll_rstr = self.model_rstr.objects.create(
+            question="what's up?", pub_date=today
+        )
+
+    def test_separation(self):
+        self.assertEqual(self.poll_book.history.all().count(), 1)
+        self.poll_book.places.add(self.place)
+        self.poll_book.books.add(self.book)
+        self.assertEqual(self.poll_book.history.all().count(), 3)
+
+        self.assertEqual(self.poll_rstr.history.all().count(), 1)
+        self.poll_rstr.places.add(self.place)
+        self.poll_rstr.restaurants.add(self.restaurant)
+        self.assertEqual(self.poll_rstr.history.all().count(), 3)
+
+        book, place, add = self.poll_book.history.all()
+
+        self.assertEqual(book.books.all().count(), 1)
+        self.assertEqual(book.places.all().count(), 1)
+        self.assertEqual(book.books.first().book, self.book)
+
+        self.assertEqual(place.books.all().count(), 0)
+        self.assertEqual(place.places.all().count(), 1)
+        self.assertEqual(place.places.first().place, self.place)
+
+        self.assertEqual(add.books.all().count(), 0)
+        self.assertEqual(add.places.all().count(), 0)
+
+        restaurant, place, add = self.poll_rstr.history.all()
+
+        self.assertEqual(restaurant.restaurants.all().count(), 1)
+        self.assertEqual(restaurant.places.all().count(), 1)
+        self.assertEqual(restaurant.restaurants.first().restaurant, self.restaurant)
+
+        self.assertEqual(place.restaurants.all().count(), 0)
+        self.assertEqual(place.places.all().count(), 1)
+        self.assertEqual(place.places.first().place, self.place)
+
+        self.assertEqual(add.restaurants.all().count(), 0)
+        self.assertEqual(add.places.all().count(), 0)
+
+
+class ManyToManyWithSignalsTest(TestCase):
+    def setUp(self):
+        self.model = PollWithManyToManyWithIPAddress
+        # self.historical_through_model = self.model.history.
+        self.places = (
+            Place.objects.create(name="London"),
+            Place.objects.create(name="Paris"),
+        )
+        self.poll = self.model.objects.create(question="what's up?", pub_date=today)
+        pre_create_historical_m2m_records.connect(
+            add_static_history_ip_address_on_m2m,
+            dispatch_uid="add_static_history_ip_address_on_m2m",
+        )
+
+    def tearDown(self):
+        pre_create_historical_m2m_records.disconnect(
+            add_static_history_ip_address_on_m2m,
+            dispatch_uid="add_static_history_ip_address_on_m2m",
+        )
+
+    def test_ip_address_added(self):
+        self.poll.places.add(*self.places)
+
+        places = self.poll.history.first().places
+        self.assertEqual(2, places.count())
+        for place in places.all():
+            self.assertEqual("192.168.0.1", place.ip_address)
+
+    def test_extra_field(self):
+        self.poll.places.add(*self.places)
+        m2m_record = self.poll.history.first().places.first()
+        self.assertEqual(
+            m2m_record.get_class_name(),
+            "HistoricalPollWithManyToManyWithIPAddress_places",
+        )
+
+    def test_diff(self):
+        self.poll.places.clear()
+        self.poll.places.add(*self.places)
+
+        new = self.poll.history.first()
+        old = new.prev_record
+
+        delta = new.diff_against(old)
+
+        self.assertEqual("places", delta.changes[0].field)
+        self.assertEqual(2, len(delta.changes[0].new))
+
+
+class ManyToManyCustomIDTest(TestCase):
+    def setUp(self):
+        self.model = PollWithManyToManyCustomHistoryID
+        self.history_model = self.model.history.model
+        self.place = Place.objects.create(name="Home")
+        self.poll = self.model.objects.create(question="what's up?", pub_date=today)
 
 
 class ManyToManyTest(TestCase):
@@ -2013,6 +2134,17 @@ class ManyToManyTest(TestCase):
 
         self.assertListEqual(expected_change.new, delta.changes[0].new)
         self.assertListEqual(expected_change.old, delta.changes[0].old)
+
+        delta = add_record.diff_against(create_record, included_fields=["places"])
+        self.assertEqual(delta.changed_fields, ["places"])
+        self.assertEqual(delta.old_record, create_record)
+        self.assertEqual(delta.new_record, add_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
+
+        delta = add_record.diff_against(create_record, excluded_fields=["places"])
+        self.assertEqual(delta.changed_fields, [])
+        self.assertEqual(delta.old_record, create_record)
+        self.assertEqual(delta.new_record, add_record)
 
         self.poll.places.clear()
 
