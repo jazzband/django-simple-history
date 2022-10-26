@@ -71,6 +71,8 @@ def _history_user_setter(historical_instance, user):
 
 
 class HistoricalRecords:
+    DEFAULT_MODEL_NAME_PREFIX = "Historical"
+
     thread = context = LocalContext()  # retain thread for backwards compatibility
     m2m_models = {}
 
@@ -230,7 +232,7 @@ class HistoricalRecords:
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
-            return f"Historical{model._meta.object_name}"
+            return f"{self.DEFAULT_MODEL_NAME_PREFIX}{model._meta.object_name}"
         # Must be trying to use a custom history model name
         if callable(self.custom_model_name):
             name = self.custom_model_name(model._meta.object_name)
@@ -274,6 +276,7 @@ class HistoricalRecords:
             "__module__": self.module,
             "_history_excluded_fields": self.excluded_fields,
             "_history_m2m_fields": self.get_m2m_fields_from_model(model),
+            "tracked_fields": self.fields_included(model),
         }
 
         app_module = "%s.models" % model._meta.app_label
@@ -925,9 +928,7 @@ class HistoricalChanges:
 
         included_m2m_fields = {field.name for field in old_history._history_m2m_fields}
         if included_fields is None:
-            included_fields = {
-                f.name for f in old_history.instance_type._meta.fields if f.editable
-            }
+            included_fields = {f.name for f in old_history.tracked_fields if f.editable}
         else:
             included_m2m_fields = included_m2m_fields.intersection(included_fields)
 

@@ -155,11 +155,8 @@ class HistoryManager(models.Manager):
                 )
             )
         tmp = []
-        excluded_fields = getattr(self.model, "_history_excluded_fields", [])
 
-        for field in self.instance._meta.fields:
-            if field.name in excluded_fields:
-                continue
+        for field in self.model.tracked_fields:
             if isinstance(field, models.ForeignKey):
                 tmp.append(field.name + "_id")
             else:
@@ -263,8 +260,7 @@ class HistoryManager(models.Manager):
                 history_type=history_type,
                 **{
                     field.attname: getattr(instance, field.attname)
-                    for field in instance._meta.fields
-                    if field.name not in self.model._history_excluded_fields
+                    for field in self.model.tracked_fields
                 },
             )
             if hasattr(self.model, "history_relation"):

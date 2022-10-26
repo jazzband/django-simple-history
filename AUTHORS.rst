@@ -38,6 +38,7 @@ Authors
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - David Smith
+- `ddabble <https://github.com/ddabble>`_
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
