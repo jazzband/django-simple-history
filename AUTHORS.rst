@@ -76,6 +76,7 @@ Authors
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
 - Josh Fyne
+- Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>` _)
 - Keith Hackbarth
 - Kevin Foster
 - Klaas van Schelven
