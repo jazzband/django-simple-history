@@ -303,5 +303,8 @@ As a convention, you can define a custom manager to update these timestamps auto
         pass
 
     class Poll(models.Model):
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
         # This must be the first Manager declared in this class, otherwise it won't be detected as the `default_manager`
         objects = UpdatedAtFriendlyManager()
