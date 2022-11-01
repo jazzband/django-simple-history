@@ -299,7 +299,7 @@ As a convention, you can define a custom manager to update these timestamps auto
             new_fields = tuple(fields) + ("updated_at",)
             super().bulk_update(objs, new_fields, *args, **kwargs)
 
-    class UpdatedAtFriendlyManager(models.manager.BaseManager.from_queryset(UpdatedAtFriendlyQuerySet)):
+    class UpdatedAtFriendlyManager(models.Manager.from_queryset(UpdatedAtFriendlyQuerySet)):
         pass
 
     class Poll(models.Model):
