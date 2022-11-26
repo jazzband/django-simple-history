@@ -782,6 +782,14 @@ class HistoricalRecordsTest(TestCase):
             new_record.diff_against(old_record, excluded_fields=["unknown_field"])
 
 
+    def test_delete_with_deferred_fields(self):
+        Poll.objects.create(question="what's up bro?", pub_date=today)
+        Poll.objects.create(question="what's up sis?", pub_date=today)
+        Poll.objects.only('id').first().delete()
+        Poll.objects.defer('question').all().delete()
+
+
+
 class GetPrevRecordAndNextRecordTestCase(TestCase):
     def assertRecordsMatch(self, record_a, record_b):
         self.assertEqual(record_a, record_b)

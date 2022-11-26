@@ -205,6 +205,7 @@ class HistoricalRecords:
         # so the signal handlers can't use weak references.
         models.signals.post_save.connect(self.post_save, sender=sender, weak=False)
         models.signals.post_delete.connect(self.post_delete, sender=sender, weak=False)
+        models.signals.pre_delete.connect(self.post_delete, sender=sender, weak=False)
 
         m2m_fields = self.get_m2m_fields_from_model(sender)
 
@@ -644,6 +645,19 @@ class HistoricalRecords:
             manager.using(using).all().delete()
         else:
             self.create_historical_record(instance, "-", using=using)
+
+    def pre_delete(self, instance, **kwargs):
+        """
+        pre_delete method to ensure all deferred fileds are loaded on the model
+        """
+        fields = self.fields_included(instance)
+        field_attrs = set([field.attname for field in fields])
+        deferred_attrs = instance.get_deferred_fields()
+        # Load all deferred fields that are present in fields_included
+        for attr in field_attrs.intersection(deferred_attrs):
+            getattr(instance, attr, None)
+
+
 
     def get_change_reason_for_object(self, instance, history_type, using):
         """
