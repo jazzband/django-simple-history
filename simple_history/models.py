@@ -205,7 +205,7 @@ class HistoricalRecords:
         # so the signal handlers can't use weak references.
         models.signals.post_save.connect(self.post_save, sender=sender, weak=False)
         models.signals.post_delete.connect(self.post_delete, sender=sender, weak=False)
-        models.signals.pre_delete.connect(self.post_delete, sender=sender, weak=False)
+        models.signals.pre_delete.connect(self.pre_delete, sender=sender, weak=False)
 
         m2m_fields = self.get_m2m_fields_from_model(sender)
 
