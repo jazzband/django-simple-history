@@ -456,7 +456,7 @@ If you want to track many to many relationships, you need to define them explici
 .. code-block:: python
 
     class Category(models.Model):
-        pass
+        name = models.CharField(max_length=200)
 
     class Poll(models.Model):
         question = models.CharField(max_length=200)
@@ -474,19 +474,19 @@ You will see the many to many changes when diffing between two historical record
 
 .. code-block:: python
 
-    informal = Category(name="informal questions")
-    official = Category(name="official questions")
+    informal = Category.objects.create(name="informal questions")
+    official = Category.objects.create(name="official questions")
     p = Poll.objects.create(question="what's up?")
     p.save()
     p.categories.add(informal, official)
     p.categories.remove(informal)
 
     last_record = p.history.latest()
-    previous_record = last_record.prev_record()
+    previous_record = last_record.prev_record
     delta = last_record.diff_against(previous_record)
 
     for change in delta.changes:
-        print("{} changed from {} to {}")
+        print("{} changed from {} to {}".format(change.field, change.old, change.new))
 
     # Output:
     # categories changed from [{'poll': 1, 'category': 1}, { 'poll': 1, 'category': 2}] to [{'poll': 1, 'category': 2}]
