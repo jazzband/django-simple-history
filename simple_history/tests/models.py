@@ -158,6 +158,26 @@ class PollWithSeveralManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[places, restaurants, books])
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class PollTags(models.Model):
+    poll = models.ForeignKey("PollParentWithManyToManyCustomThrough", on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class PollParentWithManyToManyCustomThrough(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    tags = models.ManyToManyField(Tag, through=PollTags)
+
+    history = HistoricalRecords(
+        m2m_fields=[tags],
+        inherit=True,
+    )
+
+
 class PollParentWithManyToMany(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
@@ -284,6 +304,7 @@ class HistoricalRecordsVerbose(HistoricalRecords):
 
 
 register(Voter, records_class=HistoricalRecordsVerbose)
+
 
 
 class Place(models.Model):

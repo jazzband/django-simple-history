@@ -660,6 +660,20 @@ class HistoricalRecords:
             # It should be safe to ~ this since the row must exist to modify m2m on it
             self.create_historical_record(instance, "~")
 
+    def _get_through_field_name(self, through_table_fields, model):
+        """
+        Find the name of the field in the through table. This is necessary for the
+        custom through tables where Django conventions don't apply.
+        """
+        foreign_keys = filter(
+            lambda model_field: isinstance(model_field, models.ForeignKey),
+            through_table_fields
+        )
+        for field in foreign_keys:
+            if field.related_model == model:
+                return field.name
+
+
     def create_historical_record_m2ms(self, history_instance, instance):
         for field in history_instance._history_m2m_fields:
             m2m_history_model = self.m2m_models[field]
@@ -668,7 +682,11 @@ class HistoricalRecords:
 
             insert_rows = []
 
-            through_field_name = type(original_instance).__name__.lower()
+            # find the name of the field in custom or default through table
+            through_field_name = self._get_through_field_name(
+                through_model._meta.fields,
+                original_instance._meta.model
+            )
 
             rows = through_model.objects.filter(**{through_field_name: instance})
 

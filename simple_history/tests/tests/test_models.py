@@ -94,6 +94,7 @@ from ..models import (
     PollChildBookWithManyToMany,
     PollChildRestaurantWithManyToMany,
     PollInfo,
+    PollParentWithManyToManyCustomThrough,
     PollWithAlternativeManager,
     PollWithExcludedFieldsWithDefaults,
     PollWithExcludedFKField,
@@ -780,6 +781,12 @@ class HistoricalRecordsTest(TestCase):
 
         with self.assertNumQueries(0):
             new_record.diff_against(old_record, excluded_fields=["unknown_field"])
+
+    def test_history_with_custom_through_field(self):
+        PollParentWithManyToManyCustomThrough.objects.create(
+            question="what's up?", pub_date=today
+        )
+        self.assertEqual(PollParentWithManyToManyCustomThrough.objects.count(), 1)
 
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
