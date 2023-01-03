@@ -667,12 +667,11 @@ class HistoricalRecords:
         """
         foreign_keys = filter(
             lambda model_field: isinstance(model_field, models.ForeignKey),
-            through_table_fields
+            through_table_fields,
         )
         for field in foreign_keys:
             if field.related_model == model:
                 return field.name
-
 
     def create_historical_record_m2ms(self, history_instance, instance):
         for field in history_instance._history_m2m_fields:
@@ -684,8 +683,7 @@ class HistoricalRecords:
 
             # find the name of the field in custom or default through table
             through_field_name = self._get_through_field_name(
-                through_model._meta.fields,
-                original_instance._meta.model
+                through_model._meta.fields, original_instance._meta.model
             )
 
             rows = through_model.objects.filter(**{through_field_name: instance})

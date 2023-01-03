@@ -163,7 +163,9 @@ class Tag(models.Model):
 
 
 class PollTags(models.Model):
-    poll = models.ForeignKey("PollParentWithManyToManyCustomThrough", on_delete=models.CASCADE)
+    poll = models.ForeignKey(
+        "PollParentWithManyToManyCustomThrough", on_delete=models.CASCADE
+    )
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
@@ -304,7 +306,6 @@ class HistoricalRecordsVerbose(HistoricalRecords):
 
 
 register(Voter, records_class=HistoricalRecordsVerbose)
-
 
 
 class Place(models.Model):
