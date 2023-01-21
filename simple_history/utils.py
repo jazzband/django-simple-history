@@ -1,8 +1,5 @@
-import warnings
-
-import django
 from django.db import transaction
-from django.db.models import ForeignKey, ManyToManyField
+from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -111,16 +108,35 @@ def bulk_create_with_history(
                 default_date=default_date,
             )
     if second_transaction_required:
-        obj_list = []
         with transaction.atomic(savepoint=False):
-            for obj in objs_with_id:
+            # Generate a common query to avoid n+1 selections
+            #   https://github.com/jazzband/django-simple-history/issues/974
+            cumulative_filter = None
+            obj_when_list = []
+            for i, obj in enumerate(objs_with_id):
                 attributes = dict(
                     filter(
                         lambda x: x[1] is not None,
                         model_to_dict(obj, exclude=exclude_fields).items(),
                     )
                 )
-                obj_list += model_manager.filter(**attributes)
+                q = Q(**attributes)
+                cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
+                # https://stackoverflow.com/a/49625179/1960509
+                # DEV: If an attribute has `then` as a key
+                #   then they'll also run into issues with `bulk_update`
+                #   due to shared implementation
+                #   https://github.com/django/django/blob/4.0.4/django/db/models/query.py#L624-L638
+                obj_when_list.append(When(**attributes, then=i))
+            obj_list = (
+                list(
+                    model_manager.filter(cumulative_filter).order_by(
+                        Case(*obj_when_list)
+                    )
+                )
+                if objs_with_id
+                else []
+            )
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,

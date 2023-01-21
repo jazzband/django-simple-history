@@ -38,7 +38,7 @@ msgstr "%s wiederherstellen"
 
 #: simple_history/models.py:314
 msgid "Created"
-msgstr "Angelegt"
+msgstr "Erstellt"
 
 #: simple_history/models.py:314
 msgid "Changed"

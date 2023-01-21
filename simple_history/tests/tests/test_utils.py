@@ -186,6 +186,38 @@ class BulkCreateWithHistoryTestCase(TestCase):
         self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
         self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
+    def test_bulk_create_history_with_no_ids_return(self):
+        pub_date = timezone.now()
+        objects = [
+            Poll(question="Question 1", pub_date=pub_date),
+            Poll(question="Question 2", pub_date=pub_date),
+            Poll(question="Question 3", pub_date=pub_date),
+            Poll(question="Question 4", pub_date=pub_date),
+            Poll(question="Question 5", pub_date=pub_date),
+        ]
+
+        _bulk_create = Poll._default_manager.bulk_create
+
+        def mock_bulk_create(*args, **kwargs):
+            _bulk_create(*args, **kwargs)
+            return [
+                Poll(question="Question 1", pub_date=pub_date),
+                Poll(question="Question 2", pub_date=pub_date),
+                Poll(question="Question 3", pub_date=pub_date),
+                Poll(question="Question 4", pub_date=pub_date),
+                Poll(question="Question 5", pub_date=pub_date),
+            ]
+
+        with patch.object(
+            Poll._default_manager, "bulk_create", side_effect=mock_bulk_create
+        ):
+            with self.assertNumQueries(3):
+                result = bulk_create_with_history(objects, Poll)
+            self.assertEqual(
+                [poll.question for poll in result], [poll.question for poll in objects]
+            )
+            self.assertNotEqual(result[0].id, None)
+
 
 class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     def setUp(self):
@@ -242,7 +274,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         model = Mock(
             _default_manager=Mock(
                 bulk_create=Mock(return_value=[Place(name="Place 1")]),
-                filter=Mock(return_value=objects),
+                filter=Mock(return_value=Mock(order_by=Mock(return_value=objects))),
             ),
             _meta=Mock(get_fields=Mock(return_value=[])),
         )

@@ -156,7 +156,7 @@ class Command(BaseCommand):
 
     def _process(self, to_process, batch_size):
         for model, history_model in to_process:
-            if history_model.objects.count():
+            if history_model.objects.exists():
                 self.stderr.write(
                     "{msg} {model}\n".format(
                         msg=self.EXISTING_HISTORY_FOUND, model=model

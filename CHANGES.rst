@@ -4,6 +4,34 @@ Changes
 Unreleased
 ----------
 
+- Fixed typos in the docs
+- Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
+- Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
+- Add basic support for many-to-many fields (gh-399)
+- Added support for Django 4.1 (gh-1021)
+- Added ``tracked_fields`` attribute to historical models (gh-1038)
+- Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
+- Added support for Python 3.11 (gh-1053)
+
+3.1.1 (2022-04-23)
+------------------
+
+Full list of changes:
+
+- Fix py36 references in pyproject.toml (gh-960)
+- Fix local setup.py install versioning issue (gh-960)
+- Remove py2 universal wheel cfg - only py3 needed now (gh-960)
+
+
+3.1.0 (2022-04-09)
+------------------
+
+Breaking Changes:
+
+- Dropped support for Django 2.2 (gh-968)
+- Dropped support for Django 3.1 (gh-952)
+- Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946)
+
 Upgrade Implications:
 
 - Run `makemigrations` after upgrading to realize the benefit of indexing changes.
@@ -12,27 +40,28 @@ Full list of changes:
 
 - Added queryset-based filtering with ``as_of`` (gh-397)
 - Added index on `history_date` column; opt-out with setting `SIMPLE_HISTORY_DATE_INDEX` (gh-565)
-- Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
-  additional arguments that don't exist on ``ForeignKey``. (gh-870)
+- RecordModels now support a ``no_db_index`` setting, to drop indices in historical models,
+  default stays the same (gh-720)
+- Support ``included_fields`` for ``history.diff_against`` (gh-776)
+- Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
 - Fixed ``prev_record`` and ``next_record`` performance when using ``excluded_fields`` (gh-791)
 - Fixed `update_change_reason` in pk (gh-806)
 - Fixed bug where serializer of djangorestframework crashed if used with ``OrderingFilter`` (gh-821)
 - Fixed `make format` so it works by using tox (gh-859)
 - Fixed bug where latest() is not idempotent for identical ``history_date`` records (gh-861)
-- Support ``included_fields`` for ``history.diff_against`` (gh-776)
-- Improve performance of ``history.diff_against`` by reducing number of queries to 0 in most cases (gh-776)
+- Added ``excluded_field_kwargs`` to support custom ``OneToOneField`` that have
+  additional arguments that don't exist on ``ForeignKey``. (gh-870)
 - Added Czech translations (gh-885)
-- Added pre-commit for better commit quality (gh-896)
 - Added ability to break into debugger on unit test failure (gh-890)
+- Added pre-commit for better commit quality (gh-896)
 - Russian translations update (gh-897)
+- Added support for Django 4.0 (gh-898)
+- Added Python 3.10 to test matrix (gh-899)
 - Fix bug with ``history.diff_against`` with non-editable fields (gh-923)
 - Added HistoricForeignKey (gh-940)
-- Add Python 3.10 to test matrix (gh-899)
-- Added support for Django 4.0 (gh-898)
-- Dropped support for Django 3.1 (gh-952)
-- Dropped support for Python 3.6, which reached end-of-life on 2021-12-23 (gh-946)
-- RecordModels now support a ``no_db_index`` setting, to drop indices in historical models, default stays the same (gh-720)
-- Support change reason formula feature. Change reason formula can be defined by overriding ``get_change_reason_for_object`` method after subclassing ``HistoricalRecords``
+- Support change reason formula feature. Change reason formula can be defined by overriding
+  ``get_change_reason_for_object`` method after subclassing ``HistoricalRecords`` (gh-962)
+
 
 3.0.0 (2021-04-16)
 ------------------

@@ -109,6 +109,81 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class PollWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(m2m_fields=[places])
+
+
+class PollWithManyToManyCustomHistoryID(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places], history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class HistoricalRecordsWithExtraFieldM2M(HistoricalRecords):
+    def get_extra_fields_m2m(self, model, through_model, fields):
+        extra_fields = super().get_extra_fields_m2m(model, through_model, fields)
+
+        def get_class_name(self):
+            return self.__class__.__name__
+
+        extra_fields["get_class_name"] = get_class_name
+        return extra_fields
+
+
+class PollWithManyToManyWithIPAddress(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecordsWithExtraFieldM2M(
+        m2m_fields=[places], m2m_bases=[IPAddressHistoricalModel]
+    )
+
+
+class PollWithSeveralManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place", related_name="places_poll")
+    restaurants = models.ManyToManyField("Restaurant", related_name="restaurants_poll")
+    books = models.ManyToManyField("Book", related_name="books_poll")
+
+    history = HistoricalRecords(m2m_fields=[places, restaurants, books])
+
+
+class PollParentWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places],
+        inherit=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class PollChildBookWithManyToMany(PollParentWithManyToMany):
+    books = models.ManyToManyField("Book", related_name="books_poll_child")
+    _history_m2m_fields = [books]
+
+
+class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
+    restaurants = models.ManyToManyField(
+        "Restaurant", related_name="restaurants_poll_child"
+    )
+    _history_m2m_fields = [restaurants]
+
+
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)
