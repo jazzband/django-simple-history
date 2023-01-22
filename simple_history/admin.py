@@ -20,6 +20,9 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
+    default_object_history_template = "simple_history/object_history.html"
+    default_object_history_form_template = "simple_history/object_history_form.html"
+
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
         urls = super().get_urls()
@@ -96,7 +99,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 "admin/%s/%s/object_history.html" % (app_label, opts.model_name),
                 "admin/%s/object_history.html" % app_label,
                 "admin/object_history.html",
-                "simple_history/object_history.html",
+                self.default_object_history_template,
             ],
             context,
             **extra_kwargs,
@@ -219,7 +222,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 % (original_opts.app_label, model_name),
                 "admin/%s/object_history_form.html" % original_opts.app_label,
                 "admin/object_history_form.html",
-                "simple_history/object_history_form.html",
+                self.default_object_history_template,
             ],
             context,
             **extra_kwargs,
