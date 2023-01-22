@@ -410,6 +410,25 @@ class TestCleanDuplicateHistory(TestCase):
         )
         self.assertEqual(Poll.history.all().count(), 1)
 
+    def test_auto_cleanup_for_model_with_excluded_fields(self):
+        p = PollWithExcludeFields.objects.create(
+            question="Will this be deleted?", pub_date=datetime.now()
+        )
+        self.assertEqual(PollWithExcludeFields.history.all().count(), 1)
+        p.pub_date = p.pub_date + timedelta(days=1)
+        p.save()
+        self.assertEqual(PollWithExcludeFields.history.all().count(), 2)
+        out = StringIO()
+        management.call_command(
+            self.command_name, auto=True, stdout=out, stderr=StringIO()
+        )
+        self.assertEqual(
+            out.getvalue(),
+            "Removed 1 historical records for "
+            "<class 'simple_history.tests.models.PollWithExcludeFields'>\n",
+        )
+        self.assertEqual(PollWithExcludeFields.history.all().count(), 1)
+
 
 class TestCleanOldHistory(TestCase):
     command_name = "clean_old_history"
