@@ -6,6 +6,7 @@ from django.utils import timezone
 from simple_history.utils import (
     get_app_model_primary_key_name,
     get_change_reason_from_object,
+    get_historical_repr,
 )
 
 # when converting a historical record to an instance, this attribute is added
@@ -255,6 +256,7 @@ class HistoryManager(models.Manager):
                     instance, "_history_date", default_date or timezone.now()
                 ),
                 history_user=history_user,
+                history_repr=get_historical_repr(instance),
                 history_change_reason=get_change_reason_from_object(instance)
                 or default_change_reason,
                 history_type=history_type,

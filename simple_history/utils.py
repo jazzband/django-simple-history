@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
 from django.forms.models import model_to_dict
@@ -196,3 +197,13 @@ def get_change_reason_from_object(obj):
         return getattr(obj, "_change_reason")
 
     return None
+
+
+def get_historical_repr(obj):
+    """
+    Returns the historical representation of an instance (if enabled).
+    Emtpy string "" if not enabled
+    """
+    if getattr(settings, "SIMPLE_HISTORY_HISTORIC_REPR", False):
+        return str(obj)[:128]
+    return ""

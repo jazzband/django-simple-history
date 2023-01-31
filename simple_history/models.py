@@ -38,7 +38,7 @@ from .signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from .utils import get_change_reason_from_object
+from .utils import get_change_reason_from_object, get_historical_repr
 
 try:
     from asgiref.local import Local as LocalContext
@@ -546,6 +546,7 @@ class HistoricalRecords:
         extra_fields = {
             "history_id": self._get_history_id_field(),
             "history_date": models.DateTimeField(db_index=self._date_indexing is True),
+            "history_repr": models.CharField(max_length=128, blank=True),
             "history_change_reason": self._get_history_change_reason_field(),
             "history_type": models.CharField(
                 max_length=1,
@@ -704,6 +705,7 @@ class HistoricalRecords:
         history_change_reason = self.get_change_reason_for_object(
             instance, history_type, using
         )
+        history_repr = get_historical_repr(instance)
         manager = getattr(instance, self.manager_name)
 
         attrs = {}
@@ -717,6 +719,7 @@ class HistoricalRecords:
         history_instance = manager.model(
             history_date=history_date,
             history_type=history_type,
+            history_repr=history_repr,
             history_user=history_user,
             history_change_reason=history_change_reason,
             **attrs,
@@ -729,6 +732,7 @@ class HistoricalRecords:
             history_user=history_user,
             history_change_reason=history_change_reason,
             history_instance=history_instance,
+            history_repr=history_repr,
             using=using,
         )
 
@@ -742,6 +746,7 @@ class HistoricalRecords:
             history_date=history_date,
             history_user=history_user,
             history_change_reason=history_change_reason,
+            history_repr=history_repr,
             using=using,
         )
 
