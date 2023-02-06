@@ -135,7 +135,6 @@ class Command(BaseCommand):
             # creating them. So we only keep batch_size worth of models in
             # historical_instances and clear them after we hit batch_size
             if index % batch_size == 0:
-
                 history.bulk_history_create(instances, batch_size=batch_size)
 
                 instances = []
