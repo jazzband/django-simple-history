@@ -94,7 +94,7 @@ class PollWithAlternativeManager(models.Model):
 
 class CustomPollManager(models.Manager):
     def get_queryset(self):
-        return super(CustomPollManager, self).get_queryset().exclude(hidden=True)
+        return super().get_queryset().exclude(hidden=True)
 
 
 class PollWithCustomManager(models.Model):
