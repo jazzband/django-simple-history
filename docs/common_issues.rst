@@ -275,3 +275,36 @@ arguments using ``excluded_field_kwargs`` as follows:
         history = HistoricalRecords(
             excluded_field_kwargs={"organizer": set(["custom_argument"])}
         )
+
+
+Updated auto_now inside a bulk_update_with_history
+--------------------------------------------------
+
+If you are tracking update timestamps (e.g. ``updated_at``, ``modified_at``), these are only tracked when
+``Model.save()`` is called. As a result, ``bulk_update_with_history`` won't update them.
+
+As a convention, you can define a custom manager to update these timestamps automatically:
+
+.. code-block:: python
+
+    from django.utils import timezone
+
+    class UpdatedAtFriendlyQuerySet(models.QuerySet):
+        def bulk_update(self, objs, fields, *args, **kwargs):
+            timestamp = timezone.now()
+            for obj in objs:
+                assert hasattr(obj, "updated_at"), "Expected bulk_update object to have `updated_at`"
+                obj.updated_at = timestamp
+            assert "updated_at" not in fields, "Encountered unexpected scenario where we set `updated_at` via `bulk_update`"
+            new_fields = tuple(fields) + ("updated_at",)
+            super().bulk_update(objs, new_fields, *args, **kwargs)
+
+    class UpdatedAtFriendlyManager(models.Manager.from_queryset(UpdatedAtFriendlyQuerySet)):
+        pass
+
+    class Poll(models.Model):
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        # This must be the first Manager declared in this class, otherwise it won't be detected as the `default_manager`
+        objects = UpdatedAtFriendlyManager()

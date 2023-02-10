@@ -12,6 +12,7 @@ Unreleased
 - Added ``tracked_fields`` attribute to historical models (gh-1038)
 - Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
 - Added support for Python 3.11 (gh-1053)
+- Documented ``auto_now`` solution for ``bulk_update_with_history`` (gh-1054)
 
 3.1.1 (2022-04-23)
 ------------------
