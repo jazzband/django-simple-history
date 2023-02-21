@@ -78,6 +78,17 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             content_type.app_label,
             content_type.model,
         )
+
+        # append history diff to all records
+        if len(action_list) > 1:
+            n = len(action_list)
+            for i in range(n-1):
+                delta = action_list[i].diff_against(action_list[i+1])
+                changes_list = []
+                for change in delta.changes:
+                    changes_list.append(f"{change.field}: {change.old} -> {change.new}")
+                action_list[i].history_diff = changes_list
+
         context = {
             "title": self.history_view_title(request, obj),
             "action_list": action_list,
