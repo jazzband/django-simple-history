@@ -39,9 +39,9 @@ class Command(populate_history.Command):
             "--base-manager",
             action="store_true",
             default=False,
-            help="Use Django's base manager to handle all records stored in the database,"
-            " including those that would otherwise be filtered or modified by a"
-            " custom manager.",
+            help="Use Django's base manager to handle all records stored in the"
+            " database, including those that would otherwise be filtered or modified"
+            " by a custom manager.",
         )
 
     def handle(self, *args, **options):
