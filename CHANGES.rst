@@ -12,6 +12,7 @@ Unreleased
 - Added ``tracked_fields`` attribute to historical models (gh-1038)
 - Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
 - Added support for Python 3.11 (gh-1053)
+- Fix missing comma in the `Signals` par of the docs
 
 3.1.1 (2022-04-23)
 ------------------
