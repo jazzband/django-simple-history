@@ -93,7 +93,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return self.render_history_view(
             request,
             [
-                "admin/{}/{}/object_history.html".format(app_label, opts.model_name),
+                f"admin/{app_label}/{opts.model_name}/object_history.html",
                 "admin/%s/object_history.html" % app_label,
                 "admin/object_history.html",
                 "simple_history/object_history.html",
