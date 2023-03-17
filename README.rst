@@ -1,8 +1,8 @@
 django-simple-history
 =====================
 
-.. image:: https://github.com/jazzband/django-simple-history/workflows/build/badge.svg?branch=master
-   :target: https://github.com/jazzband/django-simple-history/actions?workflow=build
+.. image:: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest

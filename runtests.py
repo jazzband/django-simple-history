@@ -135,6 +135,7 @@ DEFAULT_SETTINGS = dict(  # nosec
         }
     ],
     DEFAULT_AUTO_FIELD="django.db.models.AutoField",
+    USE_TZ=False,
 )
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",

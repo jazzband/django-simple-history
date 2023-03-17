@@ -31,6 +31,14 @@ from the duplicate check
 
     $ python manage.py clean_duplicate_history --auto --excluded_fields field1 field2
 
+You can use Django's base manager to perform the cleanup over all records,
+including those that would otherwise be filtered or modified by a
+custom manager, by using the ``--base-manager`` flag.
+
+.. code-block:: bash
+
+    $ python manage.py clean_duplicate_history --auto --base-manager
+
 clean_old_history
 -----------------------
 
