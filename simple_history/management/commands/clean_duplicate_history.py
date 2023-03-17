@@ -1,8 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
-from ... import models, utils
-from ...exceptions import NotHistoricalModelError
+from ... import utils
 from . import populate_history
 
 
@@ -36,10 +35,19 @@ class Command(populate_history.Command):
             nargs="+",
             help="List of fields to be excluded from the diff_against check",
         )
+        parser.add_argument(
+            "--base-manager",
+            action="store_true",
+            default=False,
+            help="Use Django's base manager to handle all records stored in the"
+            " database, including those that would otherwise be filtered or modified"
+            " by a custom manager.",
+        )
 
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
         self.excluded_fields = options.get("excluded_fields")
+        self.base_manager = options.get("base_manager")
 
         to_process = set()
         model_strings = options.get("models", []) or args
@@ -72,7 +80,10 @@ class Command(populate_history.Command):
                 continue
 
             # Break apart the query so we can add additional filtering
-            model_query = model.objects.all()
+            if self.base_manager:
+                model_query = model._base_manager.all()
+            else:
+                model_query = model._default_manager.all()
 
             # If we're provided a stop date take the initial hit of getting the
             # filtered records to iterate over

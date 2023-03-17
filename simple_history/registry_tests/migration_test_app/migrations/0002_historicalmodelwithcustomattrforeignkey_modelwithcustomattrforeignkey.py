@@ -10,7 +10,6 @@ from .. import models as my_models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("migration_test_app", "0001_initial"),

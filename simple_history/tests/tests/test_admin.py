@@ -455,6 +455,7 @@ class AdminSiteTest(TestCase):
             admin.history_form_view(request, poll.id, history.pk)
 
         context = {
+            **admin_site.each_context(request),
             # Verify this is set for original object
             "original": poll,
             "change_history": False,
@@ -484,7 +485,10 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        context.update(admin_site.each_context(request))
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
         mock_render.assert_called_once_with(
             request, admin.default_object_history_form_template, context
         )
@@ -509,6 +513,7 @@ class AdminSiteTest(TestCase):
                 admin.history_form_view(request, poll.id, history.pk)
 
         context = {
+            **admin_site.each_context(request),
             # Verify this is set for history object not poll object
             "original": history.instance,
             "change_history": True,
@@ -538,7 +543,10 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        context.update(admin_site.each_context(request))
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
         mock_render.assert_called_once_with(
             request, admin.default_object_history_form_template, context
         )
@@ -563,6 +571,7 @@ class AdminSiteTest(TestCase):
                 admin.history_form_view(request, poll.id, history.pk)
 
         context = {
+            **admin_site.each_context(request),
             # Verify this is set for history object not poll object
             "original": poll,
             "change_history": False,
@@ -592,7 +601,10 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        context.update(admin_site.each_context(request))
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
         mock_render.assert_called_once_with(
             request, admin.default_object_history_form_template, context
         )
@@ -617,6 +629,7 @@ class AdminSiteTest(TestCase):
                 admin.history_form_view(request, obj.id, history.pk)
 
         context = {
+            **admin_site.each_context(request),
             # Verify this is set for history object
             "original": history.instance,
             "change_history": True,
@@ -648,7 +661,10 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        context.update(admin_site.each_context(request))
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
         mock_render.assert_called_once_with(
             request, admin.default_object_history_form_template, context
         )
@@ -676,6 +692,7 @@ class AdminSiteTest(TestCase):
             )
 
         context = {
+            **admin_site.each_context(request),
             # Verify this is set for original object
             "anything_else": "will be merged into context",
             "original": poll,
@@ -706,7 +723,10 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        context.update(admin_site.each_context(request))
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
         mock_render.assert_called_once_with(
             request, admin.default_object_history_form_template, context
         )
