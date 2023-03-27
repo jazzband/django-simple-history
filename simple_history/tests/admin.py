@@ -10,6 +10,7 @@ from .models import (
     Document,
     Employee,
     FileModel,
+    Group,
     Paper,
     Person,
     Planet,
@@ -43,6 +44,7 @@ class PlanetAdmin(SimpleHistoryAdmin):
     history_list_display = ["title", "test_method"]
 
 
+admin.site.register(Group, SimpleHistoryAdmin)
 admin.site.register(Poll, SimpleHistoryAdmin)
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Person, PersonAdmin)

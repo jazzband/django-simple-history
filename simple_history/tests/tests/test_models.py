@@ -68,6 +68,7 @@ from ..models import (
     ExternalModelWithAppLabel,
     FileModel,
     ForeignKeyToSelfModel,
+    Group,
     HistoricalChoice,
     HistoricalCustomFKError,
     HistoricalPoll,
@@ -1937,6 +1938,12 @@ class ManyToManyCustomIDTest(TestCase):
         self.history_model = self.model.history.model
         self.place = Place.objects.create(name="Home")
         self.poll = self.model.objects.create(question="what's up?", pub_date=today)
+
+
+class GroupWithManyToManyThroughFieldsTest(TestCase):
+    def setUp(self):
+        self.model = Group
+        self.history_model = self.model.history.model
 
 
 class ManyToManyTest(TestCase):

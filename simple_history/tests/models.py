@@ -145,6 +145,28 @@ class PollWithManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[places])
 
 
+class Membership(models.Model):
+    group = models.ForeignKey("Group", on_delete=models.CASCADE)
+    person = models.ForeignKey("Person", on_delete=models.CASCADE)
+    inviter = models.ForeignKey(
+        "Person",
+        on_delete=models.CASCADE,
+        related_name="membership_invites",
+    )
+    invite_reason = models.CharField(max_length=64)
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=128)
+    members = models.ManyToManyField(
+        "Person",
+        through="tests.Membership",
+        through_fields=("group", "person"),
+    )
+
+    history = HistoricalRecords(m2m_fields=[members])
+
+
 class PollWithManyToManyCustomHistoryID(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
