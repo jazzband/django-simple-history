@@ -851,7 +851,7 @@ class AdminSiteTest(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     @override_settings(
-        SIMPLE_HISTORY_REVERT_DISABLED=False,
+        SIMPLE_HISTORY_REVERT_DISABLED=True,
         SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True,
     )
     def test_history_view__enforce_history_permissions_and_revert_enabled(self):
@@ -879,7 +879,10 @@ class AdminSiteTest(TestCase):
 
         # no perms
         request = get_request(user)
+        self.assertFalse(admin.has_view_permission(request))
+        self.assertFalse(admin.has_change_permission(request))
         self.assertFalse(admin.has_view_history_permission(request))
+        self.assertFalse(admin.has_change_history_permission(request))
 
         # has concrete view/change only -> view_historical is false
         user.user_permissions.clear()
@@ -888,7 +891,10 @@ class AdminSiteTest(TestCase):
             Permission.objects.get(codename="change_planet"),
         )
         request = get_request(user)
+        self.assertTrue(admin.has_view_permission(request))
+        self.assertTrue(admin.has_change_permission(request))
         self.assertEqual(admin.has_view_history_permission(request), not enforced)
+        self.assertEqual(admin.has_change_history_permission(request), not enforced)
 
         # has concrete view/change and historical change -> view_history is false
         user.user_permissions.clear()
@@ -898,7 +904,10 @@ class AdminSiteTest(TestCase):
             Permission.objects.get(codename="change_historicalplanet"),
         )
         request = get_request(user)
+        self.assertTrue(admin.has_view_permission(request))
+        self.assertTrue(admin.has_change_permission(request))
         self.assertEqual(admin.has_view_history_permission(request), not enforced)
+        self.assertTrue(admin.has_change_history_permission(request))
 
         # has concrete view/change and historical view/change -> view_history is true
         user.user_permissions.clear()
@@ -909,7 +918,10 @@ class AdminSiteTest(TestCase):
             Permission.objects.get(codename="change_historicalplanet"),
         )
         request = get_request(user)
+        self.assertTrue(admin.has_view_permission(request))
+        self.assertTrue(admin.has_change_permission(request))
         self.assertTrue(admin.has_view_history_permission(request))
+        self.assertTrue(admin.has_change_history_permission(request))
 
         # has historical view only -> view_history is true
         user.user_permissions.clear()
@@ -917,7 +929,10 @@ class AdminSiteTest(TestCase):
             Permission.objects.get(codename="view_historicalplanet"),
         )
         request = get_request(user)
+        self.assertFalse(admin.has_view_permission(request))
+        self.assertFalse(admin.has_change_permission(request))
         self.assertEqual(admin.has_view_history_permission(request), enforced)
+        self.assertFalse(admin.has_change_history_permission(request))
 
     @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
     def test_permission_combos__enforce_history_permissions(self):
