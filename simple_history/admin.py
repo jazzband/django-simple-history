@@ -13,7 +13,7 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
-from .utils import get_history_manager_for_model
+from .utils import get_history_manager_for_model, get_history_model_for_model
 
 USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
@@ -263,7 +263,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     def has_view_history_permission(self, request, obj=None):
         if self.enforce_history_permissions:
-            opts_history = self.model.history.model._meta
+            opts_history = get_history_model_for_model(self.model)._meta
             codename_view_history = get_permission_codename("view", opts_history)
             return request.user.has_perm(
                 f"{opts_history.app_label}.{codename_view_history}"
@@ -272,7 +272,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     def has_change_history_permission(self, request, obj=None):
         if self.enforce_history_permissions:
-            opts_history = self.model.history.model._meta
+            opts_history = get_history_model_for_model(self.model)._meta
             codename_change_history = get_permission_codename("change", opts_history)
             return request.user.has_perm(
                 f"{opts_history.app_label}.{codename_change_history}"
