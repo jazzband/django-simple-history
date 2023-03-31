@@ -21,8 +21,9 @@ Authors
 - Bheesham Persaud (`bheesham <https://github.com/bheesham>`_)
 - `bradford281 <https://github.com/bradford281>`_
 - Brian Armstrong (`barm <https://github.com/barm>`_)
-- Buddy Lindsey, Jr.
 - Brian Dixon
+- Brian Mesick (`bmedx <https://github.com/bmedx>`_)
+- Buddy Lindsey, Jr.
 - Carlos San Emeterio (`Carlos-San-Emeterio <https://github.com/Carlos-San-Emeterio>`_)
 - Christopher Broderick (`uhurusurfa <https://github.com/uhurusurfa>`_)
 - Christopher Johns (`tyrantwave <https://github.com/tyrantwave>`_)
@@ -37,6 +38,7 @@ Authors
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - David Smith
+- `ddabble <https://github.com/ddabble>`_
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
@@ -56,6 +58,7 @@ Authors
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
+- Hugo van Kemenade (`hugovk <https://github.com/hugovk>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
 - Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
@@ -74,11 +77,13 @@ Authors
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
 - Josh Fyne
+- Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
 - Keith Hackbarth
 - Kevin Foster
 - Klaas van Schelven
 - Kris Neuharth
 - Kyle Seever (`kseever <https://github.com/kseever>`_)
+- Léni Gauffier (`legau <https://github.com/legau>`_)
 - Leticia Portella
 - Lucas Wiman
 - Maciej "RooTer" Urbański
@@ -114,6 +119,7 @@ Authors
 - Stefan Borer (`sbor23 <https://github.com/sbor23>`_)
 - Steven Buss (`sbuss <https://github.com/sbuss>`_)
 - Steven Klass
+- Thijs Kramer (`thijskramer <https://github.com/thijskramer>`_)
 - Tim Schilling (`tim-schilling <https://github.com/tim-schilling>`_)
 - Todd Wolfson (`twolfson <https://github.com/twolfson>`_)
 - Tommy Beadle (`tbeadle <https://github.com/tbeadle>`_)

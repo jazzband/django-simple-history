@@ -53,7 +53,6 @@ class Command(populate_history.Command):
         self._process(to_process, days_back=options["days"], dry_run=options["dry"])
 
     def _process(self, to_process, days_back=None, dry_run=True):
-
         start_date = timezone.now() - timezone.timedelta(days=days_back)
         for model, history_model in to_process:
             history_model_manager = history_model.objects
