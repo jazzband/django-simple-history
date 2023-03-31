@@ -6,7 +6,6 @@ from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.shortcuts import get_object_or_404
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
@@ -16,7 +15,10 @@ from django.utils.encoding import force_str
 from simple_history.admin import SimpleHistoryAdmin
 from simple_history.models import HistoricalRecords
 from simple_history.tests.external.models import ExternalModelWithCustomUserIdField
-from simple_history.tests.tests.utils import middleware_override_settings
+from simple_history.tests.tests.utils import (
+    PermissionAction,
+    middleware_override_settings,
+)
 
 from ..models import (
     Book,
@@ -737,28 +739,44 @@ class AdminSiteTest(TestCase):
             request, admin.object_history_form_template, context
         )
 
-    def test_history_view__title_suggests_revert_by_default(self):
-        self.login()
+    def assert_history_view_response_contains(
+        self, user=None, *, title_prefix: PermissionAction, choose_date: bool
+    ):
+        user = user or self.user
+        user = User.objects.get(pk=user.pk)  # refresh perms cache
+        self.login(user)
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet))
-        self.assertContains(response, "Change history: Sun")
+        self.assertEqual(response.status_code, 200)
+        # `count=None` means at least once
+        self.assertContains(
+            response,
+            "Change history: Sun",
+            count=None if title_prefix == PermissionAction.CHANGE else 0,
+        )
+        self.assertContains(
+            response,
+            "View history: Sun",
+            count=None if title_prefix == PermissionAction.VIEW else 0,
+        )
+        self.assertContains(response, "Choose a date", count=None if choose_date else 0)
+
+    def test_history_view__title_suggests_revert_by_default(self):
+        self.assert_history_view_response_contains(
+            title_prefix=PermissionAction.CHANGE, choose_date=True
+        )
 
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=False)
     def test_history_view__title_suggests_revert(self):
-        self.login()
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertContains(response, "Change history: Sun")
-        self.assertContains(response, "Choose a date")
+        self.assert_history_view_response_contains(
+            title_prefix=PermissionAction.CHANGE, choose_date=True
+        )
 
     @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
     def test_history_view__title_suggests_view_only(self):
-        self.login()
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertNotContains(response, "Change history: Sun")
-        self.assertNotContains(response, "Choose a date")
-        self.assertContains(response, "View history: Sun")
+        self.assert_history_view_response_contains(
+            title_prefix=PermissionAction.VIEW, choose_date=False
+        )
 
     def test_history_form_view__shows_revert_button_by_default(self):
         self.login()
@@ -786,71 +804,51 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "View Planet")
         self.assertContains(response, "View Sun")
 
-    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
-    def test_history_view_with_view_only_permissions_and_norevert(self):
-        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
-        user.user_permissions.add(Permission.objects.get(codename="view_planet"))
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_historicalplanet")
-        )
-        user = get_object_or_404(User, pk=user.id)
-        self.client.force_login(user)
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertEqual(200, response.status_code)
-        self.assertNotContains(response, "Change history: Sun")
-        self.assertNotContains(response, "Choose a date")
-        self.assertContains(response, "View history: Sun")
-
-    def test_history_view___view_only_permissions_and_revert_enabled(self):
+    def _test_history_view_response_text_with_revert_disabled(self, *, disabled):
         user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
         user.user_permissions.add(
             Permission.objects.get(codename="view_planet"),
             Permission.objects.get(codename="view_historicalplanet"),
         )
-        user = get_object_or_404(User, pk=user.id)
-        self.client.force_login(user)
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertEqual(200, response.status_code)
-        self.assertNotContains(response, "Change history: Sun")
-        self.assertNotContains(response, "Choose a date")
-        self.assertContains(response, "View history: Sun")
+        self.assert_history_view_response_contains(
+            user, title_prefix=PermissionAction.VIEW, choose_date=False
+        )
 
-    def test_history_view__view_change_permissions_and_revert_enabled(self):
-        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+        user.user_permissions.clear()
         user.user_permissions.add(
             Permission.objects.get(codename="view_planet"),
             Permission.objects.get(codename="change_planet"),
         )
-        user = get_object_or_404(User, pk=user.id)
-        self.client.force_login(user)
-        planet = Planet.objects.create(star="Sun")
-        response = self.client.get(get_history_url(planet))
-        self.assertEqual(200, response.status_code)
-        self.assertContains(response, "Change history: Sun")
-        self.assertContains(response, "Choose a date")
-        self.assertNotContains(response, "View history: Sun")
+        self.assert_history_view_response_contains(
+            user,
+            title_prefix=PermissionAction.VIEW if disabled else PermissionAction.CHANGE,
+            choose_date=not disabled,
+        )
+
+    @override_settings(SIMPLE_HISTORY_REVERT_DISABLED=True)
+    def test_history_view_response_text__revert_disabled(self):
+        self._test_history_view_response_text_with_revert_disabled(disabled=True)
+
+    def test_history_view_response_text__revert_enabled(self):
+        self._test_history_view_response_text_with_revert_disabled(disabled=False)
 
     @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
     def test_history_form_view__no_perms_enforce_history_permissions(self):
         user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
-        user = get_object_or_404(User, pk=user.id)
+        user = User.objects.get(pk=user.pk)  # refresh perms cache
         self.client.force_login(user)
         planet = Planet.objects.create(star="Sun")
         response = self.client.get(get_history_url(planet, 0))
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(response.status_code, 403)
 
-    @override_settings(
-        SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True,
-    )
+    @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
     def test_history_view__no_perms_enforce_history_permissions(self):
         user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
-        user = get_object_or_404(User, pk=user.id)
+        user = User.objects.get(pk=user.pk)  # refresh perms cache
         self.client.force_login(user)
         planet = Planet.objects.create(star="Sun")
         resp = self.client.get(get_history_url(planet))
-        self.assertEqual(403, resp.status_code)
+        self.assertEqual(resp.status_code, 403)
 
     @override_settings(
         SIMPLE_HISTORY_REVERT_DISABLED=False,
@@ -861,128 +859,69 @@ class AdminSiteTest(TestCase):
         user.user_permissions.add(
             Permission.objects.get(codename="view_historicalplanet"),
         )
-        user = get_object_or_404(User, pk=user.id)
-        self.client.force_login(user)
-        planet = Planet.objects.create(star="Sun")
-        resp = self.client.get(get_history_url(planet))
-        self.assertEqual(200, resp.status_code)
-        self.assertNotContains(resp, "Change history: Sun")
-        self.assertNotContains(resp, "Choose a date")
-        self.assertContains(resp, "View history: Sun")
+        self.assert_history_view_response_contains(
+            user, title_prefix=PermissionAction.VIEW, choose_date=False
+        )
+
+    def _test_permission_combos_with_enforce_history_permissions(self, *, enforced):
+        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
+
+        def get_request(usr):
+            usr = User.objects.get(pk=usr.pk)  # refresh perms cache
+            req = RequestFactory().post("/")
+            req.session = "session"
+            req._messages = FallbackStorage(req)
+            req.user = usr
+            return req
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Planet, admin_site)
+
+        # no perms
+        request = get_request(user)
+        self.assertFalse(admin.has_view_history_permission(request))
+
+        # has concrete view/change only -> view_historical is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+        )
+        request = get_request(user)
+        self.assertEqual(admin.has_view_history_permission(request), not enforced)
+
+        # has concrete view/change and historical change -> view_history is false
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        request = get_request(user)
+        self.assertEqual(admin.has_view_history_permission(request), not enforced)
+
+        # has concrete view/change and historical view/change -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_planet"),
+            Permission.objects.get(codename="change_planet"),
+            Permission.objects.get(codename="view_historicalplanet"),
+            Permission.objects.get(codename="change_historicalplanet"),
+        )
+        request = get_request(user)
+        self.assertTrue(admin.has_view_history_permission(request))
+
+        # has historical view only -> view_history is true
+        user.user_permissions.clear()
+        user.user_permissions.add(
+            Permission.objects.get(codename="view_historicalplanet"),
+        )
+        request = get_request(user)
+        self.assertEqual(admin.has_view_history_permission(request), enforced)
 
     @override_settings(SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS=True)
     def test_permission_combos__enforce_history_permissions(self):
-        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
-
-        def get_request(usr):
-            usr = get_object_or_404(User, pk=usr.id)  # refresh perms cache
-            req = RequestFactory().post("/")
-            req.session = "session"
-            req._messages = FallbackStorage(req)
-            req.user = usr
-            return req
-
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        # no perms
-        self.assertFalse(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change only -> view_historical is false
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertFalse(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change and historical change -> view_history is false
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-            Permission.objects.get(codename="change_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertFalse(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change and historical view/change -> view_history is true
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-            Permission.objects.get(codename="view_historicalplanet"),
-            Permission.objects.get(codename="change_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertTrue(admin.has_view_history_permission(get_request(user)))
-
-        # has historical view only -> view_history is true
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertTrue(admin.has_view_history_permission(get_request(user)))
+        self._test_permission_combos_with_enforce_history_permissions(enforced=True)
 
     def test_permission_combos__default(self):
-        user = User.objects.create(username="astronomer", is_staff=True, is_active=True)
-
-        def get_request(usr):
-            usr = get_object_or_404(User, pk=usr.id)  # refresh perms cache
-            req = RequestFactory().post("/")
-            req.session = "session"
-            req._messages = FallbackStorage(req)
-            req.user = usr
-            return req
-
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        # no perms
-        self.assertFalse(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change only -> view_historical is false
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertTrue(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change and historical change -> view_history is false
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-            Permission.objects.get(codename="change_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertTrue(admin.has_view_history_permission(get_request(user)))
-
-        # has concrete view/change and historical view/change -> view_history is true
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_planet"),
-            Permission.objects.get(codename="change_planet"),
-            Permission.objects.get(codename="view_historicalplanet"),
-            Permission.objects.get(codename="change_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertTrue(admin.has_view_history_permission(get_request(user)))
-
-        # has historical view only -> view_history is true
-        user.user_permissions.clear()
-        user.user_permissions.add(
-            Permission.objects.get(codename="view_historicalplanet"),
-        )
-        admin_site = AdminSite()
-        admin = SimpleHistoryAdmin(Planet, admin_site)
-        self.assertFalse(admin.has_view_history_permission(get_request(user)))
+        self._test_permission_combos_with_enforce_history_permissions(enforced=False)
