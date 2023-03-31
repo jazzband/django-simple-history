@@ -76,7 +76,7 @@ database_router_override_settings_history_in_diff_db = {
 
 
 class PermissionAction(Enum):
-    ADD = 'add'
-    CHANGE = 'change'
-    DELETE = 'delete'
-    VIEW = 'view'
+    ADD = "add"
+    CHANGE = "change"
+    DELETE = "delete"
+    VIEW = "view"
