@@ -72,7 +72,8 @@ admin class
 Disabling the option to revert an object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, an object can be reverted to its previous version. To disable this option globally update your settings with the following:
+By default, an object can be reverted to its previous version. To disable this option
+globally, update your settings with the following:
 
 .. code-block:: python
 
@@ -82,19 +83,20 @@ When ``SIMPLE_HISTORY_REVERT_DISABLED`` is set to ``True``, the revert button is
 
 .. image:: screens/10_revert_disabled.png
 
-Enabling history model permissions in Admin
+Enforcing history model permissions in Admin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To have admin evaluate history model permissions explicitly, updating your settings
-with the following:
+To make the Django admin site evaluate history model permissions explicitly,
+update your settings with the following:
 
 .. code-block:: python
 
     SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True
 
-By default ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``False``.
-When set to ``False``, permissions applied to the ``Poll`` model also apply to the
-history model. That is, granting view and change permissions to the ``Poll`` model
+By default, ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``False``.
+When set to ``False``, permissions applied to the ``Poll`` model
+(from the examples above), also apply to the history model.
+That is, granting view and change permissions to the ``Poll`` model
 implicitly grants view and change permissions to the ``Poll`` history model.
 
 The user below has view and change permissions to the ``Poll`` model and the ``Poll``
@@ -118,11 +120,11 @@ in admin.
         Permission.objects.get(codename="view_poll"),
     )
 
-When ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``, permissions to
-history models are assigned and evaluated explicitly.
+When ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``,
+permissions to history models are assigned and evaluated explicitly.
 
-The user below *does not have* permission to the ``Poll`` history model in admin even
-though they *have* view permission to the ``Poll`` model.
+The user below *does not have* view permission to the ``Poll`` history model in admin,
+even though they *have* view permission to the ``Poll`` model.
 
 .. code-block:: python
 
@@ -144,9 +146,9 @@ history model.
         Permission.objects.get(codename="view_historicalpoll"),
     )
 
-The user below has view permission to the ``Poll`` history model but will need to
-access the instance with a direct url since the ``Poll`` model will not be listed in
-the admin application index page nor the ``Poll`` changelist.
+The user below has view permission to the ``Poll`` history model, but will need to
+access the page with a direct URL, since the ``Poll`` model will not be listed on
+the admin application index page, nor the ``Poll`` changelist.
 
 .. code-block:: python
 

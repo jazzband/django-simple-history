@@ -234,7 +234,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return django_apps.get_model("contenttypes.contenttype")
 
     def revert_disabled(self, request, obj=None):
-        """If true, hides the `Revert` button in the submit_line template."""
+        """If `True`, hides the "Revert" button in the `submit_line.html` template."""
         if getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False):
             return True
         elif self.has_view_history_permission(
