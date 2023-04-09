@@ -58,6 +58,7 @@ Authors
 - Hanyin Zhang
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
+- Hugo van Kemenade (`hugovk <https://github.com/hugovk>`_)
 - Jack Cushman (`jcushman <https://github.com/jcushman>`_)
 - Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
