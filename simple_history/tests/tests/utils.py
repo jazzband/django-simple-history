@@ -1,3 +1,5 @@
+from enum import Enum
+
 import django
 from django.conf import settings
 
@@ -71,3 +73,10 @@ database_router_override_settings_history_in_diff_db = {
         "simple_history.tests.tests.utils.TestModelWithHistoryInDifferentDbRouter"
     ]
 }
+
+
+class PermissionAction(Enum):
+    ADD = "add"
+    CHANGE = "change"
+    DELETE = "delete"
+    VIEW = "view"
