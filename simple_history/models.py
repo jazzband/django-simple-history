@@ -103,6 +103,7 @@ class HistoricalRecords:
         m2m_fields=(),
         m2m_fields_model_field_name="_history_m2m_fields",
         m2m_bases=(models.Model,),
+        bypass_get_user_authorization=False,
     ):
         self.user_set_verbose_name = verbose_name
         self.user_set_verbose_name_plural = verbose_name_plural
@@ -124,6 +125,7 @@ class HistoricalRecords:
         self.use_base_model_db = use_base_model_db
         self.m2m_fields = m2m_fields
         self.m2m_fields_model_field_name = m2m_fields_model_field_name
+        self.bypass_get_user_authorization = bypass_get_user_authorization
 
         if isinstance(no_db_index, str):
             no_db_index = [no_db_index]
@@ -752,7 +754,10 @@ class HistoricalRecords:
         except AttributeError:
             request = None
             try:
-                if self.context.request.user.is_authenticated:
+                if (
+                    self.bypass_get_user_authorization
+                    or self.context.request.user.is_authenticated
+                ):
                     request = self.context.request
             except AttributeError:
                 pass
