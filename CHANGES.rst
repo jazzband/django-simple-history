@@ -7,6 +7,8 @@ Unreleased
 - Added feature to evaluate ``history`` model permissions explicitly when
   ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
   in ``settings`` (gh-1017).
+- Added ``bypass_get_user_authorization`` option to ``HistoricalRecords`` model (gh-1164)
+
 
 3.3.0 (2023-03-08)
 ------------------
@@ -19,7 +21,6 @@ Unreleased
 - Added Arabic translations (gh-1056)
 - Fixed a code example under "Tracking many to many relationships" (gh-1069)
 - Added a ``--base-manager`` option to the ``clean_duplicate_history`` management command (gh-1115)
-- Added ``bypass_get_user_authorization`` option to ``HistoricalRecords`` model (gh-1164)
 
 3.2.0 (2022-09-28)
 ------------------
