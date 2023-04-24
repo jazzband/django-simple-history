@@ -98,6 +98,7 @@ Authors
 - Micah Denbraver
 - Michael England
 - Miguel Vargas
+- Mike O'Donnell
 - Mike Spainhower
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
