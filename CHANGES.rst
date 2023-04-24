@@ -19,6 +19,7 @@ Unreleased
 - Added Arabic translations (gh-1056)
 - Fixed a code example under "Tracking many to many relationships" (gh-1069)
 - Added a ``--base-manager`` option to the ``clean_duplicate_history`` management command (gh-1115)
+- Added ``bypass_get_user_authorization`` option to ``HistoricalRecords`` model (gh-1164)
 
 3.2.0 (2022-09-28)
 ------------------
