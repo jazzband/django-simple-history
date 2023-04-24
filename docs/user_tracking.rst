@@ -63,6 +63,8 @@ identified with the following key word arguments:
 
 * ``instance``:  The current instance being modified
 * ``request``:  If using the middleware the current request object will be provided if they are authenticated.
+                If you require the request object when dealing with an Unauthenticated user. You can pass
+                `bypass_get_user_authorization=True` to the `HistoricalRecords` constructor.
 
 This is very helpful when using ``register``:
 
