@@ -290,8 +290,7 @@ class SimpleHistoryChangeList(ChangeList):
     def apply_select_related(self, qs):
         # Our qs is different if we use the history, so the normal select_related
         # won't work and results in an empty QuerySet result.
-        history = self.params.get("entries", None) == "deleted_only"
-        if history:
+        if self.params.get("entries", None) == "deleted_only":
             return qs
         return super().apply_select_related(qs)
 
@@ -316,7 +315,7 @@ class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.model.history.filter(history_type="-").distinct()
+            return queryset.model.history.filter(history_type="-").latest_of_each()
         return queryset
 
 
@@ -327,6 +326,4 @@ class SimpleHistoryWithDeletedAdmin(SimpleHistoryAdmin):
     def get_list_filter(self, request):
         # Doing it here will add it to every inherited class. Alternatively,
         # add SimpleHistoryShowDeletedFilter to the list_filter and remove the below.
-        return [SimpleHistoryShowDeletedFilter] + [
-            f for f in super().get_list_filter(request)
-        ]
+        return [SimpleHistoryShowDeletedFilter, *super().get_list_filter(request)]
