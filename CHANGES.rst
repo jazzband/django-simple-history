@@ -5,14 +5,30 @@ Unreleased
 ----------
 
 - Fixed typos in the docs
+- Added feature to evaluate ``history`` model permissions explicitly when
+  ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
+  in ``settings`` (gh-1017).
+
+3.3.0 (2023-03-08)
+------------------
+
+- Made it possible to use the new ``m2m_fields`` with model inheritance (gh-1042)
+- Added two signals: ``pre_create_historical_m2m_records`` and ``post_create_historical_m2m_records`` (gh-1042)
+- Added ``tracked_fields`` attribute to historical models (gh-1038)
+- Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
+- Added support for Python 3.11 (gh-1053)
+- Added Arabic translations (gh-1056)
+- Fixed a code example under "Tracking many to many relationships" (gh-1069)
+- Added a ``--base-manager`` option to the ``clean_duplicate_history`` management command (gh-1115)
+
+3.2.0 (2022-09-28)
+------------------
+
+- Fixed typos in the docs
 - Removed n+1 query from ``bulk_create_with_history`` utility (gh-975)
 - Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
 - Add basic support for many-to-many fields (gh-399)
 - Added support for Django 4.1 (gh-1021)
-- Added ``tracked_fields`` attribute to historical models (gh-1038)
-- Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
-- Added support for Python 3.11 (gh-1053)
-- Fix missing comma in the `Signals` par of the docs
 
 3.1.1 (2022-04-23)
 ------------------

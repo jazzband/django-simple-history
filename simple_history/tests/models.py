@@ -549,6 +549,7 @@ class Planet(models.Model):
 
     class Meta:
         verbose_name = "Planet"
+        verbose_name_plural = "Planets"
 
 
 class Contact(models.Model):
