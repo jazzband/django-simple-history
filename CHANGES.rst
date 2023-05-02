@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Fixed typos in the docs
 - Added feature to evaluate ``history`` model permissions explicitly when
   ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
   in ``settings`` (gh-1017).

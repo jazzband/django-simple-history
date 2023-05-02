@@ -56,6 +56,7 @@ Authors
 - Hamish Downer
 - Hans de Jong (`sult <https://github.com/sult>`_)
 - Hanyin Zhang
+- Héctor Durán (`hector97i <https://github.com/hector97i>`)
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
 - Hugo van Kemenade (`hugovk <https://github.com/hugovk>`_)

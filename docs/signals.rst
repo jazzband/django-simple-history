@@ -47,7 +47,7 @@ To connect the signals to your callbacks, you can use the ``@receiver`` decorato
     from django.dispatch import receiver
     from simple_history.signals import (
         pre_create_historical_record,
-        post_create_historical_record
+        post_create_historical_record,
         pre_create_historical_m2m_records,
         post_create_historical_m2m_records,
     )
