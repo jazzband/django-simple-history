@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
-from django.contrib.auth import get_permission_codename
+from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
@@ -14,8 +14,6 @@ from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
 from .utils import get_history_manager_for_model, get_history_model_for_model
-
-USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
@@ -72,9 +70,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = self.content_type_model_cls.objects.get_by_natural_key(
-            *USER_NATURAL_KEY
+        content_type = self.content_type_model_cls.objects.get_for_model(
+            get_user_model()
         )
+
         admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
