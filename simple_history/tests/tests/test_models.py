@@ -1806,12 +1806,12 @@ class SeveralManyToManyTest(TestCase):
         self.assertEqual(book.restaurants.all().count(), 0)
         self.assertEqual(book.books.all().count(), 1)
         self.assertEqual(book.places.all().count(), 1)
-        self.assertEqual(book.books.first().book, self.book)
+        self.assertEqual(book.books.first(), self.book)
 
         self.assertEqual(place.restaurants.all().count(), 0)
         self.assertEqual(place.books.all().count(), 0)
         self.assertEqual(place.places.all().count(), 1)
-        self.assertEqual(place.places.first().place, self.place)
+        self.assertEqual(place.places.first(), self.place)
 
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.books.all().count(), 0)
@@ -1847,11 +1847,11 @@ class InheritedManyToManyTest(TestCase):
 
         self.assertEqual(book.books.all().count(), 1)
         self.assertEqual(book.places.all().count(), 1)
-        self.assertEqual(book.books.first().book, self.book)
+        self.assertEqual(book.books.first(), self.book)
 
         self.assertEqual(place.books.all().count(), 0)
         self.assertEqual(place.places.all().count(), 1)
-        self.assertEqual(place.places.first().place, self.place)
+        self.assertEqual(place.places.first(), self.place)
 
         self.assertEqual(add.books.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
@@ -1860,11 +1860,11 @@ class InheritedManyToManyTest(TestCase):
 
         self.assertEqual(restaurant.restaurants.all().count(), 1)
         self.assertEqual(restaurant.places.all().count(), 1)
-        self.assertEqual(restaurant.restaurants.first().restaurant, self.restaurant)
+        self.assertEqual(restaurant.restaurants.first(), self.restaurant)
 
         self.assertEqual(place.restaurants.all().count(), 0)
         self.assertEqual(place.places.all().count(), 1)
-        self.assertEqual(place.places.first().place, self.place)
+        self.assertEqual(place.places.first(), self.place)
 
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
@@ -1982,7 +1982,7 @@ class ManyToManyTest(TestCase):
 
         # And the historical place is the correct one
         historical_place = m2m_record.places.first()
-        self.assertEqual(historical_place.place, self.place)
+        self.assertEqual(historical_place, self.place)
 
     def test_remove(self):
         # Add and remove a many-to-many child
@@ -2002,7 +2002,7 @@ class ManyToManyTest(TestCase):
 
         # And the previous row still has the correct one
         historical_place = previous_m2m_record.places.first()
-        self.assertEqual(historical_place.place, self.place)
+        self.assertEqual(historical_place, self.place)
 
     def test_clear(self):
         # Add some places
@@ -2054,7 +2054,7 @@ class ManyToManyTest(TestCase):
         # Place instance cannot be created...
         historical_place = m2m_record.places.first()
         with self.assertRaises(ObjectDoesNotExist):
-            historical_place.place.id
+            historical_place.id
 
         # But the values persist
         historical_place_values = m2m_record.places.all().values()[0]
@@ -2084,7 +2084,7 @@ class ManyToManyTest(TestCase):
 
         # And it is the correct one
         historical_place = prev_record.places.first()
-        self.assertEqual(historical_place.place, self.place)
+        self.assertEqual(historical_place, self.place)
 
     def test_update_child(self):
         self.poll.places.add(self.place)
@@ -2102,7 +2102,7 @@ class ManyToManyTest(TestCase):
         m2m_record = self.poll.history.all()[0]
         self.assertEqual(m2m_record.places.count(), 1)
         historical_place = m2m_record.places.first()
-        self.assertEqual(historical_place.place.name, "Updated")
+        self.assertEqual(historical_place.name, "Updated")
 
     def test_update_parent(self):
         self.poll.places.add(self.place)
@@ -2120,7 +2120,7 @@ class ManyToManyTest(TestCase):
         m2m_record = self.poll.history.all()[0]
         self.assertEqual(m2m_record.places.count(), 1)
         historical_place = m2m_record.places.first()
-        self.assertEqual(historical_place.place, self.place)
+        self.assertEqual(historical_place, self.place)
 
     def test_bulk_add_remove(self):
         # Add some places
@@ -2152,7 +2152,7 @@ class ManyToManyTest(TestCase):
         self.assertEqual(m2m_record.places.all().count(), 1)
 
         historical_place = m2m_record.places.first()
-        self.assertEqual(historical_place.place, self.place)
+        self.assertEqual(historical_place, self.place)
 
     def test_m2m_relation(self):
         # Ensure only the correct M2Ms are saved and returned for history objects
