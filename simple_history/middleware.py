@@ -1,9 +1,7 @@
-from django.utils.deprecation import MiddlewareMixin
-
 from .models import HistoricalRecords
 
 
-class HistoryRequestMiddleware(MiddlewareMixin):
+class HistoryRequestMiddleware:
     """Expose request to HistoricalRecords.
 
     This middleware sets request as a local context/thread variable, making it
@@ -11,10 +9,15 @@ class HistoryRequestMiddleware(MiddlewareMixin):
     making a change.
     """
 
-    def process_request(self, request):
-        HistoricalRecords.context.request = request
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    def process_response(self, request, response):
-        if hasattr(HistoricalRecords.context, "request"):
+    def __call__(self, request):
+        HistoricalRecords.context.request = request
+        try:
+            response = self.get_response(request)
+        except Exception:
+            raise
+        finally:
             del HistoricalRecords.context.request
         return response
