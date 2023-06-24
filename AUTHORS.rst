@@ -106,6 +106,7 @@ Authors
 - Phillip Marshall
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
+- Ravi Singh (`singhravi1 <https://github.com/singhravi1>`_)
 - Ray Logel
 - Raynald de Lahondes
 - Renaud Perrin (`leminaw <https://github.com/leminaw>`_)
