@@ -2550,8 +2550,11 @@ class HistoricForeignKeyTest(TestCase):
 class ErrorOnUsingTableNameOptionWithInherit(TestCase):
     def test_inherited_static_table_name_abstract_base(self):
         with self.assertRaises(TypeError):
+
             class NotToBeUsedAbstractBase(models.Model):
-                history = HistoricalRecords(inherit=True, table_name='not_to_be_used_tracked_table')
+                history = HistoricalRecords(
+                    inherit=True, table_name="not_to_be_used_tracked_table"
+                )
 
                 class Meta:
                     abstract = True

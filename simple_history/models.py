@@ -126,7 +126,9 @@ class HistoricalRecords:
         self.m2m_fields_model_field_name = m2m_fields_model_field_name
 
         if self.inherit and self.table_name:
-            raise TypeError("The `table_name` option cannot be used with `inherit=True`")
+            raise TypeError(
+                "The `table_name` option cannot be used with `inherit=True`"
+            )
 
         if isinstance(no_db_index, str):
             no_db_index = [no_db_index]

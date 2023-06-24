@@ -366,7 +366,7 @@ that behavior so that any child model inheriting from it will have
 historical tracking as well. Be careful though, in cases where a model
 can be tracked more than once, ``MultipleRegistrationsError`` will be
 raised. Mentioning this attribute with ``table_name`` attribute would
-cause multiple history tables to have same history table name and therefore 
+cause multiple history tables to have same history table name and therefore
 will give an error.
 
 .. code-block:: python
