@@ -2545,3 +2545,13 @@ class HistoricForeignKeyTest(TestCase):
         )[0]
         pt1i = pt1h.instance
         self.assertEqual(pt1i.organization.name, "original")
+
+
+class ErrorOnUsingTableNameOptionWithInherit(TestCase):
+    def test_inherited_static_table_name_abstract_base(self):
+        with self.assertRaises(TypeError):
+            class NotToBeUsedAbstractBase(models.Model):
+                history = HistoricalRecords(inherit=True, table_name='not_to_be_used_tracked_table')
+
+                class Meta:
+                    abstract = True
