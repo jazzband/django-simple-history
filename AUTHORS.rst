@@ -81,6 +81,7 @@ Authors
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
 - Keith Hackbarth
 - Kevin Foster
+- Kira (`kiraware <https://github.com/kiraware>`_)
 - Klaas van Schelven
 - Kris Neuharth
 - Kyle Seever (`kseever <https://github.com/kseever>`_)
