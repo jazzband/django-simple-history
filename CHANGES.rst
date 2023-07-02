@@ -10,6 +10,7 @@ Unreleased
   in ``settings`` (gh-1017).
 - Fixed ``SimpleHistoryAdmin`` not properly integrating with custom user models (gh-1177)
 - Support Indonesian translation
+- Support Urdu translation
 
 3.3.0 (2023-03-08)
 ------------------
