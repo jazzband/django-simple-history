@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the django-simple-history package.
 # Kira <kiraware@github.com>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: django-simple-history 3.3.0\n"
