@@ -18,6 +18,12 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
         author_email="corey@qr7.com",
         maintainer="Trey Hunner",
         url="https://github.com/jazzband/django-simple-history",
+        project_urls={
+            "Documentation": "https://django-simple-history.readthedocs.io/",
+            "Changelog": "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst",  # noqa: E501
+            "Source": "https://github.com/jazzband/django-simple-history",
+            "Tracker": "https://github.com/jazzband/django-simple-history/issues",
+        },
         packages=[
             "simple_history",
             "simple_history.management",

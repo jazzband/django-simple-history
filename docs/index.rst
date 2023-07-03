@@ -1,8 +1,8 @@
 django-simple-history
 =====================
 
-.. image:: https://secure.travis-ci.org/jazzband/django-simple-history.svg?branch=master
-   :target: http://travis-ci.org/jazzband/django-simple-history
+.. image:: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
@@ -18,7 +18,7 @@ django-simple-history
    :alt: PyPI Version
 
 .. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
-   :target: https://codeclimate.com/github/treyhunner/django-simple-history/maintainability
+   :target: https://codeclimate.com/github/jazzband/django-simple-history/maintainability
    :alt: Maintainability
 
 .. image:: https://pepy.tech/badge/django-simple-history
