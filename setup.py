@@ -39,6 +39,7 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
             "License :: OSI Approved :: BSD License",
         ],
         python_requires=">=3.8",
