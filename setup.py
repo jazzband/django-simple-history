@@ -37,7 +37,6 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "Intended Audience :: Developers",
             "Framework :: Django",
             "Framework :: Django :: 3.2",
-            "Framework :: Django :: 4.0",
             "Framework :: Django :: 4.1",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
