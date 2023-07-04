@@ -1,3 +1,3 @@
-Sphinx==5.3.0
 # Install this project in editable mode, so that its package metadata can be queried
 -e .
+Sphinx==5.3.0
