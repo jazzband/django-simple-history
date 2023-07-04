@@ -1,10 +1,6 @@
 from importlib import metadata
 
-try:
-    __version__ = metadata.version(__name__)
-except metadata.PackageNotFoundError:
-    # package is not installed
-    pass
+__version__ = metadata.version("django-simple-history")
 
 
 def register(
