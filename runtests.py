@@ -145,6 +145,16 @@ MIDDLEWARE = [
 
 DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
+# DEV: Merge these settings into DEFAULT_SETTINGS when the minimum required
+#      Django version is 4.2 or higher
+if django.VERSION >= (4, 2):
+    DEFAULT_SETTINGS["STORAGES"] = {
+        "default": {
+            # Speeds up tests and prevents locally storing files created through them
+            "BACKEND": "django.core.files.storage.InMemoryStorage",
+        },
+    }
+
 
 def main():
     parser = ArgumentParser(description="Run package tests.")
