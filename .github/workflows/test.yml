@@ -85,3 +85,36 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           name: Python ${{ matrix.python-version }}
+
+
+  generated_file_checks:
+    name: Check generated files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install gettext
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+
+      - name: Set up newest stable Python version
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          cache: 'pip'
+          # Invalidate the cache when this file updates, as the dependencies' versions
+          # are pinned in the step below
+          cache-dependency-path: '.github/workflows/test.yml'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install this project in editable mode, so that its package metadata can be queried
+          pip install -e .
+          # Install the latest minor version of Django we support
+          pip install Django==4.2
+
+      - name: Check translation files are updated
+        run: python -m simple_history.tests.generated_file_checks.check_translations
