@@ -114,8 +114,8 @@ msgstr "استرجاع %(verbose_name)s"
 
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid ""
-"Press the 'Revert' button below to revert to this version of the object. "
-msgstr "اضغط على زر 'استرجاع' ادناه للاسترجاع لهذه النسخة من العنصر. "
+"Press the 'Revert' button below to revert to this version of the object."
+msgstr "اضغط على زر 'استرجاع' ادناه للاسترجاع لهذه النسخة من العنصر."
 
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
