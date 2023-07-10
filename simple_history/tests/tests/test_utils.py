@@ -1,10 +1,12 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
+from unittest import skipUnless
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
+from django import VERSION
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
@@ -422,6 +424,15 @@ class BulkUpdateWithHistoryTestCase(TestCase):
 
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
+
+    @skipUnless(VERSION >= (4, 0), "Requires Django 4.0 or above")
+    def test_bulk_update_history_row_updated(self):
+        row_updated = bulk_update_with_history(
+            self.data,
+            Poll,
+            fields=["question"],
+        )
+        self.assertEqual(row_updated, 5)
 
 
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
