@@ -1,12 +1,12 @@
 from datetime import datetime
-from unittest.mock import Mock, patch
 from unittest import skipUnless
+from unittest.mock import Mock, patch
 
+from django import VERSION
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
-from django import VERSION
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 from simple_history.tests.models import (
