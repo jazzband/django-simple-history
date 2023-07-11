@@ -14,6 +14,7 @@ Unreleased
 - Dropped support for Python 3.7, which reached end-of-life on 2023-06-27 (gh-1202)
 - Dropped support for Django 4.0, which reached end-of-life on 2023-04-01 (gh-1202)
 - Added support for Django 4.2 (gh-1202)
+- Made ``bulk_update_with_history()`` return the number of model rows updated (gh-1206)
 
 3.3.0 (2023-03-08)
 ------------------
