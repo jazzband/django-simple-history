@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest import skipUnless
 from unittest.mock import Mock, patch
 
-from django import VERSION
+import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
@@ -432,7 +432,7 @@ class BulkUpdateWithHistoryTestCase(TestCase):
             Poll,
             fields=["question"],
         )
-        self.assertEqual(row_updated, 5)
+        self.assertEqual(rows_updated, 5)
 
 
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
