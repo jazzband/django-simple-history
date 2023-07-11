@@ -173,7 +173,7 @@ def bulk_update_with_history(
         record
     :param manager: Optional model manager to use for the model instead of the default
         manager
-    :return: rows_updated
+    :return: The number of model rows updated, not including any history objects
     """
     history_manager = get_history_manager_for_model(model)
     model_manager = manager or model._default_manager

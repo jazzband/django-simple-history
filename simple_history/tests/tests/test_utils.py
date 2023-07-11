@@ -425,9 +425,9 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
-    @skipUnless(VERSION >= (4, 0), "Requires Django 4.0 or above")
-    def test_bulk_update_history_row_updated(self):
-        row_updated = bulk_update_with_history(
+    @skipUnless(django.VERSION >= (4, 0), "Requires Django 4.0 or above")
+    def test_bulk_update_with_history_returns_rows_updated(self):
+        rows_updated = bulk_update_with_history(
             self.data,
             Poll,
             fields=["question"],
