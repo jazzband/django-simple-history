@@ -11,6 +11,7 @@ Unreleased
 - Fixed ``SimpleHistoryAdmin`` not properly integrating with custom user models (gh-1177)
 - Support Indonesian translation (gh-1198)
 - Support Urdu translation (gh-1199)
+- Support Norwegian Bokmål translation (gh-1210)
 - Dropped support for Python 3.7, which reached end-of-life on 2023-06-27 (gh-1202)
 - Dropped support for Django 4.0, which reached end-of-life on 2023-04-01 (gh-1202)
 - Added support for Django 4.2 (gh-1202)
