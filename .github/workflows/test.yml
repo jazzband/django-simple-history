@@ -11,23 +11,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12-dev"]
-        django-version: ["3.2", "4.1", "4.2", "main"]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12-dev']
+        django-version: ['3.2', '4.1', '4.2', 'main']
 
         exclude:
-          - python-version: "3.8"
-            django-version: "main"
+          - python-version: '3.8'
+            django-version: 'main'
 
-          - python-version: "3.9"
-            django-version: "main"
+          - python-version: '3.9'
+            django-version: 'main'
 
-          - python-version: "3.11"
-            django-version: "3.2"
+          - python-version: '3.11'
+            django-version: '3.2'
 
-          - python-version: "3.12-dev"
-            django-version: "3.2"
+          - python-version: '3.12-dev'
+            django-version: '3.2'
 
     services:
+
       postgres:
         image: postgres:latest
         env:
@@ -64,7 +65,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          cache: 'pip'
           cache-dependency-path: |
             setup.py
             tox.ini
@@ -86,6 +87,7 @@ jobs:
         with:
           name: Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }}
 
+
   generated_file_checks:
     name: Check generated files
     runs-on: ubuntu-latest
@@ -102,10 +104,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
-          cache: "pip"
+          cache: 'pip'
           # Invalidate the cache when this file updates, as the dependencies' versions
           # are pinned in the step below
-          cache-dependency-path: ".github/workflows/test.yml"
+          cache-dependency-path: '.github/workflows/test.yml'
 
       - name: Install dependencies
         run: |
