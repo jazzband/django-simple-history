@@ -18,7 +18,7 @@ django-simple-history
    :alt: PyPI Version
 
 .. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
-   :target: https://codeclimate.com/github/treyhunner/django-simple-history/maintainability
+   :target: https://codeclimate.com/github/jazzband/django-simple-history/maintainability
    :alt: Maintainability
 
 .. image:: https://pepy.tech/badge/django-simple-history
@@ -41,9 +41,10 @@ This app supports the following combinations of Django and Python:
 ==========  ========================
   Django      Python
 ==========  ========================
-3.2         3.7, 3.8, 3.9, 3.10
-4.0         3.8, 3.9, 3.10
-4.1         3.8, 3.9, 3.10, 3.11
+3.2         3.8, 3.9, 3.10
+4.1         3.8, 3.9, 3.10, 3.11, 3.12-dev
+4.2         3.8, 3.9, 3.10, 3.11, 3.12-dev
+main        3.10, 3.11, 3.12-dev
 ==========  ========================
 
 Getting Help

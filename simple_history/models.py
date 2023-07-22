@@ -625,7 +625,9 @@ class HistoricalRecords:
         if self.app:
             meta_fields["app_label"] = self.app
         if self._date_indexing == "composite":
-            meta_fields["index_together"] = (("history_date", model._meta.pk.attname),)
+            meta_fields["indexes"] = (
+                models.Index(fields=("history_date", model._meta.pk.attname)),
+            )
         return meta_fields
 
     def post_save(self, instance, created, using=None, **kwargs):

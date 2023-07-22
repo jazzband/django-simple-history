@@ -11,8 +11,7 @@
 # serve to show the default.
 import os
 import sys
-
-from pkg_resources import get_distribution
+from importlib import metadata
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -48,7 +47,7 @@ copyright = "2013, Corey Bertram"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-release = get_distribution("django-simple-history").version
+release = metadata.version("django-simple-history")
 # for example take major/minor
 version = ".".join(release.split(".")[:2])
 

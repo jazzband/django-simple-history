@@ -18,6 +18,12 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
         author_email="corey@qr7.com",
         maintainer="Trey Hunner",
         url="https://github.com/jazzband/django-simple-history",
+        project_urls={
+            "Documentation": "https://django-simple-history.readthedocs.io/",
+            "Changelog": "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst",  # noqa: E501
+            "Source": "https://github.com/jazzband/django-simple-history",
+            "Tracker": "https://github.com/jazzband/django-simple-history/issues",
+        },
         packages=[
             "simple_history",
             "simple_history.management",
@@ -31,17 +37,17 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "Intended Audience :: Developers",
             "Framework :: Django",
             "Framework :: Django :: 3.2",
-            "Framework :: Django :: 4.0",
             "Framework :: Django :: 4.1",
+            "Framework :: Django :: 4.2",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
             "License :: OSI Approved :: BSD License",
         ],
-        python_requires=">=3.7",
+        python_requires=">=3.8",
         include_package_data=True,
     )

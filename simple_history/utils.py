@@ -173,6 +173,7 @@ def bulk_update_with_history(
         record
     :param manager: Optional model manager to use for the model instead of the default
         manager
+    :return: The number of model rows updated, not including any history objects
     """
     history_manager = get_history_manager_for_model(model)
     model_manager = manager or model._default_manager
@@ -180,7 +181,7 @@ def bulk_update_with_history(
         raise AlternativeManagerError("The given manager does not belong to the model.")
 
     with transaction.atomic(savepoint=False):
-        model_manager.bulk_update(objs, fields, batch_size=batch_size)
+        rows_updated = model_manager.bulk_update(objs, fields, batch_size=batch_size)
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
@@ -189,6 +190,7 @@ def bulk_update_with_history(
             default_change_reason=default_change_reason,
             default_date=default_date,
         )
+    return rows_updated
 
 
 def get_change_reason_from_object(obj):
