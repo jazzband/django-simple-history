@@ -3,8 +3,8 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
-from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.utils import quote, unquote
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
@@ -311,7 +311,7 @@ class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
     parameter_name = "entries"
 
     def lookups(self, request, model_admin):
-       return (("deleted_only", "Only Deleted"),)
+        return (("deleted_only", "Only Deleted"),)
 
     def queryset(self, request, queryset):
         if self.value():
