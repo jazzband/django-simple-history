@@ -200,6 +200,11 @@ class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
     _history_m2m_fields = [restaurants]
 
 
+class PollWithSelfManyToMany(models.Model):
+    relations = models.ManyToManyField("self")
+    history = HistoricalRecords(m2m_fields=[relations])
+
+
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)

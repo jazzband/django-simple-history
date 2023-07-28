@@ -90,6 +90,7 @@ Authors
 - Lucas Wiman
 - Maciej "RooTer" Urbański
 - Marcelo Canina (`marcanuy <https://github.com/marcanuy>`_)
+- Marco Sirabella
 - Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
