@@ -388,6 +388,44 @@ class AdminSiteTest(TestCase):
 
         self.assertEqual(response["Location"], "/awesome/url/")
 
+    def test_history_view_pagination(self):
+        """
+        Ensure the history_view handles pagination correctly.
+        """
+        # Create a Poll object and make more than 50 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(60):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        # Verify that there are 60+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 61)
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the second page
+        request = RequestFactory().get("/", {"page": "2"})
+        request.user = self.user
+
+        # Patch the render function
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(poll.id))
+
+            # Ensure the render function was called
+            self.assertTrue(mock_render.called)
+
+            # Extract context passed to render function
+            action_list_count = mock_render.call_args[0][2][
+                "action_list"
+            ].object_list.count()
+
+            # Check if only 10 (61 - 50 from the first page)
+            # objects are present in the context
+            self.assertEqual(action_list_count, 11)
+
     def test_response_change_change_history_setting_off(self):
         """
         Test the response_change method that it works with a _change_history
