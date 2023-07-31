@@ -12,6 +12,7 @@ from django.utils.encoding import force_str
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
+from django.core.paginator import Paginator
 
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
@@ -21,6 +22,7 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
+    list_per_page = 50
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -60,27 +62,29 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except action_list.model.DoesNotExist:
                 raise http.Http404
 
-        if not self.has_view_history_or_change_history_permission(request, obj):
+        # Paginate the history
+        paginator = Paginator(action_list, self.list_per_page)
+        page_number = request.GET.get("page", 1)
+        action_list_page = paginator.get_page(page_number)
+
+        if not self.has_change_permission(request, obj):
             raise PermissionDenied
 
         # Set attribute on each action_list entry from admin methods
         for history_list_entry in history_list_display:
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
-                for list_entry in action_list:
+                for list_entry in action_list_page.object_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = self.content_type_model_cls.objects.get_for_model(
-            get_user_model()
-        )
-
-        admin_user_view = "admin:{}_{}_change".format(
+        content_type = self.content_type_model_cls.objects.get_by_natural_key(*USER_NATURAL_KEY)
+        admin_user_view = "admin:%s_%s_change" % (
             content_type.app_label,
             content_type.model,
         )
         context = {
-            "title": self.history_view_title(request, obj),
-            "action_list": action_list,
+            "title": self.history_view_title(obj),
+            "action_list": action_list_page,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
             "root_path": getattr(self.admin_site, "root_path", None),
@@ -88,14 +92,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
-            "revert_disabled": self.revert_disabled(request, obj),
+            "revert_disabled": self.revert_disabled,
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return self.render_history_view(
-            request, self.object_history_template, context, **extra_kwargs
-        )
+        return self.render_history_view(request, self.object_history_template, context, **extra_kwargs)
 
     def history_view_title(self, request, obj):
         if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
