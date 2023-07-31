@@ -6,13 +6,13 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
-from django.core.paginator import Paginator
 
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
@@ -77,8 +77,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list_page.object_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = self.content_type_model_cls.objects.get_by_natural_key(*USER_NATURAL_KEY)
-        admin_user_view = "admin:%s_%s_change" % (
+        content_type = self.content_type_model_cls.objects.get_by_natural_key(
+            *USER_NATURAL_KEY
+        )
+        admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
         )
@@ -97,7 +99,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
         extra_kwargs = {}
-        return self.render_history_view(request, self.object_history_template, context, **extra_kwargs)
+        return self.render_history_view(
+            request, self.object_history_template, context, **extra_kwargs
+        )
 
     def history_view_title(self, request, obj):
         if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
