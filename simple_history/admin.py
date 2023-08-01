@@ -61,7 +61,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 obj = action_list.latest("history_date").instance
             except action_list.model.DoesNotExist:
                 raise http.Http404
-        
+
         paginator = Paginator(action_list, self.list_per_page)
         page_number = request.GET.get("page", 1)
         action_list_page = paginator.get_page(page_number)
