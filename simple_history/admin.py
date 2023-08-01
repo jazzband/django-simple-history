@@ -6,13 +6,13 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
-from django.core.paginator import Paginator
 
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
