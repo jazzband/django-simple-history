@@ -1,4 +1,4 @@
 # Install this project in editable mode, so that its package metadata can be queried
 -e .
-Sphinx==6.2.1
+Sphinx==7.1.2
 sphinx-rtd-theme==1.2.2
