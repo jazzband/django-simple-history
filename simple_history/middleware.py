@@ -16,8 +16,8 @@ class HistoryRequestMiddleware:
         HistoricalRecords.context.request = request
         try:
             response = self.get_response(request)
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
         finally:
             del HistoricalRecords.context.request
         return response
