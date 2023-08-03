@@ -1,8 +1,11 @@
 from datetime import date
+from unittest import mock
 
+from django.http import HttpResponse
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from simple_history.models import HistoricalRecords
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import (
     BucketDataRegisterRequestUser,
@@ -145,6 +148,26 @@ class MiddlewareTest(TestCase):
         history = bucket_datas.first().history.all()
 
         self.assertListEqual([h.history_user_id for h in history], [member1.id])
+
+    # The `request` attribute of `HistoricalRecords.context` should be deleted
+    # even if this setting is set to `True`
+    @override_settings(DEBUG_PROPAGATE_EXCEPTIONS=True)
+    @mock.patch("simple_history.tests.view.MockableView.get")
+    def test_previous_request_object_is_deleted(self, func_mock):
+        """https://github.com/jazzband/django-simple-history/issues/1189"""
+        self.client.force_login(self.user)
+        mockable_url = reverse("mockable")
+        func_mock.return_value = HttpResponse(status=200)
+
+        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
+        self.client.get(mockable_url)
+        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
+
+        func_mock.side_effect = RuntimeError()
+        with self.assertRaises(RuntimeError):
+            self.client.get(mockable_url)
+        # The request variable should be deleted even if an exception was raised
+        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
 
 
 @override_settings(**middleware_override_settings)
