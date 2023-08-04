@@ -109,3 +109,10 @@ class BucketDataRegisterRequestUserCreate(CreateView):
 class BucketDataRegisterRequestUserDetail(DetailView):
     model = BucketDataRegisterRequestUser
     fields = ["data"]
+
+
+class MockableView(View):
+    """This view exists to easily mock a response."""
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponse(status=200)
