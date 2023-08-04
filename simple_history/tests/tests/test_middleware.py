@@ -153,21 +153,33 @@ class MiddlewareTest(TestCase):
     # even if this setting is set to `True`
     @override_settings(DEBUG_PROPAGATE_EXCEPTIONS=True)
     @mock.patch("simple_history.tests.view.MockableView.get")
-    def test_previous_request_object_is_deleted(self, func_mock):
+    def test_request_attr_is_deleted_after_each_response(self, func_mock):
         """https://github.com/jazzband/django-simple-history/issues/1189"""
+
+        def assert_has_request_attr(has_attr: bool):
+            self.assertEqual(hasattr(HistoricalRecords.context, "request"), has_attr)
+
+        def mocked_get(*args, **kwargs):
+            assert_has_request_attr(True)
+            response_ = HttpResponse(status=200)
+            response_.historical_records_request = HistoricalRecords.context.request
+            return response_
+
+        func_mock.side_effect = mocked_get
         self.client.force_login(self.user)
         mockable_url = reverse("mockable")
-        func_mock.return_value = HttpResponse(status=200)
 
-        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
-        self.client.get(mockable_url)
-        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
+        assert_has_request_attr(False)
+        response = self.client.get(mockable_url)
+        assert_has_request_attr(False)
+        # Check that the `request` attr existed while handling the request
+        self.assertEqual(response.historical_records_request.user, self.user)
 
         func_mock.side_effect = RuntimeError()
         with self.assertRaises(RuntimeError):
             self.client.get(mockable_url)
         # The request variable should be deleted even if an exception was raised
-        self.assertFalse(hasattr(HistoricalRecords.context, "request"))
+        assert_has_request_attr(False)
 
 
 @override_settings(**middleware_override_settings)
