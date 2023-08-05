@@ -18,6 +18,7 @@ Unreleased
 - Made ``bulk_update_with_history()`` return the number of model rows updated (gh-1206)
 - Fixed ``HistoryRequestMiddleware`` not cleaning up after itself (i.e. deleting
   ``HistoricalRecords.context.request``) under some circumstances (gh-1188)
+- Made ``HistoryRequestMiddleware`` async-capable (gh-1209)
 
 3.3.0 (2023-03-08)
 ------------------
