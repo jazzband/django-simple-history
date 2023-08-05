@@ -1,7 +1,23 @@
+from contextlib import contextmanager
+
+from asgiref.sync import iscoroutinefunction
+from django.utils.decorators import sync_and_async_middleware
+
 from .models import HistoricalRecords
 
 
-class HistoryRequestMiddleware:
+@contextmanager
+def _context_manager(request):
+    HistoricalRecords.context.request = request
+
+    try:
+        yield None
+    finally:
+        del HistoricalRecords.context.request
+
+
+@sync_and_async_middleware
+def HistoryRequestMiddleware(get_response):
     """Expose request to HistoricalRecords.
 
     This middleware sets request as a local context/thread variable, making it
@@ -9,15 +25,16 @@ class HistoryRequestMiddleware:
     making a change.
     """
 
-    def __init__(self, get_response):
-        self.get_response = get_response
+    if iscoroutinefunction(get_response):
 
-    def __call__(self, request):
-        HistoricalRecords.context.request = request
-        try:
-            response = self.get_response(request)
-        except Exception as e:
-            raise e
-        finally:
-            del HistoricalRecords.context.request
-        return response
+        async def middleware(request):
+            with _context_manager(request):
+                return await get_response(request)
+
+    else:
+
+        def middleware(request):
+            with _context_manager(request):
+                return get_response(request)
+
+    return middleware
