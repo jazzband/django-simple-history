@@ -724,13 +724,23 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.new_record, new_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
 
-    def test_inherited_history_table_name_with_table_name_set_in_base_model(self):
+    def test_history_table_name_is_not_inherited(self):
+        def assert_table_name(obj, expected_table_name):
+            history_model = obj.history.model
+            self.assertEqual(
+                history_model.__name__, f"Historical{obj._meta.model.__name__}"
+            )
+            self.assertEqual(history_model._meta.db_table, expected_table_name)
+
+        place = BasePlace.objects.create(name="Place Name")
+        # This is set in `BasePlace.history`
+        assert_table_name(place, "base_places_history")
+
         r = InheritedRestaurant.objects.create(name="KFC", serves_hot_dogs=True)
-        history_model = r.history.model
-        expected_cls_name = "HistoricalInheritedRestaurant"
-        expected_table_name = f"tests_{expected_cls_name.lower()}"
-        self.assertEqual(history_model.__name__, expected_cls_name)
-        self.assertEqual(history_model._meta.db_table, expected_table_name)
+        self.assertTrue(isinstance(r, BasePlace))
+        # The default table name of the history model,
+        # instead of inheriting from `BasePlace`
+        assert_table_name(r, f"tests_Historical{r._meta.model.__name__}".lower())
 
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
