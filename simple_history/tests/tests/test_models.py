@@ -724,6 +724,14 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.new_record, new_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
 
+    def test_inherited_history_table_name_with_table_name_set_in_base_model(self):
+        r = InheritedRestaurant.objects.create(name="KFC", serves_hot_dogs=True)
+        history_model = r.history.model
+        expected_cls_name = "HistoricalInheritedRestaurant"
+        expected_table_name = f"tests_{expected_cls_name.lower()}"
+        self.assertEqual(history_model.__name__, expected_cls_name)
+        self.assertEqual(history_model._meta.db_table, expected_table_name)
+
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
         p.question = "what's up, man?"
