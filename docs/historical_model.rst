@@ -361,7 +361,7 @@ Allow tracking to be inherited
 
 By default history tracking is only added for the model that is passed
 to ``register()`` or has the ``HistoricalRecords`` descriptor. By
-passing ``inherit=True`` to either way of registering you can change
+passing ``inherit=True`` to either way of registering, you can change
 that behavior so that any child model inheriting from it will have
 historical tracking as well. Be careful though, in cases where a model
 can be tracked more than once, ``MultipleRegistrationsError`` will be
@@ -383,6 +383,9 @@ raised.
 
 Both ``User`` and ``Poll`` in the example above will cause any model
 inheriting from them to have historical tracking as well.
+
+**Note:** For parent models having a ``HistoricalRecords`` field with ``inherit=True``
+*and* a ``table_name``, the latter option will not be inherited by child models.
 
 History Model In Different App
 ------------------------------
