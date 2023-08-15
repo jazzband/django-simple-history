@@ -19,6 +19,7 @@ Unreleased
 - Fixed ``HistoryRequestMiddleware`` not cleaning up after itself (i.e. deleting
   ``HistoricalRecords.context.request``) under some circumstances (gh-1188)
 - Made ``HistoryRequestMiddleware`` async-capable (gh-1209)
+- Fixed error when setting ``table_name`` with ``inherit=True`` (gh-1195)
 
 3.3.0 (2023-03-08)
 ------------------

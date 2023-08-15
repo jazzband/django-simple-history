@@ -298,7 +298,7 @@ class HistoricalRecords:
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type("Meta", (), self.get_meta_options(model)))
-        if self.table_name is not None:
+        if not inherited and self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
 
         # Set as the default then check for overrides
