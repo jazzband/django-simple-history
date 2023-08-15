@@ -16,6 +16,9 @@ Unreleased
 - Dropped support for Django 4.0, which reached end-of-life on 2023-04-01 (gh-1202)
 - Added support for Django 4.2 (gh-1202)
 - Made ``bulk_update_with_history()`` return the number of model rows updated (gh-1206)
+- Fixed ``HistoryRequestMiddleware`` not cleaning up after itself (i.e. deleting
+  ``HistoricalRecords.context.request``) under some circumstances (gh-1188)
+- Made ``HistoryRequestMiddleware`` async-capable (gh-1209)
 - Fixed error when setting ``table_name`` with ``inherit=True`` (gh-1195)
 
 3.3.0 (2023-03-08)

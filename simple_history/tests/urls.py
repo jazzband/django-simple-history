@@ -4,6 +4,7 @@ from django.urls import path, re_path
 from simple_history.tests.view import (
     BucketDataRegisterRequestUserCreate,
     BucketDataRegisterRequestUserDetail,
+    MockableView,
     PollBulkCreateView,
     PollBulkCreateWithDefaultUserView,
     PollBulkUpdateView,
@@ -55,4 +56,5 @@ urlpatterns = [
         PollBulkUpdateWithDefaultUserView.as_view(),
         name="poll-bulk-update-with-default-user",
     ),
+    path("mockable/", MockableView.as_view(), name="mockable"),
 ]
