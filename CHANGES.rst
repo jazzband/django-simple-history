@@ -4,6 +4,10 @@ Changes
 Unreleased
 ----------
 
+
+3.4.0 (2023-08-18)
+------------------
+
 - Fixed typos in the docs
 - Added feature to evaluate ``history`` model permissions explicitly when
   ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
