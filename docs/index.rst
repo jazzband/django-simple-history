@@ -10,23 +10,23 @@ django-simple-history
    :alt: Documentation Status
 
 .. image:: https://img.shields.io/codecov/c/github/jazzband/django-simple-history/master.svg
-   :target: http://codecov.io/github/jazzband/django-simple-history?branch=master
+   :target: https://app.codecov.io/github/jazzband/django-simple-history?branch=master
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/pypi/v/django-simple-history.svg
-   :target: https://pypi.python.org/pypi/django-simple-history
+   :target: https://pypi.org/project/django-simple-history/
    :alt: PyPI Version
 
 .. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
    :target: https://codeclimate.com/github/jazzband/django-simple-history/maintainability
    :alt: Maintainability
 
-.. image:: https://pepy.tech/badge/django-simple-history
+.. image:: https://static.pepy.tech/badge/django-simple-history
    :target: https://pepy.tech/project/django-simple-history
    :alt: Downloads
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/ambv/black
+   :target: https://github.com/psf/black
    :alt: Code Style
 
 .. image:: https://jazzband.co/static/img/badge.svg
