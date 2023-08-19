@@ -218,6 +218,50 @@ class AdminSiteTest(TestCase):
             [p.history_user for p in Poll.history.all()], [self.user, self.user]
         )
 
+    def test_history_change_reason_on_save_in_admin(self):
+        self.login()
+
+        # Ensure polls created via admin interface save correct change reason
+        change_reason = "New change reason"
+        initial_data = poll_data = {
+            "question": "new poll?",
+            "pub_date_0": "2012-01-01",
+            "pub_date_1": "10:00:00",
+            "history_change_reason": change_reason,
+        }
+        self.client.post(reverse("admin:tests_poll_add"), data=poll_data)
+        poll = Poll.objects.get()
+        self.assertEqual(poll.history.get().history_change_reason, change_reason)
+
+
+        # Ensure polls modified via admin interface save correct change reason
+        change_reason = "Edited change reason"
+        poll_data = {
+            "question": "new poll?",
+            "pub_date_0": "2011-01-01",
+            "pub_date_1": "10:00:00",
+            "history_change_reason": change_reason,
+        }
+        self.client.post(reverse("admin:tests_poll_change", args=[poll.id]), data=poll_data)
+        poll.refresh_from_db()
+        self.assertEqual(poll.pub_date.year, 2011)
+        self.assertEqual(poll.history.count(), 2)
+        self.assertEqual(poll.history.latest().history_change_reason, change_reason)
+
+        # Let's emulate a revert
+        change_reason = "Revert to history record 0"
+        response = self.client.get(get_history_url(poll, 0))
+        form = response.context.get("adminform").form
+        self.assertEqual(form["history_change_reason"].value(), None)  # Always starts empty
+        self.assertEqual(form["pub_date"].value().year, 2012)
+
+        self.client.post(get_history_url(poll, 0), data=initial_data | {"history_change_reason": change_reason})
+
+        poll.refresh_from_db()
+        self.assertEqual(poll.pub_date.year, 2012)
+        self.assertEqual(poll.history.count(), 3)
+        self.assertEqual(poll.history.latest().history_change_reason, change_reason)
+
     def test_underscore_in_pk(self):
         self.login()
         book = Book(isbn="9780147_513731")

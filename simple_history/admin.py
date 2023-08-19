@@ -1,4 +1,4 @@
-from django import http
+from django import forms, http
 from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib import admin
@@ -17,6 +17,8 @@ from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
+class HistoryChangeReasonForm(forms.ModelForm):
+    history_change_reason = forms.CharField(required=False)
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
@@ -224,8 +226,29 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """Set special model attribute to user for reference after save"""
+        obj._change_reason = form.cleaned_data.get("history_change_reason")
         obj._history_user = request.user
         super().save_model(request, obj, form, change)
+
+    form = HistoryChangeReasonForm
+
+    def get_fields(self, request, obj=None):
+        return [
+            field
+            for field in super().get_fields(request, obj)
+            if field != "history_change_reason"
+        ]
+
+    def get_fieldsets(self, request, obj=None):
+        return super().get_fieldsets(request, obj) + ([
+            (
+                "History",
+                {
+                    "classes": ["collapse"],
+                    "fields": ["history_change_reason"],
+                },
+            )
+        ] if 'history_change_reason' in self.form.declared_fields else [])
 
     @property
     def content_type_model_cls(self):
