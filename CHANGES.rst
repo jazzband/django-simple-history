@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Allow ``HistoricalRecords.m2m_fields`` as str
 
 3.4.0 (2023-08-18)
 ------------------
