@@ -190,7 +190,7 @@ class PollParentWithManyToMany(models.Model):
 
 class PollChildBookWithManyToMany(PollParentWithManyToMany):
     books = models.ManyToManyField("Book", related_name="books_poll_child")
-    _history_m2m_fields = [books]
+    _history_m2m_fields = ["books"]
 
 
 class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):

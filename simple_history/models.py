@@ -768,7 +768,10 @@ class HistoricalRecords:
             m2m_fields.update(getattr(model, self.m2m_fields_model_field_name))
         except AttributeError:
             pass
-        return [getattr(model, field.name).field for field in m2m_fields]
+        field_names = [
+            field if isinstance(field, str) else field.name for field in m2m_fields
+        ]
+        return [getattr(model, field_name).field for field_name in field_names]
 
 
 def transform_field(field):

@@ -469,9 +469,12 @@ If you want to track many to many relationships, you need to define them explici
 This will create a historical intermediate model that tracks each relational change
 between `Poll` and `Category`.
 
-You may also define these fields in a model attribute (by default on `_history_m2m_fields`).
-This is mainly used for inherited models. You can override the attribute name by setting
-your own `m2m_fields_model_field_name` argument on the `HistoricalRecord` instance.
+You may use either the name of the field or the field instance itself.
+
+You may also define these fields in a class attribute (by default on `_history_m2m_fields`).
+This is mainly used by inherited models not declaring their own `HistoricalRecord`.
+You can override the attribute name by setting your own `m2m_fields_model_field_name`
+argument on the `HistoricalRecord` instance.
 
 You will see the many to many changes when diffing between two historical records:
 
