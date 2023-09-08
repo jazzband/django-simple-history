@@ -65,6 +65,7 @@ def bulk_create_with_history(
     default_user=None,
     default_change_reason=None,
     default_date=None,
+    custom_historical_attrs=None,
 ):
     """
     Bulk create the objects specified by objs while also bulk creating
@@ -81,6 +82,8 @@ def bulk_create_with_history(
         in each historical record
     :param default_date: Optional date to specify as the history_date in each historical
         record
+    :param custom_historical_attrs: Optional dict of field `name`:`value` to specify
+        values for custom fields
     :return: List of objs with IDs
     """
     # Exclude ManyToManyFields because they end up as invalid kwargs to
@@ -106,6 +109,7 @@ def bulk_create_with_history(
                 default_user=default_user,
                 default_change_reason=default_change_reason,
                 default_date=default_date,
+                custom_historical_attrs=custom_historical_attrs,
             )
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
@@ -143,6 +147,7 @@ def bulk_create_with_history(
                 default_user=default_user,
                 default_change_reason=default_change_reason,
                 default_date=default_date,
+                custom_historical_attrs=custom_historical_attrs,
             )
         objs_with_id = obj_list
     return objs_with_id
@@ -157,6 +162,7 @@ def bulk_update_with_history(
     default_change_reason=None,
     default_date=None,
     manager=None,
+    custom_historical_attrs=None,
 ):
     """
     Bulk update the objects specified by objs while also bulk creating
@@ -173,6 +179,8 @@ def bulk_update_with_history(
         record
     :param manager: Optional model manager to use for the model instead of the default
         manager
+    :param custom_historical_attrs: Optional dict of field `name`:`value` to specify
+        values for custom fields
     :return: The number of model rows updated, not including any history objects
     """
     history_manager = get_history_manager_for_model(model)
@@ -189,6 +197,7 @@ def bulk_update_with_history(
             default_user=default_user,
             default_change_reason=default_change_reason,
             default_date=default_date,
+            custom_historical_attrs=custom_historical_attrs,
         )
     return rows_updated
 
