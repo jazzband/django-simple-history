@@ -64,6 +64,7 @@ Authors
 - Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
+- Jeppe Fihl-Pearson (`Tenzer <https://github.com/Tenzer>`_)
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
