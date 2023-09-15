@@ -5,6 +5,7 @@ Unreleased
 ----------
 
 - Allow ``HistoricalRecords.m2m_fields`` as str
+- Handle if ``request`` is missing in middleware
 
 3.4.0 (2023-08-18)
 ------------------
