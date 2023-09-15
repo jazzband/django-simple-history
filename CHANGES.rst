@@ -4,8 +4,9 @@ Changes
 Unreleased
 ----------
 
-- Allow ``HistoricalRecords.m2m_fields`` as str
-- Handle if ``request`` is missing in middleware
+- Allow ``HistoricalRecords.m2m_fields`` as str (gh-1243)
+- Fixed ``HistoryRequestMiddleware`` deleting non-existent
+  ``HistoricalRecords.context.request`` in very specific circumstances (gh-1256)
 
 3.4.0 (2023-08-18)
 ------------------
