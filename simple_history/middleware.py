@@ -13,7 +13,10 @@ def _context_manager(request):
     try:
         yield None
     finally:
-        del HistoricalRecords.context.request
+        try:
+            del HistoricalRecords.context.request
+        except AttributeError:
+            pass
 
 
 @sync_and_async_middleware
