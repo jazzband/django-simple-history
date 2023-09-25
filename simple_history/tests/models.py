@@ -125,6 +125,18 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class SessionsHistoricalModel(models.Model):
+    session = models.CharField(max_length=200, null=True, default=None)
+
+    class Meta:
+        abstract = True
+
+
+class PollWithHistoricalSessionAttr(models.Model):
+    question = models.CharField(max_length=200)
+    history = HistoricalRecords(bases=[SessionsHistoricalModel])
+
+
 class PollWithManyToMany(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")

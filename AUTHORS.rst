@@ -107,6 +107,7 @@ Authors
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Nick Träger
+- Noel James (`NoelJames <https://github.com/NoelJames>`_)
 - Phillip Marshall
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula

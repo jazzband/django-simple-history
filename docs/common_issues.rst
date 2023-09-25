@@ -55,6 +55,27 @@ You can also specify a default user or default change reason responsible for the
     >>> Poll.history.get(id=data[0].id).history_user == user
     True
 
+If you're using `additional fields in historical models`_ and have custom fields to
+batch-create into the history, pass the optional dict argument ``custom_historical_attrs``
+containing the field names and values.
+A field ``session`` would be passed as ``custom_historical_attrs={'session': 'training'}``.
+
+.. _additional fields in historical models: historical_model.html#adding-additional-fields-to-historical-models
+
+.. code-block:: pycon
+
+    >>> from simple_history.tests.models import PollWithHistoricalSessionAttr
+    >>> data = [
+        PollWithHistoricalSessionAttr(id=x, question=f'Question {x}')
+        for x in range(10)
+    ]
+    >>> objs = bulk_create_with_history(
+            data, PollWithHistoricalSessionAttr,
+            custom_historical_attrs={'session': 'training'}
+        )
+    >>> data[0].history.get().session
+    'training'
+
 Bulk Updating a Model with History (New)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -87,6 +108,22 @@ default manager returns a filtered set), you can specify which manager to use wi
     >>>
     >>> data = [PollWithAlternativeManager(id=x, question='Question ' + str(x), pub_date=now()) for x in range(1000)]
     >>> objs = bulk_create_with_history(data, PollWithAlternativeManager, batch_size=500, manager=PollWithAlternativeManager.all_polls)
+
+If you're using `additional fields in historical models`_ and have custom fields to
+batch-update into the history, pass the optional dict argument ``custom_historical_attrs``
+containing the field names and values.
+A field ``session`` would be passed as ``custom_historical_attrs={'session': 'jam'}``.
+
+.. _additional fields in historical models: historical_model.html#adding-additional-fields-to-historical-models
+
+.. code-block:: pycon
+
+    >>> bulk_update_with_history(
+            data, PollWithHistoricalSessionAttr, [],
+            custom_historical_attrs={'session': 'jam'}
+        )
+    >>> data[0].history.latest().session
+    'jam'
 
 QuerySet Updates with History (Updated in Django 2.2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
