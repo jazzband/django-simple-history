@@ -169,7 +169,8 @@ def bulk_update_with_history(
     their history (all in one transaction).
     :param objs: List of objs of type model to be updated
     :param model: Model class that should be updated
-    :param fields: The fields that are updated
+    :param fields: The fields that are updated. If empty, no model objects will be
+        changed, but history records will still be created.
     :param batch_size: Number of objects that should be updated in each batch
     :param default_user: Optional user to specify as the history_user in each historical
         record
@@ -189,7 +190,15 @@ def bulk_update_with_history(
         raise AlternativeManagerError("The given manager does not belong to the model.")
 
     with transaction.atomic(savepoint=False):
-        rows_updated = model_manager.bulk_update(objs, fields, batch_size=batch_size)
+        if not fields:
+            # Allow not passing any fields if the user wants to bulk-create history
+            # records - e.g. with `custom_historical_attrs` provided
+            # (Calling `bulk_update()` with no fields would have raised an error)
+            rows_updated = 0
+        else:
+            rows_updated = model_manager.bulk_update(
+                objs, fields, batch_size=batch_size
+            )
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,

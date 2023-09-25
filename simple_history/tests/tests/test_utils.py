@@ -541,7 +541,7 @@ class CustomHistoricalAttrsTest(TestCase):
         bulk_update_with_history(
             self.data,
             PollWithHistoricalSessionAttr,
-            fields=["question"],
+            fields=[],
             custom_historical_attrs={"session": "training"},
         )
 

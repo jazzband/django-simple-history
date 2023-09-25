@@ -119,7 +119,7 @@ A field ``session`` would be passed as ``custom_historical_attrs={'session': 'ja
 .. code-block:: pycon
 
     >>> bulk_update_with_history(
-            data, PollWithHistoricalSessionAttr,
+            data, PollWithHistoricalSessionAttr, [],
             custom_historical_attrs={'session': 'jam'}
         )
     >>> data[0].history.latest().session
