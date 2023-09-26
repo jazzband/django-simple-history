@@ -180,9 +180,9 @@ class HistoricalRecords:
     def add_extra_methods(self, cls):
         def save_without_historical_record(self, *args, **kwargs):
             """
-            Save model without saving a historical record
+            Save the model instance without creating a historical record.
 
-            Make sure you know what you're doing before you use this method.
+            *Make sure you know what you're doing before using this method.*
             """
             self.skip_history_when_saving = True
             try:
@@ -651,8 +651,9 @@ class HistoricalRecords:
     def post_save(self, instance, created, using=None, **kwargs):
         if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
             return
-        if not created and hasattr(instance, "skip_history_when_saving"):
+        if hasattr(instance, "skip_history_when_saving"):
             return
+
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
 
