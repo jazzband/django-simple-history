@@ -12,7 +12,8 @@ Unreleased
   (gh-1248)
 - Passing an empty list as the ``fields`` argument to ``bulk_update_with_history()`` is
   now allowed; history records will still be created (gh-1248)
-
+- Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
+  version is lower than 4.2 (gh-1261)
 
 3.4.0 (2023-08-18)
 ------------------
