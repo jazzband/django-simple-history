@@ -175,30 +175,35 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-Save without a historical record
---------------------------------
+Save Without Creating Historical Records
+----------------------------------------
 
-If you want to save a model without a historical record, you can use the following:
+If you want to save model objects without creating any historical records, you can set a
+``skip_history_when_saving`` attribute to ``True`` on each object before saving - for
+example like this:
 
 .. code-block:: python
 
-    class Poll(models.Model):
-        question = models.CharField(max_length=200)
-        history = HistoricalRecords()
+    model_obj.skip_history_when_saving = True
+    model_obj.save()
+    del model_obj.skip_history_when_saving
 
-        def save_without_historical_record(self, *args, **kwargs):
-            self.skip_history_when_saving = True
-            try:
-                ret = self.save(*args, **kwargs)
-            finally:
-                del self.skip_history_when_saving
-            return ret
+Alternatively, call the method ``save_without_historical_record()`` on each object
+instead of ``save()``. This method is automatically added to a model when setting a
+``HistoricalRecords`` field on it, and it looks like this:
 
+.. code-block:: python
 
-    poll = Poll(question='something')
-    poll.save_without_historical_record()
+    def save_without_historical_record(self, *args, **kwargs):
+        self.skip_history_when_saving = True
+        try:
+            ret = self.save(*args, **kwargs)
+        finally:
+            del self.skip_history_when_saving
+        return ret
 
-Or disable history records for all models by putting following lines in your ``settings.py`` file:
+As a final option, you can disable history records for all models by adding the
+following line to your settings file:
 
 .. code-block:: python
 
