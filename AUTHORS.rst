@@ -16,6 +16,7 @@ Authors
 - Alexander Anikeev
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
 - Amartis Gladius (`Amartis <https://github.com/amartis>`_)
+- Anton Kulikov (`bigtimecriminal <https://github.com/bigtimecriminal>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
 - Bheesham Persaud (`bheesham <https://github.com/bheesham>`_)
