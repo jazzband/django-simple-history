@@ -3,6 +3,7 @@ import importlib
 import uuid
 import warnings
 from functools import partial
+from typing import TypeVar
 
 from django.apps import apps
 from django.conf import settings
@@ -15,7 +16,9 @@ from django.db.models.fields.proxy import OrderWrt
 from django.db.models.fields.related import ForeignKey
 from django.db.models.fields.related_descriptors import (
     ForwardManyToOneDescriptor,
+    ForwardOneToOneDescriptor,
     ReverseManyToOneDescriptor,
+    ReverseOneToOneDescriptor,
     create_reverse_many_to_one_manager,
 )
 from django.db.models.query import QuerySet
@@ -44,6 +47,13 @@ try:
     from asgiref.local import Local as LocalContext
 except ImportError:
     from threading import local as LocalContext
+
+
+# __set__ value type
+_ST = TypeVar("_ST")
+# __get__ return type
+_GT = TypeVar("_GT")
+
 
 registered_models = {}
 
@@ -907,6 +917,21 @@ def to_historic(instance):
     an as_of timepoint, or None.
     """
     return getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
+
+
+class HistoricForwardOneToOneDescriptor(ForwardOneToOneDescriptor,
+                                        HistoricForwardManyToOneDescriptor):
+    pass
+
+
+class HistoricReverseOneToOneDescriptor(ReverseOneToOneDescriptor,
+                                        HistoricReverseManyToOneDescriptor):
+    pass
+
+
+class HistoricOneToOneField(models.OneToOneField[_ST, _GT]):
+    forward_related_accessor_class = HistoricForwardOneToOneDescriptor
+    related_accessor_class = HistoricReverseOneToOneDescriptor
 
 
 class HistoricalObjectDescriptor:
