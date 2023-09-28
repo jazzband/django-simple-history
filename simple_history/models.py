@@ -919,13 +919,15 @@ def to_historic(instance):
     return getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
 
 
-class HistoricForwardOneToOneDescriptor(ForwardOneToOneDescriptor,
-                                        HistoricForwardManyToOneDescriptor):
+class HistoricForwardOneToOneDescriptor(
+    ForwardOneToOneDescriptor, HistoricForwardManyToOneDescriptor
+):
     pass
 
 
-class HistoricReverseOneToOneDescriptor(ReverseOneToOneDescriptor,
-                                        HistoricReverseManyToOneDescriptor):
+class HistoricReverseOneToOneDescriptor(
+    ReverseOneToOneDescriptor, HistoricReverseManyToOneDescriptor
+):
     pass
 
 
