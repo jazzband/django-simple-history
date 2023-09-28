@@ -1,4 +1,4 @@
 # DEV: Replace this with `psycopg[binary]` when the minimum required Django version is
 #      4.2 or higher, as this is likely to be deprecated in the future
 #      (see https://docs.djangoproject.com/en/4.2/releases/4.2/#psycopg-3-support)
-psycopg2-binary==2.9.7
+psycopg2-binary==2.9.8
