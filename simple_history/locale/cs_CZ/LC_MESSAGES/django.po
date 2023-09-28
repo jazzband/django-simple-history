@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-18 21:54+0200\n"
 "PO-Revision-Date: 2021-09-20 19:50+0200\n"
@@ -87,8 +87,8 @@ msgstr "Žádné"
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
 "object."
-msgstr "Vyberte datum ze seznamu níže a vraťte se k předchozí verzi tohoto "
-"objektu."
+msgstr ""
+"Vyberte datum ze seznamu níže a vraťte se k předchozí verzi tohoto objektu."
 
 #: simple_history/templates/simple_history/object_history.html:16
 msgid "This object doesn't have a change history."
@@ -114,7 +114,7 @@ msgstr "Vrátit %(verbose_name)s"
 
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid ""
-"Press the 'Revert' button below to revert to this version of the object. "
+"Press the 'Revert' button below to revert to this version of the object."
 msgstr "Stisknutím tlačítka 'Vrátit změny' se vrátíte k této verzi objektu."
 
 #: simple_history/templates/simple_history/object_history_form.html:25

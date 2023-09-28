@@ -97,6 +97,7 @@ DATABASE_NAME_TO_DATABASE_SETTINGS = {
         },
     },
 }
+DEFAULT_DATABASE_NAME = "sqlite3"
 
 
 DEFAULT_SETTINGS = dict(  # nosec
@@ -135,6 +136,7 @@ DEFAULT_SETTINGS = dict(  # nosec
         }
     ],
     DEFAULT_AUTO_FIELD="django.db.models.AutoField",
+    USE_TZ=False,
 )
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -144,17 +146,36 @@ MIDDLEWARE = [
 
 DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
 
+# DEV: Merge these settings into DEFAULT_SETTINGS when the minimum required
+#      Django version is 4.2 or higher
+if django.VERSION >= (4, 2):
+    DEFAULT_SETTINGS["STORAGES"] = {
+        "default": {
+            # Speeds up tests and prevents locally storing files created through them
+            "BACKEND": "django.core.files.storage.InMemoryStorage",
+        },
+    }
+
+
+def get_default_settings(*, database_name=DEFAULT_DATABASE_NAME):
+    return {
+        **DEFAULT_SETTINGS,
+        "DATABASES": DATABASE_NAME_TO_DATABASE_SETTINGS[database_name],
+    }
+
 
 def main():
     parser = ArgumentParser(description="Run package tests.")
-    parser.add_argument("--database", action="store", nargs="?", default="sqlite3")
+    parser.add_argument(
+        "--database", action="store", nargs="?", default=DEFAULT_DATABASE_NAME
+    )
     parser.add_argument("--failfast", action="store_true")
     parser.add_argument("--pdb", action="store_true")
     parser.add_argument("--tag", action="append", nargs="?")
     namespace = parser.parse_args()
-    db_settings = DATABASE_NAME_TO_DATABASE_SETTINGS[namespace.database]
     if not settings.configured:
-        settings.configure(**DEFAULT_SETTINGS, DATABASES=db_settings)
+        default_settings = get_default_settings(database_name=namespace.database)
+        settings.configure(**default_settings)
 
     django.setup()
 

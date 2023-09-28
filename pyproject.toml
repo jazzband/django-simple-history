@@ -1,10 +1,10 @@
 [tool.black]
 line-length = 88
-target-version = ["py37"]
+target-version = ["py38"]
 
 [tool.isort]
 profile = "black"
-py_version = "37"
+py_version = "38"
 
 [tool.coverage.run]
 parallel = true

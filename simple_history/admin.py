@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
+from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
@@ -12,9 +13,7 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
-from . import utils
-
-USER_NATURAL_KEY = tuple(key.lower() for key in settings.AUTH_USER_MODEL.split(".", 1))
+from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
@@ -61,7 +60,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except action_list.model.DoesNotExist:
                 raise http.Http404
 
-        if not self.has_change_permission(request, obj):
+        if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
         # Set attribute on each action_list entry from admin methods
@@ -71,15 +70,16 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
-        content_type = self.content_type_model_cls.objects.get_by_natural_key(
-            *USER_NATURAL_KEY
+        content_type = self.content_type_model_cls.objects.get_for_model(
+            get_user_model()
         )
+
         admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
         )
         context = {
-            "title": self.history_view_title(obj),
+            "title": self.history_view_title(request, obj),
             "action_list": action_list,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
@@ -88,7 +88,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "opts": opts,
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
-            "revert_disabled": self.revert_disabled,
+            "revert_disabled": self.revert_disabled(request, obj),
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
@@ -97,8 +97,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request, self.object_history_template, context, **extra_kwargs
         )
 
-    def history_view_title(self, obj):
-        if self.revert_disabled and not SIMPLE_HISTORY_EDIT:
+    def history_view_title(self, request, obj):
+        if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
             return _("View history: %s") % force_str(obj)
         else:
             return _("Change history: %s") % force_str(obj)
@@ -131,7 +131,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         ).instance
         obj._state.adding = False
 
-        if not self.has_change_permission(request, obj):
+        if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
         if SIMPLE_HISTORY_EDIT:
@@ -140,7 +140,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             change_history = False
 
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:
-            history = utils.get_history_manager_for_model(obj)
+            history = get_history_manager_for_model(obj)
             obj = history.get(pk=version_id).instance
 
         formsets = []
@@ -173,7 +173,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         model_name = original_opts.model_name
         url_triplet = self.admin_site.name, original_opts.app_label, model_name
         context = {
-            "title": self.history_form_view_title(obj),
+            "title": self.history_form_view_title(request, obj),
             "adminform": admin_form,
             "object_id": object_id,
             "original": obj,
@@ -186,12 +186,13 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "change_url": reverse("%s:%s_%s_change" % url_triplet, args=(obj.pk,)),
             "history_url": reverse("%s:%s_%s_history" % url_triplet, args=(obj.pk,)),
             "change_history": change_history,
-            "revert_disabled": self.revert_disabled,
+            "revert_disabled": self.revert_disabled(request, obj),
             # Context variables copied from render_change_form
             "add": False,
             "change": True,
             "has_add_permission": self.has_add_permission(request),
-            "has_change_permission": self.has_change_permission(request, obj),
+            "has_view_permission": self.has_view_history_permission(request, obj),
+            "has_change_permission": self.has_change_history_permission(request, obj),
             "has_delete_permission": self.has_delete_permission(request, obj),
             "has_file_field": True,
             "has_absolute_url": False,
@@ -211,8 +212,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request, self.object_history_form_template, context, **extra_kwargs
         )
 
-    def history_form_view_title(self, obj):
-        if self.revert_disabled:
+    def history_form_view_title(self, request, obj):
+        if self.revert_disabled(request, obj):
             return _("View %s") % force_str(obj)
         else:
             return _("Revert %s") % force_str(obj)
@@ -231,6 +232,54 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         """Returns the ContentType model class."""
         return django_apps.get_model("contenttypes.contenttype")
 
+    def revert_disabled(self, request, obj=None):
+        """If `True`, hides the "Revert" button in the `submit_line.html` template."""
+        if getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False):
+            return True
+        elif self.has_view_history_permission(
+            request, obj
+        ) and not self.has_change_history_permission(request, obj):
+            return True
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        return super().has_change_permission(request, obj)
+
+    def has_view_or_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj) or self.has_change_permission(
+            request, obj
+        )
+
+    def has_view_history_or_change_history_permission(self, request, obj=None):
+        if self.enforce_history_permissions:
+            return self.has_view_history_permission(
+                request, obj
+            ) or self.has_change_history_permission(request, obj)
+        return self.has_view_or_change_permission(request, obj)
+
+    def has_view_history_permission(self, request, obj=None):
+        if self.enforce_history_permissions:
+            opts_history = get_history_model_for_model(self.model)._meta
+            codename_view_history = get_permission_codename("view", opts_history)
+            return request.user.has_perm(
+                f"{opts_history.app_label}.{codename_view_history}"
+            )
+        return self.has_view_permission(request, obj)
+
+    def has_change_history_permission(self, request, obj=None):
+        if self.enforce_history_permissions:
+            opts_history = get_history_model_for_model(self.model)._meta
+            codename_change_history = get_permission_codename("change", opts_history)
+            return request.user.has_perm(
+                f"{opts_history.app_label}.{codename_change_history}"
+            )
+        return self.has_change_permission(request, obj)
+
     @property
-    def revert_disabled(self):
-        return getattr(settings, "SIMPLE_HISTORY_REVERT_DISABLED", False)
+    def enforce_history_permissions(self):
+        return getattr(
+            settings, "SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS", False
+        )

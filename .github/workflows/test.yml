@@ -6,21 +6,26 @@ on: [push, pull_request]
 jobs:
   build:
     name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
-        django-version: ['3.2', '4.0', 'main']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12-dev']
+        django-version: ['3.2', '4.1', '4.2', 'main']
 
         exclude:
-          - python-version: '3.7'
-            django-version: '4.0'
-          - python-version: '3.7'
+          - python-version: '3.8'
             django-version: 'main'
-          - python-version: '3.10'
-            django-version: '3.1'
+
+          - python-version: '3.9'
+            django-version: 'main'
+
+          - python-version: '3.11'
+            django-version: '3.2'
+
+          - python-version: '3.12-dev'
+            django-version: '3.2'
 
     services:
 
@@ -47,38 +52,29 @@ jobs:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_DATABASE: mariadb
-          MYSQL_ROOT_PASSWORD: mariadb
+          MARIADB_DATABASE: mariadb
+          MARIADB_ROOT_PASSWORD: mariadb
         ports:
           - 3307:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mariadb-admin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
-
-      - name: Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key:
-            ${{ matrix.python-version }}-v1-${{ hashFiles('**/setup.py') }}-${{ hashFiles('**/tox.ini') }}
-          restore-keys: |
-            ${{ matrix.python-version }}-v1-
+          cache: 'pip'
+          cache-dependency-path: |
+            setup.py
+            tox.ini
+            requirements/*.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements/tox.txt
+          pip install -r requirements/tox.txt
 
       - name: Tox tests
         run: |
@@ -87,6 +83,39 @@ jobs:
           DJANGO: ${{ matrix.django-version }}
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
-          name: Python ${{ matrix.python-version }}
+          name: Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }}
+
+
+  generated_file_checks:
+    name: Check generated files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gettext
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+
+      - name: Set up newest stable Python version
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          cache: 'pip'
+          # Invalidate the cache when this file updates, as the dependencies' versions
+          # are pinned in the step below
+          cache-dependency-path: '.github/workflows/test.yml'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install this project in editable mode, so that its package metadata can be queried
+          pip install -e .
+          # Install the latest minor version of Django we support
+          pip install Django==4.2
+
+      - name: Check translation files are updated
+        run: python -m simple_history.tests.generated_file_checks.check_translations

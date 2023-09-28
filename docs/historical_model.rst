@@ -361,7 +361,7 @@ Allow tracking to be inherited
 
 By default history tracking is only added for the model that is passed
 to ``register()`` or has the ``HistoricalRecords`` descriptor. By
-passing ``inherit=True`` to either way of registering you can change
+passing ``inherit=True`` to either way of registering, you can change
 that behavior so that any child model inheriting from it will have
 historical tracking as well. Be careful though, in cases where a model
 can be tracked more than once, ``MultipleRegistrationsError`` will be
@@ -383,6 +383,9 @@ raised.
 
 Both ``User`` and ``Poll`` in the example above will cause any model
 inheriting from them to have historical tracking as well.
+
+**Note:** For parent models having a ``HistoricalRecords`` field with ``inherit=True``
+*and* a ``table_name``, the latter option will not be inherited by child models.
 
 History Model In Different App
 ------------------------------
@@ -447,3 +450,49 @@ And you don't want to create database index for ``question``, it is necessary to
 
 By default, django-simple-history keeps all indices. and even forces them on unique fields and relations.
 WARNING: This will drop performance on historical lookups
+
+Tracking many to many relationships
+-----------------------------------
+By default, many to many fields are ignored when tracking changes.
+If you want to track many to many relationships, you need to define them explicitly:
+
+.. code-block:: python
+
+    class Category(models.Model):
+        name = models.CharField(max_length=200)
+
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        categories = models.ManyToManyField(Category)
+        history = HistoricalRecords(m2m_fields=[categories])
+
+This will create a historical intermediate model that tracks each relational change
+between `Poll` and `Category`.
+
+You may use either the name of the field or the field instance itself.
+
+You may also define these fields in a class attribute (by default on `_history_m2m_fields`).
+This is mainly used by inherited models not declaring their own `HistoricalRecord`.
+You can override the attribute name by setting your own `m2m_fields_model_field_name`
+argument on the `HistoricalRecord` instance.
+
+You will see the many to many changes when diffing between two historical records:
+
+.. code-block:: python
+
+    informal = Category.objects.create(name="informal questions")
+    official = Category.objects.create(name="official questions")
+    p = Poll.objects.create(question="what's up?")
+    p.save()
+    p.categories.add(informal, official)
+    p.categories.remove(informal)
+
+    last_record = p.history.latest()
+    previous_record = last_record.prev_record
+    delta = last_record.diff_against(previous_record)
+
+    for change in delta.changes:
+        print("{} changed from {} to {}".format(change.field, change.old, change.new))
+
+    # Output:
+    # categories changed from [{'poll': 1, 'category': 1}, { 'poll': 1, 'category': 2}] to [{'poll': 1, 'category': 2}]

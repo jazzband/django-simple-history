@@ -92,6 +92,22 @@ class PollWithAlternativeManager(models.Model):
     history = HistoricalRecords()
 
 
+class CustomPollManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(hidden=True)
+
+
+class PollWithCustomManager(models.Model):
+    some_objects = CustomPollManager()
+    all_objects = models.Manager()
+
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    hidden = models.BooleanField(default=False)
+
+    history = HistoricalRecords()
+
+
 class IPAddressHistoricalModel(models.Model):
     ip_address = models.GenericIPAddressField()
 
@@ -107,6 +123,98 @@ class PollWithHistoricalIPAddress(models.Model):
 
     def get_absolute_url(self):
         return reverse("poll-detail", kwargs={"pk": self.pk})
+
+
+class SessionsHistoricalModel(models.Model):
+    session = models.CharField(max_length=200, null=True, default=None)
+
+    class Meta:
+        abstract = True
+
+
+class PollWithHistoricalSessionAttr(models.Model):
+    question = models.CharField(max_length=200)
+    history = HistoricalRecords(bases=[SessionsHistoricalModel])
+
+
+class PollWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(m2m_fields=[places])
+
+
+class PollWithManyToManyCustomHistoryID(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places], history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class HistoricalRecordsWithExtraFieldM2M(HistoricalRecords):
+    def get_extra_fields_m2m(self, model, through_model, fields):
+        extra_fields = super().get_extra_fields_m2m(model, through_model, fields)
+
+        def get_class_name(self):
+            return self.__class__.__name__
+
+        extra_fields["get_class_name"] = get_class_name
+        return extra_fields
+
+
+class PollWithManyToManyWithIPAddress(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecordsWithExtraFieldM2M(
+        m2m_fields=[places], m2m_bases=[IPAddressHistoricalModel]
+    )
+
+
+class PollWithSeveralManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place", related_name="places_poll")
+    restaurants = models.ManyToManyField("Restaurant", related_name="restaurants_poll")
+    books = models.ManyToManyField("Book", related_name="books_poll")
+
+    history = HistoricalRecords(m2m_fields=[places, restaurants, books])
+
+
+class PollParentWithManyToMany(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+    places = models.ManyToManyField("Place")
+
+    history = HistoricalRecords(
+        m2m_fields=[places],
+        inherit=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class PollChildBookWithManyToMany(PollParentWithManyToMany):
+    books = models.ManyToManyField("Book", related_name="books_poll_child")
+    _history_m2m_fields = ["books"]
+
+
+class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
+    restaurants = models.ManyToManyField(
+        "Restaurant", related_name="restaurants_poll_child"
+    )
+    _history_m2m_fields = [restaurants]
+
+
+class PollWithSelfManyToMany(models.Model):
+    relations = models.ManyToManyField("self")
+    history = HistoricalRecords(m2m_fields=[relations])
 
 
 class CustomAttrNameForeignKey(models.ForeignKey):
@@ -458,6 +566,7 @@ class Planet(models.Model):
 
     class Meta:
         verbose_name = "Planet"
+        verbose_name_plural = "Planets"
 
 
 class Contact(models.Model):
@@ -578,7 +687,7 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class BasePlace(models.Model):
     name = models.CharField(max_length=50)
-    history = HistoricalRecords(inherit=True)
+    history = HistoricalRecords(inherit=True, table_name="base_places_history")
 
 
 class InheritedRestaurant(BasePlace):

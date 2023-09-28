@@ -1,8 +1,8 @@
 django-simple-history
 =====================
 
-.. image:: https://secure.travis-ci.org/jazzband/django-simple-history.svg?branch=master
-   :target: http://travis-ci.org/jazzband/django-simple-history
+.. image:: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
@@ -10,23 +10,23 @@ django-simple-history
    :alt: Documentation Status
 
 .. image:: https://img.shields.io/codecov/c/github/jazzband/django-simple-history/master.svg
-   :target: http://codecov.io/github/jazzband/django-simple-history?branch=master
+   :target: https://app.codecov.io/github/jazzband/django-simple-history?branch=master
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/pypi/v/django-simple-history.svg
-   :target: https://pypi.python.org/pypi/django-simple-history
+   :target: https://pypi.org/project/django-simple-history/
    :alt: PyPI Version
 
 .. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
-   :target: https://codeclimate.com/github/treyhunner/django-simple-history/maintainability
+   :target: https://codeclimate.com/github/jazzband/django-simple-history/maintainability
    :alt: Maintainability
 
-.. image:: https://pepy.tech/badge/django-simple-history
+.. image:: https://static.pepy.tech/badge/django-simple-history
    :target: https://pepy.tech/project/django-simple-history
    :alt: Downloads
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/ambv/black
+   :target: https://github.com/psf/black
    :alt: Code Style
 
 .. image:: https://jazzband.co/static/img/badge.svg
@@ -41,8 +41,10 @@ This app supports the following combinations of Django and Python:
 ==========  =======================
   Django      Python
 ==========  =======================
-3.2         3.7, 3.8, 3.9
-4.0         3.8, 3.9, 3.10
+3.2         3.8, 3.9, 3.10
+4.1         3.8, 3.9, 3.10, 3.11, 3.12-dev
+4.2         3.8, 3.9, 3.10, 3.11, 3.12-dev
+main        3.10, 3.11, 3.12-dev
 ==========  =======================
 
 Contribute

@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-04-04 01:50+0300\n"
 "PO-Revision-Date: 2020-04-25 22:50+0200\n"
@@ -115,10 +115,10 @@ msgstr "Rétablir %(verbose_name)s"
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid ""
-"Press the 'Revert' button below to revert to this version of the object. "
+"Press the 'Revert' button below to revert to this version of the object."
 msgstr ""
 "Cliquez sur le bouton 'Rétablir' ci-dessous pour revenir à cette version de "
-"l' objet. "
+"l' objet."
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."

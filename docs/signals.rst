@@ -22,6 +22,24 @@ saving a historical record. Arguments passed to the signals include the followin
     using
         The database alias being used
 
+For Many To Many signals you've got the following :
+
+.. glossary::
+    instance
+        The source model instance being saved
+
+    history_instance
+        The corresponding history record
+
+    rows (for pre_create)
+        The elements to be bulk inserted into the m2m table
+
+    created_rows (for post_create)
+        The created elements into the m2m table
+
+    field
+        The recorded field object
+
 To connect the signals to your callbacks, you can use the ``@receiver`` decorator:
 
 .. code-block:: python
@@ -29,7 +47,9 @@ To connect the signals to your callbacks, you can use the ``@receiver`` decorato
     from django.dispatch import receiver
     from simple_history.signals import (
         pre_create_historical_record,
-        post_create_historical_record
+        post_create_historical_record,
+        pre_create_historical_m2m_records,
+        post_create_historical_m2m_records,
     )
 
     @receiver(pre_create_historical_record)
@@ -39,3 +59,11 @@ To connect the signals to your callbacks, you can use the ``@receiver`` decorato
     @receiver(post_create_historical_record)
     def post_create_historical_record_callback(sender, **kwargs):
         print("Sent after saving historical record")
+
+    @receiver(pre_create_historical_m2m_records)
+    def pre_create_historical_m2m_records_callback(sender, **kwargs):
+        print("Sent before saving many to many field on historical record")
+
+    @receiver(post_create_historical_m2m_records)
+    def post_create_historical_m2m_records_callback(sender, **kwargs):
+        print("Sent after saving many to many field on historical record")

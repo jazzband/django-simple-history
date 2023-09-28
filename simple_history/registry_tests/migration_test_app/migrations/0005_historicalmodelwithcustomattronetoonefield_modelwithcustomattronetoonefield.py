@@ -9,7 +9,6 @@ import simple_history.registry_tests.migration_test_app.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         (

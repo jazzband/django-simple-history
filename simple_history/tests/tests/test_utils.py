@@ -1,6 +1,8 @@
 from datetime import datetime
+from unittest import skipUnless
 from unittest.mock import Mock, patch
 
+import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
@@ -14,12 +16,14 @@ from simple_history.tests.models import (
     Poll,
     PollWithAlternativeManager,
     PollWithExcludeFields,
+    PollWithHistoricalSessionAttr,
     PollWithUniqueQuestion,
     Street,
 )
 from simple_history.utils import (
     bulk_create_with_history,
     bulk_update_with_history,
+    get_history_manager_for_model,
     update_change_reason,
 )
 
@@ -286,6 +290,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             default_user=None,
             default_change_reason=None,
             default_date=None,
+            custom_historical_attrs=None,
         )
 
 
@@ -423,6 +428,15 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
+    @skipUnless(django.VERSION >= (4, 0), "Requires Django 4.0 or above")
+    def test_bulk_update_with_history_returns_rows_updated(self):
+        rows_updated = bulk_update_with_history(
+            self.data,
+            Poll,
+            fields=["question"],
+        )
+        self.assertEqual(rows_updated, 5)
+
 
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
     def setUp(self):
@@ -496,6 +510,58 @@ class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
                 fields=["question"],
                 manager=Poll.objects,
             )
+
+
+class CustomHistoricalAttrsTest(TestCase):
+    def setUp(self):
+        self.data = [
+            PollWithHistoricalSessionAttr(id=x, question=f"Question {x}")
+            for x in range(1, 6)
+        ]
+
+    def test_bulk_create_history_with_custom_model_attributes(self):
+        bulk_create_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            custom_historical_attrs={"session": "jam"},
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 5)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="jam").count(),
+            5,
+        )
+
+    def test_bulk_update_history_with_custom_model_attributes(self):
+        bulk_create_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            custom_historical_attrs={"session": None},
+        )
+        bulk_update_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            fields=[],
+            custom_historical_attrs={"session": "training"},
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 5)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="training").count(),
+            5,
+        )
+
+    def test_bulk_manager_with_custom_model_attributes(self):
+        history_manager = get_history_manager_for_model(PollWithHistoricalSessionAttr)
+        history_manager.bulk_history_create(
+            self.data, custom_historical_attrs={"session": "co-op"}
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 0)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="co-op").count(),
+            5,
+        )
 
 
 class UpdateChangeReasonTestCase(TestCase):
