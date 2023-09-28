@@ -14,7 +14,7 @@ Unreleased
   now allowed; history records will still be created (gh-1248)
 - Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
   version is lower than 4.2 (gh-1261)
-- Started using ``exists`` query instead of ``count`` in ``clean-duplicate_history`` command
+- Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
 
 3.4.0 (2023-08-18)
 ------------------
