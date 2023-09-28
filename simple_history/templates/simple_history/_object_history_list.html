@@ -17,28 +17,32 @@
     </tr>
   </thead>
   <tbody>
-    {% for action in action_list %}
+    {% for record in historical_records %}
       <tr>
-        <td><a href="{% url opts|admin_urlname:'simple_history' object.pk action.pk %}">{{ action.history_object }}</a></td>
-        {% for column in history_list_display %}
-        <td scope="col">{{ action|getattribute:column }}</th>
-        {% endfor %}
-        <td>{{ action.history_date }}</td>
-        <td>{{ action.get_history_type_display }}</td>
         <td>
-          {% if action.history_user %}
-            {% url admin_user_view action.history_user_id as admin_user_url %}
+          <a href="{% url opts|admin_urlname:'simple_history' object.pk record.pk %}">
+            {{ record.history_object }}
+          </a>
+        </td>
+        {% for column in history_list_display %}
+          <td>{{ record|getattribute:column }}</td>
+        {% endfor %}
+        <td>{{ record.history_date }}</td>
+        <td>{{ record.get_history_type_display }}</td>
+        <td>
+          {% if record.history_user %}
+            {% url admin_user_view record.history_user_id as admin_user_url %}
             {% if admin_user_url %}
-              <a href="{{ admin_user_url }}">{{ action.history_user }}</a>
+              <a href="{{ admin_user_url }}">{{ record.history_user }}</a>
             {% else %}
-              {{ action.history_user }}
+              {{ record.history_user }}
             {% endif %}
           {% else %}
             {% trans "None" %}
           {% endif %}
         </td>
         <td>
-            {{ action.history_change_reason }}
+          {{ record.history_change_reason }}
         </td>
       </tr>
     {% endfor %}

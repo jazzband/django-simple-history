@@ -46,29 +46,29 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
-        action_list = history.filter(**{pk_name: object_id})
+        historical_records = history.filter(**{pk_name: object_id})
         if not isinstance(history.model.history_user, property):
             # Only select_related when history_user is a ForeignKey (not a property)
-            action_list = action_list.select_related("history_user")
+            historical_records = historical_records.select_related("history_user")
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
             obj = self.get_queryset(request).get(**{pk_name: object_id})
         except model.DoesNotExist:
             try:
-                obj = action_list.latest("history_date").instance
-            except action_list.model.DoesNotExist:
+                obj = historical_records.latest("history_date").instance
+            except historical_records.model.DoesNotExist:
                 raise http.Http404
 
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
-        # Set attribute on each action_list entry from admin methods
+        # Set attribute on each historical record from admin methods
         for history_list_entry in history_list_display:
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
-                for list_entry in action_list:
-                    setattr(list_entry, history_list_entry, value_for_entry(list_entry))
+                for record in historical_records:
+                    setattr(record, history_list_entry, value_for_entry(record))
 
         content_type = self.content_type_model_cls.objects.get_for_model(
             get_user_model()
@@ -80,7 +80,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         )
         context = {
             "title": self.history_view_title(request, obj),
-            "action_list": action_list,
+            "historical_records": historical_records,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
             "root_path": getattr(self.admin_site, "root_path", None),
