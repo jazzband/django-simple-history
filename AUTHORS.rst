@@ -16,6 +16,7 @@ Authors
 - Alexander Anikeev
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
 - Amartis Gladius (`Amartis <https://github.com/amartis>`_)
+- Anton Kulikov (`bigtimecriminal <https://github.com/bigtimecriminal>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
 - Bheesham Persaud (`bheesham <https://github.com/bheesham>`_)
@@ -64,6 +65,7 @@ Authors
 - Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
+- Jeppe Fihl-Pearson (`Tenzer <https://github.com/Tenzer>`_)
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
@@ -90,6 +92,7 @@ Authors
 - Lucas Wiman
 - Maciej "RooTer" Urbański
 - Marcelo Canina (`marcanuy <https://github.com/marcanuy>`_)
+- Marco Sirabella
 - Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
@@ -105,6 +108,7 @@ Authors
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Nick Träger
+- Noel James (`NoelJames <https://github.com/NoelJames>`_)
 - Phillip Marshall
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula

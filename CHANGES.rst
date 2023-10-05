@@ -4,6 +4,21 @@ Changes
 Unreleased
 ----------
 
+- Allow ``HistoricalRecords.m2m_fields`` as str (gh-1243)
+- Fixed ``HistoryRequestMiddleware`` deleting non-existent
+  ``HistoricalRecords.context.request`` in very specific circumstances (gh-1256)
+- Added ``custom_historical_attrs`` to ``bulk_create_with_history()`` and
+  ``bulk_update_with_history()`` for setting additional fields on custom history models
+  (gh-1248)
+- Passing an empty list as the ``fields`` argument to ``bulk_update_with_history()`` is
+  now allowed; history records will still be created (gh-1248)
+- Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
+  version is lower than 4.2 (gh-1261)
+- Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
+
+3.4.0 (2023-08-18)
+------------------
+
 - Fixed typos in the docs
 - Added feature to evaluate ``history`` model permissions explicitly when
   ``SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS`` is set to ``True``
@@ -17,6 +32,12 @@ Unreleased
 - Added support for Django 4.2 (gh-1202)
 - Made ``bulk_update_with_history()`` return the number of model rows updated (gh-1206)
 - Added pagination to ``SimpleHistoryAdmin`` (gh-1220)
+- Fixed ``HistoryRequestMiddleware`` not cleaning up after itself (i.e. deleting
+  ``HistoricalRecords.context.request``) under some circumstances (gh-1188)
+- Made ``HistoryRequestMiddleware`` async-capable (gh-1209)
+- Fixed error when setting ``table_name`` with ``inherit=True`` (gh-1195)
+- Fixed ``FieldError`` when creating historical records for many-to-many fields with
+  ``to="self"`` (gh-1218)
 
 3.3.0 (2023-03-08)
 ------------------

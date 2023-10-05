@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: django-simple-history 3.3.0\n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-07-09 13:55+0200\n"
 "PO-Revision-Date: 2023-07-09 12:31+0200\n"

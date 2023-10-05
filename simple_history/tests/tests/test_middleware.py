@@ -1,8 +1,11 @@
 from datetime import date
+from unittest import mock
 
+from django.http import HttpResponse
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from simple_history.models import HistoricalRecords
 from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.models import (
     BucketDataRegisterRequestUser,
@@ -145,6 +148,38 @@ class MiddlewareTest(TestCase):
         history = bucket_datas.first().history.all()
 
         self.assertListEqual([h.history_user_id for h in history], [member1.id])
+
+    # The `request` attribute of `HistoricalRecords.context` should be deleted
+    # even if this setting is set to `True`
+    @override_settings(DEBUG_PROPAGATE_EXCEPTIONS=True)
+    @mock.patch("simple_history.tests.view.MockableView.get")
+    def test_request_attr_is_deleted_after_each_response(self, func_mock):
+        """https://github.com/jazzband/django-simple-history/issues/1189"""
+
+        def assert_has_request_attr(has_attr: bool):
+            self.assertEqual(hasattr(HistoricalRecords.context, "request"), has_attr)
+
+        def mocked_get(*args, **kwargs):
+            assert_has_request_attr(True)
+            response_ = HttpResponse(status=200)
+            response_.historical_records_request = HistoricalRecords.context.request
+            return response_
+
+        func_mock.side_effect = mocked_get
+        self.client.force_login(self.user)
+        mockable_url = reverse("mockable")
+
+        assert_has_request_attr(False)
+        response = self.client.get(mockable_url)
+        assert_has_request_attr(False)
+        # Check that the `request` attr existed while handling the request
+        self.assertEqual(response.historical_records_request.user, self.user)
+
+        func_mock.side_effect = RuntimeError()
+        with self.assertRaises(RuntimeError):
+            self.client.get(mockable_url)
+        # The request variable should be deleted even if an exception was raised
+        assert_has_request_attr(False)
 
 
 @override_settings(**middleware_override_settings)

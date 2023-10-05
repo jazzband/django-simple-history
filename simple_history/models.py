@@ -298,7 +298,7 @@ class HistoricalRecords:
         attrs.update(self.get_extra_fields(model, fields))
         # type in python2 wants str as a first argument
         attrs.update(Meta=type("Meta", (), self.get_meta_options(model)))
-        if self.table_name is not None:
+        if not inherited and self.table_name is not None:
             attrs["Meta"].db_table = self.table_name
 
         # Set as the default then check for overrides
@@ -670,7 +670,8 @@ class HistoricalRecords:
 
             insert_rows = []
 
-            through_field_name = type(original_instance).__name__.lower()
+            # `m2m_field_name()` is part of Django's internal API
+            through_field_name = field.m2m_field_name()
 
             rows = through_model.objects.filter(**{through_field_name: instance})
 
@@ -767,7 +768,10 @@ class HistoricalRecords:
             m2m_fields.update(getattr(model, self.m2m_fields_model_field_name))
         except AttributeError:
             pass
-        return [getattr(model, field.name).field for field in m2m_fields]
+        field_names = [
+            field if isinstance(field, str) else field.name for field in m2m_fields
+        ]
+        return [getattr(model, field_name).field for field_name in field_names]
 
 
 def transform_field(field):
