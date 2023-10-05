@@ -36,10 +36,11 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
 
 Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :doc:`/user_tracking`).
 
-Changing the number of histoical records shown in admin history list view
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Changing the number of historical records shown in the admin history list view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, the history list view in admin shows the last 50 records. You can change this by adding a `list_per_page` attribute to the admin class.
+By default, the history list view of ``SimpleHistoryAdmin`` shows the last 50 records.
+You can change this by adding a `list_per_page` attribute to the admin class.
 
 
 Displaying custom columns in the admin history list view
