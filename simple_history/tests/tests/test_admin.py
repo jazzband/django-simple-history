@@ -415,10 +415,19 @@ class AdminSiteTest(TestCase):
         # Simulate a request to the second page
         request = RequestFactory().get("/", {"page": "2"})
         request.user = self.user
-        response = admin.history_view(request, str(poll.id))
+        
+        # Patch the render function
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(poll.id))
 
-        # Check if only 10 (61 - 50 from the first page) objects are present on the second page
-        self.assertEqual(len(response.context_data["action_list"]), 11)
+            # Ensure the render function was called
+            self.assertTrue(mock_render.called)
+
+            # Extract context passed to render function
+            action_list_count = mock_render.call_args[0][2]['action_list'].object_list.count()
+
+            # Check if only 10 (61 - 50 from the first page) objects are present in the context
+            self.assertEqual(action_list_count, 11)
 
     def test_response_change_change_history_setting_off(self):
         """
