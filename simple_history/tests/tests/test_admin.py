@@ -394,6 +394,32 @@ class AdminSiteTest(TestCase):
 
         self.assertEqual(response["Location"], "/awesome/url/")
 
+    def test_history_view_pagination(self):
+        """
+        Ensure the history_view handles pagination correctly.
+        """
+        # Create a Poll object and make more than 50 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(60):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        # Verify that there are 60+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 61)
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+        
+        # Simulate a request to the second page
+        request = RequestFactory().get("/", {"page": "2"})
+        request.user = self.user
+        response = admin.history_view(request, str(poll.id))
+
+        # Check if only 10 (61 - 50 from the first page) objects are present on the second page
+        self.assertEqual(len(response.context_data["action_list"]), 11)
+
     def test_response_change_change_history_setting_off(self):
         """
         Test the response_change method that it works with a _change_history
