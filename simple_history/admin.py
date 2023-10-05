@@ -63,8 +63,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 raise http.Http404
 
         paginator = Paginator(action_list, self.history__list_per_page)
-        page_number = request.GET.get("page", 1)
-        action_list_page = paginator.get_page(page_number)
+        action_list_page = paginator.get_page(request.GET.get("page"))
 
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
