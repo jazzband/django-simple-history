@@ -103,6 +103,7 @@ from ..models import (
     PollWithManyToManyCustomHistoryID,
     PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
+    PollWithSelfManyToMany,
     PollWithSeveralManyToMany,
     Province,
     Restaurant,
@@ -723,6 +724,24 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(delta.old_record, old_record)
         self.assertEqual(delta.new_record, new_record)
         self.assertEqual(expected_change.field, delta.changes[0].field)
+
+    def test_history_table_name_is_not_inherited(self):
+        def assert_table_name(obj, expected_table_name):
+            history_model = obj.history.model
+            self.assertEqual(
+                history_model.__name__, f"Historical{obj._meta.model.__name__}"
+            )
+            self.assertEqual(history_model._meta.db_table, expected_table_name)
+
+        place = BasePlace.objects.create(name="Place Name")
+        # This is set in `BasePlace.history`
+        assert_table_name(place, "base_places_history")
+
+        r = InheritedRestaurant.objects.create(name="KFC", serves_hot_dogs=True)
+        self.assertTrue(isinstance(r, BasePlace))
+        # The default table name of the history model,
+        # instead of inheriting from `BasePlace`
+        assert_table_name(r, f"tests_Historical{r._meta.model.__name__}".lower())
 
     def test_history_diff_with_incorrect_type(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
@@ -1850,6 +1869,17 @@ class InheritedManyToManyTest(TestCase):
 
         self.assertEqual(add.restaurants.all().count(), 0)
         self.assertEqual(add.places.all().count(), 0)
+
+    def test_self_field(self):
+        poll1 = PollWithSelfManyToMany.objects.create()
+        poll2 = PollWithSelfManyToMany.objects.create()
+
+        self.assertEqual(poll1.history.all().count(), 1)
+
+        poll1.relations.add(poll2)
+        self.assertIn(poll2, poll1.relations.all())
+
+        self.assertEqual(poll1.history.all().count(), 2)
 
 
 class ManyToManyWithSignalsTest(TestCase):

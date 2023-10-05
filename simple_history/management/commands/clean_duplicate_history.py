@@ -74,9 +74,10 @@ class Command(populate_history.Command):
             m_qs = history_model.objects
             if stop_date:
                 m_qs = m_qs.filter(history_date__gte=stop_date)
-            found = m_qs.count()
-            self.log(f"{model} has {found} historical entries", 2)
-            if not found:
+            if self.verbosity >= 2:
+                found = m_qs.count()
+                self.log(f"{model} has {found} historical entries", 2)
+            if not m_qs.exists():
                 continue
 
             # Break apart the query so we can add additional filtering

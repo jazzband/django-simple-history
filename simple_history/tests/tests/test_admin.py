@@ -60,12 +60,6 @@ class AdminSiteTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_superuser("user_login", "u@example.com", "pass")
 
-    def tearDown(self):
-        try:
-            del HistoricalRecords.context.request
-        except AttributeError:
-            pass
-
     def login(self, user=None, superuser=None):
         user = user or self.user
         if superuser is not None:
@@ -411,7 +405,7 @@ class AdminSiteTest(TestCase):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         self.login(superuser=True)
-        
+
         # Simulate a request to the second page
         request = RequestFactory().get("/", {"page": "2"})
         request.user = self.user

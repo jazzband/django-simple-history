@@ -125,6 +125,18 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class SessionsHistoricalModel(models.Model):
+    session = models.CharField(max_length=200, null=True, default=None)
+
+    class Meta:
+        abstract = True
+
+
+class PollWithHistoricalSessionAttr(models.Model):
+    question = models.CharField(max_length=200)
+    history = HistoricalRecords(bases=[SessionsHistoricalModel])
+
+
 class PollWithManyToMany(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
@@ -190,7 +202,7 @@ class PollParentWithManyToMany(models.Model):
 
 class PollChildBookWithManyToMany(PollParentWithManyToMany):
     books = models.ManyToManyField("Book", related_name="books_poll_child")
-    _history_m2m_fields = [books]
+    _history_m2m_fields = ["books"]
 
 
 class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
@@ -198,6 +210,11 @@ class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
         "Restaurant", related_name="restaurants_poll_child"
     )
     _history_m2m_fields = [restaurants]
+
+
+class PollWithSelfManyToMany(models.Model):
+    relations = models.ManyToManyField("self")
+    history = HistoricalRecords(m2m_fields=[relations])
 
 
 class CustomAttrNameForeignKey(models.ForeignKey):
@@ -670,7 +687,7 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class BasePlace(models.Model):
     name = models.CharField(max_length=50)
-    history = HistoricalRecords(inherit=True)
+    history = HistoricalRecords(inherit=True, table_name="base_places_history")
 
 
 class InheritedRestaurant(BasePlace):

@@ -230,6 +230,7 @@ class HistoryManager(models.Manager):
         default_user=None,
         default_change_reason="",
         default_date=None,
+        custom_historical_attrs=None,
     ):
         """
         Bulk create the history for the objects specified by objs.
@@ -262,6 +263,7 @@ class HistoryManager(models.Manager):
                     field.attname: getattr(instance, field.attname)
                     for field in self.model.tracked_fields
                 },
+                **(custom_historical_attrs or {}),
             )
             if hasattr(self.model, "history_relation"):
                 row.history_relation_id = instance.pk

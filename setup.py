@@ -11,6 +11,8 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
             "fallback_version": "0.0.0",
         },
         setup_requires=["setuptools_scm"],
+        # DEV: Remove `asgiref` when the minimum required Django version is 4.2
+        install_requires=["asgiref>=3.6"],
         description="Store model history and view/revert changes from admin site.",
         long_description="\n".join((readme.read(), changes.read())),
         long_description_content_type="text/x-rst",
