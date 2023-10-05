@@ -405,7 +405,7 @@ class AdminSiteTest(TestCase):
         admin = SimpleHistoryAdmin(Poll, admin_site)
 
         self.login(superuser=True)
-        
+
         # Simulate a request to the second page
         request = RequestFactory().get("/", {"page": "2"})
         request.user = self.user
