@@ -22,7 +22,7 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
-    list_per_page = 50
+    history__list_per_page = 50
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -62,7 +62,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except action_list.model.DoesNotExist:
                 raise http.Http404
 
-        paginator = Paginator(action_list, self.list_per_page)
+        paginator = Paginator(action_list, self.history__list_per_page)
         page_number = request.GET.get("page", 1)
         action_list_page = paginator.get_page(page_number)
 
