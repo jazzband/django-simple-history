@@ -15,6 +15,7 @@ Unreleased
 - Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
   version is lower than 4.2 (gh-1261)
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
+- Allow setting change reason through ``SimpleHistoryAdmin``'s change form (gh-1232)
 
 3.4.0 (2023-08-18)
 ------------------
