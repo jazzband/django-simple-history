@@ -498,8 +498,8 @@ class AdminSiteTest(TestCase):
             '<a href="?p=2" >2</a>'
             '<a href="?p=3" >3</a>'
             '<span class="this-page">4</span>'
-            f'{expected_entry_count} entries'
-            '</p>'
+            f"{expected_entry_count} entries"
+            "</p>"
         )
         self.assertInHTML(expected, response.content.decode())
 
