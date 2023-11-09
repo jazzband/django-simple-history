@@ -40,7 +40,7 @@ Changing the number of historical records shown in the admin history list view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, the history list view of ``SimpleHistoryAdmin`` shows the last 50 records.
-You can change this by adding a `history__list_per_page` attribute to the admin class.
+You can change this by adding a `history_list_per_page` attribute to the admin class.
 
 
 Displaying custom columns in the admin history list view
@@ -68,7 +68,7 @@ admin class.
         list_display = ["id", "name", "status"]
         history_list_display = ["status"]
         search_fields = ['name', 'user__username']
-        history__list_per_page = 100
+        history_list_per_page = 100
 
     admin.site.register(Poll, PollHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)
