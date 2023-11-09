@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
+from django.contrib.admin.views.main import PAGE_VAR
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -391,15 +392,16 @@ class AdminSiteTest(TestCase):
     def test_history_view_pagination(self):
         """
         Ensure the history_view handles pagination correctly.
+        The default history_list_per_page is 100 so page 2 should have 1 record.
         """
-        # Create a Poll object and make more than 50 changes to ensure pagination
+        # Create a Poll object and make more than 100 changes to ensure pagination
         poll = Poll.objects.create(question="what?", pub_date=today)
-        for i in range(60):
+        for i in range(100):
             poll.question = f"change_{i}"
             poll.save()
 
-        # Verify that there are 60+1 (initial creation) historical records
-        self.assertEqual(poll.history.count(), 61)
+        # Verify that there are 100+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 101)
 
         admin_site = AdminSite()
         admin = SimpleHistoryAdmin(Poll, admin_site)
@@ -407,7 +409,7 @@ class AdminSiteTest(TestCase):
         self.login(superuser=True)
 
         # Simulate a request to the second page
-        request = RequestFactory().get("/", {"page": "2"})
+        request = RequestFactory().get("/", {PAGE_VAR: "2"})
         request.user = self.user
 
         # Patch the render function
@@ -422,9 +424,91 @@ class AdminSiteTest(TestCase):
                 "action_list"
             ].object_list.count()
 
-            # Check if only 10 (61 - 50 from the first page)
+            # Check if only 1 (101 - 100 from the first page)
             # objects are present in the context
-            self.assertEqual(action_list_count, 11)
+            self.assertEqual(action_list_count, 1)
+
+    def test_history_view_pagination_no_pagination(self):
+        """
+        When all records fit on one page because the history_list_per_page is
+        higher than the number of records, ensure that the pagination is not set.
+        But it should show the number of entries.
+        """
+        # Create a Poll object and make more than 50 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(60):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        # Verify that there are 60+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 61)
+
+        # Create an admin with more per page than the number of records
+        class CustomSimpleHistoryAdmin(SimpleHistoryAdmin):
+            history_list_per_page = 200
+
+        admin_site = AdminSite()
+        admin = CustomSimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the second page
+        request = RequestFactory().get("/", {PAGE_VAR: "2"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+
+        expected = '<p class="paginator" style="border-top: 0">61 entries</p>'
+        self.assertInHTML(expected, response.content.decode())
+
+    def test_history_view_pagination_last_page(self):
+        """
+        With 31 records, the last page should have 1 record. Non-existing pages
+        also end up on the last page.
+        """
+        # Create a Poll object and make more than 30 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(30):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        expected_entry_count = 31
+
+        # Verify that there are 30+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), expected_entry_count)
+
+        # Create an admin with less per page than the number of records
+        class CustomSimpleHistoryAdmin(SimpleHistoryAdmin):
+            history_list_per_page = 10
+
+        admin_site = AdminSite()
+        admin = CustomSimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the 4th and last page
+        request = RequestFactory().get("/", {PAGE_VAR: "4"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+
+        expected = (
+            '<p class="paginator" style="border-top: 0">'
+            '<a href="?p=1" >1</a>'
+            '<a href="?p=2" >2</a>'
+            '<a href="?p=3" >3</a>'
+            '<span class="this-page">4</span>'
+            f'{expected_entry_count} entries'
+            '</p>'
+        )
+        self.assertInHTML(expected, response.content.decode())
+
+        # Also a non-existent page should return the last page
+        request = RequestFactory().get("/", {PAGE_VAR: "5"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+        self.assertInHTML(expected, response.content.decode())
 
     def test_response_change_change_history_setting_off(self):
         """
