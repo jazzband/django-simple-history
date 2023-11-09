@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
+from django.contrib.admin.views.main import PAGE_VAR
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
@@ -63,7 +64,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 raise http.Http404
 
         paginator = Paginator(action_list, self.history_list_per_page)
-        action_list_page = paginator.get_page(request.GET.get("page"))
+        action_list_page = paginator.get_page(request.GET.get(PAGE_VAR))
 
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
@@ -94,6 +95,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
             "revert_disabled": self.revert_disabled(request, obj),
+            "page_range": paginator.get_elided_page_range(action_list_page.number),
+            "page_var": PAGE_VAR,
+            "pagination_required": paginator.count > self.history_list_per_page,
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})
