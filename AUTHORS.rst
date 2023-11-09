@@ -81,6 +81,7 @@ Authors
 - Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
 - Josh Fyne
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
+- Jurrian Tromp (`jurrian <https://github.com/jurrian>`_)
 - Keith Hackbarth
 - Kevin Foster
 - Kira (`kiraware <https://github.com/kiraware>`_)
@@ -120,6 +121,7 @@ Authors
 - Ross Lote
 - Ross Mechanic (`rossmechanic <https://github.com/rossmechanic>`_)
 - Ross Rogers
+- `RumitAP <https://github.com/RumitAP>`_
 - Sergey Ozeranskiy (`ozeranskiy <https://github.com/ozeranskiy>`_)
 - Shane Engelman
 - Steeve Chailloux
