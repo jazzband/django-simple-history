@@ -39,7 +39,7 @@ Changing a history-tracked model from the admin interface will automatically rec
 Changing the number of historical records shown in the admin history list view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, the history list view of ``SimpleHistoryAdmin`` shows the last 50 records.
+By default, the history list view of ``SimpleHistoryAdmin`` shows the last 100 records.
 You can change this by adding a `history_list_per_page` attribute to the admin class.
 
 
