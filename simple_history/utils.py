@@ -1,5 +1,13 @@
 from django.db import transaction
-from django.db.models import Case, ForeignKey, ManyToManyField, Q, When, JSONField, Value
+from django.db.models import (
+    Case,
+    ForeignKey,
+    JSONField,
+    ManyToManyField,
+    Q,
+    Value,
+    When,
+)
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
