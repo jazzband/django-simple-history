@@ -11,20 +11,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12-dev']
-        django-version: ['3.2', '4.1', '4.2', 'main']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        django-version: ['3.2', '4.2', '5.0', 'main']
 
         exclude:
+          # Exclude py3.8 and py3.9 for Django main and 5.0
+          - python-version: '3.8'
+            django-version: '5.0'
+          - python-version: '3.9'
+            django-version: '5.0'
           - python-version: '3.8'
             django-version: 'main'
-
           - python-version: '3.9'
             django-version: 'main'
 
+          # Exclude py3.11 and py3.12 for Django 3.2
           - python-version: '3.11'
             django-version: '3.2'
 
-          - python-version: '3.12-dev'
+          - python-version: '3.12'
             django-version: '3.2'
 
     services:
@@ -115,7 +120,7 @@ jobs:
           # Install this project in editable mode, so that its package metadata can be queried
           pip install -e .
           # Install the latest minor version of Django we support
-          pip install Django==4.2
+          pip install Django==5.0
 
       - name: Check translation files are updated
         run: python -m simple_history.tests.generated_file_checks.check_translations
