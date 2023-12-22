@@ -4,6 +4,10 @@ Changes
 Unreleased
 ----------
 
+
+3.5.0 (2024-02-19)
+------------------
+
 - Fixed ``FieldError`` when creating historical records for many-to-many fields with
   ``to="self"`` (gh-1218)
 - Allow ``HistoricalRecords.m2m_fields`` as str (gh-1243)
