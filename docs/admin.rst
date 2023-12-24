@@ -36,6 +36,12 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
 
 Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :doc:`/user_tracking`).
 
+Changing the number of historical records shown in the admin history list view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the history list view of ``SimpleHistoryAdmin`` shows the last 100 records.
+You can change this by adding a `history_list_per_page` attribute to the admin class.
+
 
 Displaying custom columns in the admin history list view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,7 +55,7 @@ By default, the history log displays one line per change containing
 
 You can add other columns (for example the object's status to see
 how it evolved) by adding a ``history_list_display`` array of fields to the
-admin class
+admin class.
 
 .. code-block:: python
 
@@ -62,6 +68,7 @@ admin class
         list_display = ["id", "name", "status"]
         history_list_display = ["status"]
         search_fields = ['name', 'user__username']
+        history_list_per_page = 100
 
     admin.site.register(Poll, PollHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)

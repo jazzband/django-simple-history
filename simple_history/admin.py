@@ -4,8 +4,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
+from django.contrib.admin.views.main import PAGE_VAR
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
@@ -21,6 +23,7 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
+    history_list_per_page = 100
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -60,6 +63,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except action_list.model.DoesNotExist:
                 raise http.Http404
 
+        paginator = Paginator(action_list, self.history_list_per_page)
+        action_list_page = paginator.get_page(request.GET.get(PAGE_VAR))
+
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
@@ -67,7 +73,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         for history_list_entry in history_list_display:
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
-                for list_entry in action_list:
+                for list_entry in action_list_page.object_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
         content_type = self.content_type_model_cls.objects.get_for_model(
@@ -80,7 +86,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         )
         context = {
             "title": self.history_view_title(request, obj),
-            "action_list": action_list,
+            "action_list": action_list_page,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
             "root_path": getattr(self.admin_site, "root_path", None),
@@ -89,6 +95,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "admin_user_view": admin_user_view,
             "history_list_display": history_list_display,
             "revert_disabled": self.revert_disabled(request, obj),
+            "page_range": paginator.get_elided_page_range(action_list_page.number),
+            "page_var": PAGE_VAR,
+            "pagination_required": paginator.count > self.history_list_per_page,
         }
         context.update(self.admin_site.each_context(request))
         context.update(extra_context or {})

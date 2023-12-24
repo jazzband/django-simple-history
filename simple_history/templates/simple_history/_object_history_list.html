@@ -44,3 +44,18 @@
     {% endfor %}
   </tbody>
 </table>
+
+<p class="paginator" style="border-top: 0">
+  {% if pagination_required %}
+    {% for i in page_range %}
+      {% if i == action_list.paginator.ELLIPSIS %}
+        {{ action_list.paginator.ELLIPSIS }}
+      {% elif i == action_list.number %}
+        <span class="this-page">{{ i }}</span>
+      {% else %}
+        <a href="?{{ page_var }}={{ i }}" {% if i == action_list.paginator.num_pages %} class="end" {% endif %}>{{ i }}</a>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {{ action_list.paginator.count }} {% if action_list.paginator.count == 1 %}{% translate "entry" %}{% else %}{% translate "entries" %}{% endif %}
+</p>
