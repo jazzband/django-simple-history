@@ -16,6 +16,7 @@ Unreleased
   version is lower than 4.2 (gh-1261)
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
 - Added ``pip install django-simple-history`` command in the Testing section of CONTRIBUTING.rst (gh-1293)
+- Support Simplified Chinese translation (gh-1281)
 
 3.4.0 (2023-08-18)
 ------------------
