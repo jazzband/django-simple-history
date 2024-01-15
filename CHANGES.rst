@@ -15,6 +15,7 @@ Unreleased
 - Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
   version is lower than 4.2 (gh-1261)
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
+- Added ``pip install django-simple-history`` command in the Testing section of CONTRIBUTING.rs (gh-1293)
 
 3.4.0 (2023-08-18)
 ------------------
