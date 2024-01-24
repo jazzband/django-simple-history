@@ -7,6 +7,7 @@ from functools import partial
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
@@ -484,7 +485,7 @@ class HistoricalRecords:
             app_label, model_name = opts.app_label, opts.model_name
             return reverse(
                 f"{admin.site.name}:{app_label}_{model_name}_simple_history",
-                args=[getattr(self, opts.pk.attname), self.history_id],
+                args=[quote(getattr(self, opts.pk.attname)), self.history_id],
             )
 
         def get_instance(self):

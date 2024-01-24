@@ -19,7 +19,7 @@
   <tbody>
     {% for action in action_list %}
       <tr>
-        <td><a href="{% url opts|admin_urlname:'simple_history' object.pk action.pk %}">{{ action.history_object }}</a></td>
+        <td><a href="{% url opts|admin_urlname:'simple_history' object.pk|admin_urlquote action.pk %}">{{ action.history_object }}</a></td>
         {% for column in history_list_display %}
         <td scope="col">{{ action|getattribute:column }}</th>
         {% endfor %}
