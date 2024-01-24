@@ -126,6 +126,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         model = getattr(
             self.model, self.model._meta.simple_history_manager_attribute
         ).model
+        object_id = unquote(str(object_id))
         obj = get_object_or_404(
             model, **{original_opts.pk.attname: object_id, "history_id": version_id}
         ).instance

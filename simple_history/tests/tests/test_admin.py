@@ -226,6 +226,14 @@ class AdminSiteTest(TestCase):
         response = self.client.get(get_history_url(book))
         self.assertContains(response, book.history.all()[0].revert_url())
 
+    def test_forward_slash_in_pk(self):
+        self.login()
+        book = Book(isbn="9780147/513731")
+        book._history_user = self.user
+        book.save()
+        response = self.client.get(get_history_url(book))
+        self.assertContains(response, book.history.all()[0].revert_url())
+
     def test_historical_user_no_setter(self):
         """Demonstrate admin error without `_historical_user` setter.
         (Issue #43)
@@ -458,7 +466,7 @@ class AdminSiteTest(TestCase):
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
-            "object_id": poll.id,
+            "object_id": str(poll.id),
             "is_popup": False,
             "media": ANY,
             "errors": ANY,
@@ -517,7 +525,7 @@ class AdminSiteTest(TestCase):
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
             "adminform": ANY,
-            "object_id": poll.id,
+            "object_id": str(poll.id),
             "is_popup": False,
             "media": ANY,
             "errors": ANY,
@@ -576,7 +584,7 @@ class AdminSiteTest(TestCase):
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
-            "object_id": poll.id,
+            "object_id": str(poll.id),
             "is_popup": False,
             "media": ANY,
             "errors": ANY,
@@ -635,7 +643,7 @@ class AdminSiteTest(TestCase):
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
             "adminform": ANY,
-            "object_id": obj.id,
+            "object_id": str(obj.id),
             "is_popup": False,
             "media": ANY,
             "errors": ANY,
@@ -700,7 +708,7 @@ class AdminSiteTest(TestCase):
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
             "adminform": ANY,
-            "object_id": poll.id,
+            "object_id": str(poll.id),
             "is_popup": False,
             "media": ANY,
             "errors": ANY,

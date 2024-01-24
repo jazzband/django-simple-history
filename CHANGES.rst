@@ -16,6 +16,7 @@ Unreleased
   version is lower than 4.2 (gh-1261)
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
 - Support Simplified Chinese translation (gh-1281)
+- Fixed error in history view of object with forward slash in primary key (gh-1295)
 
 3.4.0 (2023-08-18)
 ------------------
