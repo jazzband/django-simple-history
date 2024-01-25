@@ -790,8 +790,7 @@ class AdminSiteTest(TestCase):
 
         user_model = get_user_model()
         admin_user_view = "admin:{}_{}_change".format(
-            user_model._meta.app_label,
-            user_model._meta.model_name
+            user_model._meta.app_label, user_model._meta.model_name
         )
         context = {
             "title": admin.history_view_title(request, poll),
@@ -833,8 +832,7 @@ class AdminSiteTest(TestCase):
 
         user_model = BucketMember
         admin_user_view = "admin:{}_{}_change".format(
-            user_model._meta.app_label,
-            user_model._meta.model_name
+            user_model._meta.app_label, user_model._meta.model_name
         )
         context = {
             "title": admin.history_view_title(request, bucket_data),
@@ -875,8 +873,7 @@ class AdminSiteTest(TestCase):
 
         user_model = get_user_model()
         admin_user_view = "admin:{}_{}_change".format(
-            user_model._meta.app_label,
-            user_model._meta.model_name
+            user_model._meta.app_label, user_model._meta.model_name
         )
         context = {
             "title": admin.history_view_title(request, instance),
