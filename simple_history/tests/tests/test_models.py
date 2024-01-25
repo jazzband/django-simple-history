@@ -598,6 +598,24 @@ class HistoricalRecordsTest(TestCase):
         self.assertEqual(most_recent.question, p.question)
         self.assertEqual(most_recent.place, p.place)
 
+    def test_history_user_model_is_auth_user_as_default(self):
+        self.assertEqual(
+            get_user_model(),
+            get_history_model_for_model(Poll)._history_user_model
+        )
+
+    def test_history_user_model_is_user_model_on_override(self):
+        self.assertEqual(
+            BucketMember,
+            get_history_model_for_model(BucketData)._history_user_model
+        )
+
+    def test_history_user_model_is_user_model_on_override_register(self):
+        self.assertEqual(
+            BucketMember,
+            get_history_model_for_model(BucketDataRegisterChangedBy)._history_user_model
+        )
+
     def test_user_model_override(self):
         user1 = User.objects.create_user("user1", "1@example.com")
         user2 = User.objects.create_user("user2", "1@example.com")
@@ -2292,6 +2310,11 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
         self.assertEqual(user_id, instance.history.first().history_user_id)
         self.assertIsNone(instance.history.first().history_user)
 
+    def test_history_user_model_is_auth_user(self):
+        self.assertEqual(
+            get_user_model(),
+            get_history_model_for_model(ExternalModelWithCustomUserIdField)._history_user_model
+        )
 
 class RelatedNameTest(TestCase):
     def setUp(self):

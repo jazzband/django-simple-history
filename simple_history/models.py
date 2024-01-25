@@ -112,7 +112,7 @@ class HistoricalRecords:
         self.inherit = inherit
         self.history_id_field = history_id_field
         self.history_change_reason_field = history_change_reason_field
-        self.user_model = user_model
+        self.user_model = user_model or get_user_model()
         self.get_user = get_user
         self.cascade_delete_history = cascade_delete_history
         self.custom_model_name = custom_model_name
@@ -276,6 +276,7 @@ class HistoricalRecords:
             "__module__": self.module,
             "_history_excluded_fields": self.excluded_fields,
             "_history_m2m_fields": self.get_m2m_fields_from_model(model),
+            "_history_user_model": self.user_model,
             "tracked_fields": self.fields_included(model),
         }
 
@@ -423,13 +424,9 @@ class HistoricalRecords:
                 "history_user_id": self.user_id_field,
             }
         else:
-            user_model = self.user_model or getattr(
-                settings, "AUTH_USER_MODEL", "auth.User"
-            )
-
             history_user_fields = {
                 "history_user": models.ForeignKey(
-                    user_model,
+                    self.user_model,
                     null=True,
                     related_name=self.user_related_name,
                     on_delete=models.SET_NULL,

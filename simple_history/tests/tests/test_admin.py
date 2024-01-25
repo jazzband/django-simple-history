@@ -772,6 +772,134 @@ class AdminSiteTest(TestCase):
             title_prefix=PermissionAction.VIEW, choose_date=False
         )
 
+    def test_history_view_sets_admin_user_view(self):
+        poll = Poll.objects.create(question="why?", pub_date=today)
+        poll.question = "how?"
+        poll.save()
+
+        request = RequestFactory().get(get_history_url(poll))
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(poll.id))
+
+        user_model = get_user_model()
+        admin_user_view = "admin:{}_{}_change".format(
+            user_model._meta.app_label,
+            user_model._meta.model_name
+        )
+        context = {
+            "title": admin.history_view_title(request, poll),
+            "action_list": ANY,
+            "module_name": "Polls",
+            "object": poll,
+            "root_path": getattr(admin_site, "root_path", None),
+            "app_label": "tests",
+            "opts": ANY,
+            "admin_user_view": admin_user_view,
+            "history_list_display": getattr(admin_site, "history_list_display", []),
+            "revert_disabled": admin.revert_disabled(request, poll),
+            **admin_site.each_context(request),
+        }
+
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
+        mock_render.assert_called_once_with(
+            request, admin.object_history_template, context
+        )
+
+    def test_history_view_sets_admin_user_view_on_user_model_override(self):
+        member = BucketMember.objects.create(name="member1", user=self.user)
+        bucket_data = BucketData(changed_by=member)
+        bucket_data.save()
+
+        request = RequestFactory().get(get_history_url(bucket_data))
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(BucketData, admin_site)
+
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(bucket_data.id))
+
+        user_model = BucketMember
+        admin_user_view = "admin:{}_{}_change".format(
+            user_model._meta.app_label,
+            user_model._meta.model_name
+        )
+        context = {
+            "title": admin.history_view_title(request, bucket_data),
+            "action_list": ANY,
+            "module_name": "Bucket datas",
+            "object": bucket_data,
+            "root_path": getattr(admin_site, "root_path", None),
+            "app_label": "tests",
+            "opts": ANY,
+            "admin_user_view": admin_user_view,
+            "history_list_display": getattr(admin_site, "history_list_display", []),
+            "revert_disabled": admin.revert_disabled(request, bucket_data),
+            **admin_site.each_context(request),
+        }
+
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
+        mock_render.assert_called_once_with(
+            request, admin.object_history_template, context
+        )
+
+    def test_history_view_sets_admin_user_view_on_custom_user_id_field(self):
+        instance = ExternalModelWithCustomUserIdField(name="random_name")
+        instance.save()
+
+        request = RequestFactory().get(get_history_url(instance))
+        request.session = "session"
+        request._messages = FallbackStorage(request)
+        request.user = self.user
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(ExternalModelWithCustomUserIdField, admin_site)
+
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(instance.id))
+
+        user_model = get_user_model()
+        admin_user_view = "admin:{}_{}_change".format(
+            user_model._meta.app_label,
+            user_model._meta.model_name
+        )
+        context = {
+            "title": admin.history_view_title(request, instance),
+            "action_list": ANY,
+            "module_name": "External model with custom user id fields",
+            "object": instance,
+            "root_path": getattr(admin_site, "root_path", None),
+            "app_label": "external",
+            "opts": ANY,
+            "admin_user_view": admin_user_view,
+            "history_list_display": getattr(admin_site, "history_list_display", []),
+            "revert_disabled": admin.revert_disabled(request, instance),
+            **admin_site.each_context(request),
+        }
+
+        # This key didn't exist prior to Django 4.2
+        if "log_entries" in context:
+            context["log_entries"] = ANY
+
+        mock_render.assert_called_once_with(
+            request, admin.object_history_template, context
+        )
+
     def test_history_form_view__shows_revert_button_by_default(self):
         self.login()
         planet = Planet.objects.create(star="Sun")

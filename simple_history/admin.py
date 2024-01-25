@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
-from django.contrib.auth import get_permission_codename, get_user_model
+from django.contrib.auth import get_permission_codename
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
@@ -71,7 +71,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
         content_type = self.content_type_model_cls.objects.get_for_model(
-            get_user_model()
+            history.model._history_user_model
         )
 
         admin_user_view = "admin:{}_{}_change".format(
