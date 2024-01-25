@@ -330,6 +330,14 @@ class HistoricalRecords:
         for field in self.fields_included(model):
             field = copy.copy(field)
             field.remote_field = copy.copy(field.remote_field)
+            if field.__class__.__name__ == 'TranslationCharField':
+                old_field = field
+                field.__class__ = models.CharField
+                if hasattr(field, "max_length"):
+                    field.max_length = old_field.max_length if old_field.max_length else 255
+            if field.__class__.__name__ == 'TranslationTextField':
+                old_field = field
+                field.__class__ = models.TextField
             if isinstance(field, OrderWrt):
                 # OrderWrt is a proxy field, switch to a plain IntegerField
                 field.__class__ = models.IntegerField
