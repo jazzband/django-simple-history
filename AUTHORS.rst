@@ -106,6 +106,7 @@ Authors
 - Mike Spainhower
 - Muneeb Shahid (`muneeb706 <https://github.com/muneeb706>`_)
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
+- Natanael Maia (`natanrmaia <https://github.com/natanrmaia/>`_)
 - Nianpeng Li
 - Nick Träger
 - Noel James (`NoelJames <https://github.com/NoelJames>`_)
