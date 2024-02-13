@@ -84,7 +84,7 @@ When ``SIMPLE_HISTORY_REVERT_DISABLED`` is set to ``True``, the revert button is
 .. image:: screens/10_revert_disabled.png
 
 Enforcing history model permissions in Admin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To make the Django admin site evaluate history model permissions explicitly,
 update your settings with the following:
