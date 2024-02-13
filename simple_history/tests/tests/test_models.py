@@ -103,6 +103,7 @@ from ..models import (
     PollWithManyToManyCustomHistoryID,
     PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
+    PollWithQuerySetCustomizations,
     PollWithSelfManyToMany,
     PollWithSeveralManyToMany,
     Province,
@@ -799,6 +800,42 @@ class HistoricalRecordsTest(TestCase):
 
         with self.assertNumQueries(0):
             new_record.diff_against(old_record, excluded_fields=["unknown_field"])
+
+    def test_history_with_custom_queryset(self):
+        PollWithQuerySetCustomizations.objects.create(
+            id=1, pub_date=today, question="Question 1"
+        )
+        PollWithQuerySetCustomizations.objects.create(
+            id=2, pub_date=today, question="Low Id"
+        )
+        PollWithQuerySetCustomizations.objects.create(
+            id=10, pub_date=today, question="Random"
+        )
+
+        self.assertEqual(
+            set(
+                PollWithQuerySetCustomizations.history.low_ids().values_list(
+                    "question", flat=True
+                )
+            ),
+            {"Question 1", "Low Id"},
+        )
+        self.assertEqual(
+            set(
+                PollWithQuerySetCustomizations.history.questions().values_list(
+                    "question", flat=True
+                )
+            ),
+            {"Question 1"},
+        )
+        self.assertEqual(
+            set(
+                PollWithQuerySetCustomizations.history.low_ids()
+                .questions()
+                .values_list("question", flat=True)
+            ),
+            {"Question 1"},
+        )
 
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):
