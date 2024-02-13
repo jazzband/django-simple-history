@@ -236,7 +236,7 @@ To reuse a `QuerySet` from the model, see the following code example:
     class Question(models.Model):
         pub_date = models.DateTimeField('date published')
         history = HistoricalRecords(historical_queryset=HistoryQuestionQuerySet)
-        manager = models.Manager.from_queryset(HistoryQuestionQuerySet)()
+        manager = models.Manager.from_queryset(QuestionQuerySet)()
 
 .. _Manager documentation: https://docs.djangoproject.com/en/stable/topics/db/managers/
 
