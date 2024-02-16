@@ -10,6 +10,7 @@
       {% for column in history_list_display %}
         <th scope="col">{% trans column %}</th>
       {% endfor %}
+      <th scope="col">{% trans 'Changes from previous' %}</th>
       <th scope="col">{% trans 'Date/time' %}</th>
       <th scope="col">{% trans 'Comment' %}</th>
       <th scope="col">{% trans 'Changed by' %}</th>
@@ -21,8 +22,9 @@
       <tr>
         <td><a href="{% url opts|admin_urlname:'simple_history' object.pk action.pk %}">{{ action.history_object }}</a></td>
         {% for column in history_list_display %}
-        <td scope="col">{{ action|getattribute:column }}</th>
+        <td scope="col">{{ action|getattribute:column }}</td>
         {% endfor %}
+        <td>{% include "simple_history/diff_table.html" with diff=action.diff %}</td>
         <td>{{ action.history_date }}</td>
         <td>{{ action.get_history_type_display }}</td>
         <td>

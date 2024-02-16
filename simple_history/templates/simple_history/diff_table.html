@@ -1,0 +1,21 @@
+{% load i18n %}
+{% if diff %}
+<table>
+    <thead>
+        <th>{% trans 'Field' %}</th>
+        <th>{% trans 'Old Value' %}</th>
+        <th>{% trans 'New Value' %}</th>
+    </thead>
+    <tbody>
+    {% for change in diff %}
+        <tr>
+            <td>{{ change.field }}</td>
+            <td>{{ change.old }}</td>
+            <td>{{ change.new }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+{% trans 'No Change' %}
+{% endif %}

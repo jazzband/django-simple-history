@@ -70,6 +70,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
+        previous = None
+        for list_entry in reversed(action_list):
+            if previous:
+                value = list_entry.diff_against(previous).changes
+            else:
+                value = ""
+            setattr(list_entry, "diff", value)
+            previous = list_entry
+
         content_type = self.content_type_model_cls.objects.get_for_model(
             get_user_model()
         )
