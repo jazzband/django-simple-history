@@ -39,6 +39,7 @@ Authors
 - David Grochowski (`ThePumpingLemma <https://github.com/ThePumpingLemma>`_)
 - David Hite
 - David Smith
+- David Toulmin (`davidtoulmin <https://github.com/davidtoulmin>`_)
 - `ddabble <https://github.com/ddabble>`_
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
