@@ -17,6 +17,7 @@ Unreleased
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
 - Support Simplified Chinese translation (gh-1281)
 - Added support for Django 5.0 (gh-1283)
+- Added support for Python 3.13 (gh-1289)
 
 3.4.0 (2023-08-18)
 ------------------
