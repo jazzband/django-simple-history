@@ -182,41 +182,46 @@ IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
 Custom History Manager and Historical QuerySets
 -----------------------------------------------
 
-To manipulate the History Manager or the Historical QuerySet, you can specify the
-``history_manager`` and ``historical_queryset`` options. Tht values must be subclasses
+To manipulate the history manager or the historical ``QuerySet`` of
+``HistoricalRecords``, you can specify the ``history_manager`` and
+``historical_queryset`` options. The values must be subclasses
 of ``simple_history.manager.HistoryManager`` and
-``simple_history.manager.HistoricalQuerySet`` respectively.
+``simple_history.manager.HistoricalQuerySet``, respectively.
 
 Keep in mind, you can use either or both of these options. To understand the
-difference between a `Manager` and QuerySet, see the Django `Manager documentation`_.
-
+difference between a ``Manager`` and a ``QuerySet``,
+see `Django's Manager documentation`_.
 
 .. code-block:: python
     from datetime import timedelta
     from django.db import models
     from django.utils import timezone
-    from simple_history.models import HistoricalRecords
     from simple_history.manager import HistoryManager, HistoricalQuerySet
+    from simple_history.models import HistoricalRecords
+
 
     class HistoryQuestionManager(HistoryManager):
         def published(self):
             return self.filter(pub_date__lte=timezone.now())
 
+
     class HistoryQuestionQuerySet(HistoricalQuerySet):
         def question_prefixed(self):
-            return self.filter(question__startswith='Question: ')
+            return self.filter(question__startswith="Question: ")
+
 
     class Question(models.Model):
-        pub_date = models.DateTimeField('date published')
+        pub_date = models.DateTimeField("date published")
         history = HistoricalRecords(
             history_manager=HistoryQuestionManager,
             historical_queryset=HistoryQuestionQuerySet,
         )
 
+    # This is now possible:
     queryset = Question.history.published().question_prefixed()
 
 
-To reuse a `QuerySet` from the model, see the following code example:
+To reuse a ``QuerySet`` from the model, see the following code example:
 
 .. code-block:: python
     from datetime import timedelta
@@ -225,20 +230,22 @@ To reuse a `QuerySet` from the model, see the following code example:
     from simple_history.models import HistoricalRecords
     from simple_history.manager import HistoryManager, HistoricalQuerySet
 
+
     class QuestionQuerySet(HistoricalQuerySet):
         def question_prefixed(self):
-            return self.filter(question__startswith='Question: ')
+            return self.filter(question__startswith="Question: ")
 
 
     class HistoryQuestionQuerySet(QuestionQuerySet, HistoricalQuerySet):
-        """Redefine QuerySet with base class HistoricalQuerySet"""
+        """Redefine ``QuerySet`` with base class ``HistoricalQuerySet``."""
+
 
     class Question(models.Model):
-        pub_date = models.DateTimeField('date published')
+        pub_date = models.DateTimeField("date published")
         history = HistoricalRecords(historical_queryset=HistoryQuestionQuerySet)
         manager = models.Manager.from_queryset(QuestionQuerySet)()
 
-.. _Manager documentation: https://docs.djangoproject.com/en/stable/topics/db/managers/
+.. _Django's Manager documentation: https://docs.djangoproject.com/en/stable/topics/db/managers/
 
 
 TextField as `history_change_reason`
