@@ -31,7 +31,11 @@ from django.utils.translation import gettext_lazy as _
 from simple_history import utils
 
 from . import exceptions
-from .manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME, HistoryDescriptor
+from .manager import (
+    SIMPLE_HISTORY_REVERSE_ATTR_NAME,
+    HistoryDescriptor,
+    HistoryManyToManyDescriptor,
+)
 from .signals import (
     post_create_historical_m2m_records,
     post_create_historical_record,
@@ -227,7 +231,7 @@ class HistoricalRecords:
 
             setattr(module, m2m_model.__name__, m2m_model)
 
-            m2m_descriptor = HistoryDescriptor(m2m_model)
+            m2m_descriptor = HistoryManyToManyDescriptor(m2m_model, field.remote_field)
             setattr(history_model, field.name, m2m_descriptor)
 
     def get_history_model_name(self, model):
