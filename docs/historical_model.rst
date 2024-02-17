@@ -193,6 +193,7 @@ difference between a ``Manager`` and a ``QuerySet``,
 see `Django's Manager documentation`_.
 
 .. code-block:: python
+
     from datetime import timedelta
     from django.db import models
     from django.utils import timezone
@@ -224,6 +225,7 @@ see `Django's Manager documentation`_.
 To reuse a ``QuerySet`` from the model, see the following code example:
 
 .. code-block:: python
+
     from datetime import timedelta
     from django.db import models
     from django.utils import timezone
