@@ -182,7 +182,7 @@ IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
 Custom History Manager and Historical QuerySets
 -----------------------------------------------
 
-To manipulate the history manager or the historical ``QuerySet`` of
+To manipulate the history ``Manager`` or the historical ``QuerySet`` of
 ``HistoricalRecords``, you can specify the ``history_manager`` and
 ``historical_queryset`` options. The values must be subclasses
 of ``simple_history.manager.HistoryManager`` and
