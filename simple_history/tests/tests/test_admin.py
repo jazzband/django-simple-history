@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_str
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -85,6 +86,55 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "Change reason")
         self.assertContains(response, "A random test reason")
         self.assertContains(response, self.user.username)
+
+    def test_history_list_contains_diff_changes(self):
+        self.login()
+        poll = Poll(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+
+        poll_history_url = get_history_url(poll)
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Changes")
+        # The poll hasn't had any of its fields changed after creation,
+        # so these values should not be present
+        self.assertNotContains(response, "question")
+        self.assertNotContains(response, "why?")
+        self.assertNotContains(response, "pub_date")
+
+        poll.question = "how?"
+        poll.save()
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "question")
+        self.assertContains(response, "why?")
+        self.assertContains(response, "how?")
+        self.assertNotContains(response, "pub_date")
+
+        poll.question = "when?"
+        poll.pub_date = parse_datetime("2024-04-04 04:04:04")
+        poll.save()
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "question")
+        self.assertContains(response, "why?")
+        self.assertContains(response, "how?")
+        self.assertContains(response, "when?")
+        self.assertContains(response, "pub_date")
+        self.assertContains(response, "2021-01-01 10:00:00")
+        self.assertContains(response, "2024-04-04 04:04:04")
+
+    def test_history_list_doesnt_contain_too_long_diff_changes(self):
+        self.login()
+        poll = Poll(question="A" * 200, pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+        poll.question = "B" * 200
+        poll.save()
+
+        response = self.client.get(get_history_url(poll))
+        self.assertContains(response, "question")
+        # The limit should be 100 characters in total (including the ellipsis)
+        self.assertContains(response, f"{'A' * 99}…")
+        self.assertContains(response, f"{'B' * 99}…")
 
     def test_history_list_custom_fields(self):
         model_name = self.user._meta.model_name

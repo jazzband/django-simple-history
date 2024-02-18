@@ -14,7 +14,7 @@
       <th scope="col">{% trans 'Comment' %}</th>
       <th scope="col">{% trans 'Changed by' %}</th>
       <th scope="col">{% trans 'Change reason' %}</th>
-      <th scope="col">{% trans 'History Diff' %}</th>
+      <th scope="col">{% trans 'Changes' %}</th>
     </tr>
   </thead>
   <tbody>
@@ -42,11 +42,17 @@
             {{ action.history_change_reason }}
         </td>
         <td>
-          {% if action.history_diff %}
-            {% for diff in action.history_diff %}
-              {{ diff }} <br>
-            {% endfor %}
-<!--            {{ action.history_diff }}-->
+          {% if action.history_delta_changes %}
+            <ul>
+              {% for change in action.history_delta_changes %}
+                <li>
+                  <code>{{ change.field }}</code>:
+                  {{ change.old|truncatechars:100 }}
+                  {# Add some spacing, and prevent having the arrow point to the edge of the page if `new` is wrapped #}
+                  &nbsp;&rarr;&nbsp;&nbsp;{{ change.new|truncatechars:100 }}
+                </li>
+              {% endfor %}
+            </ul>
           {% endif %}
         </td>
       </tr>
