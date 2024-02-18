@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
@@ -14,7 +16,7 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
-from .models import ModelChange
+from .models import HistoricalChanges, ModelChange
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
@@ -74,22 +76,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 for list_entry in action_list:
                     setattr(list_entry, history_list_entry, value_for_entry(list_entry))
 
+        self.set_history_delta_changes(action_list)
+
         content_type = self.content_type_model_cls.objects.get_for_model(
             get_user_model()
         )
-
         admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
         )
-
-        # Add a `history_delta_changes` attribute to all history records
-        # except the first (oldest) one
-        for i in range(len(action_list) - 1):
-            delta = action_list[i].diff_against(action_list[i + 1])
-            action_list[i].history_delta_changes = [
-                self.format_history_delta_change(change) for change in delta.changes
-            ]
 
         context = {
             "title": self.history_view_title(request, obj),
@@ -115,6 +110,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             return _("View history: %s") % force_str(obj)
         else:
             return _("Change history: %s") % force_str(obj)
+
+    def set_history_delta_changes(self, action_list: Sequence[HistoricalChanges]):
+        # Add a `history_delta_changes` attribute to all history records
+        # except the first (oldest) one
+        for i in range(len(action_list) - 1):
+            delta = action_list[i].diff_against(action_list[i + 1])
+            action_list[i].history_delta_changes = [
+                self.format_history_delta_change(change) for change in delta.changes
+            ]
 
     def format_history_delta_change(self, change: ModelChange) -> dict:
         """
