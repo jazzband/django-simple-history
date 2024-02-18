@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template.defaultfilters import truncatechars
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
-from django.utils.html import mark_safe, conditional_escape
+from django.utils.html import conditional_escape, mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
