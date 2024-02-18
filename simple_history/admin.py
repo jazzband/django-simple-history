@@ -121,8 +121,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         Override this to customize the displayed values in the "Changes" column of
         the object history page.
         """
+        field_meta = self.model._meta.get_field(change.field)
         return {
-            "field": change.field,
+            "field": capfirst(field_meta.verbose_name),
             "old": truncatechars(change.old, self.max_displayed_history_change_chars),
             "new": truncatechars(change.new, self.max_displayed_history_change_chars),
         }
