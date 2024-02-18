@@ -132,9 +132,9 @@ class AdminSiteTest(TestCase):
 
         response = self.client.get(get_history_url(poll))
         self.assertContains(response, "question")
-        # The limit should be 100 characters in total (including the ellipsis)
-        self.assertContains(response, f"{'A' * 99}…")
-        self.assertContains(response, f"{'B' * 99}…")
+        expected_num_chars = SimpleHistoryAdmin.max_displayed_history_change_chars - 1
+        self.assertContains(response, f"{'A' * expected_num_chars}…")
+        self.assertContains(response, f"{'B' * expected_num_chars}…")
 
     def test_history_list_custom_fields(self):
         model_name = self.user._meta.model_name

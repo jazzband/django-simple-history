@@ -7,12 +7,14 @@ from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
+from django.template.defaultfilters import truncatechars
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
+from .models import ModelChange
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
@@ -21,6 +23,8 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_form_template = "simple_history/object_history_form.html"
+
+    max_displayed_history_change_chars = 100
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -83,7 +87,9 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         # except the first (oldest) one
         for i in range(len(action_list) - 1):
             delta = action_list[i].diff_against(action_list[i + 1])
-            action_list[i].history_delta_changes = delta.changes
+            action_list[i].history_delta_changes = [
+                self.format_history_delta_change(change) for change in delta.changes
+            ]
 
         context = {
             "title": self.history_view_title(request, obj),
@@ -109,6 +115,17 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             return _("View history: %s") % force_str(obj)
         else:
             return _("Change history: %s") % force_str(obj)
+
+    def format_history_delta_change(self, change: ModelChange) -> dict:
+        """
+        Override this to customize the displayed values in the "Changes" column of
+        the object history page.
+        """
+        return {
+            "field": change.field,
+            "old": truncatechars(change.old, self.max_displayed_history_change_chars),
+            "new": truncatechars(change.new, self.max_displayed_history_change_chars),
+        }
 
     def response_change(self, request, obj):
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:

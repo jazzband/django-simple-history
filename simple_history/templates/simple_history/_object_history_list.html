@@ -47,9 +47,9 @@
               {% for change in action.history_delta_changes %}
                 <li>
                   <code>{{ change.field }}</code>:
-                  {{ change.old|truncatechars:100 }}
+                  {{ change.old }}
                   {# Add some spacing, and prevent having the arrow point to the edge of the page if `new` is wrapped #}
-                  &nbsp;&rarr;&nbsp;&nbsp;{{ change.new|truncatechars:100 }}
+                  &nbsp;&rarr;&nbsp;&nbsp;{{ change.new }}
                 </li>
               {% endfor %}
             </ul>
