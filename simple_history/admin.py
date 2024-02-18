@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template.defaultfilters import truncatechars
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
-from django.utils.html import mark_safe
+from django.utils.html import mark_safe, conditional_escape
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
@@ -126,10 +126,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         the object history page.
         """
         field_meta = self.model._meta.get_field(change.field)
+        old = conditional_escape(change.old)
+        new = conditional_escape(change.new)
         return {
             "field": capfirst(field_meta.verbose_name),
-            "old": truncatechars(change.old, self.max_displayed_history_change_chars),
-            "new": truncatechars(change.new, self.max_displayed_history_change_chars),
+            "old": truncatechars(old, self.max_displayed_history_change_chars),
+            "new": truncatechars(new, self.max_displayed_history_change_chars),
         }
 
     def response_change(self, request, obj):
