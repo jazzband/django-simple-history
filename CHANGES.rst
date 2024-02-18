@@ -18,6 +18,8 @@ Unreleased
 - Support Simplified Chinese translation (gh-1281)
 - Added support for Django 5.0 (gh-1283)
 - Added support for Python 3.13 (gh-1289)
+- Added a "Changes" column to ``SimpleHistoryAdmin``'s object history table, listing
+  the changes between each history record of the object (gh-1128)
 
 3.4.0 (2023-08-18)
 ------------------
