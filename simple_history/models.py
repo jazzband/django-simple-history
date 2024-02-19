@@ -633,7 +633,7 @@ class HistoricalRecords:
     def post_save(self, instance, created, using=None, **kwargs):
         if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
             return
-        if not created and hasattr(instance, "skip_history_when_saving"):
+        if getattr(instance, "skip_history_when_saving", False):
             return
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
