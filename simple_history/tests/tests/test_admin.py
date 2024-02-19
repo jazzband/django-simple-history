@@ -124,17 +124,17 @@ class AdminSiteTest(TestCase):
 
     def test_history_list_doesnt_contain_too_long_diff_changes(self):
         self.login()
-        poll = Poll(question="A" * 200, pub_date=today)
+        poll = Poll(question=f"W{'A' * 200}", pub_date=today)
         poll._history_user = self.user
         poll.save()
-        poll.question = "B" * 200
+        poll.question = f"W{'E' * 200}"
         poll.save()
 
         response = self.client.get(get_history_url(poll))
         self.assertContains(response, "Question")
-        expected_num_chars = SimpleHistoryAdmin.max_displayed_history_change_chars - 1
-        self.assertContains(response, f"{'A' * expected_num_chars}…")
-        self.assertContains(response, f"{'B' * expected_num_chars}…")
+        repeated_chars = SimpleHistoryAdmin.max_displayed_history_change_chars - 2
+        self.assertContains(response, f"W{'A' * repeated_chars}…")
+        self.assertContains(response, f"W{'E' * repeated_chars}…")
 
     def test_history_list_custom_fields(self):
         model_name = self.user._meta.model_name
