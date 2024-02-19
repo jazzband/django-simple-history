@@ -4,6 +4,12 @@ Changes
 Unreleased
 ----------
 
+
+3.5.0 (2024-02-19)
+------------------
+
+- Fixed ``FieldError`` when creating historical records for many-to-many fields with
+  ``to="self"`` (gh-1218)
 - Allow ``HistoricalRecords.m2m_fields`` as str (gh-1243)
 - Fixed ``HistoryRequestMiddleware`` deleting non-existent
   ``HistoricalRecords.context.request`` in very specific circumstances (gh-1256)
@@ -38,8 +44,6 @@ Unreleased
   ``HistoricalRecords.context.request``) under some circumstances (gh-1188)
 - Made ``HistoryRequestMiddleware`` async-capable (gh-1209)
 - Fixed error when setting ``table_name`` with ``inherit=True`` (gh-1195)
-- Fixed ``FieldError`` when creating historical records for many-to-many fields with
-  ``to="self"`` (gh-1218)
 
 3.3.0 (2023-03-08)
 ------------------
