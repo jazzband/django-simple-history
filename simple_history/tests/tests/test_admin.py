@@ -124,10 +124,11 @@ class AdminSiteTest(TestCase):
 
     def test_history_list_doesnt_contain_too_long_diff_changes(self):
         self.login()
-        poll = Poll(question=f"W{'A' * 200}", pub_date=today)
+        repeated_chars = Poll._meta.get_field("question").max_length - 1
+        poll = Poll(question=f"W{'A' * repeated_chars}", pub_date=today)
         poll._history_user = self.user
         poll.save()
-        poll.question = f"W{'E' * 200}"
+        poll.question = f"W{'E' * repeated_chars}"
         poll.save()
 
         response = self.client.get(get_history_url(poll))
