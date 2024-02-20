@@ -233,7 +233,7 @@ To reuse a ``QuerySet`` from the model, see the following code example:
     from simple_history.manager import HistoryManager, HistoricalQuerySet
 
 
-    class QuestionQuerySet(HistoricalQuerySet):
+    class QuestionQuerySet(models.QuerySet):
         def question_prefixed(self):
             return self.filter(question__startswith="Question: ")
 
@@ -245,7 +245,7 @@ To reuse a ``QuerySet`` from the model, see the following code example:
     class Question(models.Model):
         pub_date = models.DateTimeField("date published")
         history = HistoricalRecords(historical_queryset=HistoryQuestionQuerySet)
-        manager = models.Manager.from_queryset(QuestionQuerySet)()
+        manager = QuestionQuerySet.as_manager()
 
 .. _Django's Manager documentation: https://docs.djangoproject.com/en/stable/topics/db/managers/
 
