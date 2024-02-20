@@ -965,8 +965,8 @@ class HistoricalChanges:
         current_values = model_to_dict(self, fields=fields)
 
         for field in fields:
-            old_value = old_values[field]
-            current_value = current_values[field]
+            old_value = None if old_history.history_type == "-" else old_values[field]
+            current_value = None if self.history_type == "-" else current_values[field]
 
             if old_value != current_value:
                 changes.append(ModelChange(field, old_value, current_value))
