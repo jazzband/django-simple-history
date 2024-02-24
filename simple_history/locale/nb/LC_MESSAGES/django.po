@@ -60,30 +60,6 @@ msgstr "Endret"
 msgid "Deleted"
 msgstr "Slettet"
 
-#: simple_history/templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "Objekt"
-
-#: simple_history/templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "Dato/tid"
-
-#: simple_history/templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "Kommentar"
-
-#: simple_history/templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "Endret av"
-
-#: simple_history/templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "Endringsårsak"
-
-#: simple_history/templates/simple_history/_object_history_list.html:37
-msgid "None"
-msgstr "Ingen"
-
 #: simple_history/templates/simple_history/object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -124,6 +100,30 @@ msgstr ""
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "Trykk på 'Endre historikk'-knappen under for å endre historikken."
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "Objekt"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "Dato/tid"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "Kommentar"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "Endret av"
+
+#: simple_history/templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "Endringsårsak"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "Ingen"
 
 #: simple_history/templates/simple_history/submit_line.html:4
 msgid "Revert"

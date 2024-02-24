@@ -59,30 +59,6 @@ msgstr "Změněno"
 msgid "Deleted"
 msgstr "Smazáno"
 
-#: simple_history/templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "Objekt"
-
-#: simple_history/templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "Datum/čas"
-
-#: simple_history/templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "Komentář"
-
-#: simple_history/templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "Změnil"
-
-#: simple_history/templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "Důvod změny"
-
-#: simple_history/templates/simple_history/_object_history_list.html:37
-msgid "None"
-msgstr "Žádné"
-
 #: simple_history/templates/simple_history/object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -120,6 +96,30 @@ msgstr "Stisknutím tlačítka 'Vrátit změny' se vrátíte k této verzi objek
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "Chcete-li historii upravit, stiskněte tlačítko 'Změnit historii'"
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "Objekt"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "Datum/čas"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "Komentář"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "Změnil"
+
+#: simple_history/templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "Důvod změny"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "Žádné"
 
 #: simple_history/templates/simple_history/submit_line.html:4
 msgid "Revert"

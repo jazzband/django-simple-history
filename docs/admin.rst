@@ -69,6 +69,24 @@ admin class
 
 .. image:: screens/5_history_list_display.png
 
+
+Customizing the History Admin Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you'd like to customize the HTML of ``SimpleHistoryAdmin``'s object history pages,
+you can override the following attributes with the names of your own templates:
+
+- ``object_history_template``: The main object history page, which includes (inserts)
+  ``object_history_list_template``.
+- ``object_history_list_template``: The table listing an object's historical records and
+  the changes made between them.
+- ``object_history_form_template``: The form pre-filled with the details of an object's
+  historical record, which also allows you to revert the object to a previous version.
+
+If you'd like to only customize certain parts of the mentioned templates, look for
+``block`` template tags in the source code that you can override.
+
+
 Disabling the option to revert an object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

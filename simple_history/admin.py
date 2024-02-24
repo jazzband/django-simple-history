@@ -20,6 +20,7 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
+    object_history_list_template = "simple_history/object_history_list.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
     def get_urls(self):
@@ -80,6 +81,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         )
         context = {
             "title": self.history_view_title(request, obj),
+            "object_history_list_template": self.object_history_list_template,
             "historical_records": historical_records,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,

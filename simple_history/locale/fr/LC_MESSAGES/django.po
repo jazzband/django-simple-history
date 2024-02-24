@@ -59,30 +59,6 @@ msgstr "Modifié"
 msgid "Deleted"
 msgstr "Effacé"
 
-#: .\simple_history\templates\simple_history\_object_history_list.html:9
-msgid "Object"
-msgstr "Objet"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:13
-msgid "Date/time"
-msgstr "Date/heure"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:14
-msgid "Comment"
-msgstr "Commentaire"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:15
-msgid "Changed by"
-msgstr "Modifié par"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:16
-msgid "Change reason"
-msgstr "Raison de la modification"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:37
-msgid "None"
-msgstr "Aucun"
-
 #: .\simple_history\templates\simple_history\object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -124,6 +100,30 @@ msgstr ""
 msgid "Press the 'Change History' button below to edit the history."
 msgstr ""
 "Cliquez sur le bouton 'Historique' ci-dessous pour modifier l'historique."
+
+#: .\simple_history\templates\simple_history\object_history_list.html:9
+msgid "Object"
+msgstr "Objet"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:13
+msgid "Date/time"
+msgstr "Date/heure"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:14
+msgid "Comment"
+msgstr "Commentaire"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:15
+msgid "Changed by"
+msgstr "Modifié par"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:16
+msgid "Change reason"
+msgstr "Raison de la modification"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:42
+msgid "None"
+msgstr "Aucun"
 
 #: .\simple_history\templates\simple_history\submit_line.html:4
 msgid "Revert"

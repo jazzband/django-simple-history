@@ -5,6 +5,12 @@ Unreleased
 ----------
 
 - Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
+- Renamed the (previously internal) admin template
+  ``simple_history/_object_history_list.html`` to
+  ``simple_history/object_history_list.html``, and added the field
+  ``SimpleHistoryAdmin.object_history_list_template`` for overriding it (gh-1128)
+- Deprecated the undocumented template tag ``simple_history_admin_list.display_list()``;
+  it will be removed in version 3.8 (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------
