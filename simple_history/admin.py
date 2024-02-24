@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 
 from django import http
 from django.apps import apps as django_apps
@@ -23,6 +23,8 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
+    history_list_display = []
+
     object_history_template = "simple_history/object_history.html"
     object_history_list_template = "simple_history/object_history_list.html"
     object_history_form_template = "simple_history/object_history_form.html"
@@ -54,7 +56,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         historical_records = self.get_history_queryset(
             request, history, pk_name, object_id
         )
-        history_list_display = getattr(self, "history_list_display", [])
+        history_list_display = self.get_history_list_display(request)
         # If no history was found, see whether this object even exists.
         try:
             obj = self.get_queryset(request).get(**{pk_name: object_id})
@@ -120,6 +122,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             # Only select_related when history_user is a ForeignKey (not a property)
             qs = qs.select_related("history_user")
         return qs
+
+    def get_history_list_display(self, request) -> Sequence[str]:
+        """
+        Return a sequence containing the names of additional fields to be displayed on
+        the object history page. These can either be fields or properties on the model
+        or the history model, or methods on the admin class.
+        """
+        return self.history_list_display
 
     def history_view_title(self, request, obj):
         if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
