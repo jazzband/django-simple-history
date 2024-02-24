@@ -105,14 +105,8 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             request, self.object_history_template, context, **extra_kwargs
         )
 
-    def history_view_title(self, request, obj):
-        if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
-            return _("View history: %s") % force_str(obj)
-        else:
-            return _("Change history: %s") % force_str(obj)
-
     def set_history_delta_changes(self, action_list: Sequence[HistoricalChanges]):
-        # Add a `history_delta_changes` attribute to all history records
+        # Add a `history_delta_changes` attribute to all historical records
         # except the first (oldest) one
         previous = None
         current = None
@@ -139,6 +133,12 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             "old": truncatechars(old, self.max_displayed_history_change_chars),
             "new": truncatechars(new, self.max_displayed_history_change_chars),
         }
+
+    def history_view_title(self, request, obj):
+        if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
+            return _("View history: %s") % force_str(obj)
+        else:
+            return _("Change history: %s") % force_str(obj)
 
     def response_change(self, request, obj):
         if "_change_history" in request.POST and SIMPLE_HISTORY_EDIT:

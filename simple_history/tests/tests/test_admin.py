@@ -98,27 +98,27 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "Changes")
         # The poll hasn't had any of its fields changed after creation,
         # so these values should not be present
-        self.assertNotContains(response, "Question")
+        self.assertNotContains(response, "Question:")
         self.assertNotContains(response, "why?")
-        self.assertNotContains(response, "Date published")
+        self.assertNotContains(response, "Date published:")
 
         poll.question = "how?"
         poll.save()
         response = self.client.get(poll_history_url)
-        self.assertContains(response, "Question")
+        self.assertContains(response, "Question:")
         self.assertContains(response, "why?")
         self.assertContains(response, "how?")
-        self.assertNotContains(response, "Date published")
+        self.assertNotContains(response, "Date published:")
 
         poll.question = "when?"
         poll.pub_date = parse_datetime("2024-04-04 04:04:04")
         poll.save()
         response = self.client.get(poll_history_url)
-        self.assertContains(response, "Question")
+        self.assertContains(response, "Question:")
         self.assertContains(response, "why?")
         self.assertContains(response, "how?")
         self.assertContains(response, "when?")
-        self.assertContains(response, "Date published")
+        self.assertContains(response, "Date published:")
         self.assertContains(response, "2021-01-01 10:00:00")
         self.assertContains(response, "2024-04-04 04:04:04")
 
