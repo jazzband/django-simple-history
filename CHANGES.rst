@@ -7,6 +7,10 @@ Unreleased
 - Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
 - Added a "Changes" column to ``SimpleHistoryAdmin``'s object history table, listing
   the changes between each historical record of the object (gh-1128)
+- Renamed the (previously internal) admin template
+  ``simple_history/_object_history_list.html`` to
+  ``simple_history/object_history_list.html``, and added the field
+  ``SimpleHistoryAdmin.object_history_list_template`` for overriding it (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------
