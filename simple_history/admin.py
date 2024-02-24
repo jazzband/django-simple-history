@@ -25,6 +25,8 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
+    history_list_display = []
+
     object_history_template = "simple_history/object_history.html"
     object_history_list_template = "simple_history/object_history_list.html"
     object_history_form_template = "simple_history/object_history_form.html"
@@ -56,7 +58,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
         historical_records = self.get_history_queryset(history, pk_name, object_id)
-        history_list_display = getattr(self, "history_list_display", [])
+        history_list_display = self.get_history_list_display(request)
         # If no history was found, see whether this object even exists.
         try:
             obj = self.get_queryset(request).get(**{pk_name: object_id})
@@ -123,6 +125,14 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             # Only select_related when history_user is a ForeignKey (not a property)
             qs = qs.select_related("history_user")
         return qs
+
+    def get_history_list_display(self, request) -> Sequence[str]:
+        """
+        Return a sequence containing the names of additional fields to be displayed on
+        the object history page. These can either be fields or properties on the model
+        or the history model, or methods on the admin class.
+        """
+        return self.history_list_display
 
     def set_history_delta_changes(
         self, historical_records: Sequence[HistoricalChanges]
