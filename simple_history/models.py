@@ -31,7 +31,12 @@ from django.utils.translation import gettext_lazy as _
 from simple_history import utils
 
 from . import exceptions
-from .manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME, HistoryDescriptor
+from .manager import (
+    SIMPLE_HISTORY_REVERSE_ATTR_NAME,
+    HistoricalQuerySet,
+    HistoryDescriptor,
+    HistoryManager,
+)
 from .signals import (
     post_create_historical_m2m_records,
     post_create_historical_record,
@@ -100,6 +105,8 @@ class HistoricalRecords:
         user_db_constraint=True,
         no_db_index=list(),
         excluded_field_kwargs=None,
+        history_manager=HistoryManager,
+        historical_queryset=HistoricalQuerySet,
         m2m_fields=(),
         m2m_fields_model_field_name="_history_m2m_fields",
         m2m_bases=(models.Model,),
@@ -122,6 +129,8 @@ class HistoricalRecords:
         self.user_setter = history_user_setter
         self.related_name = related_name
         self.use_base_model_db = use_base_model_db
+        self.history_manager = history_manager
+        self.historical_queryset = historical_queryset
         self.m2m_fields = m2m_fields
         self.m2m_fields_model_field_name = m2m_fields_model_field_name
 
@@ -215,7 +224,11 @@ class HistoricalRecords:
                 weak=False,
             )
 
-        descriptor = HistoryDescriptor(history_model)
+        descriptor = HistoryDescriptor(
+            history_model,
+            manager=self.history_manager,
+            queryset=self.historical_queryset,
+        )
         setattr(sender, self.manager_name, descriptor)
         sender._meta.simple_history_manager_attribute = self.manager_name
 

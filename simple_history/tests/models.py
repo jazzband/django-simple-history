@@ -9,6 +9,7 @@ from django.db.models.fields.related import ForeignKey
 from django.urls import reverse
 
 from simple_history import register
+from simple_history.manager import HistoricalQuerySet, HistoryManager
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from .custom_user.models import CustomUser as User
@@ -152,6 +153,25 @@ class PollWithManyToManyCustomHistoryID(models.Model):
 
     history = HistoricalRecords(
         m2m_fields=[places], history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class PollQuerySet(HistoricalQuerySet):
+    def questions(self):
+        return self.filter(question__startswith="Question ")
+
+
+class PollManager(HistoryManager):
+    def low_ids(self):
+        return self.filter(id__lte=3)
+
+
+class PollWithQuerySetCustomizations(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+
+    history = HistoricalRecords(
+        history_manager=PollManager, historical_queryset=PollQuerySet
     )
 
 
