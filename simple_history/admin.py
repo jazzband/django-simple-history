@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Any, Sequence
 
 from django import http
 from django.apps import apps as django_apps
@@ -8,6 +8,7 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, render
 from django.template.defaultfilters import truncatechars
 from django.urls import re_path, reverse
@@ -16,6 +17,7 @@ from django.utils.html import conditional_escape, mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
+from .manager import HistoryManager
 from .models import HistoricalChanges, ModelChange
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
@@ -53,10 +55,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
-        historical_records = history.filter(**{pk_name: object_id})
-        if not isinstance(history.model.history_user, property):
-            # Only select_related when history_user is a ForeignKey (not a property)
-            historical_records = historical_records.select_related("history_user")
+        historical_records = self.get_history_queryset(history, pk_name, object_id)
         history_list_display = getattr(self, "history_list_display", [])
         # If no history was found, see whether this object even exists.
         try:
@@ -106,6 +105,24 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return self.render_history_view(
             request, self.object_history_template, context, **extra_kwargs
         )
+
+    def get_history_queryset(
+        self, history_manager: HistoryManager, pk_name: str, object_id: Any
+    ) -> QuerySet:
+        """
+        Return a ``QuerySet`` of all historical records that should be listed in the
+        ``object_history_list_template`` template.
+        This is used by ``history_view()``.
+
+        :param history_manager:
+        :param pk_name: The name of the original model's primary key field.
+        :param object_id: The primary key of the object whose history is listed.
+        """
+        qs = history_manager.filter(**{pk_name: object_id})
+        if not isinstance(history_manager.model.history_user, property):
+            # Only select_related when history_user is a ForeignKey (not a property)
+            qs = qs.select_related("history_user")
+        return qs
 
     def set_history_delta_changes(
         self, historical_records: Sequence[HistoricalChanges]
