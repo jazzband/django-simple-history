@@ -119,14 +119,6 @@ class HistoricalQuerySet(QuerySet):
                 setattr(historic, "_as_of", self._as_of)
 
 
-class HistoryDescriptor:
-    def __init__(self, model):
-        self.model = model
-
-    def __get__(self, instance, owner):
-        return HistoryManager.from_queryset(HistoricalQuerySet)(self.model, instance)
-
-
 class HistoryManager(models.Manager):
     def __init__(self, model, instance=None):
         super().__init__()
@@ -271,4 +263,16 @@ class HistoryManager(models.Manager):
 
         return self.model.objects.bulk_create(
             historical_instances, batch_size=batch_size
+        )
+
+
+class HistoryDescriptor:
+    def __init__(self, model, manager=HistoryManager, queryset=HistoricalQuerySet):
+        self.model = model
+        self.queryset_class = queryset
+        self.manager_class = manager
+
+    def __get__(self, instance, owner):
+        return self.manager_class.from_queryset(self.queryset_class)(
+            self.model, instance
         )

@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
 
 3.5.0 (2024-02-19)
 ------------------
