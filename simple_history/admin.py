@@ -122,8 +122,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 continue
             delta = previous.diff_against(current)
             previous.history_delta_changes = [
-                self.format_history_delta_change(change)
-                for change in delta.changes
+                self.format_history_delta_change(change) for change in delta.changes
             ]
             previous = current
 
