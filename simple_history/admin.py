@@ -114,11 +114,18 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     def set_history_delta_changes(self, action_list: Sequence[HistoricalChanges]):
         # Add a `history_delta_changes` attribute to all history records
         # except the first (oldest) one
-        for i in range(len(action_list) - 1):
-            delta = action_list[i].diff_against(action_list[i + 1])
-            action_list[i].history_delta_changes = [
-                self.format_history_delta_change(change) for change in delta.changes
+        previous = None
+        current = None
+        for current in action_list:
+            if previous is None:
+                previous = current
+                continue
+            delta = previous.diff_against(current)
+            previous.history_delta_changes = [
+                self.format_history_delta_change(change)
+                for change in delta.changes
             ]
+            previous = current
 
     def format_history_delta_change(self, change: ModelChange) -> dict:
         """
