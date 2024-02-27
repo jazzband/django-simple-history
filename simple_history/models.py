@@ -2,7 +2,9 @@ import copy
 import importlib
 import uuid
 import warnings
+from dataclasses import dataclass
 from functools import partial
+from typing import Any, Dict, List, Sequence, Union
 
 import django
 from django.apps import apps
@@ -1006,16 +1008,16 @@ class HistoricalChanges:
         return ModelDelta(changes, changed_fields, old_history, self)
 
 
+@dataclass(frozen=True)
 class ModelChange:
-    def __init__(self, field_name, old_value, new_value):
-        self.field = field_name
-        self.old = old_value
-        self.new = new_value
+    field: str
+    old: Union[Any, List[Dict[str, Any]]]
+    new: Union[Any, List[Dict[str, Any]]]
 
 
+@dataclass(frozen=True)
 class ModelDelta:
-    def __init__(self, changes, changed_fields, old_record, new_record):
-        self.changes = changes
-        self.changed_fields = changed_fields
-        self.old_record = old_record
-        self.new_record = new_record
+    changes: Sequence[ModelChange]
+    changed_fields: Sequence[str]
+    old_record: HistoricalChanges
+    new_record: HistoricalChanges

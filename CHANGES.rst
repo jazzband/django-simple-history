@@ -15,6 +15,8 @@ Unreleased
   is used to list the historical records (gh-1128)
 - Added ``SimpleHistoryAdmin.get_history_list_display()`` which returns
   ``history_list_display`` by default, and made the latter into an actual field (gh-1128)
+- ``ModelDelta`` and ``ModelChange`` (in ``simple_history.models``) are now immutable
+  dataclasses; their signatures remain unchanged (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------
