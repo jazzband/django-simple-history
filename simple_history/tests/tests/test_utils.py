@@ -1,3 +1,4 @@
+import unittest
 from datetime import datetime
 from unittest import skipUnless
 from unittest.mock import Mock, patch
@@ -14,9 +15,16 @@ from simple_history.tests.models import (
     Document,
     Place,
     Poll,
+    PollChildBookWithManyToMany,
+    PollChildRestaurantWithManyToMany,
     PollWithAlternativeManager,
     PollWithExcludeFields,
     PollWithHistoricalSessionAttr,
+    PollWithManyToMany,
+    PollWithManyToManyCustomHistoryID,
+    PollWithManyToManyWithIPAddress,
+    PollWithSelfManyToMany,
+    PollWithSeveralManyToMany,
     PollWithUniqueQuestion,
     Street,
 )
@@ -24,10 +32,69 @@ from simple_history.utils import (
     bulk_create_with_history,
     bulk_update_with_history,
     get_history_manager_for_model,
+    get_history_model_for_model,
+    get_m2m_field_name,
+    get_m2m_reverse_field_name,
     update_change_reason,
 )
 
 User = get_user_model()
+
+
+class GetM2MFieldNamesTestCase(unittest.TestCase):
+    def test__get_m2m_field_name__returns_expected_value(self):
+        def field_names(model):
+            history_model = get_history_model_for_model(model)
+            # Sort the fields, to prevent flaky tests
+            fields = sorted(history_model._history_m2m_fields, key=lambda f: f.name)
+            return [get_m2m_field_name(field) for field in fields]
+
+        self.assertListEqual(field_names(PollWithManyToMany), ["pollwithmanytomany"])
+        self.assertListEqual(
+            field_names(PollWithManyToManyCustomHistoryID),
+            ["pollwithmanytomanycustomhistoryid"],
+        )
+        self.assertListEqual(
+            field_names(PollWithManyToManyWithIPAddress),
+            ["pollwithmanytomanywithipaddress"],
+        )
+        self.assertListEqual(
+            field_names(PollWithSeveralManyToMany), ["pollwithseveralmanytomany"] * 3
+        )
+        self.assertListEqual(
+            field_names(PollChildBookWithManyToMany),
+            ["pollchildbookwithmanytomany"] * 2,
+        )
+        self.assertListEqual(
+            field_names(PollChildRestaurantWithManyToMany),
+            ["pollchildrestaurantwithmanytomany"] * 2,
+        )
+        self.assertListEqual(
+            field_names(PollWithSelfManyToMany), ["from_pollwithselfmanytomany"]
+        )
+
+    def test__get_m2m_reverse_field_name__returns_expected_value(self):
+        def field_names(model):
+            history_model = get_history_model_for_model(model)
+            # Sort the fields, to prevent flaky tests
+            fields = sorted(history_model._history_m2m_fields, key=lambda f: f.name)
+            return [get_m2m_reverse_field_name(field) for field in fields]
+
+        self.assertListEqual(field_names(PollWithManyToMany), ["place"])
+        self.assertListEqual(field_names(PollWithManyToManyCustomHistoryID), ["place"])
+        self.assertListEqual(field_names(PollWithManyToManyWithIPAddress), ["place"])
+        self.assertListEqual(
+            field_names(PollWithSeveralManyToMany), ["book", "place", "restaurant"]
+        )
+        self.assertListEqual(
+            field_names(PollChildBookWithManyToMany), ["book", "place"]
+        )
+        self.assertListEqual(
+            field_names(PollChildRestaurantWithManyToMany), ["place", "restaurant"]
+        )
+        self.assertListEqual(
+            field_names(PollWithSelfManyToMany), ["to_pollwithselfmanytomany"]
+        )
 
 
 class BulkCreateWithHistoryTestCase(TestCase):

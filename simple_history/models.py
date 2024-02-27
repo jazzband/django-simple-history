@@ -684,11 +684,8 @@ class HistoricalRecords:
 
             insert_rows = []
 
-            # `m2m_field_name()` is part of Django's internal API
-            through_field_name = field.m2m_field_name()
-
+            through_field_name = utils.get_m2m_field_name(field)
             rows = through_model.objects.filter(**{through_field_name: instance})
-
             for row in rows:
                 insert_row = {"history": history_instance}
 
