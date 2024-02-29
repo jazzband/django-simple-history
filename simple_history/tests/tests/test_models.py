@@ -1976,7 +1976,8 @@ class ManyToManyWithSignalsTest(TestCase):
         new = self.poll.history.first()
         old = new.prev_record
 
-        delta = new.diff_against(old)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new.diff_against(old)
         expected_delta = ModelDelta(
             [
                 ModelChange(
@@ -2273,7 +2274,8 @@ class ManyToManyTest(TestCase):
         self.poll.places.add(self.place)
         add_record, create_record = self.poll.history.all()
 
-        delta = add_record.diff_against(create_record)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = add_record.diff_against(create_record)
         expected_change = ModelChange(
             "places", [], [{"pollwithmanytomany": self.poll.pk, "place": self.place.pk}]
         )
@@ -2282,10 +2284,12 @@ class ManyToManyTest(TestCase):
         )
         self.assertEqual(delta, expected_delta)
 
-        delta = add_record.diff_against(create_record, included_fields=["places"])
+        with self.assertNumQueries(2):  # Once for each record
+            delta = add_record.diff_against(create_record, included_fields=["places"])
         self.assertEqual(delta, expected_delta)
 
-        delta = add_record.diff_against(create_record, excluded_fields=["places"])
+        with self.assertNumQueries(0):
+            delta = add_record.diff_against(create_record, excluded_fields=["places"])
         expected_delta = dataclasses.replace(
             expected_delta, changes=[], changed_fields=[]
         )
@@ -2295,10 +2299,12 @@ class ManyToManyTest(TestCase):
 
         # First and third records are effectively the same.
         del_record, add_record, create_record = self.poll.history.all()
-        delta = del_record.diff_against(create_record)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = del_record.diff_against(create_record)
         self.assertNotIn("places", delta.changed_fields)
 
-        delta = del_record.diff_against(add_record)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = del_record.diff_against(add_record)
         # Second and third should have the same diffs as first and second, but with
         # old and new reversed
         expected_change = ModelChange(

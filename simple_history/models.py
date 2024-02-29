@@ -4,7 +4,7 @@ import uuid
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, Iterable, List, Sequence, Union
 
 import django
 from django.apps import apps
@@ -945,9 +945,8 @@ class HistoricalChanges:
     def diff_against(self, old_history, excluded_fields=None, included_fields=None):
         if not isinstance(old_history, type(self)):
             raise TypeError(
-                ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
-                    type(self), type(old_history)
-                )
+                "unsupported type(s) for diffing:"
+                f" '{type(self)}' and '{type(old_history)}'"
             )
         if excluded_fields is None:
             excluded_fields = set()
@@ -965,47 +964,64 @@ class HistoricalChanges:
         )
         m2m_fields = set(included_m2m_fields).difference(excluded_fields)
 
+        changes = [
+            *self._get_field_changes_for_diff(old_history, fields),
+            *self._get_m2m_field_changes_for_diff(old_history, m2m_fields),
+        ]
+        changed_fields = [change.field for change in changes]
+        return ModelDelta(changes, changed_fields, old_history, self)
+
+    def _get_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        fields: Iterable[str],
+    ) -> List["ModelChange"]:
+        """Helper method for ``diff_against()``."""
         changes = []
-        changed_fields = []
 
         old_values = model_to_dict(old_history, fields=fields)
-        current_values = model_to_dict(self, fields=fields)
+        new_values = model_to_dict(self, fields=fields)
 
         for field in fields:
             old_value = old_values[field]
-            current_value = current_values[field]
+            new_value = new_values[field]
 
-            if old_value != current_value:
-                changes.append(ModelChange(field, old_value, current_value))
-                changed_fields.append(field)
+            if old_value != new_value:
+                change = ModelChange(field, old_value, new_value)
+                changes.append(change)
 
-        # Separately compare m2m fields:
+        return changes
+
+    def _get_m2m_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        m2m_fields: Iterable[str],
+    ) -> List["ModelChange"]:
+        """Helper method for ``diff_against()``."""
+        changes = []
+
         for field in m2m_fields:
-            # First retrieve a single item to get the field names from:
-            reference_history_m2m_item = (
-                getattr(old_history, field).first() or getattr(self, field).first()
-            )
-            history_field_names = []
-            if reference_history_m2m_item:
-                # Create a list of field names to compare against.
-                # The list is generated without the primary key of the intermediate
-                # table, the foreign key to the history record, and the actual 'history'
-                # field, to avoid false positives while diffing.
-                history_field_names = [
-                    f.name
-                    for f in reference_history_m2m_item._meta.fields
-                    if f.editable and f.name not in ["id", "m2m_history_id", "history"]
-                ]
+            old_m2m_manager = getattr(old_history, field)
+            new_m2m_manager = getattr(self, field)
+            m2m_through_model_opts = new_m2m_manager.model._meta
 
-            old_rows = list(getattr(old_history, field).values(*history_field_names))
-            new_rows = list(getattr(self, field).values(*history_field_names))
+            # Create a list of field names to compare against.
+            # The list is generated without the PK of the intermediate (through)
+            # table, the foreign key to the history record, and the actual `history`
+            # field, to avoid false positives while diffing.
+            through_model_fields = [
+                f.name
+                for f in m2m_through_model_opts.fields
+                if f.editable and f.name not in ["id", "m2m_history_id", "history"]
+            ]
+            old_rows = list(old_m2m_manager.values(*through_model_fields))
+            new_rows = list(new_m2m_manager.values(*through_model_fields))
 
             if old_rows != new_rows:
                 change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
-                changed_fields.append(field)
 
-        return ModelDelta(changes, changed_fields, old_history, self)
+        return changes
 
 
 @dataclass(frozen=True)
