@@ -732,6 +732,128 @@ class HistoricalRecordsTest(TestCase):
         )
         self.assertEqual(delta, expected_delta)
 
+    def test_history_diff_arg__foreign_keys_are_objs__returns_expected_fk_values(self):
+        poll1 = Poll.objects.create(question="why?", pub_date=today)
+        poll2 = Poll.objects.create(question="how?", pub_date=tomorrow)
+        choice = Choice.objects.create(poll=poll1, choice="hmm", votes=3)
+        choice.poll = poll2
+        choice.choice = "idk"
+        choice.votes = 0
+        choice.save()
+        new_record, old_record = choice.history.all()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        expected_pk_changes = [
+            ModelChange("choice", "hmm", "idk"),
+            ModelChange("poll", poll1.pk, poll2.pk),
+            ModelChange("votes", 3, 0),
+        ]
+        expected_pk_delta = ModelDelta(
+            expected_pk_changes, ["choice", "poll", "votes"], old_record, new_record
+        )
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2):  # Once for each poll in the new record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        choice_changes, _poll_changes, votes_changes = expected_pk_changes
+        # The PKs should now instead be their corresponding model objects
+        expected_obj_changes = [
+            choice_changes,
+            ModelChange("poll", poll1, poll2),
+            votes_changes,
+        ]
+        expected_obj_delta = dataclasses.replace(
+            expected_pk_delta, changes=expected_obj_changes
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
+        # --- Delete the polls and do the same tests again ---
+
+        Poll.objects.all().delete()
+        old_record.refresh_from_db()
+        new_record.refresh_from_db()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        # (Getting instances of deleted related objects is not possible - unless they
+        # happen to be history-tracked as well, but that's not currently detected)
+        with self.assertRaises(Poll.DoesNotExist):
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+
+    def test_history_diff_arg__foreign_keys_are_objs__returns_expected_m2m_values(self):
+        poll = PollWithManyToMany.objects.create(question="why?", pub_date=today)
+        place1 = Place.objects.create(name="Here")
+        place2 = Place.objects.create(name="There")
+        poll.places.add(place1, place2)
+        new_record, old_record = poll.history.all()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new_record.diff_against(old_record)
+        expected_pk_change = ModelChange(
+            "places",
+            [],
+            [
+                {"pollwithmanytomany": poll.pk, "place": place1.pk},
+                {"pollwithmanytomany": poll.pk, "place": place2.pk},
+            ],
+        )
+        expected_pk_delta = ModelDelta(
+            [expected_pk_change], ["places"], old_record, new_record
+        )
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2 * 2):  # Twice for each record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        # The PKs should now instead be their corresponding model objects
+        expected_obj_change = dataclasses.replace(
+            expected_pk_change,
+            new=[
+                {"pollwithmanytomany": poll, "place": place1},
+                {"pollwithmanytomany": poll, "place": place2},
+            ],
+        )
+        expected_obj_delta = dataclasses.replace(
+            expected_pk_delta, changes=[expected_obj_change]
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
+        # --- Delete the places and do the same tests again ---
+
+        Place.objects.all().delete()
+        old_record.refresh_from_db()
+        new_record.refresh_from_db()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2 * 2):  # Twice for each record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        # (Getting instances of deleted related objects is not possible - unless they
+        # happen to be history-tracked as well, but that's not currently detected)
+        expected_obj_change = dataclasses.replace(
+            expected_obj_change,
+            new=[
+                {"pollwithmanytomany": poll, "place": None},
+                {"pollwithmanytomany": poll, "place": None},
+            ],
+        )
+        expected_obj_delta = dataclasses.replace(
+            expected_obj_delta, changes=[expected_obj_change]
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
     def test_history_table_name_is_not_inherited(self):
         def assert_table_name(obj, expected_table_name):
             history_model = obj.history.model

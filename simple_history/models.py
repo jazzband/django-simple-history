@@ -4,7 +4,7 @@ import uuid
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Dict, List, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Union
 
 from django.apps import apps
 from django.conf import settings
@@ -51,6 +51,11 @@ try:
     from asgiref.local import Local as LocalContext
 except ImportError:
     from threading import local as LocalContext
+
+if TYPE_CHECKING:
+    ModelTypeHint = models.Model
+else:
+    ModelTypeHint = object
 
 registered_models = {}
 
@@ -933,8 +938,28 @@ class HistoricalObjectDescriptor:
         return self.model(**values)
 
 
-class HistoricalChanges:
-    def diff_against(self, old_history, excluded_fields=None, included_fields=None):
+class HistoricalChanges(ModelTypeHint):
+    def diff_against(
+        self,
+        old_history: "HistoricalChanges",
+        excluded_fields: Iterable[str] = None,
+        included_fields: Iterable[str] = None,
+        *,
+        foreign_keys_are_objs=False,
+    ) -> "ModelDelta":
+        """
+        :param old_history:
+        :param excluded_fields: The names of fields to exclude from diffing.
+               This takes precedence over ``included_fields``.
+        :param included_fields: The names of the only fields to include when diffing.
+               If not provided, all history-tracked fields will be included.
+        :param foreign_keys_are_objs: If ``False``, the returned diff will only contain
+               the raw PKs of any ``ForeignKey`` fields.
+               If ``True``, the diff will contain the actual related model objects
+               instead of just the PKs.
+               The latter case will necessarily query the database if the related
+               objects have not been prefetched (using e.g. ``select_related()``).
+        """
         if not isinstance(old_history, type(self)):
             raise TypeError(
                 ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
@@ -963,16 +988,24 @@ class HistoricalChanges:
         old_values = model_to_dict(old_history, fields=fields)
         new_values = model_to_dict(self, fields=fields)
 
-        for field in fields:
+        for field in sorted(fields):  # Sort the field set, to ensure consistency
             old_value = old_values[field]
             new_value = new_values[field]
 
             if old_value != new_value:
+                if foreign_keys_are_objs and isinstance(
+                    self._meta.get_field(field), ForeignKey
+                ):
+                    # Set the fields to their related model objects instead of
+                    # the raw PKs from `model_to_dict()`
+                    old_value = getattr(old_history, field)
+                    new_value = getattr(self, field)
+
                 changes.append(ModelChange(field, old_value, new_value))
                 changed_fields.append(field)
 
         # Separately compare m2m fields:
-        for field in m2m_fields:
+        for field in sorted(m2m_fields):  # Sort the field set, to ensure consistency
             old_m2m_manager = getattr(old_history, field)
             new_m2m_manager = getattr(self, field)
             m2m_through_model_opts = new_m2m_manager.model._meta
@@ -990,6 +1023,28 @@ class HistoricalChanges:
             new_rows = list(new_m2m_manager.values(*through_model_fields))
 
             if old_rows != new_rows:
+                if foreign_keys_are_objs:
+                    fk_fields = [
+                        f
+                        for f in through_model_fields
+                        if isinstance(m2m_through_model_opts.get_field(f), ForeignKey)
+                    ]
+
+                    # Set the through fields to their related model objects instead of
+                    # the raw PKs from `values()`
+                    def rows_with_foreign_key_objs(m2m_manager):
+                        # Replicate the format of the return value of QuerySet.values()
+                        return [
+                            {
+                                through_field: getattr(through_obj, through_field)
+                                for through_field in through_model_fields
+                            }
+                            for through_obj in m2m_manager.select_related(*fk_fields)
+                        ]
+
+                    old_rows = rows_with_foreign_key_objs(old_m2m_manager)
+                    new_rows = rows_with_foreign_key_objs(new_m2m_manager)
+
                 change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
                 changed_fields.append(field)

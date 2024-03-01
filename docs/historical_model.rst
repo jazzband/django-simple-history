@@ -554,7 +554,6 @@ You will see the many to many changes when diffing between two historical record
     informal = Category.objects.create(name="informal questions")
     official = Category.objects.create(name="official questions")
     p = Poll.objects.create(question="what's up?")
-    p.save()
     p.categories.add(informal, official)
     p.categories.remove(informal)
 
