@@ -982,13 +982,31 @@ class HistoricalChanges(ModelTypeHint):
         )
         m2m_fields = set(included_m2m_fields).difference(excluded_fields)
 
+        changes = [
+            # Sort the field sets, to ensure a consistent order
+            *self._get_field_changes_for_diff(
+                old_history, sorted(fields), foreign_keys_are_objs
+            ),
+            *self._get_m2m_field_changes_for_diff(
+                old_history, sorted(m2m_fields), foreign_keys_are_objs
+            ),
+        ]
+        changed_fields = [change.field for change in changes]
+        return ModelDelta(changes, changed_fields, old_history, self)
+
+    def _get_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        fields: Iterable[str],
+        foreign_keys_are_objs: bool,
+    ) -> List["ModelChange"]:
+        """Helper method."""
         changes = []
-        changed_fields = []
 
         old_values = model_to_dict(old_history, fields=fields)
         new_values = model_to_dict(self, fields=fields)
 
-        for field in sorted(fields):  # Sort the field set, to ensure consistency
+        for field in fields:
             old_value = old_values[field]
             new_value = new_values[field]
 
@@ -1001,11 +1019,21 @@ class HistoricalChanges(ModelTypeHint):
                     old_value = getattr(old_history, field)
                     new_value = getattr(self, field)
 
-                changes.append(ModelChange(field, old_value, new_value))
-                changed_fields.append(field)
+                change = ModelChange(field, old_value, new_value)
+                changes.append(change)
 
-        # Separately compare m2m fields:
-        for field in sorted(m2m_fields):  # Sort the field set, to ensure consistency
+        return changes
+
+    def _get_m2m_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        m2m_fields: Iterable[str],
+        foreign_keys_are_objs: bool,
+    ) -> List["ModelChange"]:
+        """Helper method."""
+        changes = []
+
+        for field in m2m_fields:
             old_m2m_manager = getattr(old_history, field)
             new_m2m_manager = getattr(self, field)
             m2m_through_model_opts = new_m2m_manager.model._meta
@@ -1047,9 +1075,8 @@ class HistoricalChanges(ModelTypeHint):
 
                 change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
-                changed_fields.append(field)
 
-        return ModelDelta(changes, changed_fields, old_history, self)
+        return changes
 
 
 @dataclass(frozen=True)
