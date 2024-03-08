@@ -956,8 +956,9 @@ class HistoricalChanges(ModelTypeHint):
         :param foreign_keys_are_objs: If ``False``, the returned diff will only contain
                the raw PKs of any ``ForeignKey`` fields.
                If ``True``, the diff will contain the actual related model objects
-               instead of just the PKs.
-               The latter case will necessarily query the database if the related
+               instead of just the PKs; deleted related objects will be instances of
+               ``DeletedObject``.
+               Passing ``True`` will necessarily query the database if the related
                objects have not been prefetched (using e.g. ``select_related()``).
         """
         if not isinstance(old_history, type(self)):
@@ -1016,8 +1017,20 @@ class HistoricalChanges(ModelTypeHint):
                 ):
                     # Set the fields to their related model objects instead of
                     # the raw PKs from `model_to_dict()`
-                    old_value = getattr(old_history, field)
-                    new_value = getattr(self, field)
+                    def get_value(record, foreign_key):
+                        try:
+                            value = getattr(record, field)
+                        # `value` seems to be None (without raising this exception)
+                        # if the object has not been refreshed from the database
+                        except ObjectDoesNotExist:
+                            value = None
+
+                        if value is None:
+                            value = DeletedObject(foreign_key)
+                        return value
+
+                    old_value = get_value(old_history, old_value)
+                    new_value = get_value(self, new_value)
 
                 change = ModelChange(field, old_value, new_value)
                 changes.append(change)
@@ -1061,10 +1074,24 @@ class HistoricalChanges(ModelTypeHint):
                     # Set the through fields to their related model objects instead of
                     # the raw PKs from `values()`
                     def rows_with_foreign_key_objs(m2m_manager):
+                        def get_value(obj, through_field):
+                            try:
+                                value = getattr(obj, through_field)
+                            # If the related object has been deleted, `value` seems to
+                            # usually already be None instead of raising this exception
+                            except ObjectDoesNotExist:
+                                value = None
+
+                            if value is None:
+                                meta = m2m_through_model_opts.get_field(through_field)
+                                foreign_key = getattr(obj, meta.attname)
+                                value = DeletedObject(foreign_key)
+                            return value
+
                         # Replicate the format of the return value of QuerySet.values()
                         return [
                             {
-                                through_field: getattr(through_obj, through_field)
+                                through_field: get_value(through_obj, through_field)
                                 for through_field in through_model_fields
                             }
                             for through_obj in m2m_manager.select_related(*fk_fields)
@@ -1080,10 +1107,19 @@ class HistoricalChanges(ModelTypeHint):
 
 
 @dataclass(frozen=True)
+class DeletedObject:
+    pk: Any
+
+
+# PKs and related objs can both be `Any`; only related objs can be `DeletedObject`
+PKOrRelatedObj = Union[Any, DeletedObject]
+
+
+@dataclass(frozen=True)
 class ModelChange:
     field: str
-    old: Union[Any, List[Dict[str, Any]]]
-    new: Union[Any, List[Dict[str, Any]]]
+    old: Union[PKOrRelatedObj, List[Dict[str, PKOrRelatedObj]]]
+    new: Union[PKOrRelatedObj, List[Dict[str, PKOrRelatedObj]]]
 
 
 @dataclass(frozen=True)
