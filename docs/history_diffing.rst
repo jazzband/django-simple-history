@@ -48,6 +48,11 @@ the model modifications.
     ``ForeignKey`` fields.
   - If ``True``: The diff will contain the actual related model objects instead of just
     the primary keys.
+    Deleted related objects (both foreign key objects and many-to-many objects)
+    will be instances of ``DeletedObject``, which only contain a ``model`` field with a
+    reference to the deleted object's model, as well as a ``pk`` field with the value of
+    the deleted object's primary key.
+
     Note that this will add extra database queries for each related field that's been
     changed - as long as the related objects have not been prefetched
     (using e.g. ``select_related()``).
@@ -77,7 +82,9 @@ the model modifications.
 
       # Deleting all the polls:
       Poll.objects.all().delete()
-      delta_with_objs = new.diff_against(old, foreign_keys_are_objs=True)  # Will raise `Place.DoesNotExist`
+      delta_with_objs = new.diff_against(old, foreign_keys_are_objs=True)
+      # Printing the changes of `delta_with_objs` will now output:
+      # 'poll' changed from 'Deleted poll (pk=15)' to 'Deleted poll (pk=31)'
 
 
       # --- Effect on many-to-many fields ---
@@ -100,4 +107,4 @@ the model modifications.
       Category.objects.all().delete()
       delta_with_objs = new.diff_against(old, foreign_keys_are_objs=True)
       # Printing the changes of `delta_with_objs` will now output:
-      # 'categories' changed from [] to [{'poll': <Poll: what's up?>, 'category': None}]
+      # 'categories' changed from [] to [{'poll': <Poll: what's up?>, 'category': DeletedObject(model=<class 'models.Category'>, pk=63)}]
