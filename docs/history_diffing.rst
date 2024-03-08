@@ -52,8 +52,8 @@ the model modifications.
     the value of the deleted object's primary key.
 
     Note that this will add extra database queries for each related field that's been
-    changed - as long as the related objects have not been prefetched
-    (using e.g. ``select_related()``).
+    changed - as long as the related objects have not been prefetched (using e.g.
+    `select_related_history_tracked_objs() <Prefetching Related Objects>`_).
 
   A couple examples showing the difference:
 

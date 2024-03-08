@@ -22,6 +22,8 @@ Unreleased
   field name, to prevent flaky tests by making their order consistent (gh-1128)
 - ``diff_against()`` has a new keyword argument, ``foreign_keys_are_objs``;
   see usage in the docs under "History Diffing" (gh-1128)
+- Added ``HistoricalQuerySet.select_related_history_tracked_objs()``; see usage in the
+  docs under "Prefetching Related Objects of Historical Records" (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------
