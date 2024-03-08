@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any, Dict, List, Sequence, Union
 
 from django import http
 from django.apps import apps as django_apps
@@ -18,7 +18,7 @@ from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
 from .manager import HistoryManager
-from .models import HistoricalChanges, ModelChange
+from .models import HistoricalChanges, ModelChange, PKOrRelatedObj
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
@@ -147,23 +147,53 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
                 continue
             delta = previous.diff_against(current)
             previous.history_delta_changes = [
-                self.format_history_delta_change(change) for change in delta.changes
+                self.history_delta_change_context(change, previous)
+                for change in delta.changes
             ]
             previous = current
 
-    def format_history_delta_change(self, change: ModelChange) -> dict:
+    def history_delta_change_context(
+        self, change: ModelChange, historical_record: HistoricalChanges
+    ) -> Dict[str, Any]:
         """
-        Override this to customize the displayed values in the "Changes" column of
-        the object history page.
+        Return the template context for a single ``ModelChange`` listed in the
+        "Changes" column of the object history page.
+
+        :param change:
+        :param historical_record: The table row the returned value will be displayed on.
         """
+
+        def format_value(value):
+            value = self.format_history_delta_change_value(
+                value, change, historical_record
+            )
+            value = conditional_escape(value)
+            value = truncatechars(value, self.max_displayed_history_change_chars)
+            return value
+
         field_meta = self.model._meta.get_field(change.field)
-        old = conditional_escape(change.old)
-        new = conditional_escape(change.new)
         return {
             "field": capfirst(field_meta.verbose_name),
-            "old": truncatechars(old, self.max_displayed_history_change_chars),
-            "new": truncatechars(new, self.max_displayed_history_change_chars),
+            "old": format_value(change.old),
+            "new": format_value(change.new),
         }
+
+    def format_history_delta_change_value(
+        self,
+        value: Union[PKOrRelatedObj, List[Dict[str, PKOrRelatedObj]]],
+        change: ModelChange,
+        historical_record: HistoricalChanges,
+    ) -> Any:
+        """
+        Return the displayed value for the ``old`` and ``new`` fields of ``change``.
+        Called by ``history_delta_change_context()``, which will escape and truncate
+        the returned value.
+
+        :param value: Either ``change.old`` or ``change.new``.
+        :param change:
+        :param historical_record: The table row the returned value will be displayed on.
+        """
+        return value
 
     def history_view_title(self, request, obj):
         if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:
