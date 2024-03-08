@@ -1152,6 +1152,14 @@ class CreateHistoryModelTests(unittest.TestCase):
             ["id", "question", "pub_date"],
         )
         assert_tracked_fields_equal(
+            PollWithManyToMany,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            Choice,
+            ["id", "poll", "choice", "votes"],
+        )
+        assert_tracked_fields_equal(
             ModelWithCustomAttrOneToOneField,
             ["id", "poll"],
         )
