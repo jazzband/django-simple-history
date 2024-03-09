@@ -19,6 +19,7 @@ This will return a ``ModelDelta`` object with the following attributes:
 
     - For many-to-many fields, these values will be lists of dictionaries from the
       through model fields to the primary keys of the through model's related objects.
+      The lists are sorted by the value of the many-to-many related object.
 
 This may be useful when you want to construct timelines and need to get only
 the model modifications.

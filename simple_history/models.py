@@ -45,7 +45,7 @@ from .signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from .utils import get_change_reason_from_object
+from .utils import get_change_reason_from_object, get_m2m_reverse_field_name
 
 try:
     from asgiref.local import Local as LocalContext
@@ -1047,9 +1047,12 @@ class HistoricalChanges(ModelTypeHint):
         changes = []
 
         for field in m2m_fields:
-            old_m2m_manager = getattr(old_history, field)
-            new_m2m_manager = getattr(self, field)
-            m2m_through_model_opts = new_m2m_manager.model._meta
+            original_field_meta = self.instance_type._meta.get_field(field)
+            reverse_field_name = get_m2m_reverse_field_name(original_field_meta)
+            # Sort the M2M rows by the related object, to ensure a consistent order
+            old_m2m_qs = getattr(old_history, field).order_by(reverse_field_name)
+            new_m2m_qs = getattr(self, field).order_by(reverse_field_name)
+            m2m_through_model_opts = new_m2m_qs.model._meta
 
             # Create a list of field names to compare against.
             # The list is generated without the PK of the intermediate (through)
@@ -1060,8 +1063,8 @@ class HistoricalChanges(ModelTypeHint):
                 for f in m2m_through_model_opts.fields
                 if f.editable and f.name not in ["id", "m2m_history_id", "history"]
             ]
-            old_rows = list(old_m2m_manager.values(*through_model_fields))
-            new_rows = list(new_m2m_manager.values(*through_model_fields))
+            old_rows = list(old_m2m_qs.values(*through_model_fields))
+            new_rows = list(new_m2m_qs.values(*through_model_fields))
 
             if old_rows != new_rows:
                 if foreign_keys_are_objs:
@@ -1073,7 +1076,7 @@ class HistoricalChanges(ModelTypeHint):
 
                     # Set the through fields to their related model objects instead of
                     # the raw PKs from `values()`
-                    def rows_with_foreign_key_objs(m2m_manager):
+                    def rows_with_foreign_key_objs(m2m_qs):
                         def get_value(obj, through_field):
                             try:
                                 value = getattr(obj, through_field)
@@ -1094,11 +1097,11 @@ class HistoricalChanges(ModelTypeHint):
                                 through_field: get_value(through_obj, through_field)
                                 for through_field in through_model_fields
                             }
-                            for through_obj in m2m_manager.select_related(*fk_fields)
+                            for through_obj in m2m_qs.select_related(*fk_fields)
                         ]
 
-                    old_rows = rows_with_foreign_key_objs(old_m2m_manager)
-                    new_rows = rows_with_foreign_key_objs(new_m2m_manager)
+                    old_rows = rows_with_foreign_key_objs(old_m2m_qs)
+                    new_rows = rows_with_foreign_key_objs(new_m2m_qs)
 
                 change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
