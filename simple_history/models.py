@@ -4,6 +4,7 @@ import uuid
 import warnings
 from functools import partial
 
+import django
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -813,6 +814,13 @@ def transform_field(field):
         # Unique fields can no longer be guaranteed unique,
         # but they should still be indexed for faster lookups.
         field.primary_key = False
+        # DEV: Remove this check (but keep the contents) when the minimum required
+        #      Django version is 5.1
+        if django.VERSION >= (5, 1):
+            field.unique = False
+        # (Django < 5.1) Can't set `unique` as it's a property, so set the backing field
+        # (Django >= 5.1) Set the backing field in addition to the cached property
+        #                 above, to cover all bases
         field._unique = False
         field.db_index = True
         field.serialize = True
