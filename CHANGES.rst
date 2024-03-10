@@ -12,6 +12,8 @@ Unreleased
   ``simple_history/_object_history_list.html`` to
   ``simple_history/object_history_list.html``, and added the field
   ``SimpleHistoryAdmin.object_history_list_template`` for overriding it (gh-1128)
+- Deprecated the undocumented template tag ``simple_history_admin_list.display_list()``;
+  it will be removed in version 3.8 (gh-1128)
 - Added ``SimpleHistoryAdmin.get_history_queryset()`` for overriding which ``QuerySet``
   is used to list the historical records (gh-1128)
 - Added ``SimpleHistoryAdmin.get_history_list_display()`` which returns
