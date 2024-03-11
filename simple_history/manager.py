@@ -91,7 +91,7 @@ class HistoricalQuerySet(QuerySet):
             )
         return latest_historics
 
-    def select_related_history_tracked_objs(self):
+    def _select_related_history_tracked_objs(self):
         """
         A convenience method that calls ``select_related()`` with all the names of
         the model's history-tracked ``ForeignKey`` fields.

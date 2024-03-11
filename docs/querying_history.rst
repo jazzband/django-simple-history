@@ -225,33 +225,3 @@ You can also prefetch the objects with this relationship using something like th
 
     Poll.objects.filter(something).prefetch_related(Prefetch('history', queryset=Poll.history.order_by('-history_date'),
                                                 to_attr='ordered_histories')
-
-
-.. _`Prefetching Related Objects`:
-
-Prefetching Related Objects of Historical Records
--------------------------------------------------
-
-If you find yourself wanting to access the related objects of some historical records,
-but without inducing additional database queries,
-``HistoricalQuerySet`` has a method called ``select_related_history_tracked_objs()``
-that you can use.
-This is a convenience method that calls `select_related()`_ with all the names of
-the model's history-tracked ``ForeignKey`` fields.
-For example:
-
-.. code-block:: python
-
-    class Membership(models.Model):
-        person = models.ForeignKey(Person, on_delete=models.CASCADE)
-        group = models.ForeignKey(Group, on_delete=models.CASCADE)
-
-        history = HistoricalRecords(excluded_fields=["person"])
-
-
-    # This will prefetch `group` (not `person`, since it's excluded)
-    Membership.history.select_related_history_tracked_objs()
-
-Prefetching historical many-to-many relations is currently not supported.
-
-.. _select_related(): https://docs.djangoproject.com/en/stable/ref/models/querysets/#select-related

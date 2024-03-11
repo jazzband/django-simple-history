@@ -129,7 +129,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             # Only select_related when history_user is a ForeignKey (not a property)
             qs = qs.select_related("history_user")
         # Prefetch related objects to reduce the number of DB queries when diffing
-        qs = qs.select_related_history_tracked_objs()
+        qs = qs._select_related_history_tracked_objs()
         return qs
 
     def get_history_list_display(self, request) -> Sequence[str]:
