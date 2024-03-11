@@ -399,7 +399,9 @@ class PrefetchingMethodsTestCase(TestCase):
 
         # With prefetching:
         with self.assertNumQueries(1):
-            historical_records = Choice.history._select_related_history_tracked_objs()
+            historical_records = (
+                Choice.history.all()._select_related_history_tracked_objs()
+            )
             self.assertEqual(len(historical_records), num_choices)
         with self.assertNumQueries(0):
             access_related_objs(historical_records)
