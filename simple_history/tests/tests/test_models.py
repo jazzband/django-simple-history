@@ -1,3 +1,4 @@
+import dataclasses
 import unittest
 import uuid
 import warnings
@@ -19,8 +20,10 @@ from simple_history import register
 from simple_history.exceptions import RelatedNameConflictError
 from simple_history.models import (
     SIMPLE_HISTORY_REVERSE_ATTR_NAME,
+    DeletedObject,
     HistoricalRecords,
     ModelChange,
+    ModelDelta,
     is_historic,
     to_historic,
 )
@@ -697,11 +700,13 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record)
-        expected_change = ModelChange("question", "what's up?", "what's up, man")
-        self.assertEqual(delta.changed_fields, ["question"])
-        self.assertEqual(delta.old_record, old_record)
-        self.assertEqual(delta.new_record, new_record)
-        self.assertEqual(expected_change.field, delta.changes[0].field)
+        expected_delta = ModelDelta(
+            [ModelChange("question", "what's up?", "what's up, man?")],
+            ["question"],
+            old_record,
+            new_record,
+        )
+        self.assertEqual(delta, expected_delta)
 
     def test_history_diff_does_not_include_unchanged_fields(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
@@ -720,11 +725,146 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = r.history.all()
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record)
-        expected_change = ModelChange("name", "McDonna", "DonnutsKing")
-        self.assertEqual(delta.changed_fields, ["name"])
-        self.assertEqual(delta.old_record, old_record)
-        self.assertEqual(delta.new_record, new_record)
-        self.assertEqual(expected_change.field, delta.changes[0].field)
+        expected_delta = ModelDelta(
+            [ModelChange("name", "McDonna", "DonnutsKing")],
+            ["name"],
+            old_record,
+            new_record,
+        )
+        self.assertEqual(delta, expected_delta)
+
+    def test_history_diff_arg__foreign_keys_are_objs__returns_expected_fk_values(self):
+        poll1 = Poll.objects.create(question="why?", pub_date=today)
+        poll1_pk = poll1.pk
+        poll2 = Poll.objects.create(question="how?", pub_date=tomorrow)
+        poll2_pk = poll2.pk
+        choice = Choice.objects.create(poll=poll1, choice="hmm", votes=3)
+        choice.poll = poll2
+        choice.choice = "idk"
+        choice.votes = 0
+        choice.save()
+        new_record, old_record = choice.history.all()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        expected_pk_changes = [
+            ModelChange("choice", "hmm", "idk"),
+            ModelChange("poll", poll1_pk, poll2_pk),
+            ModelChange("votes", 3, 0),
+        ]
+        expected_pk_delta = ModelDelta(
+            expected_pk_changes, ["choice", "poll", "votes"], old_record, new_record
+        )
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2):  # Once for each poll in the new record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        choice_changes, _poll_changes, votes_changes = expected_pk_changes
+        # The PKs should now instead be their corresponding model objects
+        expected_obj_changes = [
+            choice_changes,
+            ModelChange("poll", poll1, poll2),
+            votes_changes,
+        ]
+        expected_obj_delta = dataclasses.replace(
+            expected_pk_delta, changes=expected_obj_changes
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
+        # --- Delete the polls and do the same tests again ---
+
+        Poll.objects.all().delete()
+        old_record.refresh_from_db()
+        new_record.refresh_from_db()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2):  # Once for each poll in the new record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        # The model objects should now instead be instances of `DeletedObject`
+        expected_obj_changes = [
+            choice_changes,
+            ModelChange("poll", DeletedObject(poll1_pk), DeletedObject(poll2_pk)),
+            votes_changes,
+        ]
+        expected_obj_delta = dataclasses.replace(
+            expected_pk_delta, changes=expected_obj_changes
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
+    def test_history_diff_arg__foreign_keys_are_objs__returns_expected_m2m_values(self):
+        poll = PollWithManyToMany.objects.create(question="why?", pub_date=today)
+        place1 = Place.objects.create(name="Here")
+        place1_pk = place1.pk
+        place2 = Place.objects.create(name="There")
+        place2_pk = place2.pk
+        poll.places.add(place1, place2)
+        new_record, old_record = poll.history.all()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new_record.diff_against(old_record)
+        expected_pk_change = ModelChange(
+            "places",
+            [],
+            [
+                {"pollwithmanytomany": poll.pk, "place": place1_pk},
+                {"pollwithmanytomany": poll.pk, "place": place2_pk},
+            ],
+        )
+        expected_pk_delta = ModelDelta(
+            [expected_pk_change], ["places"], old_record, new_record
+        )
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2 * 2):  # Twice for each record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        # The PKs should now instead be their corresponding model objects
+        expected_obj_change = dataclasses.replace(
+            expected_pk_change,
+            new=[
+                {"pollwithmanytomany": poll, "place": place1},
+                {"pollwithmanytomany": poll, "place": place2},
+            ],
+        )
+        expected_obj_delta = dataclasses.replace(
+            expected_pk_delta, changes=[expected_obj_change]
+        )
+        self.assertEqual(delta, expected_obj_delta)
+
+        # --- Delete the places and do the same tests again ---
+
+        Place.objects.all().delete()
+        old_record.refresh_from_db()
+        new_record.refresh_from_db()
+
+        # Test with the default value of `foreign_keys_are_objs`
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new_record.diff_against(old_record)
+        self.assertEqual(delta, expected_pk_delta)
+
+        # Test with `foreign_keys_are_objs=True`
+        with self.assertNumQueries(2 * 2):  # Twice for each record
+            delta = new_record.diff_against(old_record, foreign_keys_are_objs=True)
+        # The model objects should now instead be instances of `DeletedObject`
+        expected_obj_change = dataclasses.replace(
+            expected_obj_change,
+            new=[
+                {"pollwithmanytomany": poll, "place": DeletedObject(place1_pk)},
+                {"pollwithmanytomany": poll, "place": DeletedObject(place2_pk)},
+            ],
+        )
+        expected_obj_delta = dataclasses.replace(
+            expected_obj_delta, changes=[expected_obj_change]
+        )
+        self.assertEqual(delta, expected_obj_delta)
 
     def test_history_table_name_is_not_inherited(self):
         def assert_table_name(obj, expected_table_name):
@@ -759,8 +899,8 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record, excluded_fields=("question",))
-        self.assertEqual(delta.changed_fields, [])
-        self.assertEqual(delta.changes, [])
+        expected_delta = ModelDelta([], [], old_record, new_record)
+        self.assertEqual(delta, expected_delta)
 
     def test_history_diff_with_included_fields(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
@@ -769,13 +909,17 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record, included_fields=[])
-        self.assertEqual(delta.changed_fields, [])
-        self.assertEqual(delta.changes, [])
+        expected_delta = ModelDelta([], [], old_record, new_record)
+        self.assertEqual(delta, expected_delta)
 
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record, included_fields=["question"])
-        self.assertEqual(delta.changed_fields, ["question"])
-        self.assertEqual(len(delta.changes), 1)
+        expected_delta = dataclasses.replace(
+            expected_delta,
+            changes=[ModelChange("question", "what's up?", "what's up, man?")],
+            changed_fields=["question"],
+        )
+        self.assertEqual(delta, expected_delta)
 
     def test_history_diff_with_non_editable_field(self):
         p = PollWithNonEditableField.objects.create(
@@ -786,8 +930,13 @@ class HistoricalRecordsTest(TestCase):
         new_record, old_record = p.history.all()
         with self.assertNumQueries(0):
             delta = new_record.diff_against(old_record)
-        self.assertEqual(delta.changed_fields, ["question"])
-        self.assertEqual(len(delta.changes), 1)
+        expected_delta = ModelDelta(
+            [ModelChange("question", "what's up?", "what's up, man?")],
+            ["question"],
+            old_record,
+            new_record,
+        )
+        self.assertEqual(delta, expected_delta)
 
     def test_history_with_unknown_field(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
@@ -1002,6 +1151,14 @@ class CreateHistoryModelTests(unittest.TestCase):
         assert_tracked_fields_equal(
             PollWithHistoricalIPAddress,
             ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            PollWithManyToMany,
+            ["id", "question", "pub_date"],
+        )
+        assert_tracked_fields_equal(
+            Choice,
+            ["id", "poll", "choice", "votes"],
         )
         assert_tracked_fields_equal(
             ModelWithCustomAttrOneToOneField,
@@ -1922,7 +2079,6 @@ class InheritedManyToManyTest(TestCase):
 class ManyToManyWithSignalsTest(TestCase):
     def setUp(self):
         self.model = PollWithManyToManyWithIPAddress
-        # self.historical_through_model = self.model.history.
         self.places = (
             Place.objects.create(name="London"),
             Place.objects.create(name="Paris"),
@@ -1962,10 +2118,28 @@ class ManyToManyWithSignalsTest(TestCase):
         new = self.poll.history.first()
         old = new.prev_record
 
-        delta = new.diff_against(old)
-
-        self.assertEqual("places", delta.changes[0].field)
-        self.assertEqual(2, len(delta.changes[0].new))
+        with self.assertNumQueries(2):  # Once for each record
+            delta = new.diff_against(old)
+        expected_delta = ModelDelta(
+            [
+                ModelChange(
+                    "places",
+                    [],
+                    [
+                        {
+                            "pollwithmanytomanywithipaddress": self.poll.pk,
+                            "place": place.pk,
+                            "ip_address": "192.168.0.1",
+                        }
+                        for place in self.places
+                    ],
+                )
+            ],
+            ["places"],
+            old,
+            new,
+        )
+        self.assertEqual(delta, expected_delta)
 
 
 class ManyToManyCustomIDTest(TestCase):
@@ -2242,48 +2416,46 @@ class ManyToManyTest(TestCase):
         self.poll.places.add(self.place)
         add_record, create_record = self.poll.history.all()
 
-        delta = add_record.diff_against(create_record)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = add_record.diff_against(create_record)
         expected_change = ModelChange(
             "places", [], [{"pollwithmanytomany": self.poll.pk, "place": self.place.pk}]
         )
-        self.assertEqual(delta.changed_fields, ["places"])
-        self.assertEqual(delta.old_record, create_record)
-        self.assertEqual(delta.new_record, add_record)
-        self.assertEqual(expected_change.field, delta.changes[0].field)
+        expected_delta = ModelDelta(
+            [expected_change], ["places"], create_record, add_record
+        )
+        self.assertEqual(delta, expected_delta)
 
-        self.assertListEqual(expected_change.new, delta.changes[0].new)
-        self.assertListEqual(expected_change.old, delta.changes[0].old)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = add_record.diff_against(create_record, included_fields=["places"])
+        self.assertEqual(delta, expected_delta)
 
-        delta = add_record.diff_against(create_record, included_fields=["places"])
-        self.assertEqual(delta.changed_fields, ["places"])
-        self.assertEqual(delta.old_record, create_record)
-        self.assertEqual(delta.new_record, add_record)
-        self.assertEqual(expected_change.field, delta.changes[0].field)
-
-        delta = add_record.diff_against(create_record, excluded_fields=["places"])
-        self.assertEqual(delta.changed_fields, [])
-        self.assertEqual(delta.old_record, create_record)
-        self.assertEqual(delta.new_record, add_record)
+        with self.assertNumQueries(0):
+            delta = add_record.diff_against(create_record, excluded_fields=["places"])
+        expected_delta = dataclasses.replace(
+            expected_delta, changes=[], changed_fields=[]
+        )
+        self.assertEqual(delta, expected_delta)
 
         self.poll.places.clear()
 
         # First and third records are effectively the same.
         del_record, add_record, create_record = self.poll.history.all()
-        delta = del_record.diff_against(create_record)
+        with self.assertNumQueries(2):  # Once for each record
+            delta = del_record.diff_against(create_record)
         self.assertNotIn("places", delta.changed_fields)
 
+        with self.assertNumQueries(2):  # Once for each record
+            delta = del_record.diff_against(add_record)
         # Second and third should have the same diffs as first and second, but with
         # old and new reversed
         expected_change = ModelChange(
             "places", [{"place": self.place.pk, "pollwithmanytomany": self.poll.pk}], []
         )
-        delta = del_record.diff_against(add_record)
-        self.assertEqual(delta.changed_fields, ["places"])
-        self.assertEqual(delta.old_record, add_record)
-        self.assertEqual(delta.new_record, del_record)
-        self.assertEqual(expected_change.field, delta.changes[0].field)
-        self.assertListEqual(expected_change.new, delta.changes[0].new)
-        self.assertListEqual(expected_change.old, delta.changes[0].old)
+        expected_delta = ModelDelta(
+            [expected_change], ["places"], add_record, del_record
+        )
+        self.assertEqual(delta, expected_delta)
 
 
 @override_settings(**database_router_override_settings)

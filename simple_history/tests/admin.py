@@ -14,6 +14,7 @@ from .models import (
     Person,
     Planet,
     Poll,
+    PollWithManyToMany,
 )
 
 
@@ -43,14 +44,15 @@ class PlanetAdmin(SimpleHistoryAdmin):
     history_list_display = ["title", "test_method"]
 
 
-admin.site.register(Poll, SimpleHistoryAdmin)
-admin.site.register(Choice, ChoiceAdmin)
-admin.site.register(Person, PersonAdmin)
 admin.site.register(Book, SimpleHistoryAdmin)
-admin.site.register(Document, SimpleHistoryAdmin)
-admin.site.register(Paper, SimpleHistoryAdmin)
-admin.site.register(Employee, SimpleHistoryAdmin)
+admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(ConcreteExternal, SimpleHistoryAdmin)
+admin.site.register(Document, SimpleHistoryAdmin)
+admin.site.register(Employee, SimpleHistoryAdmin)
 admin.site.register(ExternalModelWithCustomUserIdField, SimpleHistoryAdmin)
 admin.site.register(FileModel, FileModelAdmin)
+admin.site.register(Paper, SimpleHistoryAdmin)
+admin.site.register(Person, PersonAdmin)
 admin.site.register(Planet, PlanetAdmin)
+admin.site.register(Poll, SimpleHistoryAdmin)
+admin.site.register(PollWithManyToMany, SimpleHistoryAdmin)

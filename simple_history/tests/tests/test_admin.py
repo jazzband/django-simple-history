@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_str
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -29,8 +30,10 @@ from ..models import (
     Employee,
     FileModel,
     Person,
+    Place,
     Planet,
     Poll,
+    PollWithManyToMany,
     State,
 )
 
@@ -85,6 +88,129 @@ class AdminSiteTest(TestCase):
         self.assertContains(response, "Change reason")
         self.assertContains(response, "A random test reason")
         self.assertContains(response, self.user.username)
+
+    def test_history_list_contains_diff_changes(self):
+        self.login()
+        poll = Poll(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+
+        poll_history_url = get_history_url(poll)
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Changes")
+        # The poll hasn't had any of its fields changed after creation,
+        # so these values should not be present
+        self.assertNotContains(response, "Question:")
+        self.assertNotContains(response, "why?")
+        self.assertNotContains(response, "Date published:")
+
+        poll.question = "how?"
+        poll.save()
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Question:")
+        self.assertContains(response, "why?")
+        self.assertContains(response, "how?")
+        self.assertNotContains(response, "Date published:")
+
+        poll.question = "when?"
+        poll.pub_date = parse_datetime("2024-04-04 04:04:04")
+        poll.save()
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Question:")
+        self.assertContains(response, "why?")
+        self.assertContains(response, "how?")
+        self.assertContains(response, "when?")
+        self.assertContains(response, "Date published:")
+        self.assertContains(response, "2021-01-01 10:00:00")
+        self.assertContains(response, "2024-04-04 04:04:04")
+
+    def test_history_list_contains_diff_changes_for_foreign_key_fields(self):
+        self.login()
+        poll1 = Poll.objects.create(question="why?", pub_date=today)
+        poll1_pk = poll1.pk
+        poll2 = Poll.objects.create(question="how?", pub_date=today)
+        poll2_pk = poll2.pk
+        choice = Choice(poll=poll1, votes=1)
+        choice._history_user = self.user
+        choice.save()
+        choice_history_url = get_history_url(choice)
+
+        # Before changing the poll:
+        response = self.client.get(choice_history_url)
+        self.assertNotContains(response, "Poll:")
+        expected_old_poll = f"Poll object ({poll1_pk})"
+        self.assertNotContains(response, expected_old_poll)
+        expected_new_poll = f"Poll object ({poll2_pk})"
+        self.assertNotContains(response, expected_new_poll)
+
+        # After changing the poll:
+        choice.poll = poll2
+        choice.save()
+        response = self.client.get(choice_history_url)
+        self.assertContains(response, "Poll:")
+        self.assertContains(response, expected_old_poll)
+        self.assertContains(response, expected_new_poll)
+
+        # After deleting all polls:
+        Poll.objects.all().delete()
+        response = self.client.get(choice_history_url)
+        self.assertContains(response, "Poll:")
+        self.assertContains(response, f"DeletedObject(pk={poll1_pk})")
+        self.assertContains(response, f"DeletedObject(pk={poll2_pk})")
+
+    def test_history_list_contains_diff_changes_for_m2m_fields(self):
+        self.login()
+        poll = PollWithManyToMany(question="why?", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+        place1 = Place.objects.create(name="Here")
+        place1_pk = place1.pk
+        place2 = Place.objects.create(name="There")
+        place2_pk = place2.pk
+        poll_history_url = get_history_url(poll)
+
+        # Before adding places:
+        response = self.client.get(poll_history_url)
+        self.assertNotContains(response, "Places:")
+        expected_old_places = "[]"
+        self.assertNotContains(response, expected_old_places)
+        expected_new_places = (
+            f"[&lt;Place: Place object ({place1_pk})&gt;,"
+            f" &lt;Place: Place object ({place2_pk})&gt;]"
+        )
+        self.assertNotContains(response, expected_new_places)
+
+        # After adding places:
+        poll.places.add(place1, place2)
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Places:")
+        self.assertContains(response, expected_old_places)
+        self.assertContains(response, expected_new_places)
+
+        # After deleting all places:
+        Place.objects.all().delete()
+        response = self.client.get(poll_history_url)
+        self.assertContains(response, "Places:")
+        self.assertContains(response, expected_old_places)
+        expected_new_places = (
+            f"[DeletedObject(pk={place1_pk}), DeletedObject(pk={place2_pk})]"
+        )
+        self.assertContains(response, expected_new_places)
+
+    def test_history_list_doesnt_contain_too_long_diff_changes(self):
+        self.login()
+        repeated_chars = Poll._meta.get_field("question").max_length - 1
+        poll = Poll(question=f"W{'A' * repeated_chars}", pub_date=today)
+        poll._history_user = self.user
+        poll.save()
+        poll.question = f"W{'E' * repeated_chars}"
+        poll.save()
+
+        response = self.client.get(get_history_url(poll))
+        self.assertContains(response, "Question")
+        repeated_chars = SimpleHistoryAdmin.max_displayed_history_change_chars - 2
+        self.assertContains(response, f"W{'A' * repeated_chars}…")
+        self.assertContains(response, f"W{'E' * repeated_chars}…")
 
     def test_history_list_custom_fields(self):
         model_name = self.user._meta.model_name

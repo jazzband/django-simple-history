@@ -69,6 +69,43 @@ admin class
 
 .. image:: screens/5_history_list_display.png
 
+
+Customizing the History Admin Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you'd like to customize the HTML of ``SimpleHistoryAdmin``'s object history pages,
+you can override the following attributes with the names of your own templates:
+
+- ``object_history_template``: The main object history page, which includes (inserts)
+  ``object_history_list_template``.
+- ``object_history_list_template``: The table listing an object's historical records and
+  the changes made between them.
+- ``object_history_form_template``: The form pre-filled with the details of an object's
+  historical record, which also allows you to revert the object to a previous version.
+
+If you'd like to only customize certain parts of the mentioned templates, look for
+``block`` template tags in the source code that you can override - like the
+``delta_changes`` block in ``simple_history/object_history_list.html``, which lists the
+changes made between each historical record.
+
+Customizing Context
+^^^^^^^^^^^^^^^^^^^
+
+You can also customize the template context by overriding the following methods:
+
+- ``render_history_view()``: Called by both ``history_view()`` and
+  ``history_form_view()`` before the templates are rendered. Customize the context by
+  changing the ``context`` parameter.
+- ``history_view()``: Returns a rendered ``object_history_template``.
+  Inject context by calling the super method with the ``extra_context`` argument.
+- ``history_form_view()``: Returns a rendered ``object_history_form_template``.
+  Inject context by calling the super method with the ``extra_context`` argument.
+- ``history_delta_change_context()``: Returns the template context for each change
+  listed in the "Changes" column of ``object_history_template``.
+  The default implementation calls ``format_history_delta_change_value()`` with the old
+  and new values of each change - which can also be overridden.
+
+
 Disabling the option to revert an object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

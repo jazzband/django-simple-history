@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings, skipUnlessDBFeature
 
 from simple_history.manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME
 
-from ..models import Document, Poll, RankedDocument
+from ..models import Choice, Document, Poll, RankedDocument
 
 User = get_user_model()
 
@@ -371,3 +371,37 @@ class BulkHistoryUpdateTestCase(TestCase):
                 ]
             )
         )
+
+
+class PrefetchingMethodsTestCase(TestCase):
+    def setUp(self):
+        d = datetime(3021, 1, 1, 10, 0)
+        self.poll1 = Poll.objects.create(question="why?", pub_date=d)
+        self.poll2 = Poll.objects.create(question="how?", pub_date=d)
+        self.choice1 = Choice.objects.create(poll=self.poll1, votes=1)
+        self.choice2 = Choice.objects.create(poll=self.poll1, votes=2)
+        self.choice3 = Choice.objects.create(poll=self.poll2, votes=3)
+
+    def test__select_related_history_tracked_objs__prefetches_expected_objects(self):
+        num_choices = Choice.objects.count()
+        self.assertEqual(num_choices, 3)
+
+        def access_related_objs(records):
+            for record in records:
+                self.assertIsInstance(record.poll, Poll)
+
+        # Without prefetching:
+        with self.assertNumQueries(1):
+            historical_records = Choice.history.all()
+            self.assertEqual(len(historical_records), num_choices)
+        with self.assertNumQueries(num_choices):
+            access_related_objs(historical_records)
+
+        # With prefetching:
+        with self.assertNumQueries(1):
+            historical_records = (
+                Choice.history.all()._select_related_history_tracked_objs()
+            )
+            self.assertEqual(len(historical_records), num_choices)
+        with self.assertNumQueries(0):
+            access_related_objs(historical_records)
