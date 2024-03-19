@@ -3,7 +3,6 @@ import uuid
 import warnings
 from datetime import datetime, timedelta
 
-import django
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -28,7 +27,6 @@ from simple_history.signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from simple_history.tests.custom_user.models import CustomUser
 from simple_history.tests.tests.utils import (
     database_router_override_settings,
     database_router_override_settings_history_in_diff_db,
@@ -72,7 +70,6 @@ from ..models import (
     HistoricalCustomFKError,
     HistoricalPoll,
     HistoricalPollWithHistoricalIPAddress,
-    HistoricalPollWithManyToMany_places,
     HistoricalState,
     InheritedRestaurant,
     Library,
@@ -85,8 +82,6 @@ from ..models import (
     ModelWithMultipleNoDBIndex,
     ModelWithSingleNoDBIndexUnique,
     MultiOneToOne,
-    MyOverrideModelNameRegisterMethod1,
-    OverrideModelNameAsCallable,
     OverrideModelNameUsingBaseModel1,
     Person,
     Place,
@@ -836,6 +831,33 @@ class HistoricalRecordsTest(TestCase):
             ),
             {"Question 1"},
         )
+
+    def test_history_with_deletion_record(self):
+        question = "what's up?"
+        p = Poll.objects.create(question=question, pub_date=today)
+        poll_pk = p.pk
+        new_record = p.history.first()
+        p.delete()
+
+        deletion_record = HistoricalPoll.objects.get(id=poll_pk, history_type="-")
+
+        with self.assertNumQueries(0):
+            delta = new_record.diff_against(
+                deletion_record, included_fields=["question"]
+            )
+            self.assertEqual(delta.changed_fields, ["question"])
+            self.assertEqual(len(delta.changes), 1)
+            self.assertEqual(delta.changes[0].new, question)
+            self.assertEqual(delta.changes[0].old, None)
+
+        with self.assertNumQueries(0):
+            delta = deletion_record.diff_against(
+                new_record, included_fields=["question"]
+            )
+            self.assertEqual(delta.changed_fields, ["question"])
+            self.assertEqual(len(delta.changes), 1)
+            self.assertEqual(delta.changes[0].new, None)
+            self.assertEqual(delta.changes[0].old, question)
 
 
 class GetPrevRecordAndNextRecordTestCase(TestCase):

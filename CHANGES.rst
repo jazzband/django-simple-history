@@ -3,6 +3,7 @@ Changes
 
 Unreleased
 ----------
+- Fixed `diff_against` to work with deleted objects (gh-1312)
 
 - Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
 
