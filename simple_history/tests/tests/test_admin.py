@@ -488,7 +488,7 @@ class AdminSiteTest(TestCase):
             context["log_entries"] = ANY
 
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context
+            request, admin.default_object_history_form_template, context
         )
 
     def test_history_form_view_getting_history(self):
@@ -547,7 +547,7 @@ class AdminSiteTest(TestCase):
             context["log_entries"] = ANY
 
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context
+            request, admin.default_object_history_form_template, context
         )
 
     def test_history_form_view_getting_history_with_setting_off(self):
@@ -606,7 +606,7 @@ class AdminSiteTest(TestCase):
             context["log_entries"] = ANY
 
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context
+            request, admin.default_object_history_form_template, context
         )
 
     def test_history_form_view_getting_history_abstract_external(self):
@@ -667,7 +667,7 @@ class AdminSiteTest(TestCase):
             context["log_entries"] = ANY
 
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context
+            request, admin.default_object_history_form_template, context
         )
 
     def test_history_form_view_accepts_additional_context(self):
@@ -730,7 +730,7 @@ class AdminSiteTest(TestCase):
             context["log_entries"] = ANY
 
         mock_render.assert_called_once_with(
-            request, admin.object_history_form_template, context
+            request, admin.default_object_history_form_template, context
         )
 
     def assert_history_view_response_contains(

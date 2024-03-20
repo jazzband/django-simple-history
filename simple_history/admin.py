@@ -19,9 +19,6 @@ SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
-    object_history_template = "simple_history/object_history.html"
-    object_history_form_template = "simple_history/object_history_form.html"
-
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
         urls = super().get_urls()
@@ -94,7 +91,15 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(extra_context or {})
         extra_kwargs = {}
         return self.render_history_view(
-            request, self.object_history_template, context, **extra_kwargs
+            request,
+            [
+                f"admin/{app_label}/{opts.model_name}/object_history.html",
+                "admin/%s/object_history.html" % app_label,
+                "admin/object_history.html",
+                "simple_history/object_history.html",
+            ],
+            context,
+            **extra_kwargs,
         )
 
     def history_view_title(self, request, obj):
@@ -209,7 +214,16 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context.update(extra_context or {})
         extra_kwargs = {}
         return self.render_history_view(
-            request, self.object_history_form_template, context, **extra_kwargs
+            request,
+            [
+                "admin/%s/%s/object_history_form.html"
+                % (original_opts.app_label, model_name),
+                "admin/%s/object_history_form.html" % original_opts.app_label,
+                "admin/object_history_form.html",
+                "simple_history/object_history_form.html",
+            ],
+            context,
+            **extra_kwargs,
         )
 
     def history_form_view_title(self, request, obj):
