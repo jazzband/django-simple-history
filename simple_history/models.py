@@ -3,6 +3,7 @@ import importlib
 import uuid
 import warnings
 from functools import partial
+from typing import TypeVar
 
 import django
 from django.apps import apps
@@ -50,6 +51,13 @@ try:
     from asgiref.local import Local as LocalContext
 except ImportError:
     from threading import local as LocalContext
+
+
+# __set__ value type
+_ST = TypeVar("_ST")
+# __get__ return type
+_GT = TypeVar("_GT")
+
 
 registered_models = {}
 
@@ -894,7 +902,7 @@ class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
         )
 
 
-class HistoricForeignKey(ForeignKey):
+class HistoricForeignKey(ForeignKey[_ST, _GT]):
     """
     Allows foreign keys to work properly from a historic instance.
 
