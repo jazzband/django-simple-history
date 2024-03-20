@@ -43,6 +43,7 @@ Authors
 - Dmytro Shyshov (`xahgmah <https://github.com/xahgmah>`_)
 - Edouard Richard (`vied12 <https://github.com/vied12>` _)
 - Eduardo Cuducos
+- Enric Pou (`epou <https://github.com/epou>`_)
 - Erik van Widenfelt (`erikvw <https://github.com/erikvw>`_)
 - Fábio Capuano (`fabiocapsouza <https://github.com/fabiocapsouza`_)
 - Filipe Pina (@fopina)

@@ -5,6 +5,7 @@ from simple_history.tests.external.models import ExternalModelWithCustomUserIdFi
 
 from .models import (
     Book,
+    BucketData,
     Choice,
     ConcreteExternal,
     Document,
@@ -54,3 +55,4 @@ admin.site.register(ConcreteExternal, SimpleHistoryAdmin)
 admin.site.register(ExternalModelWithCustomUserIdField, SimpleHistoryAdmin)
 admin.site.register(FileModel, FileModelAdmin)
 admin.site.register(Planet, PlanetAdmin)
+admin.site.register(BucketData, SimpleHistoryAdmin)
