@@ -105,6 +105,7 @@ Authors
 - Miguel Vargas
 - Mike Spainhower
 - Muneeb Shahid (`muneeb706 <https://github.com/muneeb706>`_)
+- Natanael Maia (`natanrmaia <https://github.com/natanrmaia/>`_)
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Nick Träger
