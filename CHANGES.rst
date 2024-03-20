@@ -22,6 +22,7 @@ Unreleased
 - Added temporary requirement on ``asgiref>=3.6`` while the minimum required Django
   version is lower than 4.2 (gh-1261)
 - Small performance optimization of the ``clean-duplicate_history`` command (gh-1015)
+- Added ``pip install django-simple-history`` command in the Testing section of CONTRIBUTING.rst (gh-1293)
 - Support Simplified Chinese translation (gh-1281)
 - Added support for Django 5.0 (gh-1283)
 - Added support for Python 3.13 (gh-1289)
