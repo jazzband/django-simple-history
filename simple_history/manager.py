@@ -77,7 +77,7 @@ class HistoricalQuerySet(QuerySet):
             latest_pk_attr_historic_ids = (
                 self.order_by(self._pk_attr, "-history_date", "-pk")
                 .distinct(self._pk_attr)
-                .values_list("pk", flat=True)
+                .values("pk")
             )
             latest_historics = self.filter(history_id__in=latest_pk_attr_historic_ids)
         else:
