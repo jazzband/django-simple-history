@@ -51,7 +51,7 @@ class RegisterTest(TestCase):
 
         self.assertRaises(AttributeError, get_history, User)
         self.assertEqual(len(User.histories.all()), 0)
-        user = User.objects.create(username="bob", password="pass")  # nosec
+        user = User.objects.create(username="bob", password="pass")
         self.assertEqual(len(User.histories.all()), 1)
         self.assertEqual(len(user.histories.all()), 1)
 

@@ -2462,7 +2462,7 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
     databases = {"default", "other"}
 
     def setUp(self):
-        self.user = get_user_model().objects.create(  # nosec
+        self.user = get_user_model().objects.create(
             username="username", email="username@test.com", password="top_secret"
         )
 
@@ -2503,10 +2503,10 @@ class MultiDBExplicitHistoryUserIDTest(TestCase):
 
 class RelatedNameTest(TestCase):
     def setUp(self):
-        self.user_one = get_user_model().objects.create(  # nosec
+        self.user_one = get_user_model().objects.create(
             username="username_one", email="first@user.com", password="top_secret"
         )
-        self.user_two = get_user_model().objects.create(  # nosec
+        self.user_two = get_user_model().objects.create(
             username="username_two", email="second@user.com", password="top_secret"
         )
 

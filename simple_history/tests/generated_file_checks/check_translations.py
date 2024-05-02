@@ -1,4 +1,4 @@
-import subprocess  # nosec
+import subprocess
 import sys
 from glob import glob
 from pathlib import Path
@@ -44,12 +44,12 @@ def main():
     call_command("compilemessages")
 
     log("\nRunning 'git status'...")
-    result = subprocess.run(  # nosec
+    result = subprocess.run(
         ["git", "status", "--porcelain"],
         check=True,
         stdout=subprocess.PIPE,
     )
-    assert result.stderr is None  # nosec
+    assert result.stderr is None
     stdout = result.stdout.decode()
     if stdout:
         log_err(f"Unexpected changes found in the workspace:\n\n{stdout}")
@@ -61,7 +61,7 @@ def main():
         sys.exit(1)
     else:
         # Print the human-readable status to the console
-        subprocess.run(["git", "status"])  # nosec
+        subprocess.run(["git", "status"])
 
 
 if __name__ == "__main__":
