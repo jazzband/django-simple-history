@@ -14,6 +14,7 @@
       <th scope="col">{% trans 'Comment' %}</th>
       <th scope="col">{% trans 'Changed by' %}</th>
       <th scope="col">{% trans 'Change reason' %}</th>
+      <th scope="col">{% trans 'Changes' %}</th>
     </tr>
   </thead>
   <tbody>
@@ -43,6 +44,22 @@
         </td>
         <td>
           {{ record.history_change_reason }}
+        </td>
+        <td>
+          {% block history_delta_changes %}
+            {% if record.history_delta_changes %}
+              <ul>
+                {% for change in record.history_delta_changes %}
+                  <li>
+                    <strong>{{ change.field }}:</strong>
+                    {{ change.old }}
+                    {# Add some spacing, and prevent having the arrow point to the edge of the page if `new` is wrapped #}
+                    &nbsp;&rarr;&nbsp;&nbsp;{{ change.new }}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endblock %}
         </td>
       </tr>
     {% endfor %}

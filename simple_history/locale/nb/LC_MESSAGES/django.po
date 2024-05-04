@@ -19,31 +19,31 @@ msgstr ""
 
 # Dette er en tittel, ikke en handlingsbeskrivelse, så f.eks.
 # "Se/Vis (endrings)historikk" hadde ikke fungert så bra
-#: simple_history/admin.py:102
+#: simple_history/admin.py:109
 #, python-format
 msgid "View history: %s"
 msgstr "Endringshistorikk: %s"
 
-#: simple_history/admin.py:104
+#: simple_history/admin.py:111
 #, python-format
 msgid "Change history: %s"
 msgstr "Endringshistorikk: %s"
 
-#: simple_history/admin.py:110
+#: simple_history/admin.py:117
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "%(name)s «%(obj)s» ble endret."
 
-#: simple_history/admin.py:116
+#: simple_history/admin.py:123
 msgid "You may edit it again below"
 msgstr "Du kan redigere videre nedenfor"
 
-#: simple_history/admin.py:217
+#: simple_history/admin.py:224
 #, python-format
 msgid "View %s"
 msgstr "Se %s"
 
-#: simple_history/admin.py:219
+#: simple_history/admin.py:226
 #, python-format
 msgid "Revert %s"
 msgstr "Tilbakestill %s"
@@ -125,6 +125,10 @@ msgstr "Endret av"
 #: simple_history/templates/simple_history/object_history_list.html:16
 msgid "Change reason"
 msgstr "Endringsårsak"
+
+#: simple_history/templates/simple_history/object_history_list.html:17
+msgid "Changes"
+msgstr "Endringer"
 
 #: simple_history/templates/simple_history/object_history_list.html:42
 msgid "None"

@@ -84,7 +84,26 @@ you can override the following attributes with the names of your own templates:
   historical record, which also allows you to revert the object to a previous version.
 
 If you'd like to only customize certain parts of the mentioned templates, look for
-``block`` template tags in the source code that you can override.
+``block`` template tags in the source code that you can override - like the
+``history_delta_changes`` block in ``simple_history/object_history_list.html``,
+which lists the changes made between each historical record.
+
+Customizing Context
+^^^^^^^^^^^^^^^^^^^
+
+You can also customize the template context by overriding the following methods:
+
+- ``render_history_view()``: Called by both ``history_view()`` and
+  ``history_form_view()`` before the templates are rendered. Customize the context by
+  changing the ``context`` parameter.
+- ``history_view()``: Returns a rendered ``object_history_template``.
+  Inject context by calling the super method with the ``extra_context`` argument.
+- ``get_historical_record_context_helper()``: Returns an instance of
+  ``simple_history.template_utils.HistoricalRecordContextHelper`` that's used to format
+  some template context for each historical record displayed through ``history_view()``.
+  Customize the context by extending the mentioned class and overriding its methods.
+- ``history_form_view()``: Returns a rendered ``object_history_form_template``.
+  Inject context by calling the super method with the ``extra_context`` argument.
 
 
 Disabling the option to revert an object

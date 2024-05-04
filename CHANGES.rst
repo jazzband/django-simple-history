@@ -22,6 +22,9 @@ Unreleased
   lists are sorted by the related object. This should help prevent flaky tests. (gh-1128)
 - ``diff_against()`` has a new keyword argument, ``foreign_keys_are_objs``;
   see usage in the docs under "History Diffing" (gh-1128)
+- Added a "Changes" column to ``SimpleHistoryAdmin``'s object history table, listing
+  the changes between each historical record of the object; see the docs under
+  "Customizing the History Admin Templates" for overriding its template context (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------
