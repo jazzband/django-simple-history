@@ -5,6 +5,26 @@ Unreleased
 ----------
 
 - Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
+- Renamed the (previously internal) admin template
+  ``simple_history/_object_history_list.html`` to
+  ``simple_history/object_history_list.html``, and added the field
+  ``SimpleHistoryAdmin.object_history_list_template`` for overriding it (gh-1128)
+- Deprecated the undocumented template tag ``simple_history_admin_list.display_list()``;
+  it will be removed in version 3.8 (gh-1128)
+- Added ``SimpleHistoryAdmin.get_history_queryset()`` for overriding which ``QuerySet``
+  is used to list the historical records (gh-1128)
+- Added ``SimpleHistoryAdmin.get_history_list_display()`` which returns
+  ``history_list_display`` by default, and made the latter into an actual field (gh-1128)
+- ``ModelDelta`` and ``ModelChange`` (in ``simple_history.models``) are now immutable
+  dataclasses; their signatures remain unchanged (gh-1128)
+- ``ModelDelta``'s ``changes`` and ``changed_fields`` are now sorted alphabetically by
+  field name. Also, if ``ModelChange`` is for an M2M field, its ``old`` and ``new``
+  lists are sorted by the related object. This should help prevent flaky tests. (gh-1128)
+- ``diff_against()`` has a new keyword argument, ``foreign_keys_are_objs``;
+  see usage in the docs under "History Diffing" (gh-1128)
+- Added a "Changes" column to ``SimpleHistoryAdmin``'s object history table, listing
+  the changes between each historical record of the object; see the docs under
+  "Customizing the History Admin Templates" for overriding its template context (gh-1128)
 
 3.5.0 (2024-02-19)
 ------------------

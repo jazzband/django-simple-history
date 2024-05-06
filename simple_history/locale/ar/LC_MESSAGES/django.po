@@ -60,30 +60,6 @@ msgstr "تغيير"
 msgid "Deleted"
 msgstr "تمت إزالته"
 
-#: simple_history/templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "عنصر"
-
-#: simple_history/templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "التاريخ/الوقت"
-
-#: simple_history/templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "تعليق"
-
-#: simple_history/templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "تغير من قبل"
-
-#: simple_history/templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "سبب التغير"
-
-#: simple_history/templates/simple_history/_object_history_list.html:37
-msgid "None"
-msgstr "فارغ"
-
 #: simple_history/templates/simple_history/object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -120,6 +96,30 @@ msgstr "اضغط على زر 'استرجاع' ادناه للاسترجاع له
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "اضغط على زر 'تعديل سجل التغيرات' ادناه لتعديل التاريخ."
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "عنصر"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "التاريخ/الوقت"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "تعليق"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "تغير من قبل"
+
+#: simple_history/templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "سبب التغير"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "فارغ"
 
 #: simple_history/templates/simple_history/submit_line.html:4
 msgid "Revert"

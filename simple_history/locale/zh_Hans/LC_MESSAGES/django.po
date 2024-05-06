@@ -58,30 +58,6 @@ msgstr "已修改"
 msgid "Deleted"
 msgstr "已删除"
 
-#: simple_history/templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "记录对象"
-
-#: simple_history/templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "日期/时间"
-
-#: simple_history/templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "备注"
-
-#: simple_history/templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "修改人"
-
-#: simple_history/templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "修改原因"
-
-#: simple_history/templates/simple_history/_object_history_list.html:37
-msgid "None"
-msgstr "无"
-
 #: simple_history/templates/simple_history/object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -118,6 +94,30 @@ msgstr "按下面的“还原”按钮还原记录到当前版本。"
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "按下面的“修改历史记录”按钮编辑历史记录。"
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "记录对象"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "日期/时间"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "备注"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "修改人"
+
+#: simple_history/templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "修改原因"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "无"
 
 #: simple_history/templates/simple_history/submit_line.html:4
 msgid "Revert"

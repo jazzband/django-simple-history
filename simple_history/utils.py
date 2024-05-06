@@ -57,6 +57,30 @@ def get_app_model_primary_key_name(model):
     return model._meta.pk.name
 
 
+def get_m2m_field_name(m2m_field: ManyToManyField) -> str:
+    """
+    Returns the field name of an M2M field's through model that corresponds to the model
+    the M2M field is defined on.
+
+    E.g. for a ``votes`` M2M field on a ``Poll`` model that references a ``Vote`` model
+    (and with a default-generated through model), this function would return ``"poll"``.
+    """
+    # This method is part of Django's internal API
+    return m2m_field.m2m_field_name()
+
+
+def get_m2m_reverse_field_name(m2m_field: ManyToManyField) -> str:
+    """
+    Returns the field name of an M2M field's through model that corresponds to the model
+    the M2M field references.
+
+    E.g. for a ``votes`` M2M field on a ``Poll`` model that references a ``Vote`` model
+    (and with a default-generated through model), this function would return ``"vote"``.
+    """
+    # This method is part of Django's internal API
+    return m2m_field.m2m_reverse_field_name()
+
+
 def bulk_create_with_history(
     objs,
     model,

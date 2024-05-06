@@ -2,7 +2,9 @@ import copy
 import importlib
 import uuid
 import warnings
+from dataclasses import dataclass
 from functools import partial
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Type, Union
 
 import django
 from django.apps import apps
@@ -29,9 +31,7 @@ from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
-from simple_history import utils
-
-from . import exceptions
+from . import exceptions, utils
 from .manager import (
     SIMPLE_HISTORY_REVERSE_ATTR_NAME,
     HistoricalQuerySet,
@@ -44,12 +44,16 @@ from .signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from .utils import get_change_reason_from_object
 
 try:
     from asgiref.local import Local as LocalContext
 except ImportError:
     from threading import local as LocalContext
+
+if TYPE_CHECKING:
+    ModelTypeHint = models.Model
+else:
+    ModelTypeHint = object
 
 registered_models = {}
 
@@ -666,7 +670,7 @@ class HistoricalRecords:
         Get change reason for object.
         Customize this method to automatically fill change reason from context.
         """
-        return get_change_reason_from_object(instance)
+        return utils.get_change_reason_from_object(instance)
 
     def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
         if hasattr(instance, "skip_history_when_saving"):
@@ -684,11 +688,8 @@ class HistoricalRecords:
 
             insert_rows = []
 
-            # `m2m_field_name()` is part of Django's internal API
-            through_field_name = field.m2m_field_name()
-
+            through_field_name = utils.get_m2m_field_name(field)
             rows = through_model.objects.filter(**{through_field_name: instance})
-
             for row in rows:
                 insert_row = {"history": history_instance}
 
@@ -942,13 +943,34 @@ class HistoricalObjectDescriptor:
         return self.model(**values)
 
 
-class HistoricalChanges:
-    def diff_against(self, old_history, excluded_fields=None, included_fields=None):
+class HistoricalChanges(ModelTypeHint):
+    def diff_against(
+        self,
+        old_history: "HistoricalChanges",
+        excluded_fields: Iterable[str] = None,
+        included_fields: Iterable[str] = None,
+        *,
+        foreign_keys_are_objs=False,
+    ) -> "ModelDelta":
+        """
+        :param old_history:
+        :param excluded_fields: The names of fields to exclude from diffing.
+               This takes precedence over ``included_fields``.
+        :param included_fields: The names of the only fields to include when diffing.
+               If not provided, all history-tracked fields will be included.
+        :param foreign_keys_are_objs: If ``False``, the returned diff will only contain
+               the raw PKs of any ``ForeignKey`` fields.
+               If ``True``, the diff will contain the actual related model objects
+               instead of just the PKs; deleted related objects will be instances of
+               ``DeletedObject``.
+               Note that passing ``True`` will necessarily query the database if the
+               related objects have not been prefetched (using e.g.
+               ``select_related()``).
+        """
         if not isinstance(old_history, type(self)):
             raise TypeError(
-                ("unsupported type(s) for diffing: " "'{}' and '{}'").format(
-                    type(self), type(old_history)
-                )
+                "unsupported type(s) for diffing:"
+                f" '{type(self)}' and '{type(old_history)}'"
             )
         if excluded_fields is None:
             excluded_fields = set()
@@ -966,59 +988,172 @@ class HistoricalChanges:
         )
         m2m_fields = set(included_m2m_fields).difference(excluded_fields)
 
+        changes = [
+            *self._get_field_changes_for_diff(
+                old_history, fields, foreign_keys_are_objs
+            ),
+            *self._get_m2m_field_changes_for_diff(
+                old_history, m2m_fields, foreign_keys_are_objs
+            ),
+        ]
+        # Sort by field (attribute) name, to ensure a consistent order
+        changes.sort(key=lambda change: change.field)
+        changed_fields = [change.field for change in changes]
+        return ModelDelta(changes, changed_fields, old_history, self)
+
+    def _get_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        fields: Iterable[str],
+        foreign_keys_are_objs: bool,
+    ) -> List["ModelChange"]:
+        """Helper method for ``diff_against()``."""
         changes = []
-        changed_fields = []
 
         old_values = model_to_dict(old_history, fields=fields)
-        current_values = model_to_dict(self, fields=fields)
+        new_values = model_to_dict(self, fields=fields)
 
         for field in fields:
             old_value = old_values[field]
-            current_value = current_values[field]
+            new_value = new_values[field]
 
-            if old_value != current_value:
-                changes.append(ModelChange(field, old_value, current_value))
-                changed_fields.append(field)
+            if old_value != new_value:
+                field_meta = self._meta.get_field(field)
+                if foreign_keys_are_objs and isinstance(field_meta, ForeignKey):
+                    # Set the fields to their related model objects instead of
+                    # the raw PKs from `model_to_dict()`
+                    def get_value(record, foreign_key):
+                        try:
+                            value = getattr(record, field)
+                        # `value` seems to be None (without raising this exception)
+                        # if the object has not been refreshed from the database
+                        except ObjectDoesNotExist:
+                            value = None
 
-        # Separately compare m2m fields:
+                        if value is None:
+                            value = DeletedObject(field_meta.related_model, foreign_key)
+                        return value
+
+                    old_value = get_value(old_history, old_value)
+                    new_value = get_value(self, new_value)
+
+                change = ModelChange(field, old_value, new_value)
+                changes.append(change)
+
+        return changes
+
+    def _get_m2m_field_changes_for_diff(
+        self,
+        old_history: "HistoricalChanges",
+        m2m_fields: Iterable[str],
+        foreign_keys_are_objs: bool,
+    ) -> List["ModelChange"]:
+        """Helper method for ``diff_against()``."""
+        changes = []
+
         for field in m2m_fields:
-            # First retrieve a single item to get the field names from:
-            reference_history_m2m_item = (
-                getattr(old_history, field).first() or getattr(self, field).first()
-            )
-            history_field_names = []
-            if reference_history_m2m_item:
-                # Create a list of field names to compare against.
-                # The list is generated without the primary key of the intermediate
-                # table, the foreign key to the history record, and the actual 'history'
-                # field, to avoid false positives while diffing.
-                history_field_names = [
-                    f.name
-                    for f in reference_history_m2m_item._meta.fields
-                    if f.editable and f.name not in ["id", "m2m_history_id", "history"]
-                ]
+            original_field_meta = self.instance_type._meta.get_field(field)
+            reverse_field_name = utils.get_m2m_reverse_field_name(original_field_meta)
+            # Sort the M2M rows by the related object, to ensure a consistent order
+            old_m2m_qs = getattr(old_history, field).order_by(reverse_field_name)
+            new_m2m_qs = getattr(self, field).order_by(reverse_field_name)
+            m2m_through_model_opts = new_m2m_qs.model._meta
 
-            old_rows = list(getattr(old_history, field).values(*history_field_names))
-            new_rows = list(getattr(self, field).values(*history_field_names))
+            # Create a list of field names to compare against.
+            # The list is generated without the PK of the intermediate (through)
+            # table, the foreign key to the history record, and the actual `history`
+            # field, to avoid false positives while diffing.
+            through_model_fields = [
+                f.name
+                for f in m2m_through_model_opts.fields
+                if f.editable and f.name not in ["id", "m2m_history_id", "history"]
+            ]
+            old_rows = list(old_m2m_qs.values(*through_model_fields))
+            new_rows = list(new_m2m_qs.values(*through_model_fields))
 
             if old_rows != new_rows:
+                if foreign_keys_are_objs:
+                    fk_fields = [
+                        f
+                        for f in through_model_fields
+                        if isinstance(m2m_through_model_opts.get_field(f), ForeignKey)
+                    ]
+
+                    # Set the through fields to their related model objects instead of
+                    # the raw PKs from `values()`
+                    def rows_with_foreign_key_objs(m2m_qs):
+                        def get_value(obj, through_field):
+                            try:
+                                value = getattr(obj, through_field)
+                            # If the related object has been deleted, `value` seems to
+                            # usually already be None instead of raising this exception
+                            except ObjectDoesNotExist:
+                                value = None
+
+                            if value is None:
+                                meta = m2m_through_model_opts.get_field(through_field)
+                                foreign_key = getattr(obj, meta.attname)
+                                value = DeletedObject(meta.related_model, foreign_key)
+                            return value
+
+                        # Replicate the format of the return value of QuerySet.values()
+                        return [
+                            {
+                                through_field: get_value(through_obj, through_field)
+                                for through_field in through_model_fields
+                            }
+                            for through_obj in m2m_qs.select_related(*fk_fields)
+                        ]
+
+                    old_rows = rows_with_foreign_key_objs(old_m2m_qs)
+                    new_rows = rows_with_foreign_key_objs(new_m2m_qs)
+
                 change = ModelChange(field, old_rows, new_rows)
                 changes.append(change)
-                changed_fields.append(field)
 
-        return ModelDelta(changes, changed_fields, old_history, self)
+        return changes
 
 
+@dataclass(frozen=True)
+class DeletedObject:
+    model: Type[models.Model]
+    pk: Any
+
+    def __str__(self):
+        deleted_model_str = _("Deleted %(type_name)s") % {
+            "type_name": self.model._meta.verbose_name,
+        }
+        return f"{deleted_model_str} (pk={self.pk})"
+
+
+# Either:
+# - The value of a foreign key field:
+#   - If ``foreign_keys_are_objs=True`` is passed to ``diff_against()``:
+#     Either the related object or ``DeletedObject``.
+#   - Otherwise:
+#     The PK of the related object.
+#
+# - The value of a many-to-many field:
+#   A list of dicts from the through model field names to either:
+#   - If ``foreign_keys_are_objs=True`` is passed to ``diff_against()``:
+#     Either the through model's related objects or ``DeletedObject``.
+#   - Otherwise:
+#     The PK of the through model's related objects.
+#
+# - Any of the other possible values of a model field.
+ModelChangeValue = Union[Any, DeletedObject, List[Dict[str, Union[Any, DeletedObject]]]]
+
+
+@dataclass(frozen=True)
 class ModelChange:
-    def __init__(self, field_name, old_value, new_value):
-        self.field = field_name
-        self.old = old_value
-        self.new = new_value
+    field: str
+    old: ModelChangeValue
+    new: ModelChangeValue
 
 
+@dataclass(frozen=True)
 class ModelDelta:
-    def __init__(self, changes, changed_fields, old_record, new_record):
-        self.changes = changes
-        self.changed_fields = changed_fields
-        self.old_record = old_record
-        self.new_record = new_record
+    changes: Sequence[ModelChange]
+    changed_fields: Sequence[str]
+    old_record: HistoricalChanges
+    new_record: HistoricalChanges

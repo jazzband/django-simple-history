@@ -58,30 +58,6 @@ msgstr "بدل گیا"
 msgid "Deleted"
 msgstr "حذف کر دیا گیا"
 
-#: .\simple_history\templates\simple_history\_object_history_list.html:9
-msgid "Object"
-msgstr "آبجیکٹ"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:13
-msgid "Date/time"
-msgstr "تاریخ/وقت"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:14
-msgid "Comment"
-msgstr "تبصرہ"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:15
-msgid "Changed by"
-msgstr "کی طرف سے تبدیل"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:16
-msgid "Change reason"
-msgstr "تبدیلی کا سبب"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:37
-msgid "None"
-msgstr "کوئی نہیں"
-
 #: .\simple_history\templates\simple_history\object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -120,6 +96,30 @@ msgstr ""
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "تاریخ میں ترمیم کرنے کے لیے نیچے دیے گئے 'تاریخ کو تبدیل کریں' کے بٹن کو دبائیں."
+
+#: .\simple_history\templates\simple_history\object_history_list.html:9
+msgid "Object"
+msgstr "آبجیکٹ"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:13
+msgid "Date/time"
+msgstr "تاریخ/وقت"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:14
+msgid "Comment"
+msgstr "تبصرہ"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:15
+msgid "Changed by"
+msgstr "کی طرف سے تبدیل"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:16
+msgid "Change reason"
+msgstr "تبدیلی کا سبب"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:42
+msgid "None"
+msgstr "کوئی نہیں"
 
 #: .\simple_history\templates\simple_history\submit_line.html:4
 msgid "Revert"

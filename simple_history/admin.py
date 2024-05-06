@@ -1,3 +1,5 @@
+from typing import Any, Sequence
+
 from django import http
 from django.apps import apps as django_apps
 from django.conf import settings
@@ -6,6 +8,7 @@ from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
@@ -13,13 +16,19 @@ from django.utils.html import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 
+from .manager import HistoricalQuerySet, HistoryManager
+from .models import HistoricalChanges
+from .template_utils import HistoricalRecordContextHelper
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
 class SimpleHistoryAdmin(admin.ModelAdmin):
+    history_list_display = []
+
     object_history_template = "simple_history/object_history.html"
+    object_history_list_template = "simple_history/object_history_list.html"
     object_history_form_template = "simple_history/object_history_form.html"
 
     def get_urls(self):
@@ -46,41 +55,43 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         pk_name = opts.pk.attname
         history = getattr(model, model._meta.simple_history_manager_attribute)
         object_id = unquote(object_id)
-        action_list = history.filter(**{pk_name: object_id})
-        if not isinstance(history.model.history_user, property):
-            # Only select_related when history_user is a ForeignKey (not a property)
-            action_list = action_list.select_related("history_user")
-        history_list_display = getattr(self, "history_list_display", [])
+        historical_records = self.get_history_queryset(
+            request, history, pk_name, object_id
+        )
+        history_list_display = self.get_history_list_display(request)
         # If no history was found, see whether this object even exists.
         try:
             obj = self.get_queryset(request).get(**{pk_name: object_id})
         except model.DoesNotExist:
             try:
-                obj = action_list.latest("history_date").instance
-            except action_list.model.DoesNotExist:
+                obj = historical_records.latest("history_date").instance
+            except historical_records.model.DoesNotExist:
                 raise http.Http404
 
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
-        # Set attribute on each action_list entry from admin methods
+        # Set attribute on each historical record from admin methods
         for history_list_entry in history_list_display:
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
-                for list_entry in action_list:
-                    setattr(list_entry, history_list_entry, value_for_entry(list_entry))
+                for record in historical_records:
+                    setattr(record, history_list_entry, value_for_entry(record))
+
+        self.set_history_delta_changes(request, historical_records)
 
         content_type = self.content_type_model_cls.objects.get_for_model(
             get_user_model()
         )
-
         admin_user_view = "admin:{}_{}_change".format(
             content_type.app_label,
             content_type.model,
         )
+
         context = {
             "title": self.history_view_title(request, obj),
-            "action_list": action_list,
+            "object_history_list_template": self.object_history_list_template,
+            "historical_records": historical_records,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
             "root_path": getattr(self.admin_site, "root_path", None),
@@ -96,6 +107,73 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return self.render_history_view(
             request, self.object_history_template, context, **extra_kwargs
         )
+
+    def get_history_queryset(
+        self, request, history_manager: HistoryManager, pk_name: str, object_id: Any
+    ) -> QuerySet:
+        """
+        Return a ``QuerySet`` of all historical records that should be listed in the
+        ``object_history_list_template`` template.
+        This is used by ``history_view()``.
+
+        :param request:
+        :param history_manager:
+        :param pk_name: The name of the original model's primary key field.
+        :param object_id: The primary key of the object whose history is listed.
+        """
+        qs: HistoricalQuerySet = history_manager.filter(**{pk_name: object_id})
+        if not isinstance(history_manager.model.history_user, property):
+            # Only select_related when history_user is a ForeignKey (not a property)
+            qs = qs.select_related("history_user")
+        # Prefetch related objects to reduce the number of DB queries when diffing
+        qs = qs._select_related_history_tracked_objs()
+        return qs
+
+    def get_history_list_display(self, request) -> Sequence[str]:
+        """
+        Return a sequence containing the names of additional fields to be displayed on
+        the object history page. These can either be fields or properties on the model
+        or the history model, or methods on the admin class.
+        """
+        return self.history_list_display
+
+    def get_historical_record_context_helper(
+        self, request, historical_record: HistoricalChanges
+    ) -> HistoricalRecordContextHelper:
+        """
+        Return an instance of ``HistoricalRecordContextHelper`` for formatting
+        the template context for ``historical_record``.
+        """
+        return HistoricalRecordContextHelper(self.model, historical_record)
+
+    def set_history_delta_changes(
+        self,
+        request,
+        historical_records: Sequence[HistoricalChanges],
+        foreign_keys_are_objs=True,
+    ):
+        """
+        Add a ``history_delta_changes`` attribute to all historical records
+        except the first (oldest) one.
+
+        :param request:
+        :param historical_records:
+        :param foreign_keys_are_objs: Passed to ``diff_against()`` when calculating
+               the deltas; see its docstring for details.
+        """
+        previous = None
+        for current in historical_records:
+            if previous is None:
+                previous = current
+                continue
+            # Related objects should have been prefetched in `get_history_queryset()`
+            delta = previous.diff_against(
+                current, foreign_keys_are_objs=foreign_keys_are_objs
+            )
+            helper = self.get_historical_record_context_helper(request, previous)
+            previous.history_delta_changes = helper.context_for_delta_changes(delta)
+
+            previous = current
 
     def history_view_title(self, request, obj):
         if self.revert_disabled(request, obj) and not SIMPLE_HISTORY_EDIT:

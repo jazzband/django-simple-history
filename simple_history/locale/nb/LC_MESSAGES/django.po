@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-07-09 13:55+0200\n"
-"PO-Revision-Date: 2023-07-09 12:31+0200\n"
+"PO-Revision-Date: 2024-04-11 19:34+0200\n"
 "Last-Translator: Anders <ddabble@github.com>\n"
 "Language-Team: Norwegian Bokmål <placeholder@example.com>\n"
 "Language: nb\n"
@@ -19,31 +19,31 @@ msgstr ""
 
 # Dette er en tittel, ikke en handlingsbeskrivelse, så f.eks.
 # "Se/Vis (endrings)historikk" hadde ikke fungert så bra
-#: simple_history/admin.py:102
+#: simple_history/admin.py:109
 #, python-format
 msgid "View history: %s"
 msgstr "Endringshistorikk: %s"
 
-#: simple_history/admin.py:104
+#: simple_history/admin.py:111
 #, python-format
 msgid "Change history: %s"
 msgstr "Endringshistorikk: %s"
 
-#: simple_history/admin.py:110
+#: simple_history/admin.py:117
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "%(name)s «%(obj)s» ble endret."
 
-#: simple_history/admin.py:116
+#: simple_history/admin.py:123
 msgid "You may edit it again below"
 msgstr "Du kan redigere videre nedenfor"
 
-#: simple_history/admin.py:217
+#: simple_history/admin.py:224
 #, python-format
 msgid "View %s"
 msgstr "Se %s"
 
-#: simple_history/admin.py:219
+#: simple_history/admin.py:226
 #, python-format
 msgid "Revert %s"
 msgstr "Tilbakestill %s"
@@ -60,29 +60,10 @@ msgstr "Endret"
 msgid "Deleted"
 msgstr "Slettet"
 
-#: simple_history/templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "Objekt"
-
-#: simple_history/templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "Dato/tid"
-
-#: simple_history/templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "Kommentar"
-
-#: simple_history/templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "Endret av"
-
-#: simple_history/templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "Endringsårsak"
-
-#: simple_history/templates/simple_history/_object_history_list.html:37
-msgid "None"
-msgstr "Ingen"
+#: simple_history/models.py:1124
+#, python-format
+msgid "Deleted %(type_name)s"
+msgstr "Slettet %(type_name)s"
 
 #: simple_history/templates/simple_history/object_history.html:11
 msgid ""
@@ -124,6 +105,34 @@ msgstr ""
 #: simple_history/templates/simple_history/object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr "Trykk på 'Endre historikk'-knappen under for å endre historikken."
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "Objekt"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "Dato/tid"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "Kommentar"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "Endret av"
+
+#: simple_history/templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "Endringsårsak"
+
+#: simple_history/templates/simple_history/object_history_list.html:17
+msgid "Changes"
+msgstr "Endringer"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "Ingen"
 
 #: simple_history/templates/simple_history/submit_line.html:4
 msgid "Revert"
