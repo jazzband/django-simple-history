@@ -27,6 +27,9 @@ Unreleased
   "Customizing the History Admin Templates" for overriding its template context (gh-1128)
 - Fixed the setting ``SIMPLE_HISTORY_ENABLED = False`` not preventing M2M historical
   records from being created (gh-1328)
+- For history-tracked M2M fields, adding M2M objects (using ``add()`` or ``set()``)
+  used to cause a number of database queries that scaled linearly with the number of
+  objects; this has been fixed to now be a constant number of queries (gh-1333)
 
 3.5.0 (2024-02-19)
 ------------------
