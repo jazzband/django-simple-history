@@ -26,7 +26,7 @@ Unreleased
   the changes between each historical record of the object; see the docs under
   "Customizing the History Admin Templates" for overriding its template context (gh-1128)
 - Fixed an issue causing m2m historical record to be saved even when
-  SIMPLE_HISTORY_ENABLED = False in settings.py
+  SIMPLE_HISTORY_ENABLED = False in settings.py (gh-1328)
 
 3.5.0 (2024-02-19)
 ------------------
