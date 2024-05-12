@@ -673,6 +673,8 @@ class HistoricalRecords:
         return utils.get_change_reason_from_object(instance)
 
     def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
+        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+            return
         if hasattr(instance, "skip_history_when_saving"):
             return
 
