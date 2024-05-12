@@ -141,6 +141,7 @@ Authors
 - `ddusi <https://github.com/ddusi>`_
 - `DanialErfanian <https://github.com/DanialErfanian>`_
 - `Sridhar Marella <https://github.com/sridhar562345>`_
+- `Mattia Fantoni <https://github.com/MattFanto>`_
 
 Background
 ==========
