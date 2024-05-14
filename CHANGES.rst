@@ -25,6 +25,8 @@ Unreleased
 - Added a "Changes" column to ``SimpleHistoryAdmin``'s object history table, listing
   the changes between each historical record of the object; see the docs under
   "Customizing the History Admin Templates" for overriding its template context (gh-1128)
+- Fixed the setting ``SIMPLE_HISTORY_ENABLED = False`` not preventing M2M historical
+  records from being created (gh-1328)
 
 3.5.0 (2024-02-19)
 ------------------

@@ -2411,6 +2411,22 @@ class ManyToManyTest(TestCase):
         self.assertEqual(skip_poll.history.all().count(), 2)
         self.assertEqual(skip_poll.history.all()[0].places.count(), 2)
 
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_saving_with_disabled_history_doesnt_create_records(self):
+        # 1 from `setUp()`
+        self.assertEqual(PollWithManyToMany.history.count(), 1)
+
+        poll = PollWithManyToMany.objects.create(
+            question="skip history?", pub_date=today
+        )
+        poll.question = "huh?"
+        poll.save()
+        poll.places.add(self.place)
+
+        self.assertEqual(poll.history.count(), 0)
+        # The count should not have changed
+        self.assertEqual(PollWithManyToMany.history.count(), 1)
+
     def test_diff_against(self):
         self.poll.places.add(self.place)
         add_record, create_record = self.poll.history.all()
