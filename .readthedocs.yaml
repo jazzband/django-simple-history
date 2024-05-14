@@ -21,3 +21,6 @@ sphinx:
 python:
   install:
     - requirements: requirements/docs.txt
+    # Install this project locally, so that its package metadata can be queried
+    - method: pip
+      path: .
