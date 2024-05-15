@@ -135,6 +135,12 @@ DEFAULT_SETTINGS = dict(  # nosec
             },
         }
     ],
+    STORAGES={
+        "default": {
+            # Speeds up tests and prevents locally storing files created through them
+            "BACKEND": "django.core.files.storage.InMemoryStorage",
+        },
+    },
     DEFAULT_AUTO_FIELD="django.db.models.AutoField",
     USE_TZ=False,
 )
@@ -145,16 +151,6 @@ MIDDLEWARE = [
 ]
 
 DEFAULT_SETTINGS["MIDDLEWARE"] = MIDDLEWARE
-
-# DEV: Merge these settings into DEFAULT_SETTINGS when the minimum required
-#      Django version is 4.2 or higher
-if django.VERSION >= (4, 2):
-    DEFAULT_SETTINGS["STORAGES"] = {
-        "default": {
-            # Speeds up tests and prevents locally storing files created through them
-            "BACKEND": "django.core.files.storage.InMemoryStorage",
-        },
-    }
 
 
 def get_default_settings(*, database_name=DEFAULT_DATABASE_NAME):
