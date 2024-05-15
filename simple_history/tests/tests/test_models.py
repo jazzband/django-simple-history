@@ -2376,6 +2376,43 @@ class ManyToManyTest(TestCase):
         historical_place = m2m_record.places.first()
         self.assertEqual(historical_place.place, self.place)
 
+    def test_add_remove_set_and_clear_methods_make_expected_num_queries(self):
+        for num_places in (1, 2, 4):
+            with self.subTest(num_places=num_places):
+                start_pk = 100 + num_places
+                places = Place.objects.bulk_create(
+                    Place(pk=pk, name=f"Place {pk}")
+                    for pk in range(start_pk, start_pk + num_places)
+                )
+                self.assertEqual(len(places), num_places)
+                self.assertEqual(self.poll.places.count(), 0)
+
+                # The number of queries should stay the same, regardless of
+                # the number of places added or removed
+                with self.assertNumQueries(5):
+                    self.poll.places.add(*places)
+                self.assertEqual(self.poll.places.count(), num_places)
+
+                with self.assertNumQueries(3):
+                    self.poll.places.remove(*places)
+                self.assertEqual(self.poll.places.count(), 0)
+
+                with self.assertNumQueries(6):
+                    self.poll.places.set(places)
+                self.assertEqual(self.poll.places.count(), num_places)
+
+                with self.assertNumQueries(4):
+                    self.poll.places.set([])
+                self.assertEqual(self.poll.places.count(), 0)
+
+                with self.assertNumQueries(5):
+                    self.poll.places.add(*places)
+                self.assertEqual(self.poll.places.count(), num_places)
+
+                with self.assertNumQueries(3):
+                    self.poll.places.clear()
+                self.assertEqual(self.poll.places.count(), 0)
+
     def test_m2m_relation(self):
         # Ensure only the correct M2Ms are saved and returned for history objects
         poll_2 = PollWithManyToMany.objects.create(question="Why", pub_date=today)

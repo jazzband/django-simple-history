@@ -687,18 +687,21 @@ class HistoricalRecords:
             m2m_history_model = self.m2m_models[field]
             original_instance = history_instance.instance
             through_model = getattr(original_instance, field.name).through
+            through_model_field_names = [f.name for f in through_model._meta.fields]
+            through_model_fk_field_names = [
+                f.name for f in through_model._meta.fields if isinstance(f, ForeignKey)
+            ]
 
             insert_rows = []
 
             through_field_name = utils.get_m2m_field_name(field)
             rows = through_model.objects.filter(**{through_field_name: instance})
+            rows = rows.select_related(*through_model_fk_field_names)
             for row in rows:
                 insert_row = {"history": history_instance}
 
-                for through_model_field in through_model._meta.fields:
-                    insert_row[through_model_field.name] = getattr(
-                        row, through_model_field.name
-                    )
+                for field_name in through_model_field_names:
+                    insert_row[field_name] = getattr(row, field_name)
                 insert_rows.append(m2m_history_model(**insert_row))
 
             pre_create_historical_m2m_records.send(
