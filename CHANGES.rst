@@ -6,7 +6,7 @@ Unreleased
 
 
 3.6.0 (2024-05-26)
-----------
+------------------
 
 - Support custom History ``Manager`` and ``QuerySet`` classes (gh-1280)
 - Renamed the (previously internal) admin template
