@@ -1,6 +1,8 @@
 django-simple-history |pypi-version|
 ====================================
 
+.. Start of PyPI readme
+
 |jazzband| |build-status| |docs| |coverage| |maintainability| |code-style| |downloads|
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/django-simple-history.svg

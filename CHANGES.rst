@@ -7,6 +7,11 @@ Unreleased
 - Dropped support for Django 3.2, which reached end-of-life on 2024-04-01 (gh-1344)
 - Removed the temporary requirement on ``asgiref>=3.6`` added in 3.5.0,
   now that the minimum required Django version is 4.2 (gh-1344)
+- Migrated package building from using the deprecated ``setup.py`` to using
+  ``pyproject.toml`` (with Hatchling as build backend);
+  ``setup.py`` has consequently been removed (gh-1348)
+
+.. Start of PyPI readme
 
 3.6.0 (2024-05-26)
 ------------------
