@@ -893,7 +893,7 @@ class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
                         )
                     else:
                         queryset = super().get_queryset()
-                    return self._apply_rel_filters(queryset)
+                    return queryset
 
         return create_reverse_many_to_one_manager(
             HistoricRelationModelManager, self.rel

@@ -2836,3 +2836,96 @@ class HistoricForeignKeyTest(TestCase):
         )[0]
         pt1i = pt1h.instance
         self.assertEqual(pt1i.organization.name, "original")
+
+    def test_non_historic_to_historic_prefetch(self):
+        org1 = TestOrganizationWithHistory.objects.create(name="org1")
+        org2 = TestOrganizationWithHistory.objects.create(name="org2")
+
+        p1 = TestParticipantToHistoricOrganization.objects.create(
+            name="p1", organization=org1
+        )
+        p2 = TestParticipantToHistoricOrganization.objects.create(
+            name="p2", organization=org1
+        )
+        p3 = TestParticipantToHistoricOrganization.objects.create(
+            name="p3", organization=org2
+        )
+        p4 = TestParticipantToHistoricOrganization.objects.create(
+            name="p4", organization=org2
+        )
+
+        with self.assertNumQueries(2):
+            record1, record2 = TestOrganizationWithHistory.objects.prefetch_related(
+                "participants"
+            ).all()
+
+            self.assertListEqual(
+                [p.name for p in record1.participants.all()],
+                [p1.name, p2.name],
+            )
+            self.assertListEqual(
+                [p.name for p in record2.participants.all()],
+                [p3.name, p4.name],
+            )
+
+    def test_historic_to_non_historic_prefetch(self):
+        org1 = TestOrganization.objects.create(name="org1")
+        org2 = TestOrganization.objects.create(name="org2")
+
+        p1 = TestHistoricParticipantToOrganization.objects.create(
+            name="p1", organization=org1
+        )
+        p2 = TestHistoricParticipantToOrganization.objects.create(
+            name="p2", organization=org1
+        )
+        p3 = TestHistoricParticipantToOrganization.objects.create(
+            name="p3", organization=org2
+        )
+        p4 = TestHistoricParticipantToOrganization.objects.create(
+            name="p4", organization=org2
+        )
+
+        with self.assertNumQueries(2):
+            record1, record2 = TestOrganization.objects.prefetch_related(
+                "participants"
+            ).all()
+
+            self.assertListEqual(
+                [p.name for p in record1.participants.all()],
+                [p1.name, p2.name],
+            )
+            self.assertListEqual(
+                [p.name for p in record2.participants.all()],
+                [p3.name, p4.name],
+            )
+
+    def test_historic_to_historic_prefetch(self):
+        org1 = TestOrganizationWithHistory.objects.create(name="org1")
+        org2 = TestOrganizationWithHistory.objects.create(name="org2")
+
+        p1 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p1", organization=org1
+        )
+        p2 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p2", organization=org1
+        )
+        p3 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p3", organization=org2
+        )
+        p4 = TestHistoricParticipanToHistoricOrganization.objects.create(
+            name="p4", organization=org2
+        )
+
+        with self.assertNumQueries(2):
+            record1, record2 = TestOrganizationWithHistory.objects.prefetch_related(
+                "historic_participants"
+            ).all()
+
+            self.assertListEqual(
+                [p.name for p in record1.historic_participants.all()],
+                [p1.name, p2.name],
+            )
+            self.assertListEqual(
+                [p.name for p in record2.historic_participants.all()],
+                [p3.name, p4.name],
+            )
