@@ -49,7 +49,7 @@ main        3.10, 3.11, 3.12, 3.13-dev
 Getting Help
 ------------
 
-Documentation is available at https://django-simple-history.readthedocs.io/
+Documentation is available at https://django-simple-history.readthedocs.io/en/stable/
 
 Pull requests are welcome.  Read the `CONTRIBUTING`_ file for tips on
 submitting a pull request.

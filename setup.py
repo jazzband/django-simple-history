@@ -20,7 +20,7 @@ with open("README.rst") as readme, open("CHANGES.rst") as changes:
         maintainer="Trey Hunner",
         url="https://github.com/jazzband/django-simple-history",
         project_urls={
-            "Documentation": "https://django-simple-history.readthedocs.io/",
+            "Documentation": "https://django-simple-history.readthedocs.io/en/stable/",
             "Changelog": "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst",  # noqa: E501
             "Source": "https://github.com/jazzband/django-simple-history",
             "Tracker": "https://github.com/jazzband/django-simple-history/issues",
