@@ -70,10 +70,14 @@ core-metadata-version = "2.2"
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/x-rst"
+# (Preview the generated readme by installing `hatch` and running
+# `hatch project metadata readme` - see
+# https://github.com/hynek/hatch-fancy-pypi-readme/blob/24.1.0/README.md#cli-interface)
 fragments = [
   { path = "README.rst", start-after = ".. Start of PyPI readme\n\n" },
   { text = "\n====\n\nChangelog\n=========\n\n" },
-  { path = "CHANGES.rst", start-after = ".. Start of PyPI readme\n\n" },
+  # Only include the first title after "Unreleased" - as well as the rest of the file
+  { path = "CHANGES.rst", pattern = "\nUnreleased\n-{4,}\n(?:.*?)\n([^\n]+\n-{4,}\n.*)" },
 ]
 
 [tool.black]

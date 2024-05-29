@@ -5,9 +5,6 @@ Unreleased
 ----------
 
 
-.. DEV: Move these comments just below the "Unreleased" section when preparing a new release!
-.. Start of PyPI readme
-
 3.7.0 (2024-05-29)
 ------------------
 
