@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from operator import attrgetter
 
-import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase, override_settings, skipUnlessDBFeature
@@ -199,13 +198,6 @@ class BulkHistoryCreateTestCase(TestCase):
             Poll(id=4, question="Question 4", pub_date=datetime.now()),
         ]
 
-    # DEV: Remove this method when the minimum required Django version is 4.2
-    def assertQuerySetEqual(self, *args, **kwargs):
-        if django.VERSION < (4, 2):
-            return self.assertQuerysetEqual(*args, **kwargs)
-        else:
-            return super().assertQuerySetEqual(*args, **kwargs)
-
     def test_simple_bulk_history_create(self):
         created = Poll.history.bulk_history_create(self.data)
         self.assertEqual(len(created), 4)
@@ -333,13 +325,6 @@ class BulkHistoryUpdateTestCase(TestCase):
             Poll(id=3, question="Question 3", pub_date=datetime.now()),
             Poll(id=4, question="Question 4", pub_date=datetime.now()),
         ]
-
-    # DEV: Remove this method when the minimum required Django version is 4.2
-    def assertQuerySetEqual(self, *args, **kwargs):
-        if django.VERSION < (4, 2):
-            return self.assertQuerysetEqual(*args, **kwargs)
-        else:
-            return super().assertQuerySetEqual(*args, **kwargs)
 
     def test_simple_bulk_history_create(self):
         created = Poll.history.bulk_history_create(self.data, update=True)

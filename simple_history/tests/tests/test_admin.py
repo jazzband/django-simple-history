@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 
+import django
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
 from django.contrib.auth import get_user_model
@@ -621,6 +622,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for original object
+            "log_entries": ANY,
             "original": poll,
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
@@ -650,9 +652,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -680,6 +682,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object not poll object
+            "log_entries": ANY,
             "original": history.instance,
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
@@ -709,9 +712,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -739,6 +742,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object not poll object
+            "log_entries": ANY,
             "original": poll,
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
@@ -768,9 +772,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -798,6 +802,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object
+            "log_entries": ANY,
             "original": history.instance,
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
@@ -829,9 +834,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -862,6 +867,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for original object
+            "log_entries": ANY,
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
@@ -892,9 +898,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
