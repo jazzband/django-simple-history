@@ -1,3 +1,73 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-simple-history"
+dynamic = ["version", "readme"]
+description = "Store model history and view/revert changes from admin site."
+license = "BSD-3-Clause"
+requires-python = ">=3.8"
+authors = [
+  { name = "Corey Bertram", email = "corey@qr7.com" },
+]
+maintainers = [
+  { name = "Trey Hunner" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Framework :: Django",
+  "Framework :: Django :: 3.2",
+  "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+# DEV: Remove `asgiref` when the minimum required Django version is 4.2
+dependencies = ["asgiref>=3.6"]
+
+[project.urls]
+Changelog = "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst"
+Documentation = "https://django-simple-history.readthedocs.io/"
+Source = "https://github.com/jazzband/django-simple-history"
+Tracker = "https://github.com/jazzband/django-simple-history/issues"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
+fallback_version = "0.0.0"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/x-rst"
+fragments = [
+  { path = "README.rst" },
+  { path = "CHANGES.rst" },
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["simple_history"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/docs",
+  "/simple_history",
+  "*.rst",
+  "*.txt",
+]
+
 [tool.black]
 line-length = 88
 target-version = ["py38"]

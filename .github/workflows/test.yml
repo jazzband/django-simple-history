@@ -73,7 +73,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: |
-            setup.py
+            pyproject.toml
             tox.ini
             requirements/*.txt
 

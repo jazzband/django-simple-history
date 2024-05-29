@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Update package metadata to use modern standards
+
 
 3.6.0 (2024-05-26)
 ------------------

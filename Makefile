@@ -4,9 +4,7 @@ clean: clean-build clean-pyc
 	rm -fr htmlcov/
 
 clean-build:
-	rm -fr build/
 	rm -fr dist/
-	rm -fr *.egg-info
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -27,9 +25,8 @@ documentation:
 	tox -e docs
 
 dist: clean
-	pip install -U wheel
-	python setup.py sdist
-	python setup.py bdist_wheel
+	pip install -U build
+	python -m build
 	for file in dist/* ; do gpg --detach-sign -a "$$file" ; done
 	ls -l dist
 
