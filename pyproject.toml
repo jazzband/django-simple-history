@@ -39,6 +39,7 @@ dynamic = [
   "version",
 ]
 dependencies = [
+  "django>=4.2",
 ]
 urls.Changelog = "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst"
 urls.Documentation = "https://django-simple-history.readthedocs.io/en/stable/"

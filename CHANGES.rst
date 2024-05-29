@@ -10,6 +10,8 @@ Unreleased
 - Migrated package building from using the deprecated ``setup.py`` to using
   ``pyproject.toml`` (with Hatchling as build backend);
   ``setup.py`` has consequently been removed (gh-1348)
+- Added ``django>=4.2`` as an installation dependency, to mirror the minimum version
+  tested in our CI (gh-1349)
 
 .. Start of PyPI readme
 
