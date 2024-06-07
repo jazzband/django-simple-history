@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Made ``skip_history_when_saving`` work when creating an object - not just when
+  updating an object (gh-1262)
 
 3.7.0 (2024-05-29)
 ------------------
