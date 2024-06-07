@@ -175,12 +175,11 @@ model history.
     <Poll: Poll object as of 2010-10-25 18:04:13.814128>
 
 
-Save Without Creating Historical Records
+Save without creating historical records
 ----------------------------------------
 
 If you want to save model objects without triggering the creation of any historical
-records, you can set a ``skip_history_when_saving`` attribute to ``True``
-on each object before saving - for example like this:
+records, you can do the following:
 
 .. code-block:: python
 
@@ -189,7 +188,7 @@ on each object before saving - for example like this:
     # We recommend deleting the attribute afterward
     del poll.skip_history_when_saving
 
-This also works when creating an object, but only when calling the ``save`` method:
+This also works when creating an object, but only when calling ``save()``:
 
 .. code-block:: python
 
@@ -198,6 +197,9 @@ This also works when creating an object, but only when calling the ``save`` meth
     poll.skip_history_when_saving = True
     poll.save()
     del poll.skip_history_when_saving
+
+.. note::
+    Historical records will always be created when calling the ``create()`` manager method.
 
 Alternatively, call the ``save_without_historical_record()`` method on each object
 instead of ``save()``.

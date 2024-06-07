@@ -182,7 +182,7 @@ class HistoricalRecords:
             """
             Save the model instance without creating a historical record.
 
-            *Make sure you know what you're doing before using this method.*
+            Make sure you know what you're doing before using this method.
             """
             self.skip_history_when_saving = True
             try:
