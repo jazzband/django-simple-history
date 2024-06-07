@@ -189,8 +189,7 @@ on each object before saving - for example like this:
     # We recommend deleting the attribute afterward
     del poll.skip_history_when_saving
 
-This also works when creating an object
-(albeit only when calling the model's standard Python constructor followed by saving):
+This also works when creating an object, but only when calling the ``save`` method:
 
 .. code-block:: python
 
@@ -216,7 +215,7 @@ and it looks like this:
             del self.skip_history_when_saving
         return ret
 
-As a final option, you can disable the creation of historical records for *all* models
+Or disable the creation of historical records for *all* models
 by adding the following line to your settings:
 
 .. code-block:: python
