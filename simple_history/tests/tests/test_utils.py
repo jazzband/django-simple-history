@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import django
 from django.contrib.auth import get_user_model
+from django.core.exceptions import FieldError
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
@@ -195,8 +196,8 @@ class BulkCreateWithHistoryTestCase(TestCase):
             all([history.history_date == date for history in Poll.history.all()])
         )
 
-    def test_bulk_create_history_num_queries_is_two(self):
-        with self.assertNumQueries(2):
+    def test_bulk_create_history_num_queries_is_three(self):
+        with self.assertNumQueries(3):
             bulk_create_with_history(self.data, Poll)
 
     def test_bulk_create_history_on_model_without_history_raises_error(self):
@@ -209,7 +210,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
             bulk_create_with_history(self.data, Place)
 
     def test_num_queries_when_batch_size_is_less_than_total(self):
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             bulk_create_with_history(self.data, Poll, batch_size=2)
 
     def test_bulk_create_history_with_batch_size(self):
@@ -282,7 +283,7 @@ class BulkCreateWithHistoryTestCase(TestCase):
         with patch.object(
             Poll._default_manager, "bulk_create", side_effect=mock_bulk_create
         ):
-            with self.assertNumQueries(3):
+            with self.assertNumQueries(4):
                 result = bulk_create_with_history(objects, Poll)
             self.assertEqual(
                 [poll.question for poll in result], [poll.question for poll in objects]
@@ -333,7 +334,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
         self.assertEqual(Poll.history.count(), 1)
 
     def test_bulk_create_fails_with_wrong_model(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(FieldError):
             bulk_create_with_history(self.data, Document)
 
         self.assertEqual(Poll.objects.count(), 0)
@@ -342,14 +343,11 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
     @patch("simple_history.utils.get_history_manager_for_model")
     def test_bulk_create_no_ids_return(self, hist_manager_mock):
         objects = [Place(id=1, name="Place 1")]
-        model = Mock(
-            _default_manager=Mock(
-                bulk_create=Mock(return_value=[Place(name="Place 1")]),
-                filter=Mock(return_value=Mock(order_by=Mock(return_value=objects))),
-            ),
-            _meta=Mock(get_fields=Mock(return_value=[])),
+        Place._default_manager.bulk_create = Mock(
+            side_effect=Place._default_manager.bulk_create,
+            return_value=[Place(name="Place 1")],
         )
-        result = bulk_create_with_history(objects, model)
+        result = bulk_create_with_history(objects, Place)
         self.assertEqual(result, objects)
         hist_manager_mock().bulk_history_create.assert_called_with(
             objects,
@@ -359,6 +357,18 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             default_date=None,
             custom_historical_attrs=None,
         )
+
+    def test_bulk_create_duplicate_objects_with_no_ids_return(self):
+        Street._default_manager.create(id=1, name="Duplicate Place")
+        obj = Street(name="Duplicate Place")
+        Street._default_manager.bulk_create = Mock(
+            side_effect=Street._default_manager.bulk_create,
+            return_value=[Street(name="Duplicate Place")],
+        )
+        result = bulk_create_with_history([obj], Street)
+        self.assertEqual(result, [Street._default_manager.last()])
+        self.assertEqual(Street._default_manager.count(), 2)
+        self.assertEqual(Street.log.count(), 2)
 
 
 class BulkCreateWithManyToManyField(TestCase):
