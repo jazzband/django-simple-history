@@ -6,6 +6,7 @@ Unreleased
 
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
+- Improve performance of the latest_of_each method of the manager
 
 3.7.0 (2024-05-29)
 ------------------

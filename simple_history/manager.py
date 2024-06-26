@@ -62,34 +62,17 @@ class HistoricalQuerySet(QuerySet):
 
         Returns a queryset.
         """
-        # If using MySQL, need to get a list of IDs in memory and then use them for the
-        # second query.
-        # Does mean two loops through the DB to get the full set, but still a speed
-        # improvement.
-        backend = connection.vendor
-        if backend == "mysql":
-            history_ids = {}
-            for item in self.order_by("-history_date", "-pk"):
-                if getattr(item, self._pk_attr) not in history_ids:
-                    history_ids[getattr(item, self._pk_attr)] = item.pk
-            latest_historics = self.filter(history_id__in=history_ids.values())
-        elif backend == "postgresql":
-            latest_pk_attr_historic_ids = (
-                self.order_by(self._pk_attr, "-history_date", "-pk")
-                .distinct(self._pk_attr)
-                .values_list("pk", flat=True)
-            )
-            latest_historics = self.filter(history_id__in=latest_pk_attr_historic_ids)
-        else:
-            latest_pk_attr_historic_ids = (
-                self.filter(**{self._pk_attr: OuterRef(self._pk_attr)})
-                .order_by("-history_date", "-pk")
-                .values("pk")[:1]
-            )
-            latest_historics = self.filter(
-                history_id__in=Subquery(latest_pk_attr_historic_ids)
-            )
-        return latest_historics
+        # Subquery for finding the items which are having the latest history_date in
+        # the group which is identified by the '_pk_attr'.
+        # For the latest entries, this query should not return any result.
+        later_historical_entries = self.filter(
+            models.Q(**{self._pk_attr: models.OuterRef(self._pk_attr)}),
+            models.Q(history_date__gt=models.OuterRef("history_date")),
+        )
+
+        # Filter the query to only return items in which the 'later_historical_entries'
+        # subquery does not return any results.
+        return self.filter(~models.Exists(later_historical_entries))
 
     def _select_related_history_tracked_objs(self):
         """
