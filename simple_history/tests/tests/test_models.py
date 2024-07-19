@@ -30,11 +30,6 @@ from simple_history.signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from simple_history.tests.tests.utils import (
-    database_router_override_settings,
-    database_router_override_settings_history_in_diff_db,
-    middleware_override_settings,
-)
 from simple_history.utils import get_history_model_for_model, update_change_reason
 
 from ..external.models import (
@@ -126,6 +121,12 @@ from ..models import (
     UUIDModel,
     WaterLevel,
 )
+from .utils import (
+    HistoricalTestCase,
+    database_router_override_settings,
+    database_router_override_settings_history_in_diff_db,
+    middleware_override_settings,
+)
 
 get_model = apps.get_model
 User = get_user_model()
@@ -140,17 +141,9 @@ def get_fake_file(filename):
     return fake_file
 
 
-class HistoricalRecordsTest(TestCase):
+class HistoricalRecordsTest(HistoricalTestCase):
     def assertDatetimesEqual(self, time1, time2):
         self.assertAlmostEqual(time1, time2, delta=timedelta(seconds=2))
-
-    def assertRecordValues(self, record, klass, values_dict):
-        for key, value in values_dict.items():
-            self.assertEqual(getattr(record, key), value)
-        self.assertEqual(record.history_object.__class__, klass)
-        for key, value in values_dict.items():
-            if key not in ["history_type", "history_change_reason"]:
-                self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
         p = Poll(question="what's up?", pub_date=today)
