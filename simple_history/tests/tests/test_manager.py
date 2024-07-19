@@ -8,8 +8,63 @@ from django.test import TestCase, override_settings, skipUnlessDBFeature
 from simple_history.manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME
 
 from ..models import Choice, Document, Poll, RankedDocument
+from .utils import HistoricalTestCase
 
 User = get_user_model()
+
+
+class LatestOfEachTestCase(HistoricalTestCase):
+    def test_filtered_instances_are_as_expected(self):
+        document1 = RankedDocument.objects.create(rank=10)
+        document2 = RankedDocument.objects.create(rank=20)
+        document2.rank = 21
+        document2.save()
+        document3 = RankedDocument.objects.create(rank=30)
+        document3.rank = 31
+        document3.save()
+        document3.delete()
+        document4 = RankedDocument.objects.create(rank=40)
+        document4_pk = document4.pk
+        document4.delete()
+        reincarnated_document4 = RankedDocument.objects.create(pk=document4_pk, rank=42)
+
+        record4, record3, record2, record1 = RankedDocument.history.latest_of_each()
+        self.assertRecordValues(
+            record1,
+            RankedDocument,
+            {
+                "rank": 10,
+                "id": document1.id,
+                "history_type": "+",
+            },
+        )
+        self.assertRecordValues(
+            record2,
+            RankedDocument,
+            {
+                "rank": 21,
+                "id": document2.id,
+                "history_type": "~",
+            },
+        )
+        self.assertRecordValues(
+            record3,
+            RankedDocument,
+            {
+                "rank": 31,
+                "id": document3.id,
+                "history_type": "-",
+            },
+        )
+        self.assertRecordValues(
+            record4,
+            RankedDocument,
+            {
+                "rank": 42,
+                "id": reincarnated_document4.id,
+                "history_type": "+",
+            },
+        )
 
 
 class AsOfTestCase(TestCase):
