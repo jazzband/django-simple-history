@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.db import connection, models
-from django.db.models import OuterRef, QuerySet, Subquery
+from django.db import models
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from simple_history.utils import (
@@ -29,13 +29,11 @@ class HistoricalQuerySet(QuerySet):
         self._as_of = None
         self._pk_attr = self.model.instance_type._meta.pk.attname
 
-    def as_instances(self):
+    def as_instances(self) -> "HistoricalQuerySet":
         """
         Return a queryset that generates instances instead of historical records.
         Queries against the resulting queryset will translate `pk` into the
         primary key field of the original type.
-
-        Returns a queryset.
         """
         if not self._as_instances:
             result = self.exclude(history_type="-")
@@ -44,7 +42,7 @@ class HistoricalQuerySet(QuerySet):
             result = self._clone()
         return result
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args, **kwargs) -> "HistoricalQuerySet":
         """
         If a `pk` filter arrives and the queryset is returning instances
         then the caller actually wants to filter based on the original
@@ -55,26 +53,26 @@ class HistoricalQuerySet(QuerySet):
             kwargs[self._pk_attr] = kwargs.pop("pk")
         return super().filter(*args, **kwargs)
 
-    def latest_of_each(self):
+    def latest_of_each(self) -> "HistoricalQuerySet":
         """
         Ensures results in the queryset are the latest historical record for each
-        primary key.  Deletions are not removed.
-
-        Returns a queryset.
+        primary key. This includes deletion records.
         """
-        # Subquery for finding the items which are having the latest history_date in
-        # the group which is identified by the '_pk_attr'.
-        # For the latest entries, this query should not return any result.
-        later_historical_entries = self.filter(
-            models.Q(**{self._pk_attr: models.OuterRef(self._pk_attr)}),
-            models.Q(history_date__gt=models.OuterRef("history_date")),
+        # Subquery for finding the records that belong to the same history-tracked
+        # object as the record from the outer query (identified by `_pk_attr`),
+        # and that have a later `history_date` than the outer record.
+        # The very latest record of a history-tracked object should be excluded from
+        # this query - which will make it included in the `~Exists` query below.
+        later_records = self.filter(
+            Q(**{self._pk_attr: OuterRef(self._pk_attr)}),
+            Q(history_date__gt=OuterRef("history_date")),
         )
 
-        # Filter the query to only return items in which the 'later_historical_entries'
+        # Filter the records to only include those for which the `later_records`
         # subquery does not return any results.
-        return self.filter(~models.Exists(later_historical_entries))
+        return self.filter(~Exists(later_records))
 
-    def _select_related_history_tracked_objs(self):
+    def _select_related_history_tracked_objs(self) -> "HistoricalQuerySet":
         """
         A convenience method that calls ``select_related()`` with all the names of
         the model's history-tracked ``ForeignKey`` fields.
@@ -86,18 +84,18 @@ class HistoricalQuerySet(QuerySet):
         ]
         return self.select_related(*field_names)
 
-    def _clone(self):
+    def _clone(self) -> "HistoricalQuerySet":
         c = super()._clone()
         c._as_instances = self._as_instances
         c._as_of = self._as_of
         c._pk_attr = self._pk_attr
         return c
 
-    def _fetch_all(self):
+    def _fetch_all(self) -> None:
         super()._fetch_all()
         self._instanceize()
 
-    def _instanceize(self):
+    def _instanceize(self) -> None:
         """
         Convert the result cache to instances if possible and it has not already been
         done.  If a query extracts `.values(...)` then the result cache will not contain
