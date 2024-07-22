@@ -8,11 +8,66 @@ from django.test import TestCase, override_settings, skipUnlessDBFeature
 from simple_history.manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME
 
 from ..models import Choice, Document, Poll, RankedDocument
+from .utils import HistoricalTestCase
 
 User = get_user_model()
 
 
-class AsOfTest(TestCase):
+class LatestOfEachTestCase(HistoricalTestCase):
+    def test_filtered_instances_are_as_expected(self):
+        document1 = RankedDocument.objects.create(rank=10)
+        document2 = RankedDocument.objects.create(rank=20)
+        document2.rank = 21
+        document2.save()
+        document3 = RankedDocument.objects.create(rank=30)
+        document3.rank = 31
+        document3.save()
+        document3.delete()
+        document4 = RankedDocument.objects.create(rank=40)
+        document4_pk = document4.pk
+        document4.delete()
+        reincarnated_document4 = RankedDocument.objects.create(pk=document4_pk, rank=42)
+
+        record4, record3, record2, record1 = RankedDocument.history.latest_of_each()
+        self.assertRecordValues(
+            record1,
+            RankedDocument,
+            {
+                "rank": 10,
+                "id": document1.id,
+                "history_type": "+",
+            },
+        )
+        self.assertRecordValues(
+            record2,
+            RankedDocument,
+            {
+                "rank": 21,
+                "id": document2.id,
+                "history_type": "~",
+            },
+        )
+        self.assertRecordValues(
+            record3,
+            RankedDocument,
+            {
+                "rank": 31,
+                "id": document3.id,
+                "history_type": "-",
+            },
+        )
+        self.assertRecordValues(
+            record4,
+            RankedDocument,
+            {
+                "rank": 42,
+                "id": reincarnated_document4.id,
+                "history_type": "+",
+            },
+        )
+
+
+class AsOfTestCase(TestCase):
     model = Document
 
     def setUp(self):
@@ -69,7 +124,7 @@ class AsOfTest(TestCase):
         self.assertEqual(as_of_list[0].changed_by, self.obj.changed_by)
 
 
-class AsOfAdditionalTestCase(TestCase):
+class AsOfTestCaseWithoutSetUp(TestCase):
     def test_create_and_delete(self):
         document = Document.objects.create()
         now = datetime.now()
@@ -150,42 +205,57 @@ class AsOfAdditionalTestCase(TestCase):
         """
         Demonstrates how the HistoricalQuerySet works to provide as_of functionality.
         """
-        document1 = RankedDocument.objects.create(rank=42)
-        document2 = RankedDocument.objects.create(rank=84)
-        document2.rank = 51
+        document1 = RankedDocument.objects.create(rank=10)
+        document2 = RankedDocument.objects.create(rank=20)
+        document2.rank = 21
         document2.save()
         document1.delete()
+        t1 = datetime.now()
+        document3 = RankedDocument.objects.create(rank=30)  # noqa: F841
+        document2.rank = 22
+        document2.save()
         t2 = datetime.now()
 
-        # look for historical records, get back a queryset
+        # 4 records before `t1` (for document 1 and 2), 2 after (for document 2 and 3)
+        queryset = RankedDocument.history.filter(history_date__lte=t1)
+        self.assertEqual(queryset.count(), 4)
+        self.assertEqual(RankedDocument.history.filter(history_date__gt=t1).count(), 2)
+
+        # `latest_of_each()` returns the most recent record of each document
         with self.assertNumQueries(1):
-            queryset = RankedDocument.history.filter(history_date__lte=t2)
-            self.assertEqual(queryset.count(), 4)
+            self.assertEqual(queryset.latest_of_each().count(), 2)
 
-        # only want the most recend records (provided by HistoricalQuerySet)
-        self.assertEqual(queryset.latest_of_each().count(), 2)
+        # `as_instances()` returns the historical instances as of each record's time,
+        # but excludes deletion records (i.e. document 1's most recent record)
+        with self.assertNumQueries(1):
+            self.assertEqual(queryset.latest_of_each().as_instances().count(), 1)
 
-        # want to see the instances as of that time?
-        self.assertEqual(queryset.latest_of_each().as_instances().count(), 1)
+        # (Duplicate calls to these methods should not change the number of queries,
+        # since they're idempotent)
+        with self.assertNumQueries(1):
+            self.assertEqual(
+                queryset.latest_of_each()
+                .latest_of_each()
+                .as_instances()
+                .as_instances()
+                .count(),
+                1,
+            )
 
-        # these new methods are idempotent
-        self.assertEqual(
-            queryset.latest_of_each()
-            .latest_of_each()
-            .as_instances()
-            .as_instances()
-            .count(),
-            1,
-        )
-
-        # that was all the same as calling as_of!
-        self.assertEqual(
+        self.assertSetEqual(
+            # In conclusion, all of these methods combined...
             set(
-                RankedDocument.history.filter(history_date__lte=t2)
+                RankedDocument.history.filter(history_date__lte=t1)
                 .latest_of_each()
                 .as_instances()
             ),
-            set(RankedDocument.history.as_of(t2)),
+            # ...are equivalent to calling `as_of()`!
+            set(RankedDocument.history.as_of(t1)),
+        )
+
+        self.assertEqual(RankedDocument.history.as_of(t1).get().rank, 21)
+        self.assertListEqual(
+            [d.rank for d in RankedDocument.history.as_of(t2)], [22, 30]
         )
 
 
