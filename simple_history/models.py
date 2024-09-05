@@ -4,9 +4,20 @@ import uuid
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    Iterable,
+    List,
+    Sequence,
+    Type,
+    Union,
+)
 
 import django
+from asgiref.local import Local
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -45,11 +56,6 @@ from .signals import (
     pre_create_historical_record,
 )
 
-try:
-    from asgiref.local import Local as LocalContext
-except ImportError:
-    from threading import local as LocalContext
-
 if TYPE_CHECKING:
     ModelTypeHint = models.Model
 else:
@@ -83,8 +89,19 @@ def _history_user_setter(historical_instance, user):
 class HistoricalRecords:
     DEFAULT_MODEL_NAME_PREFIX = "Historical"
 
-    thread = context = LocalContext()  # retain thread for backwards compatibility
+    context: ClassVar = Local()
     m2m_models = {}
+
+    class _DeprecatedThreadDescriptor:
+        def __get__(self, *args, **kwargs):
+            warnings.warn(
+                "Use 'HistoricalRecords.context' instead."
+                " The 'thread' attribute will be removed in version 3.10.",
+                DeprecationWarning,
+            )
+            return HistoricalRecords.context
+
+    thread: ClassVar = _DeprecatedThreadDescriptor()
 
     def __init__(
         self,

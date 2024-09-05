@@ -4,8 +4,19 @@ Changes
 Unreleased
 ----------
 
+**What's new:**
+
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
+
+**Deprecations:**
+
+- Deprecated the undocumented ``HistoricalRecords.thread`` - use
+  ``HistoricalRecords.context`` instead. The former attribute will be removed in
+  version 3.10 (gh-1387)
+
+**Fixes and improvements:**
+
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
 
 3.7.0 (2024-05-29)
