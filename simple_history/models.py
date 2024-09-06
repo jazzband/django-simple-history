@@ -195,7 +195,7 @@ class HistoricalRecords:
             warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
-        def save_without_historical_record(self, *args, **kwargs):
+        def save_without_historical_record(self: models.Model, *args, **kwargs):
             """
             Save the model instance without creating a historical record.
 
@@ -208,7 +208,21 @@ class HistoricalRecords:
                 del self.skip_history_when_saving
             return ret
 
-        setattr(cls, "save_without_historical_record", save_without_historical_record)
+        def delete_without_historical_record(self: models.Model, *args, **kwargs):
+            """
+            Delete the model instance without creating a historical record.
+
+            Make sure you know what you're doing before using this method.
+            """
+            self.skip_history_when_saving = True
+            try:
+                ret = self.delete(*args, **kwargs)
+            finally:
+                del self.skip_history_when_saving
+            return ret
+
+        cls.save_without_historical_record = save_without_historical_record
+        cls.delete_without_historical_record = delete_without_historical_record
 
     def finalize(self, sender, **kwargs):
         inherited = False
@@ -665,7 +679,9 @@ class HistoricalRecords:
             )
         return meta_fields
 
-    def post_save(self, instance, created, using=None, **kwargs):
+    def post_save(
+        self, instance: models.Model, created: bool, using: str = None, **kwargs
+    ):
         if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
             return
         if hasattr(instance, "skip_history_when_saving"):
@@ -674,9 +690,12 @@ class HistoricalRecords:
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
 
-    def post_delete(self, instance, using=None, **kwargs):
+    def post_delete(self, instance: models.Model, using: str = None, **kwargs):
         if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
             return
+        if hasattr(instance, "skip_history_when_saving"):
+            return
+
         if self.cascade_delete_history:
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()

@@ -8,6 +8,8 @@ Unreleased
 
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
+- Added ``delete_without_historical_record()`` to all history-tracked model objects,
+  which complements ``save_without_historical_record()`` (gh-1387)
 
 **Deprecations:**
 

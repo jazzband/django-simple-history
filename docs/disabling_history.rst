@@ -1,16 +1,26 @@
 Disable Creating Historical Records
 ===================================
 
-Save without creating historical records
-----------------------------------------
+``save_without_historical_record()`` and ``delete_without_historical_record()``
+-------------------------------------------------------------------------------
 
-If you want to save model objects without triggering the creation of any historical
-records, you can do the following:
+These methods are automatically added to a model when registering it for history-tracking
+(i.e. defining a ``HistoricalRecords``  manager on the model),
+and can be called instead of ``save()`` and ``delete()``, respectively.
+
+Setting the ``skip_history_when_saving`` attribute
+--------------------------------------------------
+
+If you want to save or delete model objects without triggering the creation of any
+historical records, you can do the following:
 
 .. code-block:: python
 
     poll.skip_history_when_saving = True
+    # It applies both when saving...
     poll.save()
+    # ...and when deleting
+    poll.delete()
     # We recommend deleting the attribute afterward
     del poll.skip_history_when_saving
 
@@ -27,23 +37,10 @@ This also works when creating an object, but only when calling ``save()``:
 .. note::
     Historical records will always be created when calling the ``create()`` manager method.
 
-Alternatively, call the ``save_without_historical_record()`` method on each object
-instead of ``save()``.
-This method is automatically added to a model when registering it for history-tracking
-(i.e. defining a ``HistoricalRecords``  manager field on the model),
-and it looks like this:
+The ``SIMPLE_HISTORY_ENABLED`` setting
+--------------------------------------
 
-.. code-block:: python
-
-    def save_without_historical_record(self, *args, **kwargs):
-        self.skip_history_when_saving = True
-        try:
-            ret = self.save(*args, **kwargs)
-        finally:
-            del self.skip_history_when_saving
-        return ret
-
-Or disable the creation of historical records for *all* models
+Disable the creation of historical records for *all* models
 by adding the following line to your settings:
 
 .. code-block:: python

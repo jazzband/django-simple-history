@@ -262,7 +262,14 @@ class HistoricalRecordsTest(HistoricalTestCase):
         self.assertEqual(len(thames.history.all()), 1)
         self.assertEqual(len(nile.history.all()), 0)
 
-    def test_save_without_historical_record(self):
+    def test_registered_model_has_extra_methods(self):
+        model = ExternalModelSpecifiedWithAppParam.objects.create(
+            name="registered model"
+        )
+        self.assertTrue(hasattr(model, "save_without_historical_record"))
+        self.assertTrue(hasattr(model, "delete_without_historical_record"))
+
+    def test__save_without_historical_record__creates_no_records(self):
         pizza_place = Restaurant.objects.create(name="Pizza Place", rating=3)
         pizza_place.rating = 4
         pizza_place.save_without_historical_record()
@@ -290,6 +297,26 @@ class HistoricalRecordsTest(HistoricalTestCase):
             },
         )
 
+    def test__delete_without_historical_record__creates_no_records(self):
+        self.assertEqual(Restaurant.objects.count(), 0)
+        pizza_place = Restaurant.objects.create(name="Pizza Place", rating=3)
+        self.assertEqual(Restaurant.objects.count(), 1)
+        pizza_place.rating = 4
+        pizza_place.delete_without_historical_record()
+        self.assertEqual(Restaurant.objects.count(), 0)
+
+        (create_record,) = Restaurant.updates.all()
+        self.assertRecordValues(
+            create_record,
+            Restaurant,
+            {
+                "name": "Pizza Place",
+                "rating": 3,
+                "id": pizza_place.id,
+                "history_type": "+",
+            },
+        )
+
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
     def test_save_with_disabled_history(self):
         anthony = Person.objects.create(name="Anthony Gillard")
@@ -298,12 +325,6 @@ class HistoricalRecordsTest(HistoricalTestCase):
         self.assertEqual(Person.history.count(), 0)
         anthony.delete()
         self.assertEqual(Person.history.count(), 0)
-
-    def test_save_without_historical_record_for_registered_model(self):
-        model = ExternalModelSpecifiedWithAppParam.objects.create(
-            name="registered model"
-        )
-        self.assertTrue(hasattr(model, "save_without_historical_record"))
 
     def test_save_raises_exception(self):
         anthony = Person(name="Anthony Gillard")
@@ -2142,7 +2163,7 @@ class ManyToManyCustomIDTest(TestCase):
         self.poll = self.model.objects.create(question="what's up?", pub_date=today)
 
 
-class ManyToManyTest(TestCase):
+class ManyToManyTest(HistoricalTestCase):
     def setUp(self):
         self.model = PollWithManyToMany
         self.history_model = self.model.history.model
@@ -2153,14 +2174,6 @@ class ManyToManyTest(TestCase):
 
     def assertDatetimesEqual(self, time1, time2):
         self.assertAlmostEqual(time1, time2, delta=timedelta(seconds=2))
-
-    def assertRecordValues(self, record, klass, values_dict):
-        for key, value in values_dict.items():
-            self.assertEqual(getattr(record, key), value)
-        self.assertEqual(record.history_object.__class__, klass)
-        for key, value in values_dict.items():
-            if key not in ["history_type", "history_change_reason"]:
-                self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
         # There should be 1 history record for our poll, the create from setUp
