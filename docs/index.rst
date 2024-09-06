@@ -66,6 +66,7 @@ Documentation
    admin
    historical_model
    user_tracking
+   disabling_history
    signals
    history_diffing
    multiple_dbs

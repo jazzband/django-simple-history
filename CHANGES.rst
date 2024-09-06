@@ -18,6 +18,8 @@ Unreleased
 **Fixes and improvements:**
 
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Moved the "Save without creating historical records" subsection of "Querying History"
+  in the docs to a new section: "Disable Creating Historical Records" (gh-1387)
 
 3.7.0 (2024-05-29)
 ------------------
