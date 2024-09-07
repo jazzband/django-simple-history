@@ -5,6 +5,13 @@ from django.forms.models import model_to_dict
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
 
 
+def get_change_reason_from_object(obj):
+    if hasattr(obj, "_change_reason"):
+        return getattr(obj, "_change_reason")
+
+    return None
+
+
 def update_change_reason(instance, reason):
     attrs = {}
     model = type(instance)
@@ -35,6 +42,11 @@ def get_history_manager_for_model(model):
     return getattr(model, manager_name)
 
 
+def get_history_model_for_model(model):
+    """Return the history model for a given app model."""
+    return get_history_manager_for_model(model).model
+
+
 def get_history_manager_from_history(history_instance):
     """
     Return the history manager, based on an existing history instance.
@@ -43,11 +55,6 @@ def get_history_manager_from_history(history_instance):
     return get_history_manager_for_model(history_instance.instance_type).filter(
         **{key_name: getattr(history_instance, key_name)}
     )
-
-
-def get_history_model_for_model(model):
-    """Return the history model for a given app model."""
-    return get_history_manager_for_model(model).model
 
 
 def get_app_model_primary_key_name(model):
@@ -233,10 +240,3 @@ def bulk_update_with_history(
             custom_historical_attrs=custom_historical_attrs,
         )
     return rows_updated
-
-
-def get_change_reason_from_object(obj):
-    if hasattr(obj, "_change_reason"):
-        return getattr(obj, "_change_reason")
-
-    return None

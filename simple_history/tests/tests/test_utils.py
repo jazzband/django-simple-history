@@ -10,7 +10,17 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
-from simple_history.tests.models import (
+from simple_history.utils import (
+    bulk_create_with_history,
+    bulk_update_with_history,
+    get_history_manager_for_model,
+    get_history_model_for_model,
+    get_m2m_field_name,
+    get_m2m_reverse_field_name,
+    update_change_reason,
+)
+
+from ..models import (
     BulkCreateManyToManyModel,
     Document,
     Place,
@@ -28,17 +38,19 @@ from simple_history.tests.models import (
     PollWithUniqueQuestion,
     Street,
 )
-from simple_history.utils import (
-    bulk_create_with_history,
-    bulk_update_with_history,
-    get_history_manager_for_model,
-    get_history_model_for_model,
-    get_m2m_field_name,
-    get_m2m_reverse_field_name,
-    update_change_reason,
-)
 
 User = get_user_model()
+
+
+class UpdateChangeReasonTestCase(TestCase):
+    def test_update_change_reason_with_excluded_fields(self):
+        poll = PollWithExcludeFields(
+            question="what's up?", pub_date=timezone.now(), place="The Pub"
+        )
+        poll.save()
+        update_change_reason(poll, "Test change reason.")
+        most_recent = poll.history.order_by("-history_date").first()
+        self.assertEqual(most_recent.history_change_reason, "Test change reason.")
 
 
 class GetM2MFieldNamesTestCase(unittest.TestCase):
@@ -629,14 +641,3 @@ class CustomHistoricalAttrsTest(TestCase):
             PollWithHistoricalSessionAttr.history.filter(session="co-op").count(),
             5,
         )
-
-
-class UpdateChangeReasonTestCase(TestCase):
-    def test_update_change_reason_with_excluded_fields(self):
-        poll = PollWithExcludeFields(
-            question="what's up?", pub_date=timezone.now(), place="The Pub"
-        )
-        poll.save()
-        update_change_reason(poll, "Test change reason.")
-        most_recent = poll.history.order_by("-history_date").first()
-        self.assertEqual(most_recent.history_change_reason, "Test change reason.")
