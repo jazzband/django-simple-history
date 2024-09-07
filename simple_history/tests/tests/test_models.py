@@ -318,7 +318,7 @@ class HistoricalRecordsTest(HistoricalTestCase):
         )
 
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
-    def test_save_with_disabled_history(self):
+    def test_saving_without_history_enabled_creates_no_records(self):
         anthony = Person.objects.create(name="Anthony Gillard")
         anthony.name = "something else"
         anthony.save()
@@ -330,7 +330,6 @@ class HistoricalRecordsTest(HistoricalTestCase):
         anthony = Person(name="Anthony Gillard")
         with self.assertRaises(RuntimeError):
             anthony.save_without_historical_record()
-        self.assertFalse(hasattr(anthony, "skip_history_when_saving"))
         self.assertEqual(Person.history.count(), 0)
         anthony.save()
         self.assertEqual(Person.history.count(), 1)
@@ -2430,45 +2429,9 @@ class ManyToManyTest(HistoricalTestCase):
         self.assertEqual(self.poll.history.all()[0].places.count(), 0)
         self.assertEqual(poll_2.history.all()[0].places.count(), 2)
 
-    def test_skip_history_when_updating_an_object(self):
-        skip_poll = PollWithManyToMany.objects.create(
-            question="skip history?", pub_date=today
-        )
-        self.assertEqual(skip_poll.history.all().count(), 1)
-        self.assertEqual(skip_poll.history.all()[0].places.count(), 0)
-
-        skip_poll.skip_history_when_saving = True
-
-        skip_poll.question = "huh?"
-        skip_poll.save()
-        skip_poll.places.add(self.place)
-
-        self.assertEqual(skip_poll.history.all().count(), 1)
-        self.assertEqual(skip_poll.history.all()[0].places.count(), 0)
-
-        del skip_poll.skip_history_when_saving
-        place_2 = Place.objects.create(name="Place 2")
-
-        skip_poll.places.add(place_2)
-
-        self.assertEqual(skip_poll.history.all().count(), 2)
-        self.assertEqual(skip_poll.history.all()[0].places.count(), 2)
-
-    def test_skip_history_when_creating_an_object(self):
-        initial_poll_count = PollWithManyToMany.objects.count()
-
-        skip_poll = PollWithManyToMany(question="skip history?", pub_date=today)
-        skip_poll.skip_history_when_saving = True
-        skip_poll.save()
-        skip_poll.places.add(self.place)
-
-        self.assertEqual(skip_poll.history.count(), 0)
-        self.assertEqual(PollWithManyToMany.objects.count(), initial_poll_count + 1)
-        self.assertEqual(skip_poll.places.count(), 1)
-
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
-    def test_saving_with_disabled_history_doesnt_create_records(self):
-        # 1 from `setUp()`
+    def test_saving_without_history_enabled_creates_no_records(self):
+        # 1 record from `setUp()`
         self.assertEqual(PollWithManyToMany.history.count(), 1)
 
         poll = PollWithManyToMany.objects.create(

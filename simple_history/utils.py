@@ -1,5 +1,10 @@
-from typing import TYPE_CHECKING, Optional, Type, Union
+import sys
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Callable, ClassVar, Iterator, Optional, Type, Union
 
+from asgiref.local import Local
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, ForeignKey, ManyToManyField, Model, Q, When
 from django.forms.models import model_to_dict
@@ -9,6 +14,164 @@ from .exceptions import AlternativeManagerError, NotHistoricalModelError
 if TYPE_CHECKING:
     from .manager import HistoricalQuerySet, HistoryManager
     from .models import HistoricalChanges
+
+
+@contextmanager
+def disable_history(
+    *,
+    only_for_model: Type[Model] = None,
+    instance_predicate: Callable[[Model], bool] = None,
+) -> Iterator[None]:
+    """
+    Disable creating historical records while this context manager is active.
+
+    Note: ``only_for_model`` and ``instance_predicate`` cannot both be provided.
+
+    :param only_for_model: Only disable history creation for this model type.
+    :param instance_predicate: Only disable history creation for model instances passing
+        this predicate.
+    """
+    assert (  # nosec
+        _StoredDisableHistoryInfo.get() is None
+    ), "Nesting 'disable_history()' contexts is undefined behavior"
+
+    if only_for_model:
+        # Raise an error if it's not a history-tracked model
+        get_history_manager_for_model(only_for_model)
+        if instance_predicate:
+            raise ValueError(
+                "'only_for_model' and 'instance_predicate' cannot both be provided"
+            )
+        else:
+
+            def instance_predicate(instance: Model):
+                return isinstance(instance, only_for_model)
+
+    info = _StoredDisableHistoryInfo(instance_predicate)
+    info.set()
+    try:
+        yield
+    finally:
+        info.delete()
+
+
+@dataclass(frozen=True)
+class _StoredDisableHistoryInfo:
+    """
+    Data related to how historical record creation is disabled, stored in
+    ``HistoricalRecords.context`` through the ``disable_history()`` context manager.
+    """
+
+    LOCAL_STORAGE_ATTR_NAME: ClassVar = "disable_history_info"
+
+    instance_predicate: Callable[[Model], bool] = None
+
+    def set(self) -> None:
+        setattr(self._get_storage(), self.LOCAL_STORAGE_ATTR_NAME, self)
+
+    @classmethod
+    def get(cls) -> Optional["_StoredDisableHistoryInfo"]:
+        """
+        A return value of ``None`` means that the ``disable_history()`` context manager
+        is not active.
+        """
+        return getattr(cls._get_storage(), cls.LOCAL_STORAGE_ATTR_NAME, None)
+
+    @classmethod
+    def delete(cls) -> None:
+        delattr(cls._get_storage(), cls.LOCAL_STORAGE_ATTR_NAME)
+
+    @staticmethod
+    def _get_storage() -> Local:
+        from .models import HistoricalRecords  # Avoids circular importing
+
+        return HistoricalRecords.context
+
+
+@dataclass(
+    frozen=True,
+    # DEV: Replace this with just `kw_only=True` when the minimum required
+    #      Python version is 3.10
+    **({"kw_only": True} if sys.version_info >= (3, 10) else {}),
+)
+class DisableHistoryInfo:
+    """
+    Provides info on *how* historical record creation is disabled.
+
+    Create a new instance through ``get()`` for updated info.
+    (The ``__init__()`` method is intended for internal use.)
+    """
+
+    _disabled_globally: bool
+    _instance_predicate: Optional[Callable[[Model], bool]]
+
+    @property
+    def not_disabled(self) -> bool:
+        """
+        A value of ``True`` means that historical record creation is not disabled
+        in any way.
+        If ``False``, check ``disabled_globally`` and ``disabled_for()``.
+        """
+        return not self._disabled_globally and not self._instance_predicate
+
+    @property
+    def disabled_globally(self) -> bool:
+        """
+        Whether historical record creation is disabled due to
+        the ``SIMPLE_HISTORY_ENABLED`` setting or the ``disable_history()`` context
+        manager being active.
+        """
+        return self._disabled_globally
+
+    def disabled_for(self, instance: Model) -> bool:
+        """
+        Returns whether history record creation is disabled for the provided instance
+        specifically.
+        Remember to also check ``disabled_globally``!
+        """
+        return bool(self._instance_predicate) and self._instance_predicate(instance)
+
+    @classmethod
+    def get(cls) -> "DisableHistoryInfo":
+        """
+        Returns an instance of this class.
+
+        Note that this method must be called again every time you want updated info.
+        """
+        stored_info = _StoredDisableHistoryInfo.get()
+        context_manager_active = bool(stored_info)
+        instance_predicate = (
+            stored_info.instance_predicate if context_manager_active else None
+        )
+
+        disabled_globally = not getattr(settings, "SIMPLE_HISTORY_ENABLED", True) or (
+            context_manager_active and not instance_predicate
+        )
+        return cls(
+            _disabled_globally=disabled_globally,
+            _instance_predicate=instance_predicate,
+        )
+
+
+def is_history_disabled(instance: Model = None) -> bool:
+    """
+    Returns whether creating historical records is disabled.
+
+    :param instance: If *not* provided, will return whether history is disabled
+        globally. Otherwise, will return whether history is disabled for the provided
+        instance (either globally or due to the arguments passed to
+        the ``disable_history()`` context manager).
+    """
+    if instance:
+        # Raise an error if it's not a history-tracked model instance
+        get_history_manager_for_model(instance)
+
+    info = DisableHistoryInfo.get()
+    if info.disabled_globally:
+        return True
+    if instance and info.disabled_for(instance):
+        return True
+    return False
 
 
 def get_change_reason_from_object(obj: Model) -> Optional[str]:

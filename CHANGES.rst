@@ -10,6 +10,9 @@ Unreleased
   updating an object (gh-1262)
 - Added ``delete_without_historical_record()`` to all history-tracked model objects,
   which complements ``save_without_historical_record()`` (gh-1387)
+- Added a ``disable_history()`` context manager, which disables history record creation
+  while it's active; see usage in the docs under "Disable Creating Historical Records"
+  (gh-1387)
 
 **Breaking changes:**
 
@@ -23,6 +26,9 @@ Unreleased
 - Deprecated the undocumented ``HistoricalRecords.thread`` - use
   ``HistoricalRecords.context`` instead. The former attribute will be removed in
   version 3.10 (gh-1387)
+- Deprecated ``skip_history_when_saving`` in favor of the newly added
+  ``disable_history()`` context manager. The former attribute will be removed in
+  version 4.0 (gh-1387)
 
 **Fixes and improvements:**
 

@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.test import TestCase, override_settings, skipUnlessDBFeature
 
 from simple_history.manager import SIMPLE_HISTORY_REVERSE_ATTR_NAME
+from simple_history.utils import disable_history
 
 from ..models import Choice, Document, Poll, RankedDocument
 from .utils import HistoricalTestCase
@@ -289,6 +290,23 @@ class BulkHistoryCreateTestCase(TestCase):
         Poll.history.bulk_history_create(self.data)
         self.assertEqual(Poll.history.count(), 0)
 
+    def test_simple_bulk_history_create_with__disable_history(self):
+        with disable_history():
+            Poll.history.bulk_history_create(self.data)
+        self.assertEqual(Poll.history.count(), 0)
+
+    def test_simple_bulk_history_create_with__disable_history__only_for_model(self):
+        with disable_history(only_for_model=Poll):
+            Poll.history.bulk_history_create(self.data)
+        self.assertEqual(Poll.history.count(), 0)
+
+    def test_simple_bulk_history_create_with__disable_history__instance_predicate(self):
+        with disable_history(instance_predicate=lambda poll: poll.id == 2):
+            Poll.history.bulk_history_create(self.data)
+        self.assertEqual(Poll.history.count(), 3)
+        historical_poll_ids = sorted(record.id for record in Poll.history.all())
+        self.assertListEqual(historical_poll_ids, [1, 3, 4])
+
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:
             poll._change_reason = "reason"
@@ -411,6 +429,31 @@ class BulkHistoryUpdateTestCase(TestCase):
         created = Poll.history.bulk_create([])
         self.assertEqual(created, [])
         self.assertEqual(Poll.history.count(), 4)
+
+    @override_settings(SIMPLE_HISTORY_ENABLED=False)
+    def test_simple_bulk_history_update_without_history_enabled(self):
+        Poll.history.bulk_history_create(self.data, update=True)
+        self.assertEqual(Poll.history.count(), 0)
+
+    def test_simple_bulk_history_update_with__disable_history(self):
+        with disable_history():
+            Poll.history.bulk_history_create(self.data, update=True)
+        self.assertEqual(Poll.history.count(), 0)
+
+    def test_simple_bulk_history_update_with__disable_history__only_for_model(self):
+        with disable_history(only_for_model=Poll):
+            Poll.history.bulk_history_create(self.data, update=True)
+        self.assertEqual(Poll.history.count(), 0)
+
+    def test_simple_bulk_history_update_with__disable_history__instance_predicate(self):
+        with disable_history(instance_predicate=lambda poll: poll.id == 2):
+            Poll.history.bulk_history_create(self.data, update=True)
+        self.assertEqual(Poll.history.count(), 3)
+        historical_poll_ids = sorted(record.id for record in Poll.history.all())
+        self.assertListEqual(historical_poll_ids, [1, 3, 4])
+        self.assertTrue(
+            all(record.history_type == "~" for record in Poll.history.all())
+        )
 
     def test_bulk_history_create_with_change_reason(self):
         for poll in self.data:

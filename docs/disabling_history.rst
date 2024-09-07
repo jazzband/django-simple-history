@@ -8,34 +8,40 @@ These methods are automatically added to a model when registering it for history
 (i.e. defining a ``HistoricalRecords``  manager on the model),
 and can be called instead of ``save()`` and ``delete()``, respectively.
 
-Setting the ``skip_history_when_saving`` attribute
---------------------------------------------------
+Using the ``disable_history()`` context manager
+-----------------------------------------------
 
-If you want to save or delete model objects without triggering the creation of any
-historical records, you can do the following:
+``disable_history()`` has three ways of being called:
 
-.. code-block:: python
+#. With no arguments: This will disable all historical record creation
+   (as if the ``SIMPLE_HISTORY_ENABLED`` setting was set to ``False``; see below)
+   within the context manager's ``with`` block.
+#. With ``only_for_model``: Only disable history creation for the provided model type.
+#. With ``instance_predicate``: Only disable history creation for model instances passing
+   this predicate.
 
-    poll.skip_history_when_saving = True
-    # It applies both when saving...
-    poll.save()
-    # ...and when deleting
-    poll.delete()
-    # We recommend deleting the attribute afterward
-    del poll.skip_history_when_saving
-
-This also works when creating an object, but only when calling ``save()``:
+See some examples below:
 
 .. code-block:: python
 
-    # Note that `Poll.objects.create()` is not called
-    poll = Poll(question="Why?")
-    poll.skip_history_when_saving = True
-    poll.save()
-    del poll.skip_history_when_saving
+    from simple_history.utils import disable_history
 
-.. note::
-    Historical records will always be created when calling the ``create()`` manager method.
+    # No historical records are created
+    with disable_history():
+        User.objects.create(...)
+        Poll.objects.create(...)
+
+    # A historical record is only created for the poll
+    with disable_history(only_for_model=User):
+        User.objects.create(...)
+        Poll.objects.create(...)
+
+    # A historical record is created for the second poll, but not for the first poll
+    # (remember to check the instance type in the passed function if you expect
+    # historical records of more than one model to be created inside the `with` block)
+    with disable_history(instance_predicate=lambda poll: "ignore" in poll.question):
+        Poll.objects.create(question="ignore this")
+        Poll.objects.create(question="what's up?")
 
 The ``SIMPLE_HISTORY_ENABLED`` setting
 --------------------------------------

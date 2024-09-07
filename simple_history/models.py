@@ -7,6 +7,7 @@ from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     ClassVar,
     Dict,
     Iterable,
@@ -195,18 +196,22 @@ class HistoricalRecords:
             warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
+        def get_instance_predicate(
+            self: models.Model,
+        ) -> Callable[[models.Model], bool]:
+            def predicate(instance: models.Model) -> bool:
+                return instance == self
+
+            return predicate
+
         def save_without_historical_record(self: models.Model, *args, **kwargs):
             """
             Save the model instance without creating a historical record.
 
             Make sure you know what you're doing before using this method.
             """
-            self.skip_history_when_saving = True
-            try:
-                ret = self.save(*args, **kwargs)
-            finally:
-                del self.skip_history_when_saving
-            return ret
+            with utils.disable_history(instance_predicate=get_instance_predicate(self)):
+                return self.save(*args, **kwargs)
 
         def delete_without_historical_record(self: models.Model, *args, **kwargs):
             """
@@ -214,12 +219,8 @@ class HistoricalRecords:
 
             Make sure you know what you're doing before using this method.
             """
-            self.skip_history_when_saving = True
-            try:
-                ret = self.delete(*args, **kwargs)
-            finally:
-                del self.skip_history_when_saving
-            return ret
+            with utils.disable_history(instance_predicate=get_instance_predicate(self)):
+                return self.delete(*args, **kwargs)
 
         cls.save_without_historical_record = save_without_historical_record
         cls.delete_without_historical_record = delete_without_historical_record
@@ -682,18 +683,22 @@ class HistoricalRecords:
     def post_save(
         self, instance: models.Model, created: bool, using: str = None, **kwargs
     ):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
         if hasattr(instance, "skip_history_when_saving"):
+            warnings.warn(
+                "Setting 'skip_history_when_saving' has been deprecated in favor of the"
+                " 'disable_history()' context manager."
+                " Support for the former attribute will be removed in version 4.0.",
+                DeprecationWarning,
+            )
+            return
+        if utils.is_history_disabled(instance):
             return
 
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
 
     def post_delete(self, instance: models.Model, using: str = None, **kwargs):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
-        if hasattr(instance, "skip_history_when_saving"):
+        if utils.is_history_disabled(instance):
             return
 
         if self.cascade_delete_history:
@@ -709,10 +714,16 @@ class HistoricalRecords:
         """
         return utils.get_change_reason_from_object(instance)
 
-    def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
+    def m2m_changed(self, instance: models.Model, action: str, **kwargs):
         if hasattr(instance, "skip_history_when_saving"):
+            warnings.warn(
+                "Setting 'skip_history_when_saving' has been deprecated in favor of the"
+                " 'disable_history()' context manager."
+                " Support for the former attribute will be removed in version 4.0.",
+                DeprecationWarning,
+            )
+            return
+        if utils.is_history_disabled(instance):
             return
 
         if action in ("post_add", "post_remove", "post_clear"):
