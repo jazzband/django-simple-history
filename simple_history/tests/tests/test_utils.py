@@ -77,6 +77,7 @@ from ..models import (
     Restaurant,
     Street,
     TestHistoricParticipanToHistoricOrganization,
+    TestOrganizationWithHistory,
     TestParticipantToHistoricOrganization,
     TrackedAbstractBaseA,
     TrackedConcreteBase,
@@ -103,14 +104,17 @@ class UpdateChangeReasonTestCase(TestCase):
 class HistoryTrackedModelTestInfo:
     model: Type[Model]
     history_manager_name: Optional[str]
+    init_kwargs: dict
 
     def __init__(
         self,
         model: Type[Model],
         history_manager_name: Optional[str] = "history",
+        **init_kwargs,
     ):
         self.model = model
         self.history_manager_name = history_manager_name
+        self.init_kwargs = init_kwargs
 
 
 class GetHistoryManagerAndModelHelpersTestCase(TestCase):
@@ -118,9 +122,19 @@ class GetHistoryManagerAndModelHelpersTestCase(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
+        user = User.objects.create(username="user")
+        poll_kwargs = {"pub_date": timezone.now()}
+        poll = Poll.objects.create(**poll_kwargs)
+        choice_kwargs = {"poll": poll, "votes": 0}
+        choice = Choice.objects.create(**choice_kwargs)
+        place = Place.objects.create()
+        org_kwarg = {
+            "organization": TestOrganizationWithHistory.objects.create(),
+        }
+
         H = HistoryTrackedModelTestInfo
         cls.history_tracked_models = [
-            H(Choice),
+            H(Choice, **choice_kwargs),
             H(ConcreteAttr),
             H(ConcreteExternal),
             H(ConcreteUtil),
@@ -135,23 +149,23 @@ class GetHistoryManagerAndModelHelpersTestCase(TestCase):
             H(OverrideModelNameAsCallable),
             H(OverrideModelNameRegisterMethod1),
             H(OverrideModelNameUsingBaseModel1),
-            H(Poll),
-            H(PollChildBookWithManyToMany),
-            H(PollWithAlternativeManager),
-            H(PollWithCustomManager),
-            H(PollWithExcludedFKField),
+            H(Poll, **poll_kwargs),
+            H(PollChildBookWithManyToMany, **poll_kwargs),
+            H(PollWithAlternativeManager, **poll_kwargs),
+            H(PollWithCustomManager, **poll_kwargs),
+            H(PollWithExcludedFKField, place=place, **poll_kwargs),
             H(PollWithHistoricalSessionAttr),
-            H(PollWithManyToMany),
-            H(PollWithManyToManyCustomHistoryID),
-            H(PollWithManyToManyWithIPAddress),
-            H(PollWithQuerySetCustomizations),
+            H(PollWithManyToMany, **poll_kwargs),
+            H(PollWithManyToManyCustomHistoryID, **poll_kwargs),
+            H(PollWithManyToManyWithIPAddress, **poll_kwargs),
+            H(PollWithQuerySetCustomizations, **poll_kwargs),
             H(PollWithSelfManyToMany),
-            H(Restaurant, "updates"),
-            H(TestHistoricParticipanToHistoricOrganization),
+            H(Restaurant, "updates", rating=0),
+            H(TestHistoricParticipanToHistoricOrganization, **org_kwarg),
             H(TrackedConcreteBase),
             H(TrackedWithAbstractBase),
             H(TrackedWithConcreteBase),
-            H(Voter),
+            H(Voter, user=user, choice=choice),
             H(external.ExternalModel),
             H(external.ExternalModelRegistered, "histories"),
             H(external.Poll),
@@ -161,11 +175,11 @@ class GetHistoryManagerAndModelHelpersTestCase(TestCase):
             H(AbstractModelCallable1, None),
             H(BaseModel, None),
             H(FirstLevelInheritedModel, None),
-            H(HardbackBook, None),
+            H(HardbackBook, None, isbn="123", price=0),
             H(Place, None),
-            H(PollParentWithManyToMany, None),
-            H(Profile, None),
-            H(TestParticipantToHistoricOrganization, None),
+            H(PollParentWithManyToMany, None, **poll_kwargs),
+            H(Profile, None, date_of_birth=timezone.now().date()),
+            H(TestParticipantToHistoricOrganization, None, **org_kwarg),
             H(TrackedAbstractBaseA, None),
         ]
 
@@ -191,11 +205,24 @@ class GetHistoryManagerAndModelHelpersTestCase(TestCase):
                 manager = get_history_manager_for_model(model)
                 assert_history_manager(manager, model_info)
 
+                # Passing a model instance should also work
+                instance = model(**model_info.init_kwargs)
+                instance.save()
+                manager = get_history_manager_for_model(instance)
+                assert_history_manager(manager, model_info)
+
         for model_info in self.models_without_history_manager:
             with self.subTest(model_info=model_info):
                 model = model_info.model
                 with self.assertRaises(NotHistoricalModelError):
                     get_history_manager_for_model(model)
+
+                # The same error should be raised if passing a model instance
+                if not model._meta.abstract:
+                    instance = model(**model_info.init_kwargs)
+                    instance.save()
+                    with self.assertRaises(NotHistoricalModelError):
+                        get_history_manager_for_model(instance)
 
     def test__get_history_model_for_model(self):
         """Test that ``get_history_model_for_model()`` returns the expected value
@@ -207,11 +234,24 @@ class GetHistoryManagerAndModelHelpersTestCase(TestCase):
                 self.assertTrue(issubclass(historical_model, HistoricalChanges))
                 self.assertEqual(historical_model.instance_type, model)
 
+                # Passing a model instance should also work
+                instance = model(**model_info.init_kwargs)
+                instance.save()
+                historical_model_from_instance = get_history_model_for_model(instance)
+                self.assertEqual(historical_model_from_instance, historical_model)
+
         for model_info in self.models_without_history_manager:
             with self.subTest(model_info=model_info):
                 model = model_info.model
                 with self.assertRaises(NotHistoricalModelError):
                     get_history_model_for_model(model)
+
+                # The same error should be raised if passing a model instance
+                if not model._meta.abstract:
+                    instance = model(**model_info.init_kwargs)
+                    instance.save()
+                    with self.assertRaises(NotHistoricalModelError):
+                        get_history_model_for_model(instance)
 
     def test__get_pk_name(self):
         """Test that ``get_pk_name()`` returns the expected value for various models."""

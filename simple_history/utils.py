@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Type
+from typing import TYPE_CHECKING, Optional, Type, Union
 
 from django.db import transaction
 from django.db.models import Case, ForeignKey, ManyToManyField, Model, Q, When
@@ -36,26 +36,32 @@ def update_change_reason(instance: Model, reason: Optional[str]) -> None:
     record.save()
 
 
-def get_history_manager_for_model(model: Type[Model]) -> "HistoryManager":
-    """Return the history manager for ``model``.
+def get_history_manager_for_model(
+    model_or_instance: Union[Type[Model], Model]
+) -> "HistoryManager":
+    """Return the history manager for ``model_or_instance``.
 
     :raise NotHistoricalModelError: If the model has not been registered to track
         history.
     """
     try:
-        manager_name = model._meta.simple_history_manager_attribute
+        manager_name = model_or_instance._meta.simple_history_manager_attribute
     except AttributeError:
-        raise NotHistoricalModelError(f"Cannot find a historical model for {model}.")
-    return getattr(model, manager_name)
+        raise NotHistoricalModelError(
+            f"Cannot find a historical model for {model_or_instance}."
+        )
+    return getattr(model_or_instance, manager_name)
 
 
-def get_history_model_for_model(model: Type[Model]) -> Type["HistoricalChanges"]:
-    """Return the history model for ``model``.
+def get_history_model_for_model(
+    model_or_instance: Union[Type[Model], Model]
+) -> Type["HistoricalChanges"]:
+    """Return the history model for ``model_or_instance``.
 
     :raise NotHistoricalModelError: If the model has not been registered to track
         history.
     """
-    return get_history_manager_for_model(model).model
+    return get_history_manager_for_model(model_or_instance).model
 
 
 def get_historical_records_of_instance(

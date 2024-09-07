@@ -29,6 +29,9 @@ Unreleased
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
 - Moved the "Save without creating historical records" subsection of "Querying History"
   in the docs to a new section: "Disable Creating Historical Records" (gh-1387)
+- The ``utils`` functions ``get_history_manager_for_model()`` and
+  ``get_history_model_for_model()`` now explicitly support being passed model instances
+  instead of just model types (gh-1387)
 
 3.7.0 (2024-05-29)
 ------------------
