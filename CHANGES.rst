@@ -11,6 +11,13 @@ Unreleased
 - Added ``delete_without_historical_record()`` to all history-tracked model objects,
   which complements ``save_without_historical_record()`` (gh-1387)
 
+**Breaking changes:**
+
+- Removed ``HistoryManager.get_super_queryset()`` (gh-1387)
+- Renamed the ``utils`` functions ``get_history_manager_from_history()``
+  to ``get_historical_records_of_instance()`` and ``get_app_model_primary_key_name()``
+  to ``get_pk_name()`` (gh-1387)
+
 **Deprecations:**
 
 - Deprecated the undocumented ``HistoricalRecords.thread`` - use

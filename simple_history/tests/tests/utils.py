@@ -26,13 +26,14 @@ class HistoricalTestCase(TestCase):
         :param klass: The type of the history-tracked class of ``record``.
         :param values_dict: Field names of ``record`` mapped to their expected values.
         """
-        for key, value in values_dict.items():
-            self.assertEqual(getattr(record, key), value)
+        for field_name, expected_value in values_dict.items():
+            self.assertEqual(getattr(record, field_name), expected_value)
 
-        self.assertEqual(record.history_object.__class__, klass)
-        for key, value in values_dict.items():
-            if key not in ("history_type", "history_change_reason"):
-                self.assertEqual(getattr(record.history_object, key), value)
+        history_object = record.history_object
+        self.assertEqual(history_object.__class__, klass)
+        for field_name, expected_value in values_dict.items():
+            if field_name not in ("history_type", "history_change_reason"):
+                self.assertEqual(getattr(history_object, field_name), expected_value)
 
 
 class TestDbRouter:

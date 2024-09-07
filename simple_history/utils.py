@@ -1,18 +1,21 @@
+from typing import TYPE_CHECKING, Optional, Type
+
 from django.db import transaction
-from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
+from django.db.models import Case, ForeignKey, ManyToManyField, Model, Q, When
 from django.forms.models import model_to_dict
 
-from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
+from .exceptions import AlternativeManagerError, NotHistoricalModelError
+
+if TYPE_CHECKING:
+    from .manager import HistoricalQuerySet, HistoryManager
+    from .models import HistoricalChanges
 
 
-def get_change_reason_from_object(obj):
-    if hasattr(obj, "_change_reason"):
-        return getattr(obj, "_change_reason")
-
-    return None
+def get_change_reason_from_object(obj: Model) -> Optional[str]:
+    return getattr(obj, "_change_reason", None)
 
 
-def update_change_reason(instance, reason):
+def update_change_reason(instance: Model, reason: Optional[str]) -> None:
     attrs = {}
     model = type(instance)
     manager = instance if instance.pk is not None else model
@@ -33,8 +36,12 @@ def update_change_reason(instance, reason):
     record.save()
 
 
-def get_history_manager_for_model(model):
-    """Return the history manager for a given app model."""
+def get_history_manager_for_model(model: Type[Model]) -> "HistoryManager":
+    """Return the history manager for ``model``.
+
+    :raise NotHistoricalModelError: If the model has not been registered to track
+        history.
+    """
     try:
         manager_name = model._meta.simple_history_manager_attribute
     except AttributeError:
@@ -42,25 +49,31 @@ def get_history_manager_for_model(model):
     return getattr(model, manager_name)
 
 
-def get_history_model_for_model(model):
-    """Return the history model for a given app model."""
+def get_history_model_for_model(model: Type[Model]) -> Type["HistoricalChanges"]:
+    """Return the history model for ``model``.
+
+    :raise NotHistoricalModelError: If the model has not been registered to track
+        history.
+    """
     return get_history_manager_for_model(model).model
 
 
-def get_history_manager_from_history(history_instance):
+def get_historical_records_of_instance(
+    historical_record: "HistoricalChanges",
+) -> "HistoricalQuerySet":
     """
-    Return the history manager, based on an existing history instance.
+    Return a queryset with all the historical records of the same instance as
+    ``historical_record`` is for.
     """
-    key_name = get_app_model_primary_key_name(history_instance.instance_type)
-    return get_history_manager_for_model(history_instance.instance_type).filter(
-        **{key_name: getattr(history_instance, key_name)}
-    )
+    pk_name = get_pk_name(historical_record.instance_type)
+    manager = get_history_manager_for_model(historical_record.instance_type)
+    return manager.filter(**{pk_name: getattr(historical_record, pk_name)})
 
 
-def get_app_model_primary_key_name(model):
-    """Return the primary key name for a given app model."""
+def get_pk_name(model: Type[Model]) -> str:
+    """Return the primary key name for ``model``."""
     if isinstance(model._meta.pk, ForeignKey):
-        return model._meta.pk.name + "_id"
+        return f"{model._meta.pk.name}_id"
     return model._meta.pk.name
 
 

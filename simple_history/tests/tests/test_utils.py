@@ -1,42 +1,88 @@
 import unittest
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional, Type
 from unittest import skipUnless
 from unittest.mock import Mock, patch
 
 import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from django.db.models import Model
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
+from simple_history.manager import HistoryManager
+from simple_history.models import HistoricalChanges
 from simple_history.utils import (
     bulk_create_with_history,
     bulk_update_with_history,
+    get_historical_records_of_instance,
     get_history_manager_for_model,
     get_history_model_for_model,
     get_m2m_field_name,
     get_m2m_reverse_field_name,
+    get_pk_name,
     update_change_reason,
 )
 
+from ..external import models as external
 from ..models import (
+    AbstractBase,
+    AbstractModelCallable1,
+    BaseModel,
+    Book,
     BulkCreateManyToManyModel,
+    Choice,
+    ConcreteAttr,
+    ConcreteExternal,
+    ConcreteUtil,
+    Contact,
+    ContactRegister,
+    CustomManagerNameModel,
     Document,
+    ExternalModelSpecifiedWithAppParam,
+    ExternalModelWithAppLabel,
+    FirstLevelInheritedModel,
+    HardbackBook,
+    HistoricalBook,
+    HistoricalPoll,
+    HistoricalPollInfo,
+    InheritTracking1,
+    ModelWithHistoryInDifferentApp,
+    ModelWithHistoryUsingBaseModelDb,
+    OverrideModelNameAsCallable,
+    OverrideModelNameRegisterMethod1,
+    OverrideModelNameUsingBaseModel1,
     Place,
     Poll,
     PollChildBookWithManyToMany,
     PollChildRestaurantWithManyToMany,
+    PollInfo,
+    PollParentWithManyToMany,
     PollWithAlternativeManager,
+    PollWithCustomManager,
+    PollWithExcludedFKField,
     PollWithExcludeFields,
     PollWithHistoricalSessionAttr,
     PollWithManyToMany,
     PollWithManyToManyCustomHistoryID,
     PollWithManyToManyWithIPAddress,
+    PollWithQuerySetCustomizations,
     PollWithSelfManyToMany,
     PollWithSeveralManyToMany,
     PollWithUniqueQuestion,
+    Profile,
+    Restaurant,
     Street,
+    TestHistoricParticipanToHistoricOrganization,
+    TestParticipantToHistoricOrganization,
+    TrackedAbstractBaseA,
+    TrackedConcreteBase,
+    TrackedWithAbstractBase,
+    TrackedWithConcreteBase,
+    Voter,
 )
 
 User = get_user_model()
@@ -51,6 +97,171 @@ class UpdateChangeReasonTestCase(TestCase):
         update_change_reason(poll, "Test change reason.")
         most_recent = poll.history.order_by("-history_date").first()
         self.assertEqual(most_recent.history_change_reason, "Test change reason.")
+
+
+@dataclass
+class HistoryTrackedModelTestInfo:
+    model: Type[Model]
+    history_manager_name: Optional[str]
+
+    def __init__(
+        self,
+        model: Type[Model],
+        history_manager_name: Optional[str] = "history",
+    ):
+        self.model = model
+        self.history_manager_name = history_manager_name
+
+
+class GetHistoryManagerAndModelHelpersTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        H = HistoryTrackedModelTestInfo
+        cls.history_tracked_models = [
+            H(Choice),
+            H(ConcreteAttr),
+            H(ConcreteExternal),
+            H(ConcreteUtil),
+            H(Contact),
+            H(ContactRegister),
+            H(CustomManagerNameModel, "log"),
+            H(ExternalModelSpecifiedWithAppParam, "histories"),
+            H(ExternalModelWithAppLabel),
+            H(InheritTracking1),
+            H(ModelWithHistoryInDifferentApp),
+            H(ModelWithHistoryUsingBaseModelDb),
+            H(OverrideModelNameAsCallable),
+            H(OverrideModelNameRegisterMethod1),
+            H(OverrideModelNameUsingBaseModel1),
+            H(Poll),
+            H(PollChildBookWithManyToMany),
+            H(PollWithAlternativeManager),
+            H(PollWithCustomManager),
+            H(PollWithExcludedFKField),
+            H(PollWithHistoricalSessionAttr),
+            H(PollWithManyToMany),
+            H(PollWithManyToManyCustomHistoryID),
+            H(PollWithManyToManyWithIPAddress),
+            H(PollWithQuerySetCustomizations),
+            H(PollWithSelfManyToMany),
+            H(Restaurant, "updates"),
+            H(TestHistoricParticipanToHistoricOrganization),
+            H(TrackedConcreteBase),
+            H(TrackedWithAbstractBase),
+            H(TrackedWithConcreteBase),
+            H(Voter),
+            H(external.ExternalModel),
+            H(external.ExternalModelRegistered, "histories"),
+            H(external.Poll),
+        ]
+        cls.models_without_history_manager = [
+            H(AbstractBase, None),
+            H(AbstractModelCallable1, None),
+            H(BaseModel, None),
+            H(FirstLevelInheritedModel, None),
+            H(HardbackBook, None),
+            H(Place, None),
+            H(PollParentWithManyToMany, None),
+            H(Profile, None),
+            H(TestParticipantToHistoricOrganization, None),
+            H(TrackedAbstractBaseA, None),
+        ]
+
+    def test__get_history_manager_for_model(self):
+        """Test that ``get_history_manager_for_model()`` returns the expected value
+        for various models."""
+
+        def assert_history_manager(history_manager, info: HistoryTrackedModelTestInfo):
+            expected_manager = getattr(info.model, info.history_manager_name)
+            expected_historical_model = expected_manager.model
+            historical_model = history_manager.model
+            # Can't compare the managers directly, as the history manager classes are
+            # dynamically created through `HistoryDescriptor`
+            self.assertIsInstance(history_manager, HistoryManager)
+            self.assertIsInstance(expected_manager, HistoryManager)
+            self.assertTrue(issubclass(historical_model, HistoricalChanges))
+            self.assertEqual(historical_model.instance_type, info.model)
+            self.assertEqual(historical_model, expected_historical_model)
+
+        for model_info in self.history_tracked_models:
+            with self.subTest(model_info=model_info):
+                model = model_info.model
+                manager = get_history_manager_for_model(model)
+                assert_history_manager(manager, model_info)
+
+        for model_info in self.models_without_history_manager:
+            with self.subTest(model_info=model_info):
+                model = model_info.model
+                with self.assertRaises(NotHistoricalModelError):
+                    get_history_manager_for_model(model)
+
+    def test__get_history_model_for_model(self):
+        """Test that ``get_history_model_for_model()`` returns the expected value
+        for various models."""
+        for model_info in self.history_tracked_models:
+            with self.subTest(model_info=model_info):
+                model = model_info.model
+                historical_model = get_history_model_for_model(model)
+                self.assertTrue(issubclass(historical_model, HistoricalChanges))
+                self.assertEqual(historical_model.instance_type, model)
+
+        for model_info in self.models_without_history_manager:
+            with self.subTest(model_info=model_info):
+                model = model_info.model
+                with self.assertRaises(NotHistoricalModelError):
+                    get_history_model_for_model(model)
+
+    def test__get_pk_name(self):
+        """Test that ``get_pk_name()`` returns the expected value for various models."""
+        self.assertEqual(get_pk_name(Poll), "id")
+        self.assertEqual(get_pk_name(PollInfo), "poll_id")
+        self.assertEqual(get_pk_name(Book), "isbn")
+
+        self.assertEqual(get_pk_name(HistoricalPoll), "history_id")
+        self.assertEqual(get_pk_name(HistoricalPollInfo), "history_id")
+        self.assertEqual(get_pk_name(HistoricalBook), "history_id")
+
+
+class GetHistoricalRecordsOfInstanceTestCase(TestCase):
+    def test__get_historical_records_of_instance(self):
+        """Test that ``get_historical_records_of_instance()`` returns the expected
+        queryset for history-tracked model instances."""
+        poll1 = Poll.objects.create(pub_date=timezone.now())
+        poll1_history = poll1.history.all()
+        (record1_1,) = poll1_history
+        self.assertQuerySetEqual(
+            get_historical_records_of_instance(record1_1),
+            poll1_history,
+        )
+
+        poll2 = Poll.objects.create(pub_date=timezone.now())
+        poll2.question = "?"
+        poll2.save()
+        poll2_history = poll2.history.all()
+        (record2_2, record2_1) = poll2_history
+        self.assertQuerySetEqual(
+            get_historical_records_of_instance(record2_1),
+            poll2_history,
+        )
+        self.assertQuerySetEqual(
+            get_historical_records_of_instance(record2_2),
+            poll2_history,
+        )
+
+        poll3 = Poll.objects.create(id=123, pub_date=timezone.now())
+        poll3.delete()
+        poll3_history = Poll.history.filter(id=123)
+        (record3_2, record3_1) = poll3_history
+        self.assertQuerySetEqual(
+            get_historical_records_of_instance(record3_1),
+            poll3_history,
+        )
+        self.assertQuerySetEqual(
+            get_historical_records_of_instance(record3_2),
+            poll3_history,
+        )
 
 
 class GetM2MFieldNamesTestCase(unittest.TestCase):
