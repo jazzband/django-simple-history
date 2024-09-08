@@ -768,7 +768,9 @@ class HistoricalRecords:
                 field=field,
             )
 
-    def create_historical_record(self, instance, history_type, using=None):
+    def create_historical_record(
+        self, instance: models.Model, history_type: str, using: str = None
+    ) -> None:
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)

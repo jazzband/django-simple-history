@@ -43,6 +43,29 @@ See some examples below:
         Poll.objects.create(question="ignore this")
         Poll.objects.create(question="what's up?")
 
+Overriding ``create_historical_record()``
+-----------------------------------------
+
+For even more fine-grained control, you can subclass ``HistoricalRecords`` and override
+its ``create_historical_record()`` method, for example like this:
+
+.. code-block:: python
+
+    class CustomHistoricalRecords(HistoricalRecords):
+        def create_historical_record(
+            self, instance: models.Model, history_type: str, *args, **kwargs
+        ) -> None:
+        # Don't create records for "ignore" polls that are being deleted
+        if "ignore" in poll.question and history_type == "-":
+            return
+
+        super().create_historical_record(instance, history_type, *args, **kwargs)
+
+
+    class Poll(models.Model):
+        # ...
+        history = CustomHistoricalRecords()
+
 The ``SIMPLE_HISTORY_ENABLED`` setting
 --------------------------------------
 
