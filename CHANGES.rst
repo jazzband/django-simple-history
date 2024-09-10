@@ -4,9 +4,40 @@ Changes
 Unreleased
 ----------
 
+**What's new:**
+
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
+- Added ``delete_without_historical_record()`` to all history-tracked model objects,
+  which complements ``save_without_historical_record()`` (gh-1387)
+- Added a ``disable_history()`` context manager, which disables history record creation
+  while it's active; see usage in the docs under "Disable Creating Historical Records"
+  (gh-1387)
+
+**Breaking changes:**
+
+- Removed ``HistoryManager.get_super_queryset()`` (gh-1387)
+- Renamed the ``utils`` functions ``get_history_manager_from_history()``
+  to ``get_historical_records_of_instance()`` and ``get_app_model_primary_key_name()``
+  to ``get_pk_name()`` (gh-1387)
+
+**Deprecations:**
+
+- Deprecated the undocumented ``HistoricalRecords.thread`` - use
+  ``HistoricalRecords.context`` instead. The former attribute will be removed in
+  version 3.10 (gh-1387)
+- Deprecated ``skip_history_when_saving`` in favor of the newly added
+  ``disable_history()`` context manager. The former attribute will be removed in
+  version 4.0 (gh-1387)
+
+**Fixes and improvements:**
+
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Moved the "Save without creating historical records" subsection of "Querying History"
+  in the docs to a new section: "Disable Creating Historical Records" (gh-1387)
+- The ``utils`` functions ``get_history_manager_for_model()`` and
+  ``get_history_model_for_model()`` now explicitly support being passed model instances
+  instead of just model types (gh-1387)
 
 3.7.0 (2024-05-29)
 ------------------

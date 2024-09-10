@@ -1,12 +1,8 @@
-from django.conf import settings
 from django.db import models
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
-from simple_history.utils import (
-    get_app_model_primary_key_name,
-    get_change_reason_from_object,
-)
+from . import utils
 
 # when converting a historical record to an instance, this attribute is added
 # to the instance so that code can reverse the instance to its historical record
@@ -118,16 +114,13 @@ class HistoryManager(models.Manager):
         self.model = model
         self.instance = instance
 
-    def get_super_queryset(self):
-        return super().get_queryset()
-
     def get_queryset(self):
-        qs = self.get_super_queryset()
+        qs = super().get_queryset()
         if self.instance is None:
             return qs
 
-        key_name = get_app_model_primary_key_name(self.instance)
-        return self.get_super_queryset().filter(**{key_name: self.instance.pk})
+        pk_name = utils.get_pk_name(self.instance._meta.model)
+        return qs.filter(**{pk_name: self.instance.pk})
 
     def most_recent(self):
         """
@@ -222,8 +215,9 @@ class HistoryManager(models.Manager):
         If called by bulk_update_with_history, use the update boolean and
         save the history_type accordingly.
         """
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
+        info = utils.DisableHistoryInfo.get()
+        if info.disabled_globally:
+            return []
 
         history_type = "+"
         if update:
@@ -231,6 +225,9 @@ class HistoryManager(models.Manager):
 
         historical_instances = []
         for instance in objs:
+            if info.disabled_for(instance):
+                continue
+
             history_user = getattr(
                 instance,
                 "_history_user",
@@ -241,7 +238,7 @@ class HistoryManager(models.Manager):
                     instance, "_history_date", default_date or timezone.now()
                 ),
                 history_user=history_user,
-                history_change_reason=get_change_reason_from_object(instance)
+                history_change_reason=utils.get_change_reason_from_object(instance)
                 or default_change_reason,
                 history_type=history_type,
                 **{

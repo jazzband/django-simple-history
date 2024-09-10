@@ -4,9 +4,21 @@ import uuid
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Iterable,
+    List,
+    Sequence,
+    Type,
+    Union,
+)
 
 import django
+from asgiref.local import Local
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -45,11 +57,6 @@ from .signals import (
     pre_create_historical_record,
 )
 
-try:
-    from asgiref.local import Local as LocalContext
-except ImportError:
-    from threading import local as LocalContext
-
 if TYPE_CHECKING:
     ModelTypeHint = models.Model
 else:
@@ -83,8 +90,19 @@ def _history_user_setter(historical_instance, user):
 class HistoricalRecords:
     DEFAULT_MODEL_NAME_PREFIX = "Historical"
 
-    thread = context = LocalContext()  # retain thread for backwards compatibility
+    context: ClassVar = Local()
     m2m_models = {}
+
+    class _DeprecatedThreadDescriptor:
+        def __get__(self, *args, **kwargs):
+            warnings.warn(
+                "Use 'HistoricalRecords.context' instead."
+                " The 'thread' attribute will be removed in version 3.10.",
+                DeprecationWarning,
+            )
+            return HistoricalRecords.context
+
+    thread: ClassVar = _DeprecatedThreadDescriptor()
 
     def __init__(
         self,
@@ -178,20 +196,34 @@ class HistoricalRecords:
             warnings.warn(msg, UserWarning)
 
     def add_extra_methods(self, cls):
-        def save_without_historical_record(self, *args, **kwargs):
+        def get_instance_predicate(
+            self: models.Model,
+        ) -> Callable[[models.Model], bool]:
+            def predicate(instance: models.Model) -> bool:
+                return instance == self
+
+            return predicate
+
+        def save_without_historical_record(self: models.Model, *args, **kwargs):
             """
             Save the model instance without creating a historical record.
 
             Make sure you know what you're doing before using this method.
             """
-            self.skip_history_when_saving = True
-            try:
-                ret = self.save(*args, **kwargs)
-            finally:
-                del self.skip_history_when_saving
-            return ret
+            with utils.disable_history(instance_predicate=get_instance_predicate(self)):
+                return self.save(*args, **kwargs)
 
-        setattr(cls, "save_without_historical_record", save_without_historical_record)
+        def delete_without_historical_record(self: models.Model, *args, **kwargs):
+            """
+            Delete the model instance without creating a historical record.
+
+            Make sure you know what you're doing before using this method.
+            """
+            with utils.disable_history(instance_predicate=get_instance_predicate(self)):
+                return self.delete(*args, **kwargs)
+
+        cls.save_without_historical_record = save_without_historical_record
+        cls.delete_without_historical_record = delete_without_historical_record
 
     def finalize(self, sender, **kwargs):
         inherited = False
@@ -536,7 +568,7 @@ class HistoricalRecords:
             """
             Get the next history record for the instance. `None` if last.
             """
-            history = utils.get_history_manager_from_history(self)
+            history = utils.get_historical_records_of_instance(self)
             return (
                 history.filter(history_date__gt=self.history_date)
                 .order_by("history_date")
@@ -547,7 +579,7 @@ class HistoricalRecords:
             """
             Get the previous history record for the instance. `None` if first.
             """
-            history = utils.get_history_manager_from_history(self)
+            history = utils.get_historical_records_of_instance(self)
             return (
                 history.filter(history_date__lt=self.history_date)
                 .order_by("history_date")
@@ -648,18 +680,27 @@ class HistoricalRecords:
             )
         return meta_fields
 
-    def post_save(self, instance, created, using=None, **kwargs):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
+    def post_save(
+        self, instance: models.Model, created: bool, using: str = None, **kwargs
+    ):
         if hasattr(instance, "skip_history_when_saving"):
+            warnings.warn(
+                "Setting 'skip_history_when_saving' has been deprecated in favor of the"
+                " 'disable_history()' context manager."
+                " Support for the former attribute will be removed in version 4.0.",
+                DeprecationWarning,
+            )
+            return
+        if utils.is_history_disabled(instance):
             return
 
         if not kwargs.get("raw", False):
             self.create_historical_record(instance, created and "+" or "~", using=using)
 
-    def post_delete(self, instance, using=None, **kwargs):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
+    def post_delete(self, instance: models.Model, using: str = None, **kwargs):
+        if utils.is_history_disabled(instance):
             return
+
         if self.cascade_delete_history:
             manager = getattr(instance, self.manager_name)
             manager.using(using).all().delete()
@@ -673,10 +714,16 @@ class HistoricalRecords:
         """
         return utils.get_change_reason_from_object(instance)
 
-    def m2m_changed(self, instance, action, attr, pk_set, reverse, **_):
-        if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
-            return
+    def m2m_changed(self, instance: models.Model, action: str, **kwargs):
         if hasattr(instance, "skip_history_when_saving"):
+            warnings.warn(
+                "Setting 'skip_history_when_saving' has been deprecated in favor of the"
+                " 'disable_history()' context manager."
+                " Support for the former attribute will be removed in version 4.0.",
+                DeprecationWarning,
+            )
+            return
+        if utils.is_history_disabled(instance):
             return
 
         if action in ("post_add", "post_remove", "post_clear"):
@@ -721,7 +768,9 @@ class HistoricalRecords:
                 field=field,
             )
 
-    def create_historical_record(self, instance, history_type, using=None):
+    def create_historical_record(
+        self, instance: models.Model, history_type: str, using: str = None
+    ) -> None:
         using = using if self.use_base_model_db else None
         history_date = getattr(instance, "_history_date", timezone.now())
         history_user = self.get_history_user(instance)

@@ -5,10 +5,9 @@ from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.db.models.fields.related import ForeignKey
 from django.urls import reverse
 
-from simple_history import register
+from simple_history import register, utils
 from simple_history.manager import HistoricalQuerySet, HistoryManager
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
@@ -355,7 +354,7 @@ class Person(models.Model):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        if hasattr(self, "skip_history_when_saving"):
+        if utils.DisableHistoryInfo.get().disabled_for(self):
             raise RuntimeError("error while saving")
         else:
             super().save(*args, **kwargs)

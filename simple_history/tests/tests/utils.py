@@ -1,9 +1,11 @@
 from enum import Enum
-from typing import Type
+from typing import List, Type
 
 from django.conf import settings
-from django.db.models import Model
+from django.db.models import Manager, Model
 from django.test import TestCase
+
+from simple_history.utils import get_m2m_reverse_field_name
 
 request_middleware = "simple_history.middleware.HistoryRequestMiddleware"
 
@@ -26,13 +28,32 @@ class HistoricalTestCase(TestCase):
         :param klass: The type of the history-tracked class of ``record``.
         :param values_dict: Field names of ``record`` mapped to their expected values.
         """
-        for key, value in values_dict.items():
-            self.assertEqual(getattr(record, key), value)
+        values_dict_copy = values_dict.copy()
+        for field_name, expected_value in values_dict.items():
+            value = getattr(record, field_name)
+            if isinstance(value, Manager):
+                # Assuming that the value being a manager means that it's an M2M field
+                self._assert_m2m_record(record, field_name, expected_value)
+                # Remove the field, as `history_object` (used below) doesn't currently
+                # support historical M2M queryset values
+                values_dict_copy.pop(field_name)
+            else:
+                self.assertEqual(value, expected_value)
 
-        self.assertEqual(record.history_object.__class__, klass)
-        for key, value in values_dict.items():
-            if key not in ("history_type", "history_change_reason"):
-                self.assertEqual(getattr(record.history_object, key), value)
+        history_object = record.history_object
+        self.assertEqual(history_object.__class__, klass)
+        for field_name, expected_value in values_dict_copy.items():
+            if field_name not in ("history_type", "history_change_reason"):
+                self.assertEqual(getattr(history_object, field_name), expected_value)
+
+    def _assert_m2m_record(self, record, field_name: str, expected_value: List[Model]):
+        value = getattr(record, field_name)
+        field = record.instance_type._meta.get_field(field_name)
+        reverse_field_name = get_m2m_reverse_field_name(field)
+        self.assertListEqual(
+            [getattr(m2m_record, reverse_field_name) for m2m_record in value.all()],
+            expected_value,
+        )
 
 
 class TestDbRouter:
