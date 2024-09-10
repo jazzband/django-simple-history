@@ -7,13 +7,13 @@ repos:
         exclude: /.*tests/
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.4.2
+    rev: 24.8.0
     hooks:
       - id: black
         language_version: python3.8
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.0
+    rev: 7.1.1
     hooks:
       - id: flake8
         args:
@@ -40,11 +40,11 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: 2.1.4
+    rev: 2.2.3
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.18
+    rev: v0.19
     hooks:
       - id: validate-pyproject
 
@@ -56,7 +56,7 @@ repos:
           - "--strict"
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.16.0
+    rev: v3.17.0
     hooks:
       - id: pyupgrade
         args: [--py38-plus]
