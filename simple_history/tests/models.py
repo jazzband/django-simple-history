@@ -237,6 +237,18 @@ class PollWithSelfManyToMany(models.Model):
     history = HistoricalRecords(m2m_fields=[relations])
 
 
+class PollWithManyToManyThroughString(models.Model):
+    books = models.ManyToManyField("Book", through="PollBookThroughTable")
+    history = HistoricalRecords(m2m_fields=[books])
+
+
+class PollBookThroughTable(models.Model):
+    book = models.ForeignKey("Book", on_delete=models.CASCADE)
+    poll = models.ForeignKey(
+        "PollWithManyToManyThroughString", on_delete=models.CASCADE
+    )
+
+
 class CustomAttrNameForeignKey(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         self.attr_name = kwargs.pop("attr_name", None)

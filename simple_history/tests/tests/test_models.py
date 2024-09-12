@@ -96,6 +96,7 @@ from ..models import (
     PollWithHistoricalIPAddress,
     PollWithManyToMany,
     PollWithManyToManyCustomHistoryID,
+    PollWithManyToManyThroughString,
     PollWithManyToManyWithIPAddress,
     PollWithNonEditableField,
     PollWithQuerySetCustomizations,
@@ -2513,6 +2514,60 @@ class ManyToManyTest(TestCase):
             [expected_change], ["places"], add_record, del_record
         )
         self.assertEqual(delta, expected_delta)
+
+
+class ManyToManyThroughStringTest(TestCase):
+    def setUp(self):
+        self.model = PollWithManyToManyThroughString
+        self.history_model = self.model.history.model
+        self.poll = self.model.objects.create()
+        self.book = Book.objects.create(isbn="1234")
+
+    def assertDatetimesEqual(self, time1, time2):
+        self.assertAlmostEqual(time1, time2, delta=timedelta(seconds=2))
+
+    def assertRecordValues(self, record, klass, values_dict):
+        for key, value in values_dict.items():
+            self.assertEqual(getattr(record, key), value)
+        self.assertEqual(record.history_object.__class__, klass)
+        for key, value in values_dict.items():
+            if key not in ["history_type", "history_change_reason"]:
+                self.assertEqual(getattr(record.history_object, key), value)
+
+    def test_create(self):
+        # There should be 1 history record for our poll, the create from setUp
+        self.assertEqual(self.poll.history.all().count(), 1)
+
+        # The created history row should be normal and correct
+        (record,) = self.poll.history.all()
+        self.assertRecordValues(
+            record,
+            self.model,
+            {
+                "id": self.poll.id,
+                "history_type": "+",
+            },
+        )
+        self.assertDatetimesEqual(record.history_date, datetime.now())
+
+        historical_poll = self.poll.history.all()[0]
+
+        # There should be no books associated with the current poll yet
+        self.assertEqual(historical_poll.books.count(), 0)
+
+        # Add a many-to-many child
+        self.poll.books.add(self.book)
+
+        # A new history row has been created by adding the M2M
+        self.assertEqual(self.poll.history.all().count(), 2)
+
+        # The new row has a place attached to it
+        m2m_record = self.poll.history.all()[0]
+        self.assertEqual(m2m_record.books.count(), 1)
+
+        # And the historical place is the correct one
+        historical_book = m2m_record.books.first()
+        self.assertEqual(historical_book.book, self.book)
 
 
 @override_settings(**database_router_override_settings)
