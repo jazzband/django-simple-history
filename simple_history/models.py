@@ -15,7 +15,7 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.db.models import ManyToManyField
 from django.db.models.fields.proxy import OrderWrt
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, lazy_related_operation
 from django.db.models.fields.related_descriptors import (
     ForwardManyToOneDescriptor,
     ReverseManyToOneDescriptor,
@@ -84,6 +84,8 @@ class HistoricalRecords:
     DEFAULT_MODEL_NAME_PREFIX = "Historical"
 
     thread = context = LocalContext()  # retain thread for backwards compatibility
+    # Key is the m2m field and value is a tuple where first entry is the historical m2m
+    # model and second is the through model
     m2m_models = {}
 
     def __init__(
@@ -222,13 +224,6 @@ class HistoricalRecords:
 
         m2m_fields = self.get_m2m_fields_from_model(sender)
 
-        for field in m2m_fields:
-            m2m_changed.connect(
-                partial(self.m2m_changed, attr=field.name),
-                sender=field.remote_field.through,
-                weak=False,
-            )
-
         descriptor = HistoryDescriptor(
             history_model,
             manager=self.history_manager,
@@ -238,15 +233,29 @@ class HistoricalRecords:
         sender._meta.simple_history_manager_attribute = self.manager_name
 
         for field in m2m_fields:
-            m2m_model = self.create_history_m2m_model(
-                history_model, field.remote_field.through
+
+            def resolve_through_model(history_model, through_model):
+                m2m_changed.connect(
+                    partial(self.m2m_changed, attr=field.name),
+                    sender=through_model,
+                    weak=False,
+                )
+                m2m_model = self.create_history_m2m_model(history_model, through_model)
+                # Save the created history model and the resolved through model together
+                # for reference later
+                self.m2m_models[field] = (m2m_model, through_model)
+
+                setattr(module, m2m_model.__name__, m2m_model)
+
+                m2m_descriptor = HistoryDescriptor(m2m_model)
+                setattr(history_model, field.name, m2m_descriptor)
+
+            # Lazily generate the historical m2m models for the fields when all of the
+            # associated models have been fully loaded. This handles resolving through
+            # models referenced as strings. This is how django m2m fields handle this.
+            lazy_related_operation(
+                resolve_through_model, history_model, field.remote_field.through
             )
-            self.m2m_models[field] = m2m_model
-
-            setattr(module, m2m_model.__name__, m2m_model)
-
-            m2m_descriptor = HistoryDescriptor(m2m_model)
-            setattr(history_model, field.name, m2m_descriptor)
 
     def get_history_model_name(self, model):
         if not self.custom_model_name:
@@ -685,9 +694,7 @@ class HistoricalRecords:
 
     def create_historical_record_m2ms(self, history_instance, instance):
         for field in history_instance._history_m2m_fields:
-            m2m_history_model = self.m2m_models[field]
-            original_instance = history_instance.instance
-            through_model = getattr(original_instance, field.name).through
+            m2m_history_model, through_model = self.m2m_models[field]
             through_model_field_names = [f.name for f in through_model._meta.fields]
             through_model_fk_field_names = [
                 f.name for f in through_model._meta.fields if isinstance(f, ForeignKey)
