@@ -29,6 +29,7 @@ Unreleased
 - Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
 - Added support for Python 3.11 (gh-1053)
 - Fixed issue with deferred fields causing DoesNotExist error
+
 =======
 
 
@@ -360,7 +361,7 @@ history tables to a separate database from their base tables. This issue is fixe
 - Allow history table to be formatted correctly with ``django-admin-bootstrap``
 - Disallow calling ``simple_history.register`` twice on the same model
 - Added Python 3 support
-- Added support for custom user model (Django 1.5+)
+- Added support for custom user model (Django 1.5+)s
 
 1.2.3 (2013-04-22)
 ------------------
