@@ -965,9 +965,7 @@ class HistoricReverseOneToOneDescriptor(ReverseOneToOneDescriptor):
                 None,
             )
             if history and histmgr:
-                return histmgr.as_of(
-                    getattr(history, "_as_of", history.history_date)
-                )
+                return histmgr.as_of(getattr(history, "_as_of", history.history_date))
         return super().get_queryset(**hints)
 
 
