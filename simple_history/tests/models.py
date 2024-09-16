@@ -9,6 +9,7 @@ from django.db.models.fields.related import ForeignKey
 from django.urls import reverse
 
 from simple_history import register
+from simple_history.manager import HistoricalQuerySet, HistoryManager
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from .custom_user.models import CustomUser as User
@@ -125,6 +126,18 @@ class PollWithHistoricalIPAddress(models.Model):
         return reverse("poll-detail", kwargs={"pk": self.pk})
 
 
+class SessionsHistoricalModel(models.Model):
+    session = models.CharField(max_length=200, null=True, default=None)
+
+    class Meta:
+        abstract = True
+
+
+class PollWithHistoricalSessionAttr(models.Model):
+    question = models.CharField(max_length=200)
+    history = HistoricalRecords(bases=[SessionsHistoricalModel])
+
+
 class PollWithManyToMany(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
@@ -140,6 +153,25 @@ class PollWithManyToManyCustomHistoryID(models.Model):
 
     history = HistoricalRecords(
         m2m_fields=[places], history_id_field=models.UUIDField(default=uuid.uuid4)
+    )
+
+
+class PollQuerySet(HistoricalQuerySet):
+    def questions(self):
+        return self.filter(question__startswith="Question ")
+
+
+class PollManager(HistoryManager):
+    def low_ids(self):
+        return self.filter(id__lte=3)
+
+
+class PollWithQuerySetCustomizations(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+
+    history = HistoricalRecords(
+        history_manager=PollManager, historical_queryset=PollQuerySet
     )
 
 
@@ -190,7 +222,7 @@ class PollParentWithManyToMany(models.Model):
 
 class PollChildBookWithManyToMany(PollParentWithManyToMany):
     books = models.ManyToManyField("Book", related_name="books_poll_child")
-    _history_m2m_fields = [books]
+    _history_m2m_fields = ["books"]
 
 
 class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
@@ -198,6 +230,11 @@ class PollChildRestaurantWithManyToMany(PollParentWithManyToMany):
         "Restaurant", related_name="restaurants_poll_child"
     )
     _history_m2m_fields = [restaurants]
+
+
+class PollWithSelfManyToMany(models.Model):
+    relations = models.ManyToManyField("self")
+    history = HistoricalRecords(m2m_fields=[relations])
 
 
 class CustomAttrNameForeignKey(models.ForeignKey):
@@ -549,6 +586,7 @@ class Planet(models.Model):
 
     class Meta:
         verbose_name = "Planet"
+        verbose_name_plural = "Planets"
 
 
 class Contact(models.Model):
@@ -669,7 +707,7 @@ class InheritTracking4(TrackedAbstractBaseA):
 
 class BasePlace(models.Model):
     name = models.CharField(max_length=50)
-    history = HistoricalRecords(inherit=True)
+    history = HistoricalRecords(inherit=True, table_name="base_places_history")
 
 
 class InheritedRestaurant(BasePlace):

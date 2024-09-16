@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.db import connection, models
-from django.db.models import OuterRef, QuerySet, Subquery
+from django.db import models
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from simple_history.utils import (
@@ -29,13 +29,11 @@ class HistoricalQuerySet(QuerySet):
         self._as_of = None
         self._pk_attr = self.model.instance_type._meta.pk.attname
 
-    def as_instances(self):
+    def as_instances(self) -> "HistoricalQuerySet":
         """
         Return a queryset that generates instances instead of historical records.
         Queries against the resulting queryset will translate `pk` into the
         primary key field of the original type.
-
-        Returns a queryset.
         """
         if not self._as_instances:
             result = self.exclude(history_type="-")
@@ -44,7 +42,7 @@ class HistoricalQuerySet(QuerySet):
             result = self._clone()
         return result
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args, **kwargs) -> "HistoricalQuerySet":
         """
         If a `pk` filter arrives and the queryset is returning instances
         then the caller actually wants to filter based on the original
@@ -55,54 +53,49 @@ class HistoricalQuerySet(QuerySet):
             kwargs[self._pk_attr] = kwargs.pop("pk")
         return super().filter(*args, **kwargs)
 
-    def latest_of_each(self):
+    def latest_of_each(self) -> "HistoricalQuerySet":
         """
         Ensures results in the queryset are the latest historical record for each
-        primary key.  Deletions are not removed.
-
-        Returns a queryset.
+        primary key. This includes deletion records.
         """
-        # If using MySQL, need to get a list of IDs in memory and then use them for the
-        # second query.
-        # Does mean two loops through the DB to get the full set, but still a speed
-        # improvement.
-        backend = connection.vendor
-        if backend == "mysql":
-            history_ids = {}
-            for item in self.order_by("-history_date", "-pk"):
-                if getattr(item, self._pk_attr) not in history_ids:
-                    history_ids[getattr(item, self._pk_attr)] = item.pk
-            latest_historics = self.filter(history_id__in=history_ids.values())
-        elif backend == "postgresql":
-            latest_pk_attr_historic_ids = (
-                self.order_by(self._pk_attr, "-history_date", "-pk")
-                .distinct(self._pk_attr)
-                .values_list("pk", flat=True)
-            )
-            latest_historics = self.filter(history_id__in=latest_pk_attr_historic_ids)
-        else:
-            latest_pk_attr_historic_ids = (
-                self.filter(**{self._pk_attr: OuterRef(self._pk_attr)})
-                .order_by("-history_date", "-pk")
-                .values("pk")[:1]
-            )
-            latest_historics = self.filter(
-                history_id__in=Subquery(latest_pk_attr_historic_ids)
-            )
-        return latest_historics
+        # Subquery for finding the records that belong to the same history-tracked
+        # object as the record from the outer query (identified by `_pk_attr`),
+        # and that have a later `history_date` than the outer record.
+        # The very latest record of a history-tracked object should be excluded from
+        # this query - which will make it included in the `~Exists` query below.
+        later_records = self.filter(
+            Q(**{self._pk_attr: OuterRef(self._pk_attr)}),
+            Q(history_date__gt=OuterRef("history_date")),
+        )
 
-    def _clone(self):
+        # Filter the records to only include those for which the `later_records`
+        # subquery does not return any results.
+        return self.filter(~Exists(later_records))
+
+    def _select_related_history_tracked_objs(self) -> "HistoricalQuerySet":
+        """
+        A convenience method that calls ``select_related()`` with all the names of
+        the model's history-tracked ``ForeignKey`` fields.
+        """
+        field_names = [
+            field.name
+            for field in self.model.tracked_fields
+            if isinstance(field, models.ForeignKey)
+        ]
+        return self.select_related(*field_names)
+
+    def _clone(self) -> "HistoricalQuerySet":
         c = super()._clone()
         c._as_instances = self._as_instances
         c._as_of = self._as_of
         c._pk_attr = self._pk_attr
         return c
 
-    def _fetch_all(self):
+    def _fetch_all(self) -> None:
         super()._fetch_all()
         self._instanceize()
 
-    def _instanceize(self):
+    def _instanceize(self) -> None:
         """
         Convert the result cache to instances if possible and it has not already been
         done.  If a query extracts `.values(...)` then the result cache will not contain
@@ -117,14 +110,6 @@ class HistoricalQuerySet(QuerySet):
             for item in self._result_cache:
                 historic = getattr(item, SIMPLE_HISTORY_REVERSE_ATTR_NAME)
                 setattr(historic, "_as_of", self._as_of)
-
-
-class HistoryDescriptor:
-    def __init__(self, model):
-        self.model = model
-
-    def __get__(self, instance, owner):
-        return HistoryManager.from_queryset(HistoricalQuerySet)(self.model, instance)
 
 
 class HistoryManager(models.Manager):
@@ -230,6 +215,7 @@ class HistoryManager(models.Manager):
         default_user=None,
         default_change_reason="",
         default_date=None,
+        custom_historical_attrs=None,
     ):
         """
         Bulk create the history for the objects specified by objs.
@@ -262,6 +248,7 @@ class HistoryManager(models.Manager):
                     field.attname: getattr(instance, field.attname)
                     for field in self.model.tracked_fields
                 },
+                **(custom_historical_attrs or {}),
             )
             if hasattr(self.model, "history_relation"):
                 row.history_relation_id = instance.pk
@@ -269,4 +256,16 @@ class HistoryManager(models.Manager):
 
         return self.model.objects.bulk_create(
             historical_instances, batch_size=batch_size
+        )
+
+
+class HistoryDescriptor:
+    def __init__(self, model, manager=HistoryManager, queryset=HistoricalQuerySet):
+        self.model = model
+        self.queryset_class = queryset
+        self.manager_class = manager
+
+    def __get__(self, instance, owner):
+        return self.manager_class.from_queryset(self.queryset_class)(
+            self.model, instance
         )

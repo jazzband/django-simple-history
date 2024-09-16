@@ -75,7 +75,7 @@ We make use of `black`_ for code formatting.
 
 .. _black: https://black.readthedocs.io/en/stable/installation_and_usage.html
 
-You can install and run it along with other linters through pre-commit:
+You can install and run it along with other linters through pre-commit::
 
     pre-commit install
     pre-commit run

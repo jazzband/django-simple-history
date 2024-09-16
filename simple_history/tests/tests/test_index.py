@@ -14,5 +14,5 @@ class HistoricalIndexTest(TestCase):
             history = HistoricalRecords()
 
         self.assertEqual(
-            ("history_date", "id"), Foo.history.model._meta.index_together[0]
+            ["history_date", "id"], Foo.history.model._meta.indexes[0].fields
         )

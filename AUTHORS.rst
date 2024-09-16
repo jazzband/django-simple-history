@@ -16,8 +16,10 @@ Authors
 - Alexander Anikeev
 - Amanda Ng (`AmandaCLNg <https://github.com/AmandaCLNg>`_)
 - Amartis Gladius (`Amartis <https://github.com/amartis>`_)
+- Anton Kulikov (`bigtimecriminal <https://github.com/bigtimecriminal>`_)
 - Ben Lawson (`blawson <https://github.com/blawson>`_)
 - Benjamin Mampaey (`bmampaey <https://github.com/bmampaey>`_)
+- Berke Agababaoglu (`bagababaoglu <https://github.com/bagababaoglu>`_)
 - Bheesham Persaud (`bheesham <https://github.com/bheesham>`_)
 - `bradford281 <https://github.com/bradford281>`_
 - Brian Armstrong (`barm <https://github.com/barm>`_)
@@ -56,6 +58,7 @@ Authors
 - Hamish Downer
 - Hans de Jong (`sult <https://github.com/sult>`_)
 - Hanyin Zhang
+- Héctor Durán (`hector97i <https://github.com/hector97i>`)
 - Hernan Esteves (`sevetseh28 <https://github.com/sevetseh28>`_)
 - Hielke Walinga (`hwalinga <https://github.com/hwalinga>`_)
 - Hugo van Kemenade (`hugovk <https://github.com/hugovk>`_)
@@ -63,6 +66,7 @@ Authors
 - Jake Howard (`RealOrangeOne <https://github.com/realorangeone>`_)
 - James Muranga (`jamesmura <https://github.com/jamesmura>`_)
 - James Pulec
+- Jeppe Fihl-Pearson (`Tenzer <https://github.com/Tenzer>`_)
 - Jesse Shapiro
 - Jihoon Baek (`jihoon796 <https://github.com/jihoon796>`_)
 - Jim Gomez
@@ -81,6 +85,7 @@ Authors
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
 - Keith Hackbarth
 - Kevin Foster
+- Kira (`kiraware <https://github.com/kiraware>`_)
 - Klaas van Schelven
 - Kris Neuharth
 - Kyle Seever (`kseever <https://github.com/kseever>`_)
@@ -89,6 +94,7 @@ Authors
 - Lucas Wiman
 - Maciej "RooTer" Urbański
 - Marcelo Canina (`marcanuy <https://github.com/marcanuy>`_)
+- Marco Sirabella
 - Mark Davidoff
 - Martin Bachwerk
 - Marty Alchin
@@ -100,9 +106,12 @@ Authors
 - Michael England
 - Miguel Vargas
 - Mike Spainhower
+- Muneeb Shahid (`muneeb706 <https://github.com/muneeb706>`_)
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Nick Träger
+- Noel James (`NoelJames <https://github.com/NoelJames>`_)
+- Ofek Lev (`ofek <https://github.com/ofek>`_)
 - Phillip Marshall
 - Prakash Venkatraman (`dopatraman <https://github.com/dopatraman>`_)
 - Rajesh Pappula
@@ -135,6 +144,7 @@ Authors
 - `ddusi <https://github.com/ddusi>`_
 - `DanialErfanian <https://github.com/DanialErfanian>`_
 - `Sridhar Marella <https://github.com/sridhar562345>`_
+- `Mattia Fantoni <https://github.com/MattFanto>`_
 
 Background
 ==========

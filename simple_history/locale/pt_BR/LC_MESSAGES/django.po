@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-01 15:47-0300\n"
 "PO-Revision-Date: 2017-06-01 15:47-0300\n"
@@ -57,26 +57,6 @@ msgstr ""
 "Escolha a data desejada na lista a seguir para reverter as modificações "
 "feitas nesse objeto."
 
-#: simple_history/templates/simple_history/object_history.html:17
-msgid "Object"
-msgstr "Objeto"
-
-#: simple_history/templates/simple_history/object_history.html:18
-msgid "Date/time"
-msgstr "Data/hora"
-
-#: simple_history/templates/simple_history/object_history.html:19
-msgid "Comment"
-msgstr "Comentário"
-
-#: simple_history/templates/simple_history/object_history.html:20
-msgid "Changed by"
-msgstr "Modificado por"
-
-#: simple_history/templates/simple_history/object_history.html:38
-msgid "None"
-msgstr "-"
-
 #: simple_history/templates/simple_history/object_history.html:46
 msgid "This object doesn't have a change history."
 msgstr "Esse objeto não tem um histórico de modificações."
@@ -103,6 +83,26 @@ msgstr ""
 #: simple_history/templates/simple_history/object_history_form.html:21
 msgid "Or press the 'Change History' button to edit the history."
 msgstr "Ou clique em 'Histórico de Modificações' para modificar o histórico."
+
+#: simple_history/templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "Objeto"
+
+#: simple_history/templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "Data/hora"
+
+#: simple_history/templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "Comentário"
+
+#: simple_history/templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "Modificado por"
+
+#: simple_history/templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "-"
 
 #: simple_history/templates/simple_history/submit_line.html:3
 msgid "Revert"

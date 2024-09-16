@@ -57,6 +57,30 @@ def get_app_model_primary_key_name(model):
     return model._meta.pk.name
 
 
+def get_m2m_field_name(m2m_field: ManyToManyField) -> str:
+    """
+    Returns the field name of an M2M field's through model that corresponds to the model
+    the M2M field is defined on.
+
+    E.g. for a ``votes`` M2M field on a ``Poll`` model that references a ``Vote`` model
+    (and with a default-generated through model), this function would return ``"poll"``.
+    """
+    # This method is part of Django's internal API
+    return m2m_field.m2m_field_name()
+
+
+def get_m2m_reverse_field_name(m2m_field: ManyToManyField) -> str:
+    """
+    Returns the field name of an M2M field's through model that corresponds to the model
+    the M2M field references.
+
+    E.g. for a ``votes`` M2M field on a ``Poll`` model that references a ``Vote`` model
+    (and with a default-generated through model), this function would return ``"vote"``.
+    """
+    # This method is part of Django's internal API
+    return m2m_field.m2m_reverse_field_name()
+
+
 def bulk_create_with_history(
     objs,
     model,
@@ -65,6 +89,7 @@ def bulk_create_with_history(
     default_user=None,
     default_change_reason=None,
     default_date=None,
+    custom_historical_attrs=None,
 ):
     """
     Bulk create the objects specified by objs while also bulk creating
@@ -81,6 +106,8 @@ def bulk_create_with_history(
         in each historical record
     :param default_date: Optional date to specify as the history_date in each historical
         record
+    :param custom_historical_attrs: Optional dict of field `name`:`value` to specify
+        values for custom fields
     :return: List of objs with IDs
     """
     # Exclude ManyToManyFields because they end up as invalid kwargs to
@@ -106,6 +133,7 @@ def bulk_create_with_history(
                 default_user=default_user,
                 default_change_reason=default_change_reason,
                 default_date=default_date,
+                custom_historical_attrs=custom_historical_attrs,
             )
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
@@ -143,6 +171,7 @@ def bulk_create_with_history(
                 default_user=default_user,
                 default_change_reason=default_change_reason,
                 default_date=default_date,
+                custom_historical_attrs=custom_historical_attrs,
             )
         objs_with_id = obj_list
     return objs_with_id
@@ -157,13 +186,15 @@ def bulk_update_with_history(
     default_change_reason=None,
     default_date=None,
     manager=None,
+    custom_historical_attrs=None,
 ):
     """
     Bulk update the objects specified by objs while also bulk creating
     their history (all in one transaction).
     :param objs: List of objs of type model to be updated
     :param model: Model class that should be updated
-    :param fields: The fields that are updated
+    :param fields: The fields that are updated. If empty, no model objects will be
+        changed, but history records will still be created.
     :param batch_size: Number of objects that should be updated in each batch
     :param default_user: Optional user to specify as the history_user in each historical
         record
@@ -173,6 +204,9 @@ def bulk_update_with_history(
         record
     :param manager: Optional model manager to use for the model instead of the default
         manager
+    :param custom_historical_attrs: Optional dict of field `name`:`value` to specify
+        values for custom fields
+    :return: The number of model rows updated, not including any history objects
     """
     history_manager = get_history_manager_for_model(model)
     model_manager = manager or model._default_manager
@@ -180,7 +214,15 @@ def bulk_update_with_history(
         raise AlternativeManagerError("The given manager does not belong to the model.")
 
     with transaction.atomic(savepoint=False):
-        model_manager.bulk_update(objs, fields, batch_size=batch_size)
+        if not fields:
+            # Allow not passing any fields if the user wants to bulk-create history
+            # records - e.g. with `custom_historical_attrs` provided
+            # (Calling `bulk_update()` with no fields would have raised an error)
+            rows_updated = 0
+        else:
+            rows_updated = model_manager.bulk_update(
+                objs, fields, batch_size=batch_size
+            )
         history_manager.bulk_history_create(
             objs,
             batch_size=batch_size,
@@ -188,7 +230,9 @@ def bulk_update_with_history(
             default_user=default_user,
             default_change_reason=default_change_reason,
             default_date=default_date,
+            custom_historical_attrs=custom_historical_attrs,
         )
+    return rows_updated
 
 
 def get_change_reason_from_object(obj):

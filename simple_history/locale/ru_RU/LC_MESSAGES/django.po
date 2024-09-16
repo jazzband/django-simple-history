@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-10-10 16:47+0300\n"
 "PO-Revision-Date: 2021-10-14 14:05+0300\n"
@@ -50,26 +50,6 @@ msgstr "Изменено"
 msgid "Deleted"
 msgstr "Удалено"
 
-#: templates/simple_history/_object_history_list.html:9
-msgid "Object"
-msgstr "Объект"
-
-#: templates/simple_history/_object_history_list.html:13
-msgid "Date/time"
-msgstr "Дата/время"
-
-#: templates/simple_history/_object_history_list.html:14
-msgid "Comment"
-msgstr "Комментарий"
-
-#: templates/simple_history/_object_history_list.html:15
-msgid "Changed by"
-msgstr "Изменено"
-
-#: templates/simple_history/_object_history_list.html:36
-msgid "None"
-msgstr "None"
-
 #: templates/simple_history/object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -105,6 +85,30 @@ msgstr ""
 msgid "Or press the 'Change History' button to edit the history."
 msgstr "Или нажмите кнопку 'Изменить запись', чтобы изменить историю."
 
+#: templates/simple_history/object_history_list.html:9
+msgid "Object"
+msgstr "Объект"
+
+#: templates/simple_history/object_history_list.html:13
+msgid "Date/time"
+msgstr "Дата/время"
+
+#: templates/simple_history/object_history_list.html:14
+msgid "Comment"
+msgstr "Комментарий"
+
+#: templates/simple_history/object_history_list.html:15
+msgid "Changed by"
+msgstr "Изменено"
+
+#: templates/simple_history/object_history_list.html:16
+msgid "Change reason"
+msgstr "Причина изменения"
+
+#: templates/simple_history/object_history_list.html:42
+msgid "None"
+msgstr "None"
+
 #: templates/simple_history/submit_line.html:3
 msgid "Revert"
 msgstr "Восстановить"
@@ -112,7 +116,3 @@ msgstr "Восстановить"
 #: templates/simple_history/submit_line.html:4
 msgid "Change History"
 msgstr "Изменить запись"
-
-#: templates/simple_history/_object_history_list.html:16
-msgid "Change reason"
-msgstr "Причина изменения"

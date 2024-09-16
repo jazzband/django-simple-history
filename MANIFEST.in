@@ -1,6 +1,0 @@
-include MANIFEST.in
-include *.rst
-include *.txt
-recursive-include docs *.rst
-recursive-include simple_history/locale *
-recursive-include simple_history/templates *

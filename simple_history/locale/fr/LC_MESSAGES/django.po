@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: django-simple-history\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-04-04 01:50+0300\n"
 "PO-Revision-Date: 2020-04-25 22:50+0200\n"
@@ -59,30 +59,6 @@ msgstr "Modifié"
 msgid "Deleted"
 msgstr "Effacé"
 
-#: .\simple_history\templates\simple_history\_object_history_list.html:9
-msgid "Object"
-msgstr "Objet"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:13
-msgid "Date/time"
-msgstr "Date/heure"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:14
-msgid "Comment"
-msgstr "Commentaire"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:15
-msgid "Changed by"
-msgstr "Modifié par"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:16
-msgid "Change reason"
-msgstr "Raison de la modification"
-
-#: .\simple_history\templates\simple_history\_object_history_list.html:37
-msgid "None"
-msgstr "Aucun"
-
 #: .\simple_history\templates\simple_history\object_history.html:11
 msgid ""
 "Choose a date from the list below to revert to a previous version of this "
@@ -115,15 +91,39 @@ msgstr "Rétablir %(verbose_name)s"
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid ""
-"Press the 'Revert' button below to revert to this version of the object. "
+"Press the 'Revert' button below to revert to this version of the object."
 msgstr ""
 "Cliquez sur le bouton 'Rétablir' ci-dessous pour revenir à cette version de "
-"l' objet. "
+"l' objet."
 
 #: .\simple_history\templates\simple_history\object_history_form.html:25
 msgid "Press the 'Change History' button below to edit the history."
 msgstr ""
 "Cliquez sur le bouton 'Historique' ci-dessous pour modifier l'historique."
+
+#: .\simple_history\templates\simple_history\object_history_list.html:9
+msgid "Object"
+msgstr "Objet"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:13
+msgid "Date/time"
+msgstr "Date/heure"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:14
+msgid "Comment"
+msgstr "Commentaire"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:15
+msgid "Changed by"
+msgstr "Modifié par"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:16
+msgid "Change reason"
+msgstr "Raison de la modification"
+
+#: .\simple_history\templates\simple_history\object_history_list.html:42
+msgid "None"
+msgstr "Aucun"
 
 #: .\simple_history\templates\simple_history\submit_line.html:4
 msgid "Revert"

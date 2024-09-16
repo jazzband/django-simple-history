@@ -1,6 +1,9 @@
+import unittest
 from datetime import datetime
+from unittest import skipUnless
 from unittest.mock import Mock, patch
 
+import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase, override_settings
@@ -12,18 +15,86 @@ from simple_history.tests.models import (
     Document,
     Place,
     Poll,
+    PollChildBookWithManyToMany,
+    PollChildRestaurantWithManyToMany,
     PollWithAlternativeManager,
     PollWithExcludeFields,
+    PollWithHistoricalSessionAttr,
+    PollWithManyToMany,
+    PollWithManyToManyCustomHistoryID,
+    PollWithManyToManyWithIPAddress,
+    PollWithSelfManyToMany,
+    PollWithSeveralManyToMany,
     PollWithUniqueQuestion,
     Street,
 )
 from simple_history.utils import (
     bulk_create_with_history,
     bulk_update_with_history,
+    get_history_manager_for_model,
+    get_history_model_for_model,
+    get_m2m_field_name,
+    get_m2m_reverse_field_name,
     update_change_reason,
 )
 
 User = get_user_model()
+
+
+class GetM2MFieldNamesTestCase(unittest.TestCase):
+    def test__get_m2m_field_name__returns_expected_value(self):
+        def field_names(model):
+            history_model = get_history_model_for_model(model)
+            # Sort the fields, to prevent flaky tests
+            fields = sorted(history_model._history_m2m_fields, key=lambda f: f.name)
+            return [get_m2m_field_name(field) for field in fields]
+
+        self.assertListEqual(field_names(PollWithManyToMany), ["pollwithmanytomany"])
+        self.assertListEqual(
+            field_names(PollWithManyToManyCustomHistoryID),
+            ["pollwithmanytomanycustomhistoryid"],
+        )
+        self.assertListEqual(
+            field_names(PollWithManyToManyWithIPAddress),
+            ["pollwithmanytomanywithipaddress"],
+        )
+        self.assertListEqual(
+            field_names(PollWithSeveralManyToMany), ["pollwithseveralmanytomany"] * 3
+        )
+        self.assertListEqual(
+            field_names(PollChildBookWithManyToMany),
+            ["pollchildbookwithmanytomany"] * 2,
+        )
+        self.assertListEqual(
+            field_names(PollChildRestaurantWithManyToMany),
+            ["pollchildrestaurantwithmanytomany"] * 2,
+        )
+        self.assertListEqual(
+            field_names(PollWithSelfManyToMany), ["from_pollwithselfmanytomany"]
+        )
+
+    def test__get_m2m_reverse_field_name__returns_expected_value(self):
+        def field_names(model):
+            history_model = get_history_model_for_model(model)
+            # Sort the fields, to prevent flaky tests
+            fields = sorted(history_model._history_m2m_fields, key=lambda f: f.name)
+            return [get_m2m_reverse_field_name(field) for field in fields]
+
+        self.assertListEqual(field_names(PollWithManyToMany), ["place"])
+        self.assertListEqual(field_names(PollWithManyToManyCustomHistoryID), ["place"])
+        self.assertListEqual(field_names(PollWithManyToManyWithIPAddress), ["place"])
+        self.assertListEqual(
+            field_names(PollWithSeveralManyToMany), ["book", "place", "restaurant"]
+        )
+        self.assertListEqual(
+            field_names(PollChildBookWithManyToMany), ["book", "place"]
+        )
+        self.assertListEqual(
+            field_names(PollChildRestaurantWithManyToMany), ["place", "restaurant"]
+        )
+        self.assertListEqual(
+            field_names(PollWithSelfManyToMany), ["to_pollwithselfmanytomany"]
+        )
 
 
 class BulkCreateWithHistoryTestCase(TestCase):
@@ -286,6 +357,7 @@ class BulkCreateWithHistoryTransactionTestCase(TransactionTestCase):
             default_user=None,
             default_change_reason=None,
             default_date=None,
+            custom_historical_attrs=None,
         )
 
 
@@ -423,6 +495,15 @@ class BulkUpdateWithHistoryTestCase(TestCase):
         self.assertEqual(Poll.objects.count(), 5)
         self.assertEqual(Poll.history.filter(history_type="~").count(), 5)
 
+    @skipUnless(django.VERSION >= (4, 0), "Requires Django 4.0 or above")
+    def test_bulk_update_with_history_returns_rows_updated(self):
+        rows_updated = bulk_update_with_history(
+            self.data,
+            Poll,
+            fields=["question"],
+        )
+        self.assertEqual(rows_updated, 5)
+
 
 class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
     def setUp(self):
@@ -496,6 +577,58 @@ class BulkUpdateWithHistoryAlternativeManagersTestCase(TestCase):
                 fields=["question"],
                 manager=Poll.objects,
             )
+
+
+class CustomHistoricalAttrsTest(TestCase):
+    def setUp(self):
+        self.data = [
+            PollWithHistoricalSessionAttr(id=x, question=f"Question {x}")
+            for x in range(1, 6)
+        ]
+
+    def test_bulk_create_history_with_custom_model_attributes(self):
+        bulk_create_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            custom_historical_attrs={"session": "jam"},
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 5)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="jam").count(),
+            5,
+        )
+
+    def test_bulk_update_history_with_custom_model_attributes(self):
+        bulk_create_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            custom_historical_attrs={"session": None},
+        )
+        bulk_update_with_history(
+            self.data,
+            PollWithHistoricalSessionAttr,
+            fields=[],
+            custom_historical_attrs={"session": "training"},
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 5)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="training").count(),
+            5,
+        )
+
+    def test_bulk_manager_with_custom_model_attributes(self):
+        history_manager = get_history_manager_for_model(PollWithHistoricalSessionAttr)
+        history_manager.bulk_history_create(
+            self.data, custom_historical_attrs={"session": "co-op"}
+        )
+
+        self.assertEqual(PollWithHistoricalSessionAttr.objects.count(), 0)
+        self.assertEqual(
+            PollWithHistoricalSessionAttr.history.filter(session="co-op").count(),
+            5,
+        )
 
 
 class UpdateChangeReasonTestCase(TestCase):

@@ -179,6 +179,77 @@ IMPORTANT: Setting `custom_model_name` to `lambda x:f'{x}'` is not permitted.
            An error will be generated and no history model created if they are the same.
 
 
+Custom History Manager and Historical QuerySets
+-----------------------------------------------
+
+To manipulate the history ``Manager`` or the historical ``QuerySet`` of
+``HistoricalRecords``, you can specify the ``history_manager`` and
+``historical_queryset`` options. The values must be subclasses
+of ``simple_history.manager.HistoryManager`` and
+``simple_history.manager.HistoricalQuerySet``, respectively.
+
+Keep in mind, you can use either or both of these options. To understand the
+difference between a ``Manager`` and a ``QuerySet``,
+see `Django's Manager documentation`_.
+
+.. code-block:: python
+
+    from datetime import timedelta
+    from django.db import models
+    from django.utils import timezone
+    from simple_history.manager import HistoryManager, HistoricalQuerySet
+    from simple_history.models import HistoricalRecords
+
+
+    class HistoryQuestionManager(HistoryManager):
+        def published(self):
+            return self.filter(pub_date__lte=timezone.now())
+
+
+    class HistoryQuestionQuerySet(HistoricalQuerySet):
+        def question_prefixed(self):
+            return self.filter(question__startswith="Question: ")
+
+
+    class Question(models.Model):
+        pub_date = models.DateTimeField("date published")
+        history = HistoricalRecords(
+            history_manager=HistoryQuestionManager,
+            historical_queryset=HistoryQuestionQuerySet,
+        )
+
+    # This is now possible:
+    queryset = Question.history.published().question_prefixed()
+
+
+To reuse a ``QuerySet`` from the model, see the following code example:
+
+.. code-block:: python
+
+    from datetime import timedelta
+    from django.db import models
+    from django.utils import timezone
+    from simple_history.models import HistoricalRecords
+    from simple_history.manager import HistoryManager, HistoricalQuerySet
+
+
+    class QuestionQuerySet(models.QuerySet):
+        def question_prefixed(self):
+            return self.filter(question__startswith="Question: ")
+
+
+    class HistoryQuestionQuerySet(QuestionQuerySet, HistoricalQuerySet):
+        """Redefine ``QuerySet`` with base class ``HistoricalQuerySet``."""
+
+
+    class Question(models.Model):
+        pub_date = models.DateTimeField("date published")
+        history = HistoricalRecords(historical_queryset=HistoryQuestionQuerySet)
+        manager = QuestionQuerySet.as_manager()
+
+.. _Django's Manager documentation: https://docs.djangoproject.com/en/stable/topics/db/managers/
+
+
 TextField as `history_change_reason`
 ------------------------------------
 
@@ -361,7 +432,7 @@ Allow tracking to be inherited
 
 By default history tracking is only added for the model that is passed
 to ``register()`` or has the ``HistoricalRecords`` descriptor. By
-passing ``inherit=True`` to either way of registering you can change
+passing ``inherit=True`` to either way of registering, you can change
 that behavior so that any child model inheriting from it will have
 historical tracking as well. Be careful though, in cases where a model
 can be tracked more than once, ``MultipleRegistrationsError`` will be
@@ -383,6 +454,9 @@ raised.
 
 Both ``User`` and ``Poll`` in the example above will cause any model
 inheriting from them to have historical tracking as well.
+
+**Note:** For parent models having a ``HistoricalRecords`` field with ``inherit=True``
+*and* a ``table_name``, the latter option will not be inherited by child models.
 
 History Model In Different App
 ------------------------------
@@ -466,9 +540,12 @@ If you want to track many to many relationships, you need to define them explici
 This will create a historical intermediate model that tracks each relational change
 between `Poll` and `Category`.
 
-You may also define these fields in a model attribute (by default on `_history_m2m_fields`).
-This is mainly used for inherited models. You can override the attribute name by setting
-your own `m2m_fields_model_field_name` argument on the `HistoricalRecord` instance.
+You may use either the name of the field or the field instance itself.
+
+You may also define these fields in a class attribute (by default on `_history_m2m_fields`).
+This is mainly used by inherited models not declaring their own `HistoricalRecord`.
+You can override the attribute name by setting your own `m2m_fields_model_field_name`
+argument on the `HistoricalRecord` instance.
 
 You will see the many to many changes when diffing between two historical records:
 
@@ -477,7 +554,6 @@ You will see the many to many changes when diffing between two historical record
     informal = Category.objects.create(name="informal questions")
     official = Category.objects.create(name="official questions")
     p = Poll.objects.create(question="what's up?")
-    p.save()
     p.categories.add(informal, official)
     p.categories.remove(informal)
 
