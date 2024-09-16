@@ -162,6 +162,11 @@ reverse relationships.
 See the `HistoricForeignKeyTest` code and models for an example.
 
 
+HistoricOneToOneField
+---------------------
+
+Same concept as HistoricForeignKey but for OneToOneFields instead.
+
 most_recent
 -----------
 
