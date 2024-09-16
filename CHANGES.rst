@@ -110,6 +110,13 @@ Unreleased
 - Started using ``exists`` query instead of ``count`` in ``populate_history`` command (gh-982)
 - Add basic support for many-to-many fields (gh-399)
 - Added support for Django 4.1 (gh-1021)
+- Added ``tracked_fields`` attribute to historical models (gh-1038)
+- Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
+- Added support for Python 3.11 (gh-1053)
+- Fixed issue with deferred fields causing DoesNotExist error
+
+=======
+
 
 3.1.1 (2022-04-23)
 ------------------
@@ -439,7 +446,7 @@ history tables to a separate database from their base tables. This issue is fixe
 - Allow history table to be formatted correctly with ``django-admin-bootstrap``
 - Disallow calling ``simple_history.register`` twice on the same model
 - Added Python 3 support
-- Added support for custom user model (Django 1.5+)
+- Added support for custom user model (Django 1.5+)s
 
 1.2.3 (2013-04-22)
 ------------------
