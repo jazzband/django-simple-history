@@ -654,8 +654,7 @@ class HistoricalRecords:
         field_attrs = {field.attname for field in fields}
         deferred_attrs = instance.get_deferred_fields()
         # Load all deferred fields that are present in fields_included
-        for attr in field_attrs.intersection(deferred_attrs):
-            getattr(instance, attr, None)
+        instance.refresh_from_db(fields=field_attrs.intersection(deferred_attrs))
 
     def get_change_reason_for_object(self, instance, history_type, using):
         """
