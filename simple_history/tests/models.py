@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from simple_history import register
 from simple_history.manager import HistoricalQuerySet, HistoryManager
-from simple_history.models import HistoricalRecords, HistoricForeignKey
+from simple_history.models import HistoricalRecords, HistoricForeignKey, HistoricOneToOneField
 
 from .custom_user.models import CustomUser as User
 from .external.models import AbstractExternal, AbstractExternal2, AbstractExternal3
@@ -983,3 +983,61 @@ class TestHistoricParticipanToHistoricOrganization(models.Model):
         related_name="historic_participants",
     )
     history = HistoricalRecords()
+
+
+
+class TestParticipantToHistoricOrganizationOneToOne(models.Model):
+    """
+    Non-historic table foreign key to historic table.
+
+    In this case it should simply behave like ForeignKey because
+    the origin model (this one) cannot be historic, so foreign key
+    lookups are always "current".
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricOneToOneField(
+        TestOrganizationWithHistory, on_delete=CASCADE, related_name="participant"
+    )
+
+
+class TestHistoricParticipantToOrganizationOneToOne(models.Model):
+    """
+    Historic table foreign key to non-historic table.
+
+    In this case it should simply behave like ForeignKey because
+    the origin model (this one) can be historic but the target model
+    is not, so foreign key lookups are always "current".
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricOneToOneField(
+        TestOrganization, on_delete=CASCADE, related_name="participant"
+    )
+    history = HistoricalRecords()
+
+
+class TestHistoricParticipanToHistoricOrganizationOneToOne(models.Model):
+    """
+    Historic table foreign key to historic table.
+
+    In this case as_of queries on the origin model (this one)
+    or on the target model (the other one) will traverse the
+    foreign key relationship honoring the timepoint of the
+    original query.  This only happens when both tables involved
+    are historic.
+
+    NOTE: related_name has to be different than the one used in
+          TestParticipantToHistoricOrganization as they are
+          sharing the same target table.
+    """
+
+    name = models.CharField(max_length=15, unique=True)
+    organization = HistoricOneToOneField(
+        TestOrganizationWithHistory,
+        on_delete=CASCADE,
+        related_name="historic_participant",
+    )
+    history = HistoricalRecords()
+
+
