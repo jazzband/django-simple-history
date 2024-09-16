@@ -954,25 +954,20 @@ class HistoricReverseOneToOneDescriptor(ReverseOneToOneDescriptor):
     def get_queryset(self, **hints):
         instance = hints.get("instance")
         if instance:
-            try:
-                return instance._prefetched_objects_cache[
-                    self.related.field.remote_field.get_cache_name()
-                ]
-            except (AttributeError, KeyError):
-                history = getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
-                histmgr = getattr(
-                    self.related.related_model,
-                    getattr(
-                        self.related.related_model._meta,
-                        "simple_history_manager_attribute",
-                        "_notthere",
-                    ),
-                    None,
+            history = getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
+            histmgr = getattr(
+                self.related.related_model,
+                getattr(
+                    self.related.related_model._meta,
+                    "simple_history_manager_attribute",
+                    "_notthere",
+                ),
+                None,
+            )
+            if history and histmgr:
+                return histmgr.as_of(
+                    getattr(history, "_as_of", history.history_date)
                 )
-                if history and histmgr:
-                    return histmgr.as_of(
-                        getattr(history, "_as_of", history.history_date)
-                    )
         return super().get_queryset(**hints)
 
 
