@@ -10,7 +10,11 @@ from django.urls import reverse
 
 from simple_history import register
 from simple_history.manager import HistoricalQuerySet, HistoryManager
-from simple_history.models import HistoricalRecords, HistoricForeignKey, HistoricOneToOneField
+from simple_history.models import (
+    HistoricalRecords,
+    HistoricForeignKey,
+    HistoricOneToOneField,
+)
 
 from .custom_user.models import CustomUser as User
 from .external.models import AbstractExternal, AbstractExternal2, AbstractExternal3
@@ -985,7 +989,6 @@ class TestHistoricParticipanToHistoricOrganization(models.Model):
     history = HistoricalRecords()
 
 
-
 class TestParticipantToHistoricOrganizationOneToOne(models.Model):
     """
     Non-historic table foreign key to historic table.
@@ -1039,5 +1042,3 @@ class TestHistoricParticipanToHistoricOrganizationOneToOne(models.Model):
         related_name="historic_participant",
     )
     history = HistoricalRecords()
-
-

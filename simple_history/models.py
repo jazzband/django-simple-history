@@ -924,7 +924,6 @@ class HistoricForeignKey(ForeignKey):
     related_accessor_class = HistoricReverseManyToOneDescriptor
 
 
-
 class HistoricForwardOneToOneDescriptor(ForwardOneToOneDescriptor):
 
     def get_queryset(self, **hints) -> QuerySet:
@@ -960,9 +959,7 @@ class HistoricReverseOneToOneDescriptor(ReverseOneToOneDescriptor):
                     self.related.field.remote_field.get_cache_name()
                 ]
             except (AttributeError, KeyError):
-                history = getattr(
-                    instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None
-                )
+                history = getattr(instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None)
                 histmgr = getattr(
                     self.related.related_model,
                     getattr(

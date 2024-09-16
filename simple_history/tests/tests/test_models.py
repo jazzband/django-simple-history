@@ -2699,7 +2699,6 @@ class ModelWithSingleNoDBIndexUniqueTest(TestCase):
         self.assertTrue(self.history_model._meta.get_field("name_keeps_index").db_index)
 
 
-
 class HistoricForeignKeyTest(TestCase):
     """
     Tests chasing foreign keys across time points naturally with
@@ -2883,7 +2882,6 @@ class HistoricOneToOneFieldTest(TestCase):
         part = TestParticipantToHistoricOrganizationOneToOne.objects.get(name="part")
         self.assertEqual(part.organization.name, "modified")
 
-
     def test_historic_to_non_historic(self):
         """
         Historic table OneToOneField to non-historic table.
@@ -2899,9 +2897,10 @@ class HistoricOneToOneFieldTest(TestCase):
         self.assertEqual(part.organization.id, org.id)
         self.assertEqual(org.participant, part)
 
-        histpart = TestHistoricParticipantToOrganizationOneToOne.objects.get(name="original")
+        histpart = TestHistoricParticipantToOrganizationOneToOne.objects.get(
+            name="original"
+        )
         self.assertEqual(histpart.organization.id, org.id)
-
 
     def test_historic_to_historic(self):
         """
@@ -2917,14 +2916,14 @@ class HistoricOneToOneFieldTest(TestCase):
         At t2 we have one org, one participant, however the org's name has changed.
         """
         org = TestOrganizationWithHistory.objects.create(name="original")
-        
+
         p1 = TestHistoricParticipanToHistoricOrganizationOneToOne.objects.create(
             name="p1", organization=org
         )
         t1 = timezone.now()
         org.name = "modified"
         org.save()
-        p1.name = 'p1_modified'
+        p1.name = "p1_modified"
         p1.save()
         t2 = timezone.now()
 
@@ -2939,7 +2938,7 @@ class HistoricOneToOneFieldTest(TestCase):
         ).get(name="p1_modified")
         self.assertEqual(p1t2.organization, org)
         self.assertEqual(p1t2.organization.name, "modified")
-        
+
         # reverse relationships
         # at t1
         ot1 = TestOrganizationWithHistory.history.as_of(t1).all()[0]
@@ -2948,7 +2947,6 @@ class HistoricOneToOneFieldTest(TestCase):
         # at t2
         ot2 = TestOrganizationWithHistory.history.as_of(t2).all()[0]
         self.assertEqual(ot2.historic_participant.name, "p1_modified")
-
 
         # current
         self.assertEqual(org.historic_participant.name, "p1_modified")
@@ -2961,7 +2959,6 @@ class HistoricOneToOneFieldTest(TestCase):
         )
         self.assertIsNone(to_historic(org))
 
-
         # test querying directly from the history table and converting
         # to an instance, it should chase the foreign key properly
         # in this case if _as_of is not present we use the history_date
@@ -2969,8 +2966,10 @@ class HistoricOneToOneFieldTest(TestCase):
         pt1h = TestHistoricParticipanToHistoricOrganizationOneToOne.history.all()[0]
         pt1i = pt1h.instance
         self.assertEqual(pt1i.organization.name, "modified")
-        pt1h = TestHistoricParticipanToHistoricOrganizationOneToOne.history.all().order_by(
-            "history_date"
-        )[0]
+        pt1h = (
+            TestHistoricParticipanToHistoricOrganizationOneToOne.history.all().order_by(
+                "history_date"
+            )[0]
+        )
         pt1i = pt1h.instance
         self.assertEqual(pt1i.organization.name, "original")
