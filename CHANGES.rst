@@ -7,6 +7,8 @@ Unreleased
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
 - Added support for m2m fields that specify through tables as strings (gh-1390)
+- Fixed issue with history button not working when viewing historical entries in the
+  admin (gh-527)
 
 3.7.0 (2024-05-29)
 ------------------
