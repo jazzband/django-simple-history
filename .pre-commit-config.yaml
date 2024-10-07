@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.9
+    rev: 1.7.10
     hooks:
       - id: bandit
         exclude: /.*tests/
@@ -25,7 +25,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: requirements-txt-fixer
         files: requirements/.*\.txt$
@@ -40,11 +40,11 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: 2.2.3
+    rev: 2.2.4
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.19
+    rev: v0.20.2
     hooks:
       - id: validate-pyproject
 
