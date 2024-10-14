@@ -21,7 +21,6 @@ from .models import HistoricalChanges
 from .template_utils import HistoricalRecordContextHelper
 from .utils import get_history_manager_for_model, get_history_model_for_model
 
-
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
 
