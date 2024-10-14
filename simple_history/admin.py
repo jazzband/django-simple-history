@@ -5,7 +5,7 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
-from django.contrib.admin.utils import unquote
+from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
@@ -20,6 +20,7 @@ from .manager import HistoricalQuerySet, HistoryManager
 from .models import HistoricalChanges
 from .template_utils import HistoricalRecordContextHelper
 from .utils import get_history_manager_for_model, get_history_model_for_model
+
 
 SIMPLE_HISTORY_EDIT = getattr(settings, "SIMPLE_HISTORY_EDIT", False)
 
@@ -240,11 +241,18 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         else:
             form = form_class(instance=obj)
 
+        fieldsets = self.get_fieldsets(request, obj)
+
+        if object_id and not self.has_change_permission(request, obj):
+            readonly_fields = flatten_fieldsets(fieldsets)
+        else:
+            readonly_fields = self.get_readonly_fields(request, obj)
+
         admin_form = helpers.AdminForm(
             form,
-            self.get_fieldsets(request, obj),
+            fieldsets,
             self.prepopulated_fields,
-            self.get_readonly_fields(request, obj),
+            readonly_fields,
             model_admin=self,
         )
 
