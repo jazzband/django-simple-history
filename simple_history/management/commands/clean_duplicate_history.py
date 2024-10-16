@@ -4,6 +4,7 @@ from django.utils import timezone
 from ... import utils
 from . import populate_history
 
+import time
 
 class Command(populate_history.Command):
     args = "<app.model app.model ...>"
@@ -43,6 +44,9 @@ class Command(populate_history.Command):
             " database, including those that would otherwise be filtered or modified"
             " by a custom manager.",
         )
+        parser.add_argument(
+            "--batch-size", type=int, default=None, help="Run the command in batches of batch_size",
+        )
 
     def handle(self, *args, **options):
         self.verbosity = options["verbosity"]
@@ -62,9 +66,9 @@ class Command(populate_history.Command):
         else:
             self.log(self.COMMAND_HINT)
 
-        self._process(to_process, date_back=options["minutes"], dry_run=options["dry"])
+        self._process(to_process, date_back=options["minutes"], dry_run=options["dry"], batch_size=options["batch_size"])
 
-    def _process(self, to_process, date_back=None, dry_run=True):
+    def _process(self, to_process, date_back=None, dry_run=True, batch_size=None):
         if date_back:
             stop_date = timezone.now() - timezone.timedelta(minutes=date_back)
         else:
@@ -94,9 +98,9 @@ class Command(populate_history.Command):
                 )
 
             for o in model_query.iterator():
-                self._process_instance(o, model, stop_date=stop_date, dry_run=dry_run)
+                self._process_instance(o, model, stop_date=stop_date, dry_run=dry_run, batch_size=batch_size)
 
-    def _process_instance(self, instance, model, stop_date=None, dry_run=True):
+    def _process_instance(self, instance, model, stop_date=None, dry_run=True, batch_size=None):
         entries_deleted = 0
         history = utils.get_history_manager_for_model(instance)
         o_qs = history.all()
@@ -115,6 +119,8 @@ class Command(populate_history.Command):
             for f2 in o_qs[1:]:
                 entries_deleted += self._check_and_delete(f1, f2, dry_run)
                 f1 = f2
+                if entries_deleted > 0 and entries_deleted % batch_size == 0:
+                    time.sleep(2)
             if extra_one:
                 entries_deleted += self._check_and_delete(f1, extra_one, dry_run)
 
