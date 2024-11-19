@@ -32,8 +32,18 @@ history:
     >>> Poll.history.count()
     1000
 
+You can also use ``bulk_create_with_history`` with Django's ``update_conflicts`` where
+you can specify the fields to update in case of a conflict. This incurs an additional
+query to refetch the object to update the history because the full object is not
+returned. If a record is updated, the historical record will have a `history_type` of
+``'~'``, meaning updated.
+
+Note: if a record is updated, but there were no historical
+records for that instance, the historical record will have a `history_type` of ``'+'``.
+
+
 If you want to specify a change reason or history user for each record in the bulk create,
-you can add `_change_reason`, `_history_user` or `_history_date` on each instance:
+you can add `_change_reason`, `_history_user`, `_history_date` on each instance:
 
 .. code-block:: pycon
 

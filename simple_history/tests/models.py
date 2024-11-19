@@ -70,6 +70,14 @@ class PollWithExcludedFieldsWithDefaults(models.Model):
     )
 
 
+class PollWithUniqueQuestionAndWithPlace(models.Model):
+    question = models.CharField(max_length=200, unique=True)
+    pub_date = models.DateTimeField("date published", null=True)
+    place = models.TextField(null=True)
+
+    history = HistoricalRecords()
+
+
 class PollWithExcludedFKField(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
