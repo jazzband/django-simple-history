@@ -6,7 +6,12 @@ from unittest.mock import Mock, patch
 import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase, TransactionTestCase, override_settings, tag
+from django.test import (
+    TestCase,
+    TransactionTestCase,
+    override_settings,
+    skipUnlessDBFeature,
+)
 from django.utils import timezone
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -258,6 +263,9 @@ class BulkCreateWithHistoryTestCase(TestCase):
         self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
         self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
 
+    @skipUnlessDBFeature(
+        "supports_update_conflicts", "supports_update_conflicts_with_target"
+    )
     def test_bulk_create_history_with_duplicates_update_conflicts_create_only_field(
         self,
     ):
