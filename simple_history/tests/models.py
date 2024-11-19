@@ -1027,7 +1027,7 @@ class TestHistoricParticipanToHistoricOrganizationOneToOne(models.Model):
     In this case as_of queries on the origin model (this one)
     or on the target model (the other one) will traverse the
     one to one field relationship honoring the timepoint of the
-    original query.  This only happens when both tables involved
+    original query. This only happens when both tables involved
     are historic.
 
     NOTE: related_name has to be different than the one used in
