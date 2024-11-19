@@ -175,21 +175,10 @@ def bulk_create_with_history(
                 # since update_fields could be a subset of the fields. We
                 # also need to annotate the history_type to indicate if the
                 # record was updated or inserted.
-                key_name = get_app_model_primary_key_name(model)
                 objs_with_id = (
                     model_manager.filter(pk__in=[obj.pk for obj in objs_with_id])
                     .annotate(
-                        _history_type=Case(
-                            When(
-                                Exists(
-                                    history_manager.filter(
-                                        **{key_name: OuterRef(key_name)}
-                                    )
-                                ),
-                                then=Value("~"),
-                            ),
-                            default=Value("+"),
-                        )
+                        _history_type=_history_type_annotation(history_manager, model)
                     )
                     .select_for_update()
                 )
@@ -204,34 +193,39 @@ def bulk_create_with_history(
             )
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
-            # Generate a common query to avoid n+1 selections
-            #   https://github.com/jazzband/django-simple-history/issues/974
-            cumulative_filter = None
-            obj_when_list = []
-            for i, obj in enumerate(objs_with_id):
-                attributes = dict(
-                    filter(
-                        lambda x: x[1] is not None,
-                        model_to_dict(obj, exclude=exclude_fields).items(),
+
+            if objs_with_id:
+                # Generate a common query to avoid n+1 selections
+                #   https://github.com/jazzband/django-simple-history/issues/974
+                cumulative_filter = None
+                obj_when_list = []
+                for i, obj in enumerate(objs_with_id):
+                    attributes = dict(
+                        filter(
+                            lambda x: x[1] is not None,
+                            model_to_dict(obj, exclude=exclude_fields).items(),
+                        )
                     )
-                )
-                q = Q(**attributes)
-                cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
-                # https://stackoverflow.com/a/49625179/1960509
-                # DEV: If an attribute has `then` as a key
-                #   then they'll also run into issues with `bulk_update`
-                #   due to shared implementation
-                #   https://github.com/django/django/blob/4.0.4/django/db/models/query.py#L624-L638
-                obj_when_list.append(When(**attributes, then=i))
-            obj_list = (
-                list(
-                    model_manager.filter(cumulative_filter).order_by(
-                        Case(*obj_when_list)
+                    q = Q(**attributes)
+                    cumulative_filter = (
+                        (cumulative_filter | q) if cumulative_filter else q
                     )
+                    # https://stackoverflow.com/a/49625179/1960509
+                    # DEV: If an attribute has `then` as a key
+                    #   then they'll also run into issues with `bulk_update`
+                    #   due to shared implementation
+                    #   https://github.com/django/django/blob/4.0.4/django/db/models/query.py#L624-L638
+                    obj_when_list.append(When(**attributes, then=i))
+                qs = model_manager.filter(cumulative_filter).order_by(
+                    Case(*obj_when_list)
                 )
-                if objs_with_id
-                else []
-            )
+                if update_conflicts:
+                    qs = qs.annotate(
+                        _history_type=_history_type_annotation(history_manager, model)
+                    )
+                obj_list = list(qs)
+            else:
+                obj_list = []
             history_manager.bulk_history_create(
                 obj_list,
                 batch_size=batch_size,
@@ -307,3 +301,18 @@ def get_change_reason_from_object(obj):
         return getattr(obj, "_change_reason")
 
     return None
+
+
+def _history_type_annotation(history_manager, model):
+    """
+    Calculate the next history_type based on a Model
+    QuerySet and whether there's an existing historical record.
+    """
+    key_name = get_app_model_primary_key_name(model)
+    return Case(
+        When(
+            Exists(history_manager.filter(**{key_name: OuterRef(key_name)})),
+            then=Value("~"),
+        ),
+        default=Value("+"),
+    )
