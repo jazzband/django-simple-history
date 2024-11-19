@@ -899,10 +899,14 @@ class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
 
         class HistoricRelationModelManager(related_model._default_manager.__class__):
             def get_queryset(self):
+                cache_name = (
+                    # DEV: Remove this when support for Django 5.0 has been dropped
+                    self.field.remote_field.get_cache_name()
+                    if django.VERSION < (5, 1)
+                    else self.field.remote_field.cache_name
+                )
                 try:
-                    return self.instance._prefetched_objects_cache[
-                        self.field.remote_field.get_cache_name()
-                    ]
+                    return self.instance._prefetched_objects_cache[cache_name]
                 except (AttributeError, KeyError):
                     history = getattr(
                         self.instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None
