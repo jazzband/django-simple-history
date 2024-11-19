@@ -2854,7 +2854,7 @@ class HistoricOneToOneFieldTest(TestCase):
 
     def test_non_historic_to_historic(self):
         """
-        Non-historic table foreign key to historic table.
+        Non-historic table with one to one relationship to historic table.
 
         In this case it should simply behave like OneToOneField because
         the origin model (this one) cannot be historic, so OneToOneField
@@ -2904,7 +2904,7 @@ class HistoricOneToOneFieldTest(TestCase):
 
     def test_historic_to_historic(self):
         """
-        Historic table foreign key to historic table.
+        Historic table with one to one relationship to historic table.
 
         In this case as_of queries on the origin model (this one)
         or on the target model (the other one) will traverse the

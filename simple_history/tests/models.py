@@ -991,7 +991,7 @@ class TestHistoricParticipanToHistoricOrganization(models.Model):
 
 class TestParticipantToHistoricOrganizationOneToOne(models.Model):
     """
-    Non-historic table foreign key to historic table.
+    Non-historic table with one to one relationship to historic table.
 
     In this case it should simply behave like ForeignKey because
     the origin model (this one) cannot be historic, so foreign key
@@ -1006,11 +1006,11 @@ class TestParticipantToHistoricOrganizationOneToOne(models.Model):
 
 class TestHistoricParticipantToOrganizationOneToOne(models.Model):
     """
-    Historic table foreign key to non-historic table.
+    Historic table with one to one relationship to non-historic table.
 
-    In this case it should simply behave like ForeignKey because
-    the origin model (this one) can be historic but the target model
-    is not, so foreign key lookups are always "current".
+    In this case it should simply behave like OneToOneField because
+    the origin model (this one) cannot be historic, so one to one field
+    lookups are always "current".
     """
 
     name = models.CharField(max_length=15, unique=True)
@@ -1022,16 +1022,16 @@ class TestHistoricParticipantToOrganizationOneToOne(models.Model):
 
 class TestHistoricParticipanToHistoricOrganizationOneToOne(models.Model):
     """
-    Historic table foreign key to historic table.
+    Historic table with one to one relationship to historic table.
 
     In this case as_of queries on the origin model (this one)
     or on the target model (the other one) will traverse the
-    foreign key relationship honoring the timepoint of the
+    one to one field relationship honoring the timepoint of the
     original query.  This only happens when both tables involved
     are historic.
 
     NOTE: related_name has to be different than the one used in
-          TestParticipantToHistoricOrganization as they are
+          TestParticipantToHistoricOrganizationOneToOne as they are
           sharing the same target table.
     """
 
