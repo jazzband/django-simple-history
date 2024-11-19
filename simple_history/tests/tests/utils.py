@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Type
 
 from django.conf import settings
 from django.db.models import Model
@@ -15,7 +14,7 @@ middleware_override_settings = {
 
 
 class HistoricalTestCase(TestCase):
-    def assertRecordValues(self, record, klass: Type[Model], values_dict: dict):
+    def assertRecordValues(self, record, klass: type[Model], values_dict: dict):
         """
         Fail if ``record`` doesn't contain the field values in ``values_dict``.
         ``record.history_object`` is also checked.

@@ -2,9 +2,10 @@ import copy
 import importlib
 import uuid
 import warnings
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Type, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import django
 from django.apps import apps
@@ -1092,7 +1093,7 @@ class HistoricalChanges(ModelTypeHint):
         old_history: "HistoricalChanges",
         fields: Iterable[str],
         foreign_keys_are_objs: bool,
-    ) -> List["ModelChange"]:
+    ) -> list["ModelChange"]:
         """Helper method for ``diff_against()``."""
         changes = []
 
@@ -1133,7 +1134,7 @@ class HistoricalChanges(ModelTypeHint):
         old_history: "HistoricalChanges",
         m2m_fields: Iterable[str],
         foreign_keys_are_objs: bool,
-    ) -> List["ModelChange"]:
+    ) -> list["ModelChange"]:
         """Helper method for ``diff_against()``."""
         changes = []
 
@@ -1202,7 +1203,7 @@ class HistoricalChanges(ModelTypeHint):
 
 @dataclass(frozen=True)
 class DeletedObject:
-    model: Type[models.Model]
+    model: type[models.Model]
     pk: Any
 
     def __str__(self):
@@ -1227,7 +1228,7 @@ class DeletedObject:
 #     The PK of the through model's related objects.
 #
 # - Any of the other possible values of a model field.
-ModelChangeValue = Union[Any, DeletedObject, List[Dict[str, Union[Any, DeletedObject]]]]
+ModelChangeValue = Union[Any, DeletedObject, list[dict[str, Union[Any, DeletedObject]]]]
 
 
 @dataclass(frozen=True)
