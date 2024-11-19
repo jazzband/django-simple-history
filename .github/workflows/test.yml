@@ -11,17 +11,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
         django-version: ['4.2', '5.0', 'main']
 
         exclude:
-          # Exclude py3.8 and py3.9 for Django main and 5.0
-          - python-version: '3.8'
-            django-version: '5.0'
+          # Exclude py3.9 for Django main and 5.0
           - python-version: '3.9'
             django-version: '5.0'
-          - python-version: '3.8'
-            django-version: 'main'
           - python-version: '3.9'
             django-version: 'main'
 
@@ -101,7 +97,7 @@ jobs:
       - name: Set up newest stable Python version
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.13
           cache: 'pip'
           # Invalidate the cache when this file updates, as the dependencies' versions
           # are pinned in the step below

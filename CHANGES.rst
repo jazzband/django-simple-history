@@ -10,6 +10,7 @@ Unreleased
 - Fixed issue with deferred fields causing DoesNotExist error (gh-678)
 - Added HistoricOneToOneField (gh-1394)
 - Updated all djangoproject.com links to reference the stable version (gh-1420)
+- Dropped support for Python 3.8, which reached end-of-life on 2024-10-07 (gh-1421)
 
 3.7.0 (2024-05-29)
 ------------------
