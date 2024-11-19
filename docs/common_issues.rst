@@ -15,8 +15,8 @@ As of ``django-simple-history`` 2.2.0, we can use the utility function
 ``bulk_create_with_history`` in order to bulk create objects while saving their
 history:
 
-.. _bulk_create: https://docs.djangoproject.com/en/2.0/ref/models/querysets/#bulk-create
-.. _bulk_update: https://docs.djangoproject.com/en/3.0/ref/models/querysets/#bulk-update
+.. _bulk_create: https://docs.djangoproject.com/en/stable/ref/models/querysets/#bulk-create
+.. _bulk_update: https://docs.djangoproject.com/en/stable/ref/models/querysets/#bulk-update
 
 
 .. code-block:: pycon
@@ -142,7 +142,7 @@ As the Django documentation says::
         e.comments_on = False
         e.save()
 
-.. _queryset updates: https://docs.djangoproject.com/en/2.2/ref/models/querysets/#update
+.. _queryset updates: https://docs.djangoproject.com/en/stable/ref/models/querysets/#update
 
 Note: Django 2.2 now allows ``bulk_update``. No ``pre_save`` or ``post_save`` signals are sent still.
 
@@ -170,7 +170,7 @@ Thus, when an ``F()`` expression is used on a model with a history table, the
 historical model tries to insert using the ``F()`` expression, and raises a
 ``ValueError``.
 
-.. _here: https://docs.djangoproject.com/en/2.0/ref/models/expressions/#f-expressions
+.. _here: https://docs.djangoproject.com/en/stable/ref/models/expressions/#f-expressions
 
 
 Reserved Field Names
