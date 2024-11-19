@@ -7,6 +7,8 @@ Unreleased
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Updated ``bulk_create_with_history`` to support ``update_conflicts`` and
+  ``update_fields`` of ``bulk_create()`` (gh-1323)
 
 3.7.0 (2024-05-29)
 ------------------

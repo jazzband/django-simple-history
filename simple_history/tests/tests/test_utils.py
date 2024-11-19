@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import django
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings, tag
 from django.utils import timezone
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -26,6 +26,7 @@ from simple_history.tests.models import (
     PollWithSelfManyToMany,
     PollWithSeveralManyToMany,
     PollWithUniqueQuestion,
+    PollWithUniqueQuestionAndWithPlace,
     Street,
 )
 from simple_history.utils import (
@@ -256,6 +257,60 @@ class BulkCreateWithHistoryTestCase(TestCase):
 
         self.assertEqual(PollWithUniqueQuestion.objects.count(), 2)
         self.assertEqual(PollWithUniqueQuestion.history.count(), 2)
+
+    def test_bulk_create_history_with_duplicates_update_conflicts_create_only_field(
+        self,
+    ):
+        poll1 = PollWithUniqueQuestionAndWithPlace.objects.create(
+            question="Question 1", pub_date=timezone.now(), place="earth"
+        )
+        PollWithUniqueQuestionAndWithPlace.objects.create(
+            question="Question 2", pub_date=timezone.now(), place="moon"
+        )
+        duplicates = [
+            # Reuse the same object that already exists
+            poll1,
+            # Match the unique field but with different values for other fields
+            PollWithUniqueQuestionAndWithPlace(
+                question="Question 2", pub_date=None, place="sun"
+            ),
+            PollWithUniqueQuestionAndWithPlace(
+                question="Question 3", pub_date=None, place="saturn"
+            ),
+        ]
+
+        bulk_create_with_history(
+            duplicates,
+            PollWithUniqueQuestionAndWithPlace,
+            update_conflicts=True,
+            unique_fields=["question"],
+            update_fields=["pub_date"],
+        )
+        new1, new2, new3 = list(
+            PollWithUniqueQuestionAndWithPlace.objects.order_by("question")
+        )
+        # Confirm the first object was updated and has two historical records
+        self.assertEqual(new1.place, "earth")
+        self.assertIsNotNone(new1.pub_date)
+        new1_hist1, new1_hist2 = list(new1.history.all().order_by("history_id"))
+        self.assertEqual(new1_hist1.history_type, "+")
+        self.assertEqual(new1_hist2.history_type, "~")
+        self.assertIsNotNone(new1_hist2.pub_date)
+        self.assertIsNotNone(new1_hist2.place, "earth")
+
+        # This shouldn't change since it wasn't in update_fields
+        new2_hist1, new2_hist2 = list(new2.history.all().order_by("history_id"))
+        self.assertEqual(new2_hist1.history_type, "+")
+        self.assertEqual(new2_hist2.history_type, "~")
+        self.assertIsNone(new2_hist2.pub_date)
+        self.assertIsNotNone(new2_hist2.place, "moon")
+
+        # There should only be 1 addition record including saturn since place
+        # is inserted, but not updated.
+        new3_hist = new3.history.get()
+        self.assertEqual(new3_hist.history_type, "+")
+        self.assertIsNone(new2_hist2.pub_date)
+        self.assertIsNotNone(new2_hist2.place, "saturn")
 
     def test_bulk_create_history_with_no_ids_return(self):
         pub_date = timezone.now()

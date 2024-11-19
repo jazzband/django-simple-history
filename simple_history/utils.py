@@ -1,5 +1,16 @@
+from itertools import chain
+
 from django.db import transaction
-from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
+from django.db.models import (
+    Case,
+    Exists,
+    ForeignKey,
+    ManyToManyField,
+    OuterRef,
+    Q,
+    Value,
+    When,
+)
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -86,6 +97,9 @@ def bulk_create_with_history(
     model,
     batch_size=None,
     ignore_conflicts=False,
+    update_conflicts=False,
+    update_fields=None,
+    unique_fields=None,
     default_user=None,
     default_change_reason=None,
     default_date=None,
@@ -94,12 +108,24 @@ def bulk_create_with_history(
     """
     Bulk create the objects specified by objs while also bulk creating
     their history (all in one transaction).
+
     Because of not providing primary key attribute after bulk_create on any DB except
     Postgres (https://docs.djangoproject.com/en/2.2/ref/models/querysets/#bulk-create)
-    Divide this process on two transactions for other DB's
+    this process on will use two transactions for other DB's.
+
+    If ``update_conflicts`` is used, the function will refetch records from the
+    database to ensure that the historical records match the exact state of the
+    model instances.
+
     :param objs: List of objs (not yet saved to the db) of type model
     :param model: Model class that should be created
     :param batch_size: Number of objects that should be created in each batch
+    :param ignore_conflicts: Boolean passed through to Django ORM to ignore conflicts
+    :param update_conflicts: Boolean passed through to Django ORM to update on conflicts
+    :param update_fields: List of fields passed through to Django ORM to update on
+        conflict.
+    :param unique_fields: List of fields through to Django ORM to identify uniqueness
+        to update.
     :param default_user: Optional user to specify as the history_user in each historical
         record
     :param default_change_reason: Optional change reason to specify as the change_reason
@@ -116,16 +142,57 @@ def bulk_create_with_history(
         field.name
         for field in model._meta.get_fields()
         if isinstance(field, ManyToManyField)
+        or (
+            # If using either unique fields or update fields, then we can exclude
+            # anything not in those lists.
+            (unique_fields or update_fields)
+            and field.name not in set(chain(unique_fields or [], update_fields or []))
+        )
     ]
+
     history_manager = get_history_manager_for_model(model)
     model_manager = model._default_manager
 
     second_transaction_required = True
     with transaction.atomic(savepoint=False):
         objs_with_id = model_manager.bulk_create(
-            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
+            objs,
+            batch_size=batch_size,
+            ignore_conflicts=ignore_conflicts,
+            update_conflicts=update_conflicts,
+            update_fields=update_fields,
+            unique_fields=unique_fields,
         )
-        if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
+        if (
+            objs_with_id
+            and all(obj.pk for obj in objs_with_id)
+            and not ignore_conflicts
+        ):
+            if update_conflicts:
+                # If we're updating on conflict, it's possible that some rows
+                # were updated and some were inserted. We need to refetch
+                # the data to make sure the historical record matches exactly
+                # since update_fields could be a subset of the fields. We
+                # also need to annotate the history_type to indicate if the
+                # record was updated or inserted.
+                key_name = get_app_model_primary_key_name(model)
+                objs_with_id = (
+                    model_manager.filter(pk__in=[obj.pk for obj in objs_with_id])
+                    .annotate(
+                        _history_type=Case(
+                            When(
+                                Exists(
+                                    history_manager.filter(
+                                        **{key_name: OuterRef(key_name)}
+                                    )
+                                ),
+                                then=Value("~"),
+                            ),
+                            default=Value("+"),
+                        )
+                    )
+                    .select_for_update()
+                )
             second_transaction_required = False
             history_manager.bulk_history_create(
                 objs_with_id,

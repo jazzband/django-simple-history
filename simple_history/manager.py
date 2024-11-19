@@ -1,3 +1,6 @@
+from contextlib import ContextDecorator
+from typing import Optional
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Exists, OuterRef, Q, QuerySet
@@ -225,9 +228,9 @@ class HistoryManager(models.Manager):
         if not getattr(settings, "SIMPLE_HISTORY_ENABLED", True):
             return
 
-        history_type = "+"
+        default_history_type = "+"
         if update:
-            history_type = "~"
+            default_history_type = "~"
 
         historical_instances = []
         for instance in objs:
@@ -243,7 +246,7 @@ class HistoryManager(models.Manager):
                 history_user=history_user,
                 history_change_reason=get_change_reason_from_object(instance)
                 or default_change_reason,
-                history_type=history_type,
+                history_type=getattr(instance, "_history_type", default_history_type),
                 **{
                     field.attname: getattr(instance, field.attname)
                     for field in self.model.tracked_fields

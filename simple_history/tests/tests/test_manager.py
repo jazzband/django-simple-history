@@ -427,6 +427,16 @@ class BulkHistoryUpdateTestCase(TestCase):
             )
         )
 
+    def test_bulk_history_create_with_history_type(self):
+        for poll in self.data:
+            poll._history_type = "~"
+
+        Poll.history.bulk_history_create(self.data)
+
+        self.assertTrue(
+            all([history.history_type == "~" for history in Poll.history.all()])
+        )
+
 
 class PrefetchingMethodsTestCase(TestCase):
     def setUp(self):
