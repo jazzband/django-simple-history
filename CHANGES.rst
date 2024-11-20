@@ -8,6 +8,8 @@ Unreleased
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
 - Fixed issue with deferred fields causing DoesNotExist error (gh-678)
+- Added HistoricOneToOneField (gh-1394)
+
 
 3.7.0 (2024-05-29)
 ------------------

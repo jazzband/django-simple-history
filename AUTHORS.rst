@@ -80,7 +80,7 @@ Authors
 - Jonathan Sanchez
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
 - Jordan Hyatt (`JordanHyatt <https://github.com/JordanHyatt>`_)
-- Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
+- Jordon Wing  (`jordonwii <https://github.com/jordonwii>`_)
 - Josh Fyne
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
 - Keith Hackbarth

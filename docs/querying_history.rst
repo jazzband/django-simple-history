@@ -149,6 +149,7 @@ historic point in time (even if it is the most recent version).
 You can use `to_historic` to return the historical model that was used
 to furnish the instance at hand, if it is actually historic.
 
+.. _`HistoricForeignKey`:
 
 HistoricForeignKey
 ------------------
@@ -161,6 +162,11 @@ reverse relationships.
 
 See the `HistoricForeignKeyTest` code and models for an example.
 
+
+HistoricOneToOneField
+---------------------
+
+Similar to :ref:`HistoricForeignKey`, but for OneToOneFields instead.
 
 most_recent
 -----------
