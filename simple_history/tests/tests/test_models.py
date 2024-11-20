@@ -945,6 +945,18 @@ class HistoricalRecordsTest(HistoricalTestCase):
         with self.assertNumQueries(0):
             new_record.diff_against(old_record, excluded_fields=["unknown_field"])
 
+    def test_delete_with_deferred_fields(self):
+        Poll.objects.create(question="what's up bro?", pub_date=today)
+        Poll.objects.create(question="what's up sis?", pub_date=today)
+        Poll.objects.only("id").first().delete()
+        Poll.objects.defer("question").all().delete()
+        # Make sure bypass logic runs
+        Place.objects.create(name="cool place")
+        Place.objects.defer("name").first().delete()
+        with self.settings(SIMPLE_HISTORY_ENABLED=False):
+            Place.objects.create(name="cool place")
+            Place.objects.defer("name").all().delete()
+
     def test_history_with_custom_queryset(self):
         PollWithQuerySetCustomizations.objects.create(
             id=1, pub_date=today, question="Question 1"
