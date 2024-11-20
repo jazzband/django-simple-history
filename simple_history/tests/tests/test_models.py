@@ -953,7 +953,7 @@ class HistoricalRecordsTest(HistoricalTestCase):
         # Make sure bypass logic runs
         Place.objects.create(name="cool place")
         Place.objects.defer("name").first().delete()
-        with self.modify_settings(SIMPLE_HISTORY_ENABLED=False):
+        with self.settings(SIMPLE_HISTORY_ENABLED=False):
             Place.objects.create(name="cool place")
             Place.objects.defer("name").all().delete()
 
