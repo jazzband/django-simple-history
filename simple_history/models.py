@@ -961,14 +961,14 @@ class HistoricReverseOneToOneDescriptor(
 class HistoricOneToOneField(models.OneToOneField):
     """
     Allows one to one fields to work properly from a historic instance.
-    
+
     If you use as_of queries to extract historical instances from
     a model, and you have other models that are related by one to
     one fields and also historic, changing them to a
     HistoricOneToOneField field type will allow you to naturally
     cross the relationship boundary at the same point in time as
     the origin instance.
-    
+
     A historic instance maintains an attribute ("_historic") when
     it is historic, holding the historic record instance and the
     timepoint used to query it ("_as_of").  HistoricOneToOneField
