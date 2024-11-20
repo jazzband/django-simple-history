@@ -671,6 +671,9 @@ class HistoricalRecords:
         """
         pre_delete method to ensure all deferred fileds are loaded on the model
         """
+        # First check if instance is history enabled model
+        if not hasattr(instance._meta, "simple_history_manager_attribute"):
+            pass
         fields = self.fields_included(instance)
         field_attrs = {field.attname for field in fields}
         deferred_attrs = instance.get_deferred_fields()
