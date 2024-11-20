@@ -446,7 +446,7 @@ history tables to a separate database from their base tables. This issue is fixe
 - Allow history table to be formatted correctly with ``django-admin-bootstrap``
 - Disallow calling ``simple_history.register`` twice on the same model
 - Added Python 3 support
-- Added support for custom user model (Django 1.5+)s
+- Added support for custom user model (Django 1.5+)
 
 1.2.3 (2013-04-22)
 ------------------
