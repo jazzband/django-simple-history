@@ -7,6 +7,7 @@ Unreleased
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Fixed issue with deferred fields causing DoesNotExist error
 
 3.7.0 (2024-05-29)
 ------------------
@@ -113,7 +114,6 @@ Unreleased
 - Added ``tracked_fields`` attribute to historical models (gh-1038)
 - Fixed ``KeyError`` when running ``clean_duplicate_history`` on models with ``excluded_fields`` (gh-1038)
 - Added support for Python 3.11 (gh-1053)
-- Fixed issue with deferred fields causing DoesNotExist error
 
 =======
 
