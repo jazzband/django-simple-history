@@ -25,6 +25,12 @@ saving a historical record. Arguments passed to the signals include the followin
 For Many To Many signals you've got the following :
 
 .. glossary::
+    instance
+        The source model instance being saved
+
+    history_instance
+        The corresponding history record
+
     rows (for pre_create)
         The elements to be bulk inserted into the m2m table
 
