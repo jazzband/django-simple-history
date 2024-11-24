@@ -9,6 +9,7 @@ Unreleased
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
 - Fixed issue with deferred fields causing DoesNotExist error (gh-678)
 - Added HistoricOneToOneField (gh-1394)
+- Updated all djangoproject.com links to reference the stable version (gh-1420)
 
 3.7.0 (2024-05-29)
 ------------------
