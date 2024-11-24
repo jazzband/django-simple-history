@@ -79,7 +79,8 @@ Authors
 - Jonathan Loo (`alpha1d3d <https://github.com/alpha1d3d>`_)
 - Jonathan Sanchez
 - Jonathan Zvesper (`zvesp <https://github.com/zvesp>`_)
-- Jordon Wing  (`jordonwii <https://github.com/jordonwii`_)
+- Jordan Hyatt (`JordanHyatt <https://github.com/JordanHyatt>`_)
+- Jordon Wing  (`jordonwii <https://github.com/jordonwii>`_)
 - Josh Fyne
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
 - Keith Hackbarth

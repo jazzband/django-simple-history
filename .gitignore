@@ -6,6 +6,7 @@
 .idea
 .tox/
 .venv/
+.python-version
 /.project
 /.pydevproject
 /.ve

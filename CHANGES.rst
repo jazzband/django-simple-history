@@ -7,6 +7,8 @@ Unreleased
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Fixed issue with deferred fields causing DoesNotExist error (gh-678)
+- Added HistoricOneToOneField (gh-1394)
 - Updated all djangoproject.com links to reference the stable version
 
 3.7.0 (2024-05-29)
