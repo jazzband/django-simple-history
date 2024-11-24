@@ -1,13 +1,13 @@
 ---
 repos:
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.9
+    rev: 1.7.10
     hooks:
       - id: bandit
         exclude: /.*tests/
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
         language_version: python3.9
@@ -25,7 +25,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: requirements-txt-fixer
         files: requirements/.*\.txt$
@@ -40,11 +40,11 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: 2.2.3
+    rev: v2.5.0
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.19
+    rev: v0.23
     hooks:
       - id: validate-pyproject
 
@@ -56,7 +56,7 @@ repos:
           - "--strict"
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
-        args: [--py38-plus]
+        args: [--py39-plus]

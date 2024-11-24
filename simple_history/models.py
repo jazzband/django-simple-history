@@ -2,9 +2,10 @@ import copy
 import importlib
 import uuid
 import warnings
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Sequence, Type, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import django
 from django.apps import apps
@@ -899,10 +900,14 @@ class HistoricReverseManyToOneDescriptor(ReverseManyToOneDescriptor):
 
         class HistoricRelationModelManager(related_model._default_manager.__class__):
             def get_queryset(self):
+                cache_name = (
+                    # DEV: Remove this when support for Django 5.0 has been dropped
+                    self.field.remote_field.get_cache_name()
+                    if django.VERSION < (5, 1)
+                    else self.field.remote_field.cache_name
+                )
                 try:
-                    return self.instance._prefetched_objects_cache[
-                        self.field.remote_field.get_cache_name()
-                    ]
+                    return self.instance._prefetched_objects_cache[cache_name]
                 except (AttributeError, KeyError):
                     history = getattr(
                         self.instance, SIMPLE_HISTORY_REVERSE_ATTR_NAME, None
@@ -1088,7 +1093,7 @@ class HistoricalChanges(ModelTypeHint):
         old_history: "HistoricalChanges",
         fields: Iterable[str],
         foreign_keys_are_objs: bool,
-    ) -> List["ModelChange"]:
+    ) -> list["ModelChange"]:
         """Helper method for ``diff_against()``."""
         changes = []
 
@@ -1129,7 +1134,7 @@ class HistoricalChanges(ModelTypeHint):
         old_history: "HistoricalChanges",
         m2m_fields: Iterable[str],
         foreign_keys_are_objs: bool,
-    ) -> List["ModelChange"]:
+    ) -> list["ModelChange"]:
         """Helper method for ``diff_against()``."""
         changes = []
 
@@ -1198,7 +1203,7 @@ class HistoricalChanges(ModelTypeHint):
 
 @dataclass(frozen=True)
 class DeletedObject:
-    model: Type[models.Model]
+    model: type[models.Model]
     pk: Any
 
     def __str__(self):
@@ -1223,7 +1228,7 @@ class DeletedObject:
 #     The PK of the through model's related objects.
 #
 # - Any of the other possible values of a model field.
-ModelChangeValue = Union[Any, DeletedObject, List[Dict[str, Union[Any, DeletedObject]]]]
+ModelChangeValue = Union[Any, DeletedObject, list[dict[str, Union[Any, DeletedObject]]]]
 
 
 @dataclass(frozen=True)
