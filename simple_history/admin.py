@@ -6,7 +6,8 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
-from django.contrib.admin.utils import unquote
+from django.contrib.admin.utils import quote, unquote
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
@@ -362,3 +363,46 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         return getattr(
             settings, "SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS", False
         )
+
+
+class SimpleHistoryChangeList(ChangeList):
+    def apply_select_related(self, qs):
+        # Our qs is different if we use the history, so the normal select_related
+        # won't work and results in an empty QuerySet result.
+        if self.params.get("entries", None) == "deleted_only":
+            return qs
+        return super().apply_select_related(qs)
+
+    def url_for_result(self, result) -> str:
+        history = self.params.get("entries", None) == "deleted_only"
+        route_type = "history" if history else "change"
+        route = f"{self.opts.app_label}_{self.opts.model_name}_{route_type}"
+        pk = getattr(result, self.pk_attname)
+        return reverse(
+            f"admin:{route}",
+            args=(quote(pk),),
+            current_app=self.model_admin.admin_site.name,
+        )
+
+
+class SimpleHistoryShowDeletedFilter(admin.SimpleListFilter):
+    title = "Entries"
+    parameter_name = "entries"
+
+    def lookups(self, request, model_admin):
+        return (("deleted_only", "Only Deleted"),)
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.model.history.filter(history_type="-").latest_of_each()
+        return queryset
+
+
+class SimpleHistoryWithDeletedAdmin(SimpleHistoryAdmin):
+    def get_changelist(self, request, **kwargs):
+        return SimpleHistoryChangeList
+
+    def get_list_filter(self, request):
+        # Doing it here will add it to every inherited class. Alternatively,
+        # add SimpleHistoryShowDeletedFilter to the list_filter and remove the below.
+        return [SimpleHistoryShowDeletedFilter, *super().get_list_filter(request)]
