@@ -36,12 +36,6 @@ An example of admin integration for the ``Poll`` and ``Choice`` models:
 
 Changing a history-tracked model from the admin interface will automatically record the user who made the change (see :doc:`/user_tracking`).
 
-Changing the number of historical records shown in the admin history list view
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, the history list view of ``SimpleHistoryAdmin`` shows the last 100 records.
-You can change this by adding a `history_list_per_page` attribute to the admin class.
-
 
 Displaying custom columns in the admin history list view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,6 +69,27 @@ admin class.
 
 
 .. image:: screens/5_history_list_display.png
+
+
+Changing the page size in the admin history list view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the history list view of ``SimpleHistoryAdmin`` shows the last 100 records.
+You can change this by adding a `history_list_per_page` attribute to the admin class.
+
+
+.. code-block:: python
+
+    from django.contrib import admin
+    from simple_history.admin import SimpleHistoryAdmin
+    from .models import Poll
+
+
+    class PollHistoryAdmin(SimpleHistoryAdmin):
+        # history_list_per_page defaults to 100
+        history_list_per_page = 200
+
+    admin.site.register(Poll, PollHistoryAdmin)
 
 
 Customizing the History Admin Templates
