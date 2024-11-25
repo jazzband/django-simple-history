@@ -83,6 +83,7 @@ Authors
 - Jordon Wing  (`jordonwii <https://github.com/jordonwii>`_)
 - Josh Fyne
 - Josh Thomas (`joshuadavidthomas <https://github.com/joshuadavidthomas>`_)
+- Jurrian Tromp (`jurrian <https://github.com/jurrian>`_)
 - Keith Hackbarth
 - Kevin Foster
 - Kira (`kiraware <https://github.com/kiraware>`_)
