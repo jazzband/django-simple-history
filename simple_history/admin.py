@@ -72,13 +72,13 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
             except historical_records.model.DoesNotExist:
                 raise http.Http404
 
+        if not self.has_view_history_or_change_history_permission(request, obj):
+            raise PermissionDenied
+
         # Use the same pagination as in Django admin, with history_list_per_page items
         paginator = Paginator(historical_records, self.history_list_per_page)
         page_obj = paginator.get_page(request.GET.get(PAGE_VAR))
         page_range = paginator.get_elided_page_range(page_obj.number)
-
-        if not self.has_view_history_or_change_history_permission(request, obj):
-            raise PermissionDenied
 
         # Set attribute on each historical record from admin methods
         for history_list_entry in history_list_display:
