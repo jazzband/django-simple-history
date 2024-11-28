@@ -547,6 +547,20 @@ class HistoricalRecords:
                 .first()
             )
 
+        def get_next_record_diff(self):
+            """
+            Get the difference between this and the next record.
+
+            Return the diff or `None` of no next record.
+            """
+
+            next_record = self.get_next_record()
+
+            if next_record is not None:
+                return self.diff_against(next_record)
+
+            return None
+
         def get_prev_record(self):
             """
             Get the previous history record for the instance. `None` if first.
@@ -557,6 +571,23 @@ class HistoricalRecords:
                 .order_by("history_date")
                 .last()
             )
+
+        def get_prev_record_diff(self):
+            """
+            Get the difference between this and the previous record.
+
+            The diff should be based on the previous record,
+            since the diff uses `old_record` and `new_record` semantics.
+
+            Return the diff or `None` if no previous record.
+            """
+
+            previous_record = self.get_prev_record()
+
+            if previous_record is not None:
+                return previous_record.diff_against(self)
+
+            return None
 
         def get_default_history_user(instance):
             """
@@ -579,7 +610,9 @@ class HistoricalRecords:
             "instance": property(get_instance),
             "instance_type": model,
             "next_record": property(get_next_record),
+            "next_record_diff": property(get_next_record_diff),
             "prev_record": property(get_prev_record),
+            "prev_record_diff": property(get_prev_record_diff),
             "revert_url": revert_url,
             "__str__": lambda self: "{} as of {}".format(
                 self.history_object, self.history_date
