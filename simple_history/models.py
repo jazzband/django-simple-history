@@ -709,7 +709,6 @@ class HistoricalRecords:
             m2m_history_model = self.m2m_models[field]
             original_instance = history_instance.instance
             through_model = getattr(original_instance, field.name).through
-            through_model_field_names = [f.name for f in through_model._meta.fields]
             through_model_fk_field_names = [
                 f.name for f in through_model._meta.fields if isinstance(f, ForeignKey)
             ]
@@ -722,8 +721,14 @@ class HistoricalRecords:
             for row in rows:
                 insert_row = {"history": history_instance}
 
-                for field_name in through_model_field_names:
-                    insert_row[field_name] = getattr(row, field_name)
+                for through_model_field in through_model._meta.fields:
+                    # Remove any excluded kwargs for the field.
+                    if through_model_field.name not in self.field_excluded_kwargs(
+                        field
+                    ):
+                        insert_row[through_model_field.name] = getattr(
+                            row, through_model_field.name
+                        )
                 insert_rows.append(m2m_history_model(**insert_row))
 
             pre_create_historical_m2m_records.send(
