@@ -154,7 +154,7 @@ class MiddlewareTest(TestCase):
     @override_settings(DEBUG_PROPAGATE_EXCEPTIONS=True)
     @mock.patch("simple_history.tests.view.MockableView.get")
     def test_request_attr_is_deleted_after_each_response(self, func_mock):
-        """https://github.com/jazzband/django-simple-history/issues/1189"""
+        """https://github.com/django-commons/django-simple-history/issues/1189"""
 
         def assert_has_request_attr(has_attr: bool):
             self.assertEqual(hasattr(HistoricalRecords.context, "request"), has_attr)

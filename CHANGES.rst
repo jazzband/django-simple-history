@@ -15,6 +15,7 @@ Unreleased
 - Added pagination to ``SimpleHistoryAdmin`` (gh-1277)
 - Fixed issue with history button not working when viewing historical entries in the
   admin (gh-527)
+- Move repository to the Django Commons organization (gh-1391)
 
 3.7.0 (2024-05-29)
 ------------------
