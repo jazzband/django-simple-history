@@ -1,16 +1,16 @@
 django-simple-history
 =====================
 
-.. image:: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml/badge.svg
-   :target: https://github.com/jazzband/django-simple-history/actions/workflows/test.yml
+.. image:: https://github.com/django-commons/django-simple-history/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/django-commons/django-simple-history/actions/workflows/test.yml
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/django-simple-history/badge/?version=latest
    :target: https://django-simple-history.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://img.shields.io/codecov/c/github/jazzband/django-simple-history/master.svg
-   :target: https://app.codecov.io/github/jazzband/django-simple-history?branch=master
+.. image:: https://img.shields.io/codecov/c/github/django-commons/django-simple-history/master.svg
+   :target: https://app.codecov.io/github/django-commons/django-simple-history?branch=master
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/pypi/v/django-simple-history.svg
@@ -18,7 +18,7 @@ django-simple-history
    :alt: PyPI Version
 
 .. image:: https://api.codeclimate.com/v1/badges/66cfd94e2db991f2d28a/maintainability
-   :target: https://codeclimate.com/github/jazzband/django-simple-history/maintainability
+   :target: https://codeclimate.com/github/django-commons/django-simple-history/maintainability
    :alt: Maintainability
 
 .. image:: https://static.pepy.tech/badge/django-simple-history
@@ -28,10 +28,6 @@ django-simple-history
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code Style
-
-.. image:: https://jazzband.co/static/img/badge.svg
-   :target: https://jazzband.co/
-   :alt: Jazzband
 
 
 django-simple-history stores Django model state on every create/update/delete.
@@ -50,8 +46,8 @@ main        3.10, 3.11, 3.12, 3.13
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/jazzband/django-simple-history/issues
-- Source Code: https://github.com/jazzband/django-simple-history
+- Issue Tracker: https://github.com/django-commons/django-simple-history/issues
+- Source Code: https://github.com/django-commons/django-simple-history
 
 Pull requests are welcome.
 
