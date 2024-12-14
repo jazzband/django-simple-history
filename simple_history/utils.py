@@ -139,7 +139,7 @@ def bulk_create_with_history(
     if second_transaction_required:
         with transaction.atomic(savepoint=False):
             # Generate a common query to avoid n+1 selections
-            #   https://github.com/jazzband/django-simple-history/issues/974
+            #   https://github.com/django-commons/django-simple-history/issues/974
             cumulative_filter = None
             obj_when_list = []
             for i, obj in enumerate(objs_with_id):

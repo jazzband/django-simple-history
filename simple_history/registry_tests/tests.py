@@ -199,7 +199,7 @@ class TestTrackingInheritance(TestCase):
 
 
 class TestCustomAttrForeignKey(TestCase):
-    """https://github.com/jazzband/django-simple-history/issues/431"""
+    """https://github.com/django-commons/django-simple-history/issues/431"""
 
     def test_custom_attr(self):
         field = ModelWithCustomAttrForeignKey.history.model._meta.get_field("poll")
@@ -207,7 +207,7 @@ class TestCustomAttrForeignKey(TestCase):
 
 
 class TestCustomAttrOneToOneField(TestCase):
-    """https://github.com/jazzband/django-simple-history/issues/870"""
+    """https://github.com/django-commons/django-simple-history/issues/870"""
 
     def test_custom_attr(self):
         field = ModelWithCustomAttrOneToOneField.history.model._meta.get_field("poll")
@@ -228,7 +228,7 @@ class TestMigrate(TransactionTestCase):
 
 
 class TestModelWithHistoryInDifferentApp(TestCase):
-    """https://github.com/jazzband/django-simple-history/issues/485"""
+    """https://github.com/django-commons/django-simple-history/issues/485"""
 
     def test__different_app(self):
         appLabel = ModelWithHistoryInDifferentApp.history.model._meta.app_label
