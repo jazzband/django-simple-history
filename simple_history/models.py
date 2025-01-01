@@ -411,7 +411,7 @@ class HistoricalRecords:
     def _get_history_change_reason_field(self):
         if self.history_change_reason_field:
             # User specific field from init
-            history_change_reason_field = self.history_change_reason_field
+            history_change_reason_field = self.history_change_reason_field.clone()
         elif getattr(
             settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD", False
         ):

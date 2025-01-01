@@ -650,6 +650,12 @@ class TrackedAbstractBaseB(models.Model):
         abstract = True
 
 
+class TrackedAbstractBaseWithReasonField(models.Model):
+    history = HistoricalRecords(
+        inherit=True, history_change_reason_field=models.TextField()
+    )
+
+
 class UntrackedAbstractBase(models.Model):
     class Meta:
         abstract = True
@@ -706,6 +712,14 @@ class InheritTracking3(BaseInheritTracking3):
 
 
 class InheritTracking4(TrackedAbstractBaseA):
+    pass
+
+
+class InheritReasonField1(TrackedAbstractBaseWithReasonField):
+    pass
+
+
+class InheritReasonField2(TrackedAbstractBaseWithReasonField):
     pass
 
 
