@@ -4,6 +4,13 @@ Changes
 Unreleased
 ----------
 
+
+3.8.1 (2025-01-24)
+------------------
+
+- Removed the ``simple_history_admin_list.display_list()`` template tag that was
+  deprecated in version 3.6.0 (gh-1444)
+
 3.8.0 (2025-01-23)
 ------------------
 
