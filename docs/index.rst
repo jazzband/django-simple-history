@@ -44,7 +44,8 @@ This app supports the following combinations of Django and Python:
 4.2         3.9, 3.10, 3.11, 3.12, 3.13
 5.0         3.10, 3.11, 3.12, 3.13
 5.1         3.10, 3.11, 3.12, 3.13
-main        3.10, 3.11, 3.12, 3.13
+5.2         3.10, 3.11, 3.12, 3.13
+main        3.12, 3.13
 ==========  =======================
 
 Contribute
