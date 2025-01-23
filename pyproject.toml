@@ -39,11 +39,11 @@ dynamic = [
 dependencies = [
   "django>=4.2",
 ]
-urls.Changelog = "https://github.com/jazzband/django-simple-history/blob/master/CHANGES.rst"
+urls.Changelog = "https://github.com/django-commons/django-simple-history/blob/master/CHANGES.rst"
 urls.Documentation = "https://django-simple-history.readthedocs.io/en/stable/"
-urls.Homepage = "https://github.com/jazzband/django-simple-history"
-urls.Source = "https://github.com/jazzband/django-simple-history"
-urls.Tracker = "https://github.com/jazzband/django-simple-history/issues"
+urls.Homepage = "https://github.com/django-commons/django-simple-history"
+urls.Source = "https://github.com/django-commons/django-simple-history"
+urls.Tracker = "https://github.com/django-commons/django-simple-history/issues"
 
 [tool.hatch.version]
 source = "vcs"
@@ -54,17 +54,9 @@ version_scheme = "no-guess-dev"
 local_scheme = "node-and-date"
 
 [tool.hatch.build.targets.wheel]
-# Jazzband's release process is limited to 2.2 metadata
-# - see https://github.com/jazzband/help/issues/360
-core-metadata-version = "2.2"
 packages = [
   "simple_history",
 ]
-
-[tool.hatch.build.targets.sdist]
-# Jazzband's release process is limited to 2.2 metadata
-# - see https://github.com/jazzband/help/issues/360
-core-metadata-version = "2.2"
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/x-rst"

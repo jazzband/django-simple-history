@@ -18,9 +18,9 @@ class HistoricalQuerySet(QuerySet):
     Enables additional functionality when working with historical records.
 
     For additional history on this topic, see:
-        - https://github.com/jazzband/django-simple-history/pull/229
-        - https://github.com/jazzband/django-simple-history/issues/354
-        - https://github.com/jazzband/django-simple-history/issues/397
+        - https://github.com/django-commons/django-simple-history/pull/229
+        - https://github.com/django-commons/django-simple-history/issues/354
+        - https://github.com/django-commons/django-simple-history/issues/397
     """
 
     def __init__(self, *args, **kwargs):
