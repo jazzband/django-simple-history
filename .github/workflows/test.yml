@@ -15,7 +15,8 @@ jobs:
         django-version: ['4.2', '5.0', '5.1', '5.2', 'main']
 
         exclude:
-          # Exclude py3.9 for Django main and 5+
+          # Exclude py3.9 for Django >= 5.0,
+          # and py3.10 and py3.11 for Django > 5.2
           - python-version: '3.9'
             django-version: '5.0'
           - python-version: '3.9'
