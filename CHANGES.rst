@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+- Fixed history_change_reason_field being shared across inherited models (gh-1433)
+
+3.8.0 (2025-01-23)
+------------------
+
 - Made ``skip_history_when_saving`` work when creating an object - not just when
   updating an object (gh-1262)
 - Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
@@ -15,7 +20,7 @@ Unreleased
 - Added pagination to ``SimpleHistoryAdmin`` (gh-1277)
 - Fixed issue with history button not working when viewing historical entries in the
   admin (gh-527)
-- Fixed history_change_reason_field being shared across inherited models (gh-1433)
+- Added support for Django 5.2 (gh-1441)
 
 3.7.0 (2024-05-29)
 ------------------
