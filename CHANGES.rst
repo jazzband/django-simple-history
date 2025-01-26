@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Fixed history_change_reason_field being shared across inherited models (gh-1433)
+
 3.8.0 (2025-01-23)
 ------------------
 

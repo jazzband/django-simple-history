@@ -111,6 +111,7 @@ Authors
 - Nathan Villagaray-Carski (`ncvc <https://github.com/ncvc>`_)
 - Nianpeng Li
 - Nick Träger
+- Noam Kushinsky (`noamkush <https://github.com/noamkush>`_)
 - Noel James (`NoelJames <https://github.com/NoelJames>`_)
 - Ofek Lev (`ofek <https://github.com/ofek>`_)
 - Phillip Marshall

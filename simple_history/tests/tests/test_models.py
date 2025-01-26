@@ -71,6 +71,8 @@ from ..models import (
     HistoricalPollWithManyToMany_places,
     HistoricalState,
     InheritedRestaurant,
+    InheritReasonField1,
+    InheritReasonField2,
     Library,
     ManyToManyModelOther,
     ModelWithCustomAttrOneToOneField,
@@ -685,6 +687,29 @@ class HistoricalRecordsTest(HistoricalTestCase):
 
         self.assertTrue(isinstance(field, models.TextField))
         self.assertEqual(history.history_change_reason, reason)
+
+    def test_inherited_history_change_reason_update(self):
+        inherited1 = InheritReasonField1.history.create(
+            history_change_reason="reason1", id=1, history_date=datetime.now()
+        )
+        inherited2 = InheritReasonField2.history.create(
+            history_change_reason="reason2", id=1, history_date=datetime.now()
+        )
+
+        InheritReasonField1.history.update(history_change_reason="new_reason1")
+        InheritReasonField2.history.update(history_change_reason="new_reason2")
+
+        inherited1.refresh_from_db()
+        inherited2.refresh_from_db()
+
+        self.assertEqual(inherited1.history_change_reason, "new_reason1")
+        self.assertEqual(inherited2.history_change_reason, "new_reason2")
+
+    def test_history_change_reason_field_not_shared(self):
+        self.assertIsNot(
+            InheritReasonField1.history.model._meta.get_field("history_change_reason"),
+            InheritReasonField2.history.model._meta.get_field("history_change_reason"),
+        )
 
     def test_history_diff_includes_changed_fields(self):
         p = Poll.objects.create(question="what's up?", pub_date=today)
