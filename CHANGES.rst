@@ -4,6 +4,13 @@ Changes
 Unreleased
 ----------
 
+
+3.9.0 (2025-01-26)
+------------------
+
+- Removed the ``simple_history_admin_list.display_list()`` template tag that was
+  deprecated in version 3.6.0 (gh-1444)
+
 3.8.0 (2025-01-23)
 ------------------
 
@@ -19,6 +26,8 @@ Unreleased
 - Fixed issue with history button not working when viewing historical entries in the
   admin (gh-527)
 - Added support for Django 5.2 (gh-1441)
+- ``simple_history_admin_list.display_list()`` *was planned to be removed in this
+  release, but it was overlooked, and will instead be removed in 3.9.0*
 
 3.7.0 (2024-05-29)
 ------------------
