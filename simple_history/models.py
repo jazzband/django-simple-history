@@ -410,7 +410,8 @@ class HistoricalRecords:
 
     def _get_history_change_reason_field(self):
         if self.history_change_reason_field:
-            # User specific field from init
+            # User specific field from init.
+            # It's cloned so a reason from an inherited model isn't shared.
             history_change_reason_field = self.history_change_reason_field.clone()
         elif getattr(
             settings, "SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD", False
