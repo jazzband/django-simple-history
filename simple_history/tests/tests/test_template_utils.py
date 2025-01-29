@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Tuple
 
 from django.test import TestCase
 from django.utils.dateparse import parse_datetime
@@ -225,7 +224,7 @@ class HistoricalRecordContextHelperTestCase(TestCase):
         )
 
     def test__context_for_delta_changes__preserves_html_safe_strings(self):
-        def get_context_dict_old_and_new(old_value, new_value) -> Tuple[str, str]:
+        def get_context_dict_old_and_new(old_value, new_value) -> tuple[str, str]:
             # The field doesn't really matter, as long as it exists on the model
             # passed to `HistoricalRecordContextHelper`
             change = ModelChange("question", old_value, new_value)

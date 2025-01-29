@@ -11,27 +11,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev']
-        django-version: ['3.2', '4.2', '5.0', 'main']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        django-version: ['4.2', '5.0', '5.1', '5.2', 'main']
 
         exclude:
-          # Exclude py3.8 and py3.9 for Django main and 5.0
-          - python-version: '3.8'
-            django-version: '5.0'
+          # Exclude py3.9 for Django >= 5.0,
+          # and py3.10 and py3.11 for Django > 5.2
           - python-version: '3.9'
             django-version: '5.0'
-          - python-version: '3.8'
-            django-version: 'main'
+          - python-version: '3.9'
+            django-version: '5.1'
+          - python-version: '3.9'
+            django-version: '5.2'
           - python-version: '3.9'
             django-version: 'main'
-
-          # Exclude py3.11, py3.12 and py3.13 for Django 3.2
+          - python-version: '3.10'
+            django-version: 'main'
           - python-version: '3.11'
-            django-version: '3.2'
-          - python-version: '3.12'
-            django-version: '3.2'
-          - python-version: '3.13-dev'
-            django-version: '3.2'
+            django-version: 'main'
 
     services:
 
@@ -73,7 +70,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: |
-            setup.py
+            pyproject.toml
             tox.ini
             requirements/*.txt
 
@@ -109,7 +106,7 @@ jobs:
       - name: Set up newest stable Python version
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.13
           cache: 'pip'
           # Invalidate the cache when this file updates, as the dependencies' versions
           # are pinned in the step below
@@ -121,7 +118,7 @@ jobs:
           # Install this project in editable mode, so that its package metadata can be queried
           pip install -e .
           # Install the latest minor version of Django we support
-          pip install Django==5.0
+          pip install Django==5.1
 
       - name: Check translation files are updated
         run: python -m simple_history.tests.generated_file_checks.check_translations

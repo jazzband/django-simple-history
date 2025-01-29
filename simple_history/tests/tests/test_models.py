@@ -30,11 +30,6 @@ from simple_history.signals import (
     pre_create_historical_m2m_records,
     pre_create_historical_record,
 )
-from simple_history.tests.tests.utils import (
-    database_router_override_settings,
-    database_router_override_settings_history_in_diff_db,
-    middleware_override_settings,
-)
 from simple_history.utils import get_history_model_for_model, update_change_reason
 
 from ..external.models import (
@@ -115,16 +110,25 @@ from ..models import (
     Street,
     Temperature,
     TestHistoricParticipanToHistoricOrganization,
+    TestHistoricParticipanToHistoricOrganizationOneToOne,
     TestHistoricParticipantToOrganization,
+    TestHistoricParticipantToOrganizationOneToOne,
     TestOrganization,
     TestOrganizationWithHistory,
     TestParticipantToHistoricOrganization,
+    TestParticipantToHistoricOrganizationOneToOne,
     UnicodeVerboseName,
     UnicodeVerboseNamePlural,
     UserTextFieldChangeReasonModel,
     UUIDDefaultModel,
     UUIDModel,
     WaterLevel,
+)
+from .utils import (
+    HistoricalTestCase,
+    database_router_override_settings,
+    database_router_override_settings_history_in_diff_db,
+    middleware_override_settings,
 )
 
 get_model = apps.get_model
@@ -140,17 +144,9 @@ def get_fake_file(filename):
     return fake_file
 
 
-class HistoricalRecordsTest(TestCase):
+class HistoricalRecordsTest(HistoricalTestCase):
     def assertDatetimesEqual(self, time1, time2):
         self.assertAlmostEqual(time1, time2, delta=timedelta(seconds=2))
-
-    def assertRecordValues(self, record, klass, values_dict):
-        for key, value in values_dict.items():
-            self.assertEqual(getattr(record, key), value)
-        self.assertEqual(record.history_object.__class__, klass)
-        for key, value in values_dict.items():
-            if key not in ["history_type", "history_change_reason"]:
-                self.assertEqual(getattr(record.history_object, key), value)
 
     def test_create(self):
         p = Poll(question="what's up?", pub_date=today)
@@ -948,6 +944,18 @@ class HistoricalRecordsTest(TestCase):
 
         with self.assertNumQueries(0):
             new_record.diff_against(old_record, excluded_fields=["unknown_field"])
+
+    def test_delete_with_deferred_fields(self):
+        Poll.objects.create(question="what's up bro?", pub_date=today)
+        Poll.objects.create(question="what's up sis?", pub_date=today)
+        Poll.objects.only("id").first().delete()
+        Poll.objects.defer("question").all().delete()
+        # Make sure bypass logic runs
+        Place.objects.create(name="cool place")
+        Place.objects.defer("name").first().delete()
+        with self.settings(SIMPLE_HISTORY_ENABLED=False):
+            Place.objects.create(name="cool place")
+            Place.objects.defer("name").all().delete()
 
     def test_history_with_custom_queryset(self):
         PollWithQuerySetCustomizations.objects.create(
@@ -2424,12 +2432,12 @@ class ManyToManyTest(TestCase):
         self.assertEqual(self.poll.history.all()[0].places.count(), 0)
         self.assertEqual(poll_2.history.all()[0].places.count(), 2)
 
-    def test_skip_history(self):
+    def test_skip_history_when_updating_an_object(self):
         skip_poll = PollWithManyToMany.objects.create(
             question="skip history?", pub_date=today
         )
-        self.assertEqual(self.poll.history.all().count(), 1)
-        self.assertEqual(self.poll.history.all()[0].places.count(), 0)
+        self.assertEqual(skip_poll.history.all().count(), 1)
+        self.assertEqual(skip_poll.history.all()[0].places.count(), 0)
 
         skip_poll.skip_history_when_saving = True
 
@@ -2437,8 +2445,8 @@ class ManyToManyTest(TestCase):
         skip_poll.save()
         skip_poll.places.add(self.place)
 
-        self.assertEqual(self.poll.history.all().count(), 1)
-        self.assertEqual(self.poll.history.all()[0].places.count(), 0)
+        self.assertEqual(skip_poll.history.all().count(), 1)
+        self.assertEqual(skip_poll.history.all()[0].places.count(), 0)
 
         del skip_poll.skip_history_when_saving
         place_2 = Place.objects.create(name="Place 2")
@@ -2447,6 +2455,18 @@ class ManyToManyTest(TestCase):
 
         self.assertEqual(skip_poll.history.all().count(), 2)
         self.assertEqual(skip_poll.history.all()[0].places.count(), 2)
+
+    def test_skip_history_when_creating_an_object(self):
+        initial_poll_count = PollWithManyToMany.objects.count()
+
+        skip_poll = PollWithManyToMany(question="skip history?", pub_date=today)
+        skip_poll.skip_history_when_saving = True
+        skip_poll.save()
+        skip_poll.places.add(self.place)
+
+        self.assertEqual(skip_poll.history.count(), 0)
+        self.assertEqual(PollWithManyToMany.objects.count(), initial_poll_count + 1)
+        self.assertEqual(skip_poll.places.count(), 1)
 
     @override_settings(SIMPLE_HISTORY_ENABLED=False)
     def test_saving_with_disabled_history_doesnt_create_records(self):
@@ -2834,5 +2854,134 @@ class HistoricForeignKeyTest(TestCase):
         pt1h = TestHistoricParticipanToHistoricOrganization.history.all().order_by(
             "history_date"
         )[0]
+        pt1i = pt1h.instance
+        self.assertEqual(pt1i.organization.name, "original")
+
+
+class HistoricOneToOneFieldTest(TestCase):
+    """
+    Tests chasing OneToOne foreign keys across time points naturally with
+    HistoricForeignKey.
+    """
+
+    def test_non_historic_to_historic(self):
+        """
+        Non-historic table with one to one relationship to historic table.
+
+        In this case it should simply behave like OneToOneField because
+        the origin model (this one) cannot be historic, so OneToOneField
+        lookups are always "current".
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+        part = TestParticipantToHistoricOrganizationOneToOne.objects.create(
+            name="part", organization=org
+        )
+        before_mod = timezone.now()
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participant, part)
+
+        historg = TestOrganizationWithHistory.history.as_of(before_mod).get(
+            name="original"
+        )
+        self.assertEqual(historg.participant, part)
+
+        self.assertEqual(org.history.count(), 1)
+        org.name = "modified"
+        org.save()
+        self.assertEqual(org.history.count(), 2)
+
+        # drop internal caches, re-select
+        part = TestParticipantToHistoricOrganizationOneToOne.objects.get(name="part")
+        self.assertEqual(part.organization.name, "modified")
+
+    def test_historic_to_non_historic(self):
+        """
+        Historic table OneToOneField to non-historic table.
+
+        In this case it should simply behave like OneToOneField because
+        the origin model (this one) can be historic but the target model
+        is not, so foreign key lookups are always "current".
+        """
+        org = TestOrganization.objects.create(name="org")
+        part = TestHistoricParticipantToOrganizationOneToOne.objects.create(
+            name="original", organization=org
+        )
+        self.assertEqual(part.organization.id, org.id)
+        self.assertEqual(org.participant, part)
+
+        histpart = TestHistoricParticipantToOrganizationOneToOne.objects.get(
+            name="original"
+        )
+        self.assertEqual(histpart.organization.id, org.id)
+
+    def test_historic_to_historic(self):
+        """
+        Historic table with one to one relationship to historic table.
+
+        In this case as_of queries on the origin model (this one)
+        or on the target model (the other one) will traverse the
+        foreign key relationship honoring the timepoint of the
+        original query.  This only happens when both tables involved
+        are historic.
+
+        At t1 we have one org, one participant.
+        At t2 we have one org, one participant, however the org's name has changed.
+        """
+        org = TestOrganizationWithHistory.objects.create(name="original")
+
+        p1 = TestHistoricParticipanToHistoricOrganizationOneToOne.objects.create(
+            name="p1", organization=org
+        )
+        t1 = timezone.now()
+        org.name = "modified"
+        org.save()
+        p1.name = "p1_modified"
+        p1.save()
+        t2 = timezone.now()
+
+        # forward relationships - see how natural chasing timepoint relations is
+        p1t1 = TestHistoricParticipanToHistoricOrganizationOneToOne.history.as_of(
+            t1
+        ).get(name="p1")
+        self.assertEqual(p1t1.organization, org)
+        self.assertEqual(p1t1.organization.name, "original")
+        p1t2 = TestHistoricParticipanToHistoricOrganizationOneToOne.history.as_of(
+            t2
+        ).get(name="p1_modified")
+        self.assertEqual(p1t2.organization, org)
+        self.assertEqual(p1t2.organization.name, "modified")
+
+        # reverse relationships
+        # at t1
+        ot1 = TestOrganizationWithHistory.history.as_of(t1).all()[0]
+        self.assertEqual(ot1.historic_participant.name, "p1")
+
+        # at t2
+        ot2 = TestOrganizationWithHistory.history.as_of(t2).all()[0]
+        self.assertEqual(ot2.historic_participant.name, "p1_modified")
+
+        # current
+        self.assertEqual(org.historic_participant.name, "p1_modified")
+
+        self.assertTrue(is_historic(ot1))
+        self.assertFalse(is_historic(org))
+
+        self.assertIsInstance(
+            to_historic(ot1), TestOrganizationWithHistory.history.model
+        )
+        self.assertIsNone(to_historic(org))
+
+        # test querying directly from the history table and converting
+        # to an instance, it should chase the foreign key properly
+        # in this case if _as_of is not present we use the history_date
+        # https://github.com/jazzband/django-simple-history/issues/983
+        pt1h = TestHistoricParticipanToHistoricOrganizationOneToOne.history.all()[0]
+        pt1i = pt1h.instance
+        self.assertEqual(pt1i.organization.name, "modified")
+        pt1h = (
+            TestHistoricParticipanToHistoricOrganizationOneToOne.history.all().order_by(
+                "history_date"
+            )[0]
+        )
         pt1i = pt1h.instance
         self.assertEqual(pt1i.organization.name, "original")

@@ -95,7 +95,8 @@ def bulk_create_with_history(
     Bulk create the objects specified by objs while also bulk creating
     their history (all in one transaction).
     Because of not providing primary key attribute after bulk_create on any DB except
-    Postgres (https://docs.djangoproject.com/en/2.2/ref/models/querysets/#bulk-create)
+    Postgres
+    (https://docs.djangoproject.com/en/stable/ref/models/querysets/#bulk-create)
     Divide this process on two transactions for other DB's
     :param objs: List of objs (not yet saved to the db) of type model
     :param model: Model class that should be created

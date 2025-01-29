@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 
+import django
 from django.contrib.admin import AdminSite
 from django.contrib.admin.utils import quote
+from django.contrib.admin.views.main import PAGE_VAR
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -555,6 +557,125 @@ class AdminSiteTest(TestCase):
 
         self.assertEqual(response["Location"], "/awesome/url/")
 
+    def test_history_view_pagination(self):
+        """
+        Ensure the history_view handles pagination correctly.
+        The default history_list_per_page is 100 so page 2 should have 1 record.
+        """
+        # Create a Poll object and make more than 100 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(100):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        # Verify that there are 100+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 101)
+
+        admin_site = AdminSite()
+        admin = SimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the second page
+        request = RequestFactory().get("/", {PAGE_VAR: "2"})
+        request.user = self.user
+
+        # Patch the render function
+        with patch("simple_history.admin.render") as mock_render:
+            admin.history_view(request, str(poll.id))
+
+            # Ensure the render function was called
+            self.assertTrue(mock_render.called)
+
+            # Extract context passed to render function
+            action_list_count = len(mock_render.call_args[0][2]["page_obj"].object_list)
+
+            # Check if only 1 (101 - 100 from the first page)
+            # objects are present in the context
+            self.assertEqual(action_list_count, 1)
+
+    def test_history_view_pagination_no_pagination(self):
+        """
+        When all records fit on one page because the history_list_per_page is
+        higher than the number of records, ensure that the pagination is not set.
+        But it should show the number of entries.
+        """
+        # Create a Poll object and make more than 50 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(60):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        # Verify that there are 60+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), 61)
+
+        # Create an admin with more per page than the number of records
+        class CustomSimpleHistoryAdmin(SimpleHistoryAdmin):
+            history_list_per_page = 200
+
+        admin_site = AdminSite()
+        admin = CustomSimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the second page
+        request = RequestFactory().get("/", {PAGE_VAR: "2"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+
+        expected = '<p class="paginator" style="border-top: 0">61 entries</p>'
+        self.assertInHTML(expected, response.content.decode())
+
+    def test_history_view_pagination_last_page(self):
+        """
+        With 31 records, the last page should have 1 record. Non-existing pages
+        also end up on the last page.
+        """
+        # Create a Poll object and make more than 30 changes to ensure pagination
+        poll = Poll.objects.create(question="what?", pub_date=today)
+        for i in range(30):
+            poll.question = f"change_{i}"
+            poll.save()
+
+        expected_entry_count = 31
+
+        # Verify that there are 30+1 (initial creation) historical records
+        self.assertEqual(poll.history.count(), expected_entry_count)
+
+        # Create an admin with less per page than the number of records
+        class CustomSimpleHistoryAdmin(SimpleHistoryAdmin):
+            history_list_per_page = 10
+
+        admin_site = AdminSite()
+        admin = CustomSimpleHistoryAdmin(Poll, admin_site)
+
+        self.login(superuser=True)
+
+        # Simulate a request to the 4th and last page
+        request = RequestFactory().get("/", {PAGE_VAR: "4"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+
+        expected = (
+            '<p class="paginator" style="border-top: 0">'
+            '<a href="?p=1" >1</a>'
+            '<a href="?p=2" >2</a>'
+            '<a href="?p=3" >3</a>'
+            '<span class="this-page">4</span>'
+            f"{expected_entry_count} entries"
+            "</p>"
+        )
+        self.assertInHTML(expected, response.content.decode())
+
+        # Also a non-existent page should return the last page
+        request = RequestFactory().get("/", {PAGE_VAR: "5"})
+        request.user = self.user
+
+        response = admin.history_view(request, str(poll.id))
+        self.assertInHTML(expected, response.content.decode())
+
     def test_response_change_change_history_setting_off(self):
         """
         Test the response_change method that it works with a _change_history
@@ -621,6 +742,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for original object
+            "log_entries": ANY,
             "original": poll,
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
@@ -650,9 +772,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -680,6 +802,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object not poll object
+            "log_entries": ANY,
             "original": history.instance,
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
@@ -709,9 +832,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -739,6 +862,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object not poll object
+            "log_entries": ANY,
             "original": poll,
             "change_history": False,
             "title": "Revert %s" % force_str(poll),
@@ -768,9 +892,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -798,6 +922,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for history object
+            "log_entries": ANY,
             "original": history.instance,
             "change_history": True,
             "title": "Revert %s" % force_str(history.instance),
@@ -829,9 +954,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context
@@ -862,6 +987,7 @@ class AdminSiteTest(TestCase):
         context = {
             **admin_site.each_context(request),
             # Verify this is set for original object
+            "log_entries": ANY,
             "anything_else": "will be merged into context",
             "original": poll,
             "change_history": False,
@@ -892,9 +1018,9 @@ class AdminSiteTest(TestCase):
             "save_on_top": admin.save_on_top,
             "root_path": getattr(admin_site, "root_path", None),
         }
-        # This key didn't exist prior to Django 4.2
-        if "log_entries" in context:
-            context["log_entries"] = ANY
+        # DEV: Remove this when support for Django 4.2 has been dropped
+        if django.VERSION < (5, 0):
+            del context["log_entries"]
 
         mock_render.assert_called_once_with(
             request, admin.object_history_form_template, context

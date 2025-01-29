@@ -49,7 +49,7 @@ By default, the history log displays one line per change containing
 
 You can add other columns (for example the object's status to see
 how it evolved) by adding a ``history_list_display`` array of fields to the
-admin class
+admin class.
 
 .. code-block:: python
 
@@ -62,12 +62,34 @@ admin class
         list_display = ["id", "name", "status"]
         history_list_display = ["status"]
         search_fields = ['name', 'user__username']
+        history_list_per_page = 100
 
     admin.site.register(Poll, PollHistoryAdmin)
     admin.site.register(Choice, SimpleHistoryAdmin)
 
 
 .. image:: screens/5_history_list_display.png
+
+
+Changing the page size in the admin history list view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the history list view of ``SimpleHistoryAdmin`` shows the last 100 records.
+You can change this by adding a `history_list_per_page` attribute to the admin class.
+
+
+.. code-block:: python
+
+    from django.contrib import admin
+    from simple_history.admin import SimpleHistoryAdmin
+    from .models import Poll
+
+
+    class PollHistoryAdmin(SimpleHistoryAdmin):
+        # history_list_per_page defaults to 100
+        history_list_per_page = 200
+
+    admin.site.register(Poll, PollHistoryAdmin)
 
 
 Customizing the History Admin Templates

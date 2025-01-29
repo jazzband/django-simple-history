@@ -1,6 +1,6 @@
 import dataclasses
 from os.path import commonprefix
-from typing import Any, Dict, Final, List, Tuple, Type, Union
+from typing import Any, Final, Union
 
 from django.db.models import ManyToManyField, Model
 from django.utils.html import conditional_escape
@@ -40,7 +40,7 @@ class HistoricalRecordContextHelper:
 
     def __init__(
         self,
-        model: Type[Model],
+        model: type[Model],
         historical_record: HistoricalChanges,
         *,
         max_displayed_delta_change_chars=DEFAULT_MAX_DISPLAYED_DELTA_CHANGE_CHARS,
@@ -50,7 +50,7 @@ class HistoricalRecordContextHelper:
 
         self.max_displayed_delta_change_chars = max_displayed_delta_change_chars
 
-    def context_for_delta_changes(self, delta: ModelDelta) -> List[Dict[str, Any]]:
+    def context_for_delta_changes(self, delta: ModelDelta) -> list[dict[str, Any]]:
         """
         Return the template context for ``delta.changes``.
         By default, this is a list of dicts with the keys ``"field"``,
@@ -119,7 +119,7 @@ class HistoricalRecordContextHelper:
 
     def stringify_delta_change_values(
         self, change: ModelChange, old: Any, new: Any
-    ) -> Tuple[SafeString, SafeString]:
+    ) -> tuple[SafeString, SafeString]:
         """
         Called by ``format_delta_change()`` after ``old`` and ``new`` have been
         prepared by ``prepare_delta_change_value()``.
@@ -196,7 +196,7 @@ class ObjDiffDisplay:
         )
         assert self.min_diff_len >= 0  # nosec
 
-    def common_shorten_repr(self, *args: Any) -> Tuple[str, ...]:
+    def common_shorten_repr(self, *args: Any) -> tuple[str, ...]:
         """
         Returns ``args`` with each element converted into a string representation.
         If any of the strings are longer than ``self.max_length``, they're all shortened

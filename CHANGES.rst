@@ -5,6 +5,42 @@ Unreleased
 ----------
 
 
+3.9.0 (2025-01-26)
+------------------
+
+- Removed the ``simple_history_admin_list.display_list()`` template tag that was
+  deprecated in version 3.6.0 (gh-1444)
+
+3.8.0 (2025-01-23)
+------------------
+
+- Made ``skip_history_when_saving`` work when creating an object - not just when
+  updating an object (gh-1262)
+- Improved performance of the ``latest_of_each()`` history manager method (gh-1360)
+- Fixed issue with deferred fields causing DoesNotExist error (gh-678)
+- Added HistoricOneToOneField (gh-1394)
+- Updated all djangoproject.com links to reference the stable version (gh-1420)
+- Dropped support for Python 3.8, which reached end-of-life on 2024-10-07 (gh-1421)
+- Added support for Django 5.1 (gh-1388)
+- Added pagination to ``SimpleHistoryAdmin`` (gh-1277)
+- Fixed issue with history button not working when viewing historical entries in the
+  admin (gh-527)
+- Added support for Django 5.2 (gh-1441)
+- ``simple_history_admin_list.display_list()`` *was planned to be removed in this
+  release, but it was overlooked, and will instead be removed in 3.9.0*
+
+3.7.0 (2024-05-29)
+------------------
+
+- Dropped support for Django 3.2, which reached end-of-life on 2024-04-01 (gh-1344)
+- Removed the temporary requirement on ``asgiref>=3.6`` added in 3.5.0,
+  now that the minimum required Django version is 4.2 (gh-1344)
+- Migrated package building from using the deprecated ``setup.py`` to using
+  ``pyproject.toml`` (with Hatchling as build backend);
+  ``setup.py`` has consequently been removed (gh-1348)
+- Added ``django>=4.2`` as an installation dependency, to mirror the minimum version
+  tested in our CI (gh-1349)
+
 3.6.0 (2024-05-26)
 ------------------
 

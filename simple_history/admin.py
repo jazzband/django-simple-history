@@ -1,4 +1,5 @@
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from django import http
 from django.apps import apps as django_apps
@@ -6,8 +7,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import unquote
+from django.contrib.admin.views.main import PAGE_VAR
 from django.contrib.auth import get_permission_codename, get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, render
 from django.urls import re_path, reverse
@@ -30,6 +33,7 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
     object_history_template = "simple_history/object_history.html"
     object_history_list_template = "simple_history/object_history_list.html"
     object_history_form_template = "simple_history/object_history_form.html"
+    history_list_per_page = 100
 
     def get_urls(self):
         """Returns the additional urls used by the Reversion admin."""
@@ -71,14 +75,19 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         if not self.has_view_history_or_change_history_permission(request, obj):
             raise PermissionDenied
 
+        # Use the same pagination as in Django admin, with history_list_per_page items
+        paginator = Paginator(historical_records, self.history_list_per_page)
+        page_obj = paginator.get_page(request.GET.get(PAGE_VAR))
+        page_range = paginator.get_elided_page_range(page_obj.number)
+
         # Set attribute on each historical record from admin methods
         for history_list_entry in history_list_display:
             value_for_entry = getattr(self, history_list_entry, None)
             if value_for_entry and callable(value_for_entry):
-                for record in historical_records:
+                for record in page_obj.object_list:
                     setattr(record, history_list_entry, value_for_entry(record))
 
-        self.set_history_delta_changes(request, historical_records)
+        self.set_history_delta_changes(request, page_obj)
 
         content_type = self.content_type_model_cls.objects.get_for_model(
             get_user_model()
@@ -91,7 +100,10 @@ class SimpleHistoryAdmin(admin.ModelAdmin):
         context = {
             "title": self.history_view_title(request, obj),
             "object_history_list_template": self.object_history_list_template,
-            "historical_records": historical_records,
+            "page_obj": page_obj,
+            "page_range": page_range,
+            "page_var": PAGE_VAR,
+            "pagination_required": paginator.count > self.history_list_per_page,
             "module_name": capfirst(force_str(opts.verbose_name_plural)),
             "object": obj,
             "root_path": getattr(self.admin_site, "root_path", None),
