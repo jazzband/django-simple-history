@@ -644,8 +644,7 @@ class HistoricalRecords:
             )
         meta_fields["verbose_name"] = name
         meta_fields["verbose_name_plural"] = plural_name
-        if self.app:
-            meta_fields["app_label"] = self.app
+        meta_fields["app_label"] = self.app if self.app else model._meta.app_label
         if self._date_indexing == "composite":
             meta_fields["indexes"] = (
                 models.Index(fields=("history_date", model._meta.pk.attname)),
