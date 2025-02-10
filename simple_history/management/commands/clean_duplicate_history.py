@@ -95,11 +95,12 @@ class Command(populate_history.Command):
 
             def get_backend_name(model_class):
                 from django.db import connections, router
+
                 db_alias = router.db_for_read(model_class)
                 return connections[db_alias].vendor
 
             backend_name = get_backend_name(model)
-            if backend_name != 'microsoft':
+            if backend_name != "microsoft":
                 _iterator = model_query.iterator()
             else:
                 _iterator = model_query
