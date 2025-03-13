@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.2
+    rev: 1.8.3
     hooks:
       - id: bandit
         exclude: /.*tests/
@@ -13,14 +13,14 @@ repos:
         language_version: python3.9
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+    rev: 7.1.2
     hooks:
       - id: flake8
         args:
           - "--config=tox.ini"
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.0.0
+    rev: 6.0.1
     hooks:
       - id: isort
 
@@ -40,7 +40,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.5.0
+    rev: v2.5.1
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
