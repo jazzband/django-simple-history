@@ -19,7 +19,10 @@ def update_change_reason(instance, reason):
             if value is not None:
                 attrs[field.attname] = value
         else:
-            attrs[field.attname] = value
+            if value is not None:
+                attrs[field.attname] = value
+            else:
+                attrs[f"{field.attname}__isnull"] = True
 
     record = history.filter(**attrs).order_by("-history_date").first()
     record.history_change_reason = reason
