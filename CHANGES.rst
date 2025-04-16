@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Tests are no longer bundled in released wheels (gh-1478)
 
 3.9.0 (2025-01-26)
 ------------------
