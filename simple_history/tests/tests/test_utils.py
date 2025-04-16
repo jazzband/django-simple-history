@@ -640,3 +640,13 @@ class UpdateChangeReasonTestCase(TestCase):
         update_change_reason(poll, "Test change reason.")
         most_recent = poll.history.order_by("-history_date").first()
         self.assertEqual(most_recent.history_change_reason, "Test change reason.")
+
+    def test_update_change_reason_with_null_fields(self):
+        poll = PollWithExcludeFields(
+            question="what's up?", pub_date=timezone.now(), place=None
+        )
+        poll.save()
+        update_change_reason(poll, "Test change reason.")
+        most_recent = poll.history.order_by("-history_date").first()
+        self.assertIsNone(most_recent.place)
+        self.assertEqual(most_recent.history_change_reason, "Test change reason.")
