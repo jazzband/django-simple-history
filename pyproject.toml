@@ -62,6 +62,10 @@ core-metadata-version = "2.2"
 packages = [
   "simple_history",
 ]
+exclude = [
+  "simple_history/registry_tests",
+  "simple_history/tests",
+]
 
 [tool.hatch.build.targets.sdist]
 # Jazzband's release process is limited to 2.2 metadata
