@@ -1107,6 +1107,62 @@ class GetPrevRecordAndNextRecordTestCase(TestCase):
             self.assertRecordsMatch(first_record.next_record, second_record)
 
 
+class GetPrevRecordAndNextRecordDiffsTestCase(TestCase):
+    def setUp(self):
+        self.poll = Poll(question="what's up?", pub_date=today)
+        self.poll.save()
+
+    def test_get_prev_record_diff(self):
+        self.poll.question = "ask questions?"
+        self.poll.save()
+
+        first_record, second_record = self.poll.history.all()
+        delta = second_record.prev_record_diff()
+
+        expected_change = ModelChange("question", "what's up?", "ask questions?")
+
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(delta.old_record, first_record)
+        self.assertEqual(delta.new_record, second_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
+
+    def test_get_prev_record_diff_none_if_only(self):
+        self.assertEqual(self.poll.history.count(), 1)
+        record = self.poll.history.get()
+        self.assertIsNone(record.prev_record_diff)
+
+    def test_get_prev_record_diff_none_if_earliest(self):
+        self.poll.question = "ask questions?"
+        self.poll.save()
+        first_record = self.poll.history.filter(question="what's up?").get()
+        self.assertIsNone(first_record.prev_record_diff)
+
+    def test_get_next_record_diff(self):
+        self.poll.question = "ask questions?"
+        self.poll.save()
+
+        first_record, second_record = self.poll.history.all()
+        delta = first_record.next_record_diff()
+
+        expected_change = ModelChange("question", "ask questions?", "what's up?")
+        self.assertEqual(1, 2)
+        self.assertEqual(delta.changed_fields, ["question"])
+        self.assertEqual(delta.old_record, first_record)
+        self.assertEqual(delta.new_record, second_record)
+        self.assertEqual(expected_change.field, delta.changes[0].field)
+
+    def test_get_next_record_diff_none_if_only(self):
+        self.assertEqual(self.poll.history.count(), 1)
+        record = self.poll.history.get()
+        self.assertIsNone(record.next_record_diff)
+
+    def test_get_next_record_diff_none_if_most_recent(self):
+        self.poll.question = "ask questions?"
+        self.poll.save()
+        recent_record = self.poll.history.filter(question="ask questions?").get()
+        self.assertIsNone(recent_record.next_record_diff)
+
+
 class CreateHistoryModelTests(unittest.TestCase):
     @staticmethod
     def create_history_model(model, inherited):
