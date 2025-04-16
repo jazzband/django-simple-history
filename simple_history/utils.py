@@ -1,5 +1,13 @@
 from django.db import transaction
-from django.db.models import Case, ForeignKey, ManyToManyField, Q, When
+from django.db.models import (
+    Case,
+    ForeignKey,
+    JSONField,
+    ManyToManyField,
+    Q,
+    Value,
+    When,
+)
 from django.forms.models import model_to_dict
 
 from simple_history.exceptions import AlternativeManagerError, NotHistoricalModelError
@@ -18,6 +26,11 @@ def update_change_reason(instance, reason):
         if field.primary_key is True:
             if value is not None:
                 attrs[field.attname] = value
+        elif isinstance(field, JSONField):
+            if value is None and field.null is True:
+                attrs[f"{field.attname}__isnull"] = True
+            else:
+                attrs[field.attname] = Value(value, JSONField())
         else:
             attrs[field.attname] = value
 
