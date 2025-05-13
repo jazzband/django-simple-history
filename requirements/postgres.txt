@@ -1,1 +1,1 @@
-psycopg[binary]==3.2.6
+psycopg[binary]==3.2.9
