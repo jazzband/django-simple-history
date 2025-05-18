@@ -97,6 +97,7 @@ Authors
 - Marcelo Canina (`marcanuy <https://github.com/marcanuy>`_)
 - Marco Sirabella
 - Mark Davidoff
+- Marti Markov (`martimarkov <https://github.com/martimarkov>`_)
 - Martin Bachwerk
 - Marty Alchin
 - Matheus Cansian (`mscansian <https://github.com/mscansian>`_)

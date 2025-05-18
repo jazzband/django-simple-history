@@ -245,7 +245,7 @@ class HistoricalRecords:
             m2m_model = self.create_history_m2m_model(
                 history_model, field.remote_field.through
             )
-            self.m2m_models[field] = m2m_model
+            self.m2m_models[(sender._meta.object_name, field)] = m2m_model
 
             setattr(module, m2m_model.__name__, m2m_model)
 
@@ -706,7 +706,7 @@ class HistoricalRecords:
 
     def create_historical_record_m2ms(self, history_instance, instance):
         for field in history_instance._history_m2m_fields:
-            m2m_history_model = self.m2m_models[field]
+            m2m_history_model = self.m2m_models[(instance._meta.object_name, field)]
             original_instance = history_instance.instance
             through_model = getattr(original_instance, field.name).through
             through_model_field_names = [f.name for f in through_model._meta.fields]
