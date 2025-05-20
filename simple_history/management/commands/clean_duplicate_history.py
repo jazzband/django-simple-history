@@ -93,7 +93,19 @@ class Command(populate_history.Command):
                     pk__in=(m_qs.values_list(model._meta.pk.name).distinct())
                 )
 
-            for o in model_query.iterator():
+            def get_backend_name(model_class):
+                from django.db import connections, router
+
+                db_alias = router.db_for_read(model_class)
+                return connections[db_alias].vendor
+
+            backend_name = get_backend_name(model)
+            if backend_name != "microsoft":
+                _iterator = model_query.iterator()
+            else:
+                _iterator = model_query
+
+            for o in _iterator:
                 self._process_instance(o, model, stop_date=stop_date, dry_run=dry_run)
 
     def _process_instance(self, instance, model, stop_date=None, dry_run=True):
