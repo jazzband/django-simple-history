@@ -121,13 +121,34 @@ def bulk_create_with_history(
     history_manager = get_history_manager_for_model(model)
     model_manager = model._default_manager
 
-    second_transaction_required = True
     with transaction.atomic(savepoint=False):
+        # Retrieve any duplicate existing objects,
+        # so we can exclude them when finding the created objects
+        cumulative_filter = None
+        obj_when_list = []
+        for i, obj in enumerate(objs):
+            attributes = {
+                k: v
+                for k, v in model_to_dict(obj, exclude=exclude_fields).items()
+                if v is not None
+            }
+            # https://stackoverflow.com/a/49625179/1960509
+            # DEV: If an attribute has `then` as a key
+            #   then they'll also run into issues with `bulk_update`
+            #   due to shared implementation
+            #   https://github.com/django/django/blob/4.0.4/django/db/models/query.py#L624-L638
+            obj_when_list.append(When(**attributes, then=i))
+            q = Q(**attributes)
+            cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
+        existing_objs_ids = (
+            list(model_manager.filter(cumulative_filter).values_list("pk", flat=True))
+            if cumulative_filter
+            else []
+        )
         objs_with_id = model_manager.bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
         if objs_with_id and objs_with_id[0].pk and not ignore_conflicts:
-            second_transaction_required = False
             history_manager.bulk_history_create(
                 objs_with_id,
                 batch_size=batch_size,
@@ -136,45 +157,20 @@ def bulk_create_with_history(
                 default_date=default_date,
                 custom_historical_attrs=custom_historical_attrs,
             )
-    if second_transaction_required:
-        with transaction.atomic(savepoint=False):
-            # Generate a common query to avoid n+1 selections
-            #   https://github.com/jazzband/django-simple-history/issues/974
-            cumulative_filter = None
-            obj_when_list = []
-            for i, obj in enumerate(objs_with_id):
-                attributes = dict(
-                    filter(
-                        lambda x: x[1] is not None,
-                        model_to_dict(obj, exclude=exclude_fields).items(),
-                    )
-                )
-                q = Q(**attributes)
-                cumulative_filter = (cumulative_filter | q) if cumulative_filter else q
-                # https://stackoverflow.com/a/49625179/1960509
-                # DEV: If an attribute has `then` as a key
-                #   then they'll also run into issues with `bulk_update`
-                #   due to shared implementation
-                #   https://github.com/django/django/blob/4.0.4/django/db/models/query.py#L624-L638
-                obj_when_list.append(When(**attributes, then=i))
-            obj_list = (
-                list(
-                    model_manager.filter(cumulative_filter).order_by(
-                        Case(*obj_when_list)
-                    )
-                )
-                if objs_with_id
-                else []
+        elif objs_with_id:
+            objs_with_id = list(
+                model_manager.filter(cumulative_filter)
+                .exclude(pk__in=existing_objs_ids)
+                .order_by(Case(*obj_when_list))
             )
             history_manager.bulk_history_create(
-                obj_list,
+                objs_with_id,
                 batch_size=batch_size,
                 default_user=default_user,
                 default_change_reason=default_change_reason,
                 default_date=default_date,
                 custom_historical_attrs=custom_historical_attrs,
             )
-        objs_with_id = obj_list
     return objs_with_id
 
 
